@@ -9,7 +9,7 @@
 	- Compound File Binary Format(Hancom)
 
 ## MS Office
-> 설명써주세요
+> Very nice MS Office restore python library
 
 - USAGE
 
