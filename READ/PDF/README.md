@@ -1,4 +1,4 @@
-# Damaged Document Recovery
+# READ(REpair dAmaged Document)
 
 > A kind of data recovery project in Carpe Forensics
 
@@ -9,9 +9,27 @@
 	- Compound File Binary Format(Hancom)
 
 ## PDF
-> 설명써주세요
+> Very nice PDF Restore python library
 
-- USAGE
+### Prerequisites
+
+* Python 3.6 or later
+* [pdfminer.six](https://github.com/pdfminer/pdfminer.six)
+
+### Usage
+
+**Create PDF object**
+
+	pdf = PDF('path/to/pdf')
+
+**Restore PDF body content**
+
+	pdf.parse_content()
+
+**Restore PDF metadata**
+
+	pdf.parse_metadata()
+
 
 - Test Sample
 
