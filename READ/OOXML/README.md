@@ -1,4 +1,4 @@
-# Damaged Document Recovery
+# READ(REpair dAmaged Document)
 
 > A kind of data recovery project in Carpe Forensics
 
@@ -9,9 +9,18 @@
 	- Compound File Binary Format(Hancom)
 
 ## OOXML
-> 설명써주세요
+> Very nice OOXML Restore python library
 
-- USAGE
+### Prerequisites
+
+* Python 3.6 or later
+* [xlrd](https://github.com/python-excel/xlrd)
+
+### Usage
+
+**Restore OOXML body content & metadata**
+
+	python.exe main.py "filename"
 
 - Test Sample
 
