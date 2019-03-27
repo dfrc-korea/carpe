@@ -6,8 +6,6 @@ from __future__ import unicode_literals
 
 import os
 import sys
-import argparse
-import logging
 
 from multiprocessing import Process
 
