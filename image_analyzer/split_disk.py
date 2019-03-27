@@ -15,14 +15,19 @@ from dfvfs.lib import tsk_image
 from dfvfs.resolver import resolver
 
 
-class DiskSpliter(volume_scanner.VolumeScanner):
-    def __init__(self, mediator=None):
-        super(DiskSpliter, self).__init__(mediator=mediator)
+class DiskSpliter:
+    def __init__(self, base_path_specs=None):
+        self.base_path_specs = base_path_specs
 
-    def SplitDisk(self, base_path_specs, output_writer):
+    def SetBasePathSpecs(self, base_path_specs):
+        self.base_path_specs = base_path_specs
+
+    def SplitDisk(self, output_writer):
+        if self.base_path_specs is None:
+            return
         prefix = 'p'
         procs = []
-        for i, base_path_spec in enumerate(base_path_specs):
+        for i, base_path_spec in enumerate(self.base_path_specs):
             file_system = resolver.Resolver.OpenFileSystem(base_path_spec)
             if file_system.type_indicator == 'TSK':
                 tsk_image_object = tsk_image.TSKFileSystemImage(file_system._file_object)
@@ -56,19 +61,6 @@ class DiskSpliter(volume_scanner.VolumeScanner):
             if offset >= length:
                 break
         output_writer.Close()
-
-class DiskSpliterMediator(volume_scanner.VolumeScannerMediator):
-    def __init__(self):
-        super(DiskSpliterMediator, self).__init__() 
-
-    def GetAPFSVolumeIdentifiers(self, volume_system, volume_identifiers):
-        return volume_identifiers
-                
-    def GetPartitionIdentifiers(self, volume_system, volume_identifiers):
-        return volume_identifiers
-
-    def GetVSSStoreIdentifiers(self, volume_system, volume_identifiers):
-        return volume_identifiers
 
 class FileOutputWriter:
     def __init__(self, path):
