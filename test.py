@@ -1,4 +1,4 @@
-from disk_util import split_disk
+from image_analyzer import split_disk
 from dfvfs.lib import errors
 
 import sys
