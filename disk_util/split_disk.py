@@ -65,7 +65,7 @@ class DiskSpliterMediator(volume_scanner.VolumeScannerMediator):
 
     def GetAPFSVolumeIdentifiers(self, volume_system, volume_identifiers):
         return volume_identifiers
-
+                
     def GetPartitionIdentifiers(self, volume_system, volume_identifiers):
         return volume_identifiers
 
