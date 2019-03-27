@@ -52,8 +52,8 @@ class DiskSpliter(volume_scanner.VolumeScanner):
             print('Unable to open output writer with error: {0!s}.'.format(exception))
             print('')
             return
-        MAX_LENGTH = 1024 * 1024
-        while True:
+        MAX_LENGTH = 1024 * 1024 # 1 MB
+        while True: # need to add multiprocessing that extract data in 100 MB 
             rlen = MAX_LENGTH if length - offset > MAX_LENGTH else length - offset
             data = image_object.read(offset, rlen)
             offset += rlen
