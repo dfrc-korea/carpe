@@ -3,7 +3,7 @@ import pymysql
 class Mariadb(object):
 	def open(self):
 		try:
-			conn=pymysql.connect(host='192.168.1.232', port=3306, user='root', passwd='dfrc4738', db='carpe_test',charset='utf8',autocommit=True)
+			conn=pymysql.connect(host='192.168.1.232', port=3306, user='root', passwd='dfrc4738', db='carpe',charset='utf8',autocommit=True)
 			return conn
 		except Exception:
 			conn=None
