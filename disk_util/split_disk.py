@@ -22,17 +22,15 @@ class DiskSpliter(volume_scanner.VolumeScanner):
         super(DiskSpliter, self).__init__(mediator=mediator)
 
     def SplitDisk(self, base_path_specs, output_writer):
-        print("Split Disk")
-        base_name = 0x43 # C:\
+        prefix = 'p'
         procs = []
-        for base_path_spec in base_path_specs:
+        for i, base_path_spec in enumerate(base_path_specs):
             #file_object = resolver.Resolver.OpenFileObject(base_path_spec.parent.parent)
             file_system = resolver.Resolver.OpenFileSystem(base_path_spec)
             if file_system.type_indicator == 'TSK':
                 tsk_image_object = tsk_image.TSKFileSystemImage(file_system._file_object)
-                file_name = str(chr(base_name)) if base_path_spec.parent.type_indicator != 'VSHADOW' \
-                    else str(chr(base_name)) + '_' + base_path_spec.parent.location[1:]
-                base_name += 1
+                file_name = prefix + str(i) if base_path_spec.parent.type_indicator != 'VSHADOW' \
+                    else prefix + str(i) + '_' + base_path_spec.parent.location[1:]
                 imageWrite_process = Process(target=self._tskWriteImage, args=(tsk_image_object, output_writer, file_name))
                 imageWrite_process.start()
                 procs.append(imageWrite_process)
@@ -89,79 +87,3 @@ class FileOutputWriter:
 
     def Write(self, buf):
         self._file_object.write(buf)
-
-def Main():
-    print("Main program")
-
-    argument_parser = argparse.ArgumentParser(description=(
-        'Split disk into several volume images.'
-    ))
-
-    argument_parser.add_argument(
-        '--output_directory', '--output-directory', dest='output_dir', action='store',
-        metavar='source.hashed', default=None, help=(
-            'path of the output directory.'
-        )
-    )
-
-    argument_parser.add_argument(
-        'source', nargs='?', action='store', metavar='image.raw',
-        default=None, help='path of the directory or storage media image.'
-    )
-
-    options = argument_parser.parse_args()
-
-    if not options.source:
-        print('Source value is missing.')
-        print('')
-        argument_parser.print_help()
-        print('')
-        return False
-
-    logging.basicConfig(
-        level=logging.INFO, format='[%(levelname)s] %(message)s'
-    )
-
-    if options.output_dir:
-        output_dir = options.output_dir
-    else:
-        output_dir = os.getcwd()
-        
-    output_writer = FileOutputWriter(output_dir)
- 
-    return_value = True
-    mediator = DiskSpliterMediator()
-    disk_spliter = DiskSpliter(mediator=mediator)
-
-    try:
-        base_path_specs = disk_spliter.GetBasePathSpecs(options.source)
-        if not base_path_specs:
-            print('NO supported file system found in source.')
-            print('')
-            return False
-        
-        disk_spliter.SplitDisk(base_path_specs, output_writer)
-
-        print('')
-        print('Completed.')
-
-    except errors.ScannerError as exception:
-        return_value = False
-
-        print('')
-        print('[ERROR] {0!s}'.format(exception))
-
-    except KeyboardInterrupt:
-        return_value = False
-
-        print('')
-        print('Aborted by user.')
-
-    return return_value
-
-
-if __name__ == "__main__":
-    if not Main():
-        sys.exit(1)
-    else:
-        sys.exit(0)
