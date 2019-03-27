@@ -25,7 +25,6 @@ class DiskSpliter(volume_scanner.VolumeScanner):
         prefix = 'p'
         procs = []
         for i, base_path_spec in enumerate(base_path_specs):
-            #file_object = resolver.Resolver.OpenFileObject(base_path_spec.parent.parent)
             file_system = resolver.Resolver.OpenFileSystem(base_path_spec)
             if file_system.type_indicator == 'TSK':
                 tsk_image_object = tsk_image.TSKFileSystemImage(file_system._file_object)
@@ -34,8 +33,7 @@ class DiskSpliter(volume_scanner.VolumeScanner):
                 imageWrite_process = Process(target=self._tskWriteImage, args=(tsk_image_object, output_writer, file_name))
                 imageWrite_process.start()
                 procs.append(imageWrite_process)
-                #imageWrite_process.join()
-            else:
+            else: # apfs
                 raise NotImplementedError
 
         for proc in procs:
@@ -51,7 +49,7 @@ class DiskSpliter(volume_scanner.VolumeScanner):
             print('')
             return
         MAX_LENGTH = 1024 * 1024 # 1 MB
-        while True: # need to add multiprocessing that extract data in 100 MB 
+        while True: # need to add multiprocessing that extract data in 100 MB  => need not develop
             rlen = MAX_LENGTH if length - offset > MAX_LENGTH else length - offset
             data = image_object.read(offset, rlen)
             offset += rlen
