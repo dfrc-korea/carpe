@@ -1,3 +1,4 @@
+from image_analyzer import scan_disk
 from image_analyzer import split_disk
 from dfvfs.lib import errors
 
@@ -44,21 +45,13 @@ def Main():
     output_writer = split_disk.FileOutputWriter(output_dir)
  
     return_value = True
-    mediator = split_disk.DiskSpliterMediator()
-    disk_spliter = split_disk.DiskSpliter(mediator=mediator)
+    mediator = scan_disk.DiskScannerMediator()
+    disk_scanner = scan_disk.DiskScanner(mediator=mediator)
 
     try:
-        base_path_specs = disk_spliter.GetBasePathSpecs(options.source)
-        if not base_path_specs:
-            print('NO supported file system found in source.')
-            print('')
-            return False
-        
-        disk_spliter.SplitDisk(base_path_specs, output_writer)
+        base_path_specs = disk_scanner.GetBasePathSpecs(options.source_path)
 
-        print('')
-        print('Completed.')
-
+        disk_info = disk_scanner.ScanDisk(base_path_specs)
     except errors.ScannerError as exception:
         return_value = False
 
@@ -70,6 +63,9 @@ def Main():
 
         print('')
         print('Aborted by user.')
+
+    disk_spliter = split_disk.DiskSpliter(base_path_specs)
+    disk_spliter.SplitDisk(output_writer)
 
     return return_value
     
