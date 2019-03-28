@@ -1,8 +1,8 @@
 import os, time, logging, subprocess
 import json
 
-#import pymysql
-#import plaso
+import pymysql
+import plaso
 from utility import mariadb
 from image_analyzer import split_disk
 from image_analyzer import scan_disk
