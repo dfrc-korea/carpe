@@ -9,31 +9,29 @@ import sys
 
 from multiprocessing import Process
 
-from dfvfs.helpers import volume_scanner
 from dfvfs.lib import errors
 from dfvfs.lib import tsk_image
 from dfvfs.resolver import resolver
 
 
 class DiskSpliter:
-    def __init__(self, base_path_specs=None):
-        self.base_path_specs = base_path_specs
+    def __init__(self, disk_info=None, prefix='p'):
+        self.disk_info = disk_info
+        self.prefix = prefix
 
-    def SetBasePathSpecs(self, base_path_specs):
-        self.base_path_specs = base_path_specs
+    def SetDiskInfo(self, disk_info):
+        self.disk_info = disk_info
 
     def SplitDisk(self, output_writer):
-        if self.base_path_specs is None:
+        if self.disk_info is None:
             return
-        prefix = 'p'
         procs = []
-        for i, base_path_spec in enumerate(self.base_path_specs):
+        for par_name, length, par_type, base_path_spec in self.disk_info:
             file_system = resolver.Resolver.OpenFileSystem(base_path_spec)
-            if file_system.type_indicator == 'TSK':
+            if par_type in ['VSS', 'TSK']:
                 tsk_image_object = tsk_image.TSKFileSystemImage(file_system._file_object)
-                file_name = prefix + str(i) if base_path_spec.parent.type_indicator != 'VSHADOW' \
-                    else prefix + str(i) + '_' + base_path_spec.parent.location[1:]
-                imageWrite_process = Process(target=self._tskWriteImage, args=(tsk_image_object, output_writer, file_name))
+                file_name = par_name
+                imageWrite_process = Process(target=self._tskWriteImage, args=(tsk_image_object, length, output_writer, file_name))
                 imageWrite_process.start()
                 procs.append(imageWrite_process)
             else: # apfs
@@ -42,9 +40,8 @@ class DiskSpliter:
         for proc in procs:
             proc.join()
 
-    def _tskWriteImage(self, image_object, output_writer, file_name):
+    def _tskWriteImage(self, image_object, length, output_writer, file_name):
         offset = 0
-        length = image_object.get_size()
         try:
             output_writer.Open(file_name)
         except IOError as exception:
