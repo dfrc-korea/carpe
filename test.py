@@ -49,7 +49,7 @@ def Main():
     disk_scanner = scan_disk.DiskScanner(mediator=mediator)
 
     try:
-        base_path_specs = disk_scanner.GetBasePathSpecs(options.source_path)
+        base_path_specs = disk_scanner.GetBasePathSpecs(options.source)
 
         disk_info = disk_scanner.ScanDisk(base_path_specs)
     except errors.ScannerError as exception:
@@ -63,8 +63,11 @@ def Main():
 
         print('')
         print('Aborted by user.')
-
-    disk_spliter = split_disk.DiskSpliter(base_path_specs)
+    
+    if disk_info is None:
+        return False
+        
+    disk_spliter = split_disk.DiskSpliter(disk_info)
     disk_spliter.SplitDisk(output_writer)
 
     return return_value
