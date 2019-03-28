@@ -1,10 +1,11 @@
 import os, time, logging, subprocess
 import json
 
-import pymysql
-import plaso
+#import pymysql
+#import plaso
 from utility import mariadb
 from image_analyzer import split_disk
+from image_analyzer import scan_disk
 
 import pdb
 
@@ -40,9 +41,22 @@ class CARPE_AM:
 			os.mkdir(self.dst_path)
 		
 		# Get partition list in image file
-		mediator = split_disk.DiskSpliterMediator()
-		disk_spliter = split_disk.DiskSpliter(mediator=mediator)
-		base_path_specs = disk_spliter.GetBasePathSpecs(self.src_path)
+		output_writer = split_disk.FileOutputWriter(self.dst_path)
+		mediator = scan_disk.DiskScannerMediator()
+		disk_scanner = scan_disk.DiskScanner(mediator=mediator)
+
+		try:
+			base_path_specs = disk_scanner.GetBasePathSpecs(self.src_path)
+
+			disk_info = disk_scanner.ScanDisk(base_path_specs)
+		except KeyboardInterrupt:
+			return
+
+		if disk_info is None:
+			return
+
+		disk_spliter = split_disk.DiskSpliter(disk_info)
+		disk_spliter.SplitDisk(output_writer)
 
 	def Image_Analysis(self, case_id, evd_id, user_id):
 		print('Image Analyis')

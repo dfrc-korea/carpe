@@ -6,68 +6,58 @@ from __future__ import unicode_literals
 
 import os
 import sys
-import argparse
-import logging
 
-from dfvfs.helpers import volume_scanner
+from multiprocessing import Process
+
 from dfvfs.lib import errors
 from dfvfs.lib import tsk_image
 from dfvfs.resolver import resolver
 
-import pdb
 
-class DiskSpliter(volume_scanner.VolumeScanner):
-    base_path_specs = None
+class DiskSpliter:
+    def __init__(self, disk_info=None, prefix='p'):
+        self.disk_info = disk_info
+        self.prefix = prefix
 
-    def __init__(self, mediator=None):
-        super(DiskSpliter, self).__init__(mediator=mediator)
-        self.base_path_specs = None
+    def SetDiskInfo(self, disk_info):
+        self.disk_info = disk_info
 
-    def AnalyzePartitionInfo(self, source):
-        self.base_path_specs = self.GetBasePathSpecs(source)
+    def SplitDisk(self, output_writer):
+        if self.disk_info is None:
+            return
+        procs = []
+        for par_name, length, par_type, base_path_spec in self.disk_info:
+            file_system = resolver.Resolver.OpenFileSystem(base_path_spec)
+            if par_type in ['VSS', 'TSK']:
+                tsk_image_object = tsk_image.TSKFileSystemImage(file_system._file_object)
+                file_name = par_name
+                imageWrite_process = Process(target=self._tskWriteImage, args=(tsk_image_object, length, output_writer, file_name))
+                imageWrite_process.start()
+                procs.append(imageWrite_process)
+            else: # apfs
+                raise NotImplementedError
 
-    def SplitDisk(self, base_path_spec, output_writer):
-        file_system = resolver.Resolver.OpenFileSystem(base_path_spec)
+        for proc in procs:
+            proc.join()
 
-        if file_system.type_indicator == 'TSK':
-            tsk_image_object = tsk_image.TSKFileSystemImage(file_system._file_object)
-
-            offset = 0
-            length = file_system._file_object._range_size
-
-            try:
-                output_writer.Open(base_path_spec.parent.location[1:])
-            except IOError as exception:
-                print('Unable to open output writer with error: {0!s}.'.format(exception))
-                print('')
-                return
-            
-            MAX_LENGTH = 1024 * 1024
-
-            while True:
-                rlen = MAX_LENGTH if length - offset > MAX_LENGTH else length - offset
-                data = tsk_image_object.read(offset, rlen)
-                offset += rlen
-                output_writer.Write(data)
-                del data
-
-                if offset >= length:
-                    break
-            
-            output_writer.Close()
-
-class DiskSpliterMediator(volume_scanner.VolumeScannerMediator):
-    def __init__(self):
-        super(DiskSpliterMediator, self).__init__() 
-
-    def GetAPFSVolumeIdentifiers(self, volume_system, volume_identifiers):
-        return volume_identifiers
-
-    def GetPartitionIdentifiers(self, volume_system, volume_identifiers):
-        return volume_identifiers
-
-    def GetVSSStoreIdentifiers(self, volume_system, volume_identifiers):
-        return volume_identifiers
+    def _tskWriteImage(self, image_object, length, output_writer, file_name):
+        offset = 0
+        try:
+            output_writer.Open(file_name)
+        except IOError as exception:
+            print('Unable to open output writer with error: {0!s}.'.format(exception))
+            print('')
+            return
+        MAX_LENGTH = 1024 * 1024 # 1 MB
+        while True: # need to add multiprocessing that extract data in 100 MB  => need not develop
+            rlen = MAX_LENGTH if length - offset > MAX_LENGTH else length - offset
+            data = image_object.read(offset, rlen)
+            offset += rlen
+            output_writer.Write(data)
+            del data
+            if offset >= length:
+                break
+        output_writer.Close()
 
 class FileOutputWriter:
     def __init__(self, path):
