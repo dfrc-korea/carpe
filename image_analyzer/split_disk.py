@@ -37,9 +37,6 @@ class DiskSpliter:
             else: # apfs
                 raise NotImplementedError
 
-        for proc in procs:
-            proc.join()
-
     def _tskWriteImage(self, image_object, length, output_writer, file_name):
         offset = 0
         try:

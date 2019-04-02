@@ -18,7 +18,7 @@ class DiskScanner(volume_scanner.VolumeScanner):
         self.base_path_specs = None
         self.prefix = 'p'
 
-    def ScanDisk(self, base_path_specs):
+     def ScanDisk(self, base_path_specs):
         disk_info = []
         self.base_path_specs = base_path_specs
         for i, base_path_spec in enumerate(self.base_path_specs):
@@ -34,6 +34,7 @@ class DiskScanner(volume_scanner.VolumeScanner):
                 raise NotImplementedError
 
         return disk_info
+
 
     def SetPrefix(self, prefix):
         self.prefix = prefix
