@@ -18,17 +18,13 @@
 
 import argparse
 import gc
-import pdb
-import sys, os
-import time
+import sys, os, time
 
 import images
 import pytsk3
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility import carpe_db
-
-
 
 class Fls(object):
 
@@ -89,9 +85,7 @@ class Fls(object):
           directory_entry.info.name.name in [".", ".."]):
         continue
 
-      #print path
       self.print_directory_entry(directory_entry, prefix=prefix, path=path)  
-      #print "[*]"
       
       if self._recursive:
         try:
@@ -172,7 +166,6 @@ class Fls(object):
           attribute_name = attribute.info.name
           if attribute_name and attribute_name not in ["$Data", "$I30"]:
             
-            #filename = name.name+":"+attribute.info.name
             filename = "{0:s}:{1:s}".format((name.name).decode('utf-8','replace'), (attribute.info.name).decode('utf-8','replace'))
 
           else:
