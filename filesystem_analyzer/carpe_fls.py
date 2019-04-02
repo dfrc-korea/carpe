@@ -15,6 +15,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+<<<<<<< HEAD
 
 import argparse
 import gc
@@ -25,6 +26,20 @@ import pytsk3
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility import carpe_db
+=======
+from __future__ import print_function
+import argparse
+import gc
+import pdb
+import sys
+import time
+
+import images
+import pytsk3
+import carpe_db
+
+
+>>>>>>> origin/IITP2_Develop
 
 class Fls(object):
 
@@ -56,6 +71,11 @@ class Fls(object):
   ATTRIBUTE_TYPES_TO_PRINT = [
       pytsk3.TSK_FS_ATTR_TYPE_NTFS_IDXROOT,
       pytsk3.TSK_FS_ATTR_TYPE_NTFS_DATA,
+<<<<<<< HEAD
+=======
+      pytsk3.TSK_FS_ATTR_TYPE_NTFS_FNAME,
+      pytsk3.TSK_FS_ATTR_TYPE_NTFS_SI,
+>>>>>>> origin/IITP2_Develop
       pytsk3.TSK_FS_ATTR_TYPE_DEFAULT]
 
   def __init__(self):
@@ -85,7 +105,13 @@ class Fls(object):
           directory_entry.info.name.name in [".", ".."]):
         continue
 
+<<<<<<< HEAD
       self.print_directory_entry(directory_entry, prefix=prefix, path=path)  
+=======
+      #print path
+      self.print_directory_entry(directory_entry, prefix=prefix, path=path)  
+      #print "[*]"
+>>>>>>> origin/IITP2_Develop
       
       if self._recursive:
         try:
@@ -135,11 +161,23 @@ class Fls(object):
     self._long_listing = getattr(options, "long_listing", False)
     self._recursive = getattr(options, "recursive", False)
 
+<<<<<<< HEAD
+=======
+
+
+  #To Do
+  # 1. connect direct to db
+  # 2. Error/Info Log     
+>>>>>>> origin/IITP2_Develop
   def print_directory_entry(self, directory_entry, prefix="", path=None):
       
       meta = directory_entry.info.meta
       name = directory_entry.info.name
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> origin/IITP2_Develop
       name_type = "-"
       if name:
         name_type = self.FILE_TYPE_LOOKUP.get(int(name.type), "-")
@@ -149,6 +187,7 @@ class Fls(object):
         meta_type = self.META_TYPE_LOOKUP.get(int(meta.type), "-")
 
       directory_entry_type = "{0:s}/{1:s}".format(name_type, meta_type)
+<<<<<<< HEAD
 
       for attribute in directory_entry:
         mtime = directory_entry.info.meta.mtime
@@ -186,3 +225,146 @@ class Fls(object):
             query=db_test.query_builder("1", data, "file")
             data=db_test.execute_query(conn,query)
             db_test.close(conn)
+=======
+      #print("==+Attribute List===")
+      #print("====================")
+      for attribute in directory_entry:
+        #print (attribute.info.type)
+        
+        if int(attribute.info.type) in self.ATTRIBUTE_TYPES_TO_PRINT:
+          #$StandardInformation 
+          if attribute.info.type == pytsk3.TSK_FS_ATTR_TYPE_NTFS_SI:
+            si_mtime = [lambda:0, lambda:directory_entry.info.meta.mtime][directory_entry.info.meta.mtime is not None]()  
+            si_atime = [lambda:0, lambda:directory_entry.info.meta.atime][directory_entry.info.meta.atime is not None]()
+            si_ctime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
+            si_crtime =[lambda:0, lambda:directory_entry.info.meta.crtime][directory_entry.info.meta.crtime is not None]()
+            
+            si_mtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.mtime_nano is not None]()            
+            si_atime_nano = [lambda:0, lambda:directory_entry.info.meta.atime_nano][directory_entry.info.meta.atime_nano is not None]()
+            si_ctime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
+            si_crtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                
+          #$FileName   
+          if attribute.info.type == pytsk3.TSK_FS_ATTR_TYPE_NTFS_FNAME:
+            fn_mtime = [lambda:0, lambda:directory_entry.info.meta.mtime][directory_entry.info.meta.mtime is not None]()  
+            fn_atime = [lambda:0, lambda:directory_entry.info.meta.atime][directory_entry.info.meta.atime is not None]()
+            fn_ctime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
+            fn_crtime =[lambda:0, lambda:directory_entry.info.meta.crtime][directory_entry.info.meta.crtime is not None]()
+            
+            fn_mtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.mtime_nano is not None]()            
+            fn_atime_nano = [lambda:0, lambda:directory_entry.info.meta.atime_nano][directory_entry.info.meta.atime_nano is not None]()
+            fn_ctime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
+            fn_crtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                                
+          #Allocated status
+          inode = [lambda:"{0:d}".format(meta.addr), lambda:"{0:d}-{1:d}-{2:d}".format(meta.addr, int(attribute.info.type), attribute.info.id)][self._fs_info.info.ftype in [pytsk3.TSK_FS_TYPE_NTFS, pytsk3.TSK_FS_TYPE_NTFS_DETECT]]()          
+          #File name       
+          filename =[lambda:(name.name).decode('utf-8','replace'), lambda:"{0:s}:{1:s}".format((name.name).decode('utf-8','replace'), (attribute.info.name).decode('utf-8','replace'))][(attribute.info.name is not None) & (attribute.info.name not in ["$Data", "$I30"])]()
+          
+          #file extension
+          file_extension =u""
+          for i in range( len(list(filename)) -1 , -1, -1):
+            if list(filename)[i] != u".":
+              file_extension = list(filename)[i] + file_extension  
+            else:
+              break
+          file_extension = [lambda:u"", lambda:file_extension][file_extension != filename]()
+        
+        else:
+          debug ="TO DO : Deal with other Attribute Types"
+          
+      #print("===Summary Info===")          
+      if name and meta:
+        #data="{0:s}|{1:s}|{2:s}|{3:s}|{4:s}|{5:s}|{6:s}|{7:s}|{8:s}|{9:s}|{10:s}|{11:s}|{12:s}|{13:s}|{14:s}|{15:s}|{16:s}|{17:s}|{18:s}|{19:s}|{20:s}".format(
+        #  str(directory_entry_type), str(inode), str("root/"+"/".join(path)), "".join(filename),
+        #  str(si_mtime), str(si_atime), str(si_ctime), str(si_crtime), str(si_mtime_nano), str(si_atime_nano), str(si_ctime_nano), str(si_crtime_nano),
+        #  str(fn_mtime), str(fn_atime), str(fn_ctime), str(fn_crtime), str(fn_mtime_nano), str(fn_atime_nano), str(fn_ctime_nano), str(fn_crtime_nano),
+        #  str(file_extension))
+
+
+        #db_test = carpe_db.Mariadb()
+        #conn=db_test.open()
+        #query=db_test.query_builder("1", data, "file")
+        #data=db_test.execute_query(conn,query)
+        #db_test.close(conn)
+
+
+
+
+def Main():
+  """The main program function.
+
+  Returns:
+    A boolean containing True if successful or False if not.
+  """
+  args_parser = argparse.ArgumentParser(description=(
+      "Lists a file system in a storage media image or device."))
+
+  args_parser.add_argument(
+      "images", nargs="+", metavar="IMAGE", action="store", type=str,
+      default=None, help=("Storage media images or devices."))
+
+  args_parser.add_argument(
+      "inode", nargs="?", metavar="INODE", action="store",
+      type=str, default=None, help=(
+          "The inode or path to list. If [inode] is not given, the root "
+          "directory is used"))
+
+  # TODO: not implemented.
+  # args_parser.add_argument(
+  #     "-f", "--fstype", metavar="TYPE", dest="file_system_type",
+  #     action="store", type=str, default=None, help=(
+  #         "The file system type (use \"-f list\" for supported types)"))
+
+  args_parser.add_argument(
+      "-i", "--imgtype", metavar="TYPE", dest="image_type", type=str,
+      choices=["ewf", "qcow", "raw"], default="raw", help=(
+          "Set the storage media image type."))
+
+  # TODO: not implemented.
+  # args_parser.add_argument(
+  #     "-l", dest="long_listing", action="store_true", default=False,
+  #     help="Display long version (like ls -l)")
+
+  args_parser.add_argument(
+      "-o", "--offset", metavar="OFFSET", dest="offset", action="store",
+      type=int, default=0, help="The offset into image file (in bytes)")
+
+  args_parser.add_argument(
+      "-r", "--recursive", dest="recursive", action="store_true",
+      default=False, help="List subdirectories recursively.")
+
+  options = args_parser.parse_args()
+
+  if not options.images:
+    print('No storage media image or device was provided.')
+    print('')
+    args_parser.print_help()
+    print('')
+    return False
+  #print (type(options))
+  #print (options)
+
+  fls = Fls()
+  fls.parse_options(options)
+
+  fls.open_image(options.image_type, options.images)
+
+  fls.open_file_system(options.offset)
+
+  directory = fls.open_directory(options.inode)
+
+
+  # Iterate over all files in the directory and print their name.
+  # What you get in each iteration is a proxy object for the TSK_FS_FILE
+  # struct - you can further dereference this struct into a TSK_FS_NAME
+  # and TSK_FS_META structs.
+  fls.list_directory(directory, [], [])
+
+  return True
+
+
+if __name__ == '__main__':
+  if not Main():
+    sys.exit(1)
+  else:
+    sys.exit(0)
+>>>>>>> origin/IITP2_Develop
