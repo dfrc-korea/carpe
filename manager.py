@@ -65,7 +65,7 @@ class CARPE_AM:
 		conn = db.open()
 
 		# Get image file list
-		query = 'SELECT * FROM tn_evidence_splitted WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
+		query = 'SELECT file_path FROM tn_evidence_splitted WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
 		image_list = db.execute_query(conn, query)
 		db.close(conn)
 		
@@ -99,11 +99,13 @@ class CARPE_AM:
 		conn = db.open()
 
 		# Get image file list
-		query = 'SELECT * FROM tn_evidence_splitted WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
+		query = 'SELECT file_path FROM tn_evidence_splitted WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
 		image_list = db.execute_query(conn, query)
 		db.close(conn)
 
-
+		# Call log2timeline module
+		for image in image_list:
+			
 
 
 def main():
