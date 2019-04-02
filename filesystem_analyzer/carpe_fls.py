@@ -15,7 +15,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-<<<<<<< HEAD
 
 import argparse
 import gc
@@ -26,20 +25,6 @@ import pytsk3
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility import carpe_db
-=======
-from __future__ import print_function
-import argparse
-import gc
-import pdb
-import sys
-import time
-
-import images
-import pytsk3
-import carpe_db
-
-
->>>>>>> origin/IITP2_Develop
 
 class Fls(object):
 
