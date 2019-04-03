@@ -14,9 +14,9 @@ class DOC:
         raise NotImplementedError
 
     def parse_doc(self):
-        if self.compound.isDamaged == self.compound.CONST_DOCUMENT_NORMAL:
+        if self.compound.is_damaged == self.compound.CONST_DOCUMENT_NORMAL:
             self.__parse_doc_normal__()
-        elif self.compound.isDamaged == self.compound.CONST_DOCUMENT_DAMAGED:
+        elif self.compound.is_damaged == self.compound.CONST_DOCUMENT_DAMAGED:
             self.__parse_doc_damaged__()
 
     def __doc_extra_filter__(self, string, uFilteredTextLen):
@@ -507,8 +507,8 @@ class DOC:
 
         filteredText = dictionary['string']
         filteredLen = dictionary['length']
+        self.compound.content = filteredText.decode("utf-16")
 
-        print(filteredText.decode("utf-16"))  ## finished
 
 
 
@@ -827,8 +827,8 @@ class DOC:
     
         filteredText = dictionary['string']
         filteredLen = dictionary['length']
-    
-        print(filteredText.decode("utf-16"))  ## finished
+
+        self.compound.content = filteredText.decode("utf-16")
 
 
 

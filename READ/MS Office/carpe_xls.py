@@ -13,9 +13,9 @@ class XLS :
         raise NotImplementedError
 
     def parse_xls(self):
-        if self.compound.isDamaged == self.compound.CONST_DOCUMENT_NORMAL:
+        if self.compound.is_damaged == self.compound.CONST_DOCUMENT_NORMAL:
             self.__parse_xls_normal__()
-        elif self.compound.isDamaged == self.compound.CONST_DOCUMENT_DAMAGED:
+        elif self.compound.is_damaged == self.compound.CONST_DOCUMENT_DAMAGED:
             self.__parse_xls_damaged__()
 
     def __parse_xls_normal__(self):
@@ -27,6 +27,7 @@ class XLS :
         f = bytearray(temp)
         # 스트림 내부 모두 파싱해서 데이터 출력
         tempOffset = 0
+        content = ""       # 최종 저장될 스트링
 
         while tempOffset < len(f):
             dic = {}
@@ -161,8 +162,8 @@ class XLS :
                         except UnicodeDecodeError:
                             cntStream += 2
                             continue
-
-            print(str(i) + " : " + string)
+            content += string + '\n'
+            #print(str(i) + " : " + string)
 
             if fRichSt == 0x01:
                 if f[cntStream: cntStream + 4] == b'\xAA\xAA\xAA\xAA':
@@ -180,7 +181,10 @@ class XLS :
 
                     cntStream += 1
 
+        self.compound.content = content
+
     def __parse_xls_damaged__(self):
+        content = ""
         test = bytearray(self.compound.fp.read())
         tempOffset = 0
         globalStreamOffset = 0
@@ -336,8 +340,9 @@ class XLS :
                         except UnicodeDecodeError:
                             cntStream += 2
                             continue
+            content += string + '\n'
+            #print(str(i) + " : " + string)
 
-            print(str(i) + " : " + string)
 
             if fRichSt == 0x01:
                 if f[cntStream: cntStream + 4] == b'\xAA\xAA\xAA\xAA':
@@ -354,3 +359,5 @@ class XLS :
                             cntStream += 4
 
                     cntStream += 1
+
+        self.compound.content = content
