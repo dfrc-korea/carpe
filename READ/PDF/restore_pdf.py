@@ -13,12 +13,14 @@
 @contact:   horensic@gmail.com
 """
 
+import os
 from pdfminer.pdfdocument import *
 from pdfminer.pdfpage import *
 from pdfminer.pdfinterp import *
 from pdfminer.pdftypes import *
 from pdfminer.pdffont import PDFUnicodeNotDefined
 from pdfminer.cmapdb import CMapParser, FileUnicodeMap
+from error import CMAPNotFoundError
 import logger
 
 
@@ -254,6 +256,10 @@ class PDFPageStream:
     def restore_unicode_map(self, version):
 
         self.korean_unicode_map = FileUnicodeMap()
+
+        if not os.path.isdir("../cmap/"):
+            print("Check if cmap file & directory exists")
+            raise CMAPNotFoundError
 
         if version == 7:  # version 1.7
             with open('../cmap/Adobe-Identity-UCS_1-7', 'rb') as strm:  # TODO:path setting
