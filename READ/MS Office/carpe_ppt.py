@@ -58,9 +58,9 @@ class PPT :
         raise NotImplementedError
 
     def parse_ppt(self):
-        if self.compound.isDamaged == self.compound.CONST_DOCUMENT_NORMAL:
+        if self.compound.is_damaged == self.compound.CONST_DOCUMENT_NORMAL:
             self.__parse_ppt_normal__()
-        elif self.compound.isDamaged == self.compound.CONST_DOCUMENT_DAMAGED:
+        elif self.compound.is_damaged == self.compound.CONST_DOCUMENT_DAMAGED:
             self.__parse_ppt_damaged__()
 
     def __get_user_edit_offset__(self):
@@ -630,7 +630,7 @@ class PPT :
 
         uFilteredTextLen = self.__ppt_extra_filter__(uFilteredTextLen)
 
-        print(self.filteredText.decode('utf-16'))
+        self.compound.content = self.filteredText.decode('utf-16')
 
     def __parse_ppt_damaged__(self):
         file = bytearray(self.compound.fp.read())
@@ -938,6 +938,6 @@ class PPT :
                     uFilteredTextLen += uTempLen
 
         uFilteredTextLen = self.__ppt_extra_filter__(uFilteredTextLen)
+        self.compound.content = self.filteredText.decode('utf-16')
 
-        print(self.filteredText.decode('utf-16'))
 

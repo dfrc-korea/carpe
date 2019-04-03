@@ -14,17 +14,18 @@ def main(filePath):
     if object.fp == None:
         return
 
+    """
     ### Test Code ###
     print("fileSize : " + str(object.fileSize))
     print("fileName : " + str(object.fileName))
     print("fileType : " + str(object.fileType))
     print("filePath : " + str(object.filePath))
     print("isDamaged : ")
-    if object.isDamaged == object.CONST_DOCUMENT_NORMAL:
+    if object.is_damaged == object.CONST_DOCUMENT_NORMAL:
         print("Normal")
-    if object.isDamaged == object.CONST_DOCUMENT_DAMAGED:
+    if object.is_damaged == object.CONST_DOCUMENT_DAMAGED:
         print("Damaged")
-
+    """
 
     object.parse()
 
