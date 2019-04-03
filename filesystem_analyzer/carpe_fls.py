@@ -27,6 +27,10 @@ import pytsk3
 import carpe_db
 
 
+def vdir(obj):
+    return [x for x in dir(obj) if not x.startswith('__')]
+
+
 
 class Fls(object):
 
@@ -90,7 +94,7 @@ class Fls(object):
         continue
 
       #print path
-      self.print_directory_entry(directory_entry, prefix=prefix, path=path)  
+      self.directory_entry_info(directory_entry, prefix=prefix, path=path)  
       #print "[*]"
       
       if self._recursive:
@@ -142,11 +146,10 @@ class Fls(object):
     self._recursive = getattr(options, "recursive", False)
 
 
-
   #To Do
   # 1. connect direct to db
   # 2. Error/Info Log     
-  def print_directory_entry(self, directory_entry, prefix="", path=None):
+  def directory_entry_info(self, directory_entry, prefix="", path=None):
       
       meta = directory_entry.info.meta
       name = directory_entry.info.name
@@ -160,39 +163,78 @@ class Fls(object):
         meta_type = self.META_TYPE_LOOKUP.get(int(meta.type), "-")
 
       directory_entry_type = "{0:s}/{1:s}".format(name_type, meta_type)
-      #print("==+Attribute List===")
-      #print("====================")
+      #print ("=== Attrubute Meta Data List ===")
+      print ("-----------")
+      
+      print (vdir(name))
+      print (vdir(meta))
+      print ("---")
+      print (vdir(directory_entry.info.fs_info))
+      print (directory_entry.info.fs_info.block_count)
+      
+      print (directory_entry.info.fs_info.block_post_size)
+      print (directory_entry.info.fs_info.block_pre_size)
+      print (directory_entry.info.fs_info.block_size)
+      print (directory_entry.info.fs_info.dev_bsize)
+      print (directory_entry.info.fs_info.first_block)
+      
+      
+      if name is not None:
+        print ("(+)")
+        print (name.name)
+        print (name.flags)        
+        print (name.meta_addr)        
+        print (name.meta_seq)
+        print (name.par_addr)
+        
+      if meta is not None:
+        print ("(+)(+)")
+        print (directory_entry.info.meta.seq)
+        print (directory_entry.info.meta.gid)
+        print (directory_entry.info.meta.uid)
+        print (directory_entry.info.meta.tag)
+        print (directory_entry.info.meta.type)
+        print (directory_entry.info.meta.mode)
+        print (directory_entry.info.meta.link)
+      #print ("-- block count --" )
+      #print (directory_entry.info.fs_info.block_count)
+      #print ("-- block size --")
+      #print (directory_entry.info.fs_info.block_size)
+      #print ("-- dev block size --")
+      #print (directory_entry.info.fs_info.dev_bsize)
+      #print ("-- par addr --")
+      #print (directory_entry.info.name.par_addr.numerator)
+
+      i = 0
       for attribute in directory_entry:
         #print (attribute.info.type)
-        
         if int(attribute.info.type) in self.ATTRIBUTE_TYPES_TO_PRINT:
           #$StandardInformation 
           if attribute.info.type == pytsk3.TSK_FS_ATTR_TYPE_NTFS_SI:
             si_mtime = [lambda:0, lambda:directory_entry.info.meta.mtime][directory_entry.info.meta.mtime is not None]()  
             si_atime = [lambda:0, lambda:directory_entry.info.meta.atime][directory_entry.info.meta.atime is not None]()
-            si_ctime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
+            si_etime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
             si_crtime =[lambda:0, lambda:directory_entry.info.meta.crtime][directory_entry.info.meta.crtime is not None]()
             
             si_mtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.mtime_nano is not None]()            
             si_atime_nano = [lambda:0, lambda:directory_entry.info.meta.atime_nano][directory_entry.info.meta.atime_nano is not None]()
-            si_ctime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
+            si_etime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
             si_crtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                
           #$FileName   
           if attribute.info.type == pytsk3.TSK_FS_ATTR_TYPE_NTFS_FNAME:
             fn_mtime = [lambda:0, lambda:directory_entry.info.meta.mtime][directory_entry.info.meta.mtime is not None]()  
             fn_atime = [lambda:0, lambda:directory_entry.info.meta.atime][directory_entry.info.meta.atime is not None]()
-            fn_ctime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
+            fn_etime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
             fn_crtime =[lambda:0, lambda:directory_entry.info.meta.crtime][directory_entry.info.meta.crtime is not None]()
             
             fn_mtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.mtime_nano is not None]()            
             fn_atime_nano = [lambda:0, lambda:directory_entry.info.meta.atime_nano][directory_entry.info.meta.atime_nano is not None]()
-            fn_ctime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
+            fn_etime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
             fn_crtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                                
           #Allocated status
           inode = [lambda:"{0:d}".format(meta.addr), lambda:"{0:d}-{1:d}-{2:d}".format(meta.addr, int(attribute.info.type), attribute.info.id)][self._fs_info.info.ftype in [pytsk3.TSK_FS_TYPE_NTFS, pytsk3.TSK_FS_TYPE_NTFS_DETECT]]()          
           #File name       
-          filename =[lambda:(name.name).decode('utf-8','replace'), lambda:"{0:s}:{1:s}".format((name.name).decode('utf-8','replace'), (attribute.info.name).decode('utf-8','replace'))][(attribute.info.name is not None) & (attribute.info.name not in ["$Data", "$I30"])]()
-          
+          filename =[lambda:(name.name).decode('utf-8','replace'), lambda:"{0:s}:{1:s}".format((name.name).decode('utf-8','replace'), (attribute.info.name).decode('utf-8','replace'))][(attribute.info.name is not None) & (attribute.info.name not in ["$Data", "$I30"])]()          
           #file extension
           file_extension =u""
           for i in range( len(list(filename)) -1 , -1, -1):
@@ -200,13 +242,18 @@ class Fls(object):
               file_extension = list(filename)[i] + file_extension  
             else:
               break
-          file_extension = [lambda:u"", lambda:file_extension][file_extension != filename]()
-        
+          file_extension = [lambda:u"", lambda:file_extension][file_extension != filename]()          
+          #size 
+          size = meta.size
+          print (inode)
+
+
         else:
           debug ="TO DO : Deal with other Attribute Types"
-          
+
+      #print ("---")    
       #print("===Summary Info===")          
-      if name and meta:
+      #if name and meta:
         #data="{0:s}|{1:s}|{2:s}|{3:s}|{4:s}|{5:s}|{6:s}|{7:s}|{8:s}|{9:s}|{10:s}|{11:s}|{12:s}|{13:s}|{14:s}|{15:s}|{16:s}|{17:s}|{18:s}|{19:s}|{20:s}".format(
         #  str(directory_entry_type), str(inode), str("root/"+"/".join(path)), "".join(filename),
         #  str(si_mtime), str(si_atime), str(si_ctime), str(si_crtime), str(si_mtime_nano), str(si_atime_nano), str(si_ctime_nano), str(si_crtime_nano),
