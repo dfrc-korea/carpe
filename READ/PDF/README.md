@@ -9,7 +9,7 @@
 	- Compound File Binary Format(Hancom)
 
 ## PDF
-> Very nice PDF Restore python library
+> Very nice PDF string extraction python library
 
 ### Prerequisites
 
@@ -20,6 +20,8 @@
 
 **Create PDF object**
 
+	from carpe_pdf import PDF
+	...
 	pdf = PDF('path/to/pdf')
 
 **Restore PDF body content**

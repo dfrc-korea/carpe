@@ -13,12 +13,14 @@
 @contact:   horensic@gmail.com
 """
 
+import os
 from pdfminer.pdfdocument import *
 from pdfminer.pdfpage import *
 from pdfminer.pdfinterp import *
 from pdfminer.pdftypes import *
 from pdfminer.pdffont import PDFUnicodeNotDefined
 from pdfminer.cmapdb import CMapParser, FileUnicodeMap
+from error import CMAPNotFoundError
 import logger
 
 
@@ -255,7 +257,14 @@ class PDFPageStream:
 
         self.korean_unicode_map = FileUnicodeMap()
 
+        if not os.path.isdir('../cmap/'):
+            print("Check if cmap file & directory exists")
+            raise CMAPNotFoundError
+
         if version == 7:  # version 1.7
+            if not os.path.exists('../cmap/Adobe-Identity-UCS_1-7'):
+                print("Check the following file exists: {0}".format("cmap/Adobe-Identity-UCS_1-7"))
+                raise CMAPNotFoundError
             with open('../cmap/Adobe-Identity-UCS_1-7', 'rb') as strm:  # TODO:path setting
                 CMapParser(self.korean_unicode_map, BytesIO(strm.read())).run()
         elif version == 6:  # version 1.6
@@ -263,6 +272,9 @@ class PDFPageStream:
         elif version == 5:  # version 1.5
             pass
         elif version == 4:  # version 1.4
+            if not os.path.exists('../cmap/Adobe-Identity-UCS_1-4'):
+                print("Check the following file exists: {0}".format("cmap/Adobe-Identity-UCS_1-4"))
+                raise CMAPNotFoundError
             with open('../cmap/Adobe-Identity-UCS_1-4', 'rb') as strm:  # TODO:path setting
                 CMapParser(self.korean_unicode_map, BytesIO(strm.read())).run()
         elif version == 3:  # version 1.3
