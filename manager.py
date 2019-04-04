@@ -105,9 +105,7 @@ class CARPE_AM:
 
 		# Call log2timeline module
 		for image in image_list:
-			
-
-
+		
 def main():
 	try:
 		carpe_manager = CARPE_AM()
