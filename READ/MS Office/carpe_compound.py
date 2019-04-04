@@ -32,18 +32,28 @@ class Compound:
         if(os.path.exists(filePath)):
             try:
                 self.fp = compoundfiles.CompoundFileReader(filePath)
-                self.isDamaged = self.CONST_DOCUMENT_NORMAL
-                temp1 = bytearray(self.compound.fp.open('WordDocument').read())         # read test
+                self.is_damaged = self.CONST_DOCUMENT_NORMAL
+                temp1 = bytearray(self.fp.open('WordDocument').read())         # read test
 
-                print("Normal File exist!!")
+                #print("Normal File exist!!")
             except compoundfiles.errors.CompoundFileInvalidBomError:
                 self.fp = open(filePath, 'rb')
-                self.isDamaged = self.CONST_DOCUMENT_DAMAGED
-                print("Damaged File exist!!")
+                self.is_damaged = self.CONST_DOCUMENT_DAMAGED
+                #print("Damaged File exist!!")
             except BaseException:
                 self.fp = open(filePath, 'rb')
-                self.isDamaged = self.CONST_DOCUMENT_DAMAGED
-                print("Damaged File exist!! [else]")
+                self.is_damaged = self.CONST_DOCUMENT_DAMAGED
+                #print("Damaged File exist!! [else]")
+
+            self.has_content = False
+            self.has_metadata = False
+            self.content = ""
+            self.metadata = {}
+            self.metadata['author'] = ""
+            self.metadata['title'] = ""
+            self.metadata['create_time'] = ""
+            self.metadata['modified_time'] = ""
+
 
 
         else:
@@ -54,11 +64,9 @@ class Compound:
         self.fileName = os.path.basename(filePath)
         self.filePath = filePath
         self.fileType = os.path.splitext(filePath)[1][1:]   # delete '.' in '.xls' r
-        self.text = ""      # extract text
-        self.meta = ""      # extract metadata
 
-        self.isRestorable = self.CONST_DOCUMENT_UNRESTORABLE
-        self.isEncrypted = self.CONST_DOCUMENT_NO_ENCRYPTED
+        
+
 
     def __enter__(self):
         raise NotImplementedError
@@ -81,7 +89,18 @@ class Compound:
             object = DOC(self)
             object.parse_doc()
 
-        #self.parse_summaryinfo()
+        if len(self.content) > 0:
+            self.has_content = True
+            print(self.content)
+
+        self.parse_summaryinfo()
+        if( self.metadata['author'] != None or self.metadata['title'] != None or self.metadata['create_time'] != None or self.metadata['modified_time'] != None):
+            self.has_metadata = True
+            print(self.metadata['author'])
+            print(self.metadata['title'])
+            print(self.metadata['create_time'])
+            print(self.metadata['modified_time'])
+
 
 
 
@@ -112,7 +131,8 @@ class Compound:
                 entryLength = \
                 struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
                 entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
-                print(entryData.decode('euc-kr'))
+                #print(entryData.decode('euc-kr'))
+                self.metadata['title'] = entryData.decode('euc-kr')
 
 
             # Subject
@@ -120,40 +140,48 @@ class Compound:
                 entryLength = \
                 struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
                 entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
-                print(entryData.decode('euc-kr'))
+                #print(entryData.decode('euc-kr'))
 
             # Author
             elif record['type'] == 0x04:
                 entryLength = \
                 struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
                 entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
-                print(entryData.decode('euc-kr'))
+                self.metadata['author'] = entryData.decode('euc-kr')
+                #print(entryData.decode('euc-kr'))
+
 
             # LastAuthor
             elif record['type'] == 0x08:
                 entryLength = \
                 struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
                 entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
-                print(entryData.decode('euc-kr'))
+                #print(entryData.decode('euc-kr'))
+
 
             # AppName
             elif record['type'] == 0x12:
                 entryLength = \
                 struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
                 entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
-                print(entryData.decode('euc-kr'))
+                #print(entryData.decode('euc-kr'))
 
             # LastPrintedtime
             elif record['type'] == 0x0B:
-                entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
-                print(datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S.%f'))
+                # entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
+                # print(datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S.%f'))
+                pass
+
 
             # Createtime
             elif record['type'] == 0x0C:
-                entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
-                print(datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S.%f'))
+                #entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
+                #print(datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S.%f'))
+                self.metadata['create_time'] = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0]
+
 
             # LastSavetime
             elif record['type'] == 0x0D:
-                entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
-                print(datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S.%f'))
+                #entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
+                #print(datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S.%f'))
+                self.metadata['modified_time'] = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0]
