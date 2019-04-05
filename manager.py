@@ -93,19 +93,23 @@ class CARPE_AM:
 		directory = fls.open_directory('?')
 		fls.list_directory(directory, [], [])
 
-	def SysLogAndUserData_Analysis(self, case_no, evd_no, user_id):
+	def SysLogAndUserData_Analysis(self, case_no, evd_no, user_id, db_name):
 		# Conenct Carpe Database
 		db = mariadb.Mariadb()
-		conn = db.open()
+		conn = db.open(db_name)
 
 		# Get image file list
-		query = 'SELECT file_path FROM tn_evidence_splitted WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
-		image_list = db.execute_query(conn, query)
+		query = 'SELECT file_name, file_path FROM tn_evidence_splitted WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
+		image_name, image_list = db.execute_query(conn, query)
 		db.close(conn)
 
 		# Call log2timeline module
-		for image in image_list:
-		
+		for name, image in image_name, image_list:
+			subprocess.call(['python3.6', '../plaso_tool/log2timeline.py', name + '.plaso', image])
+			
+		for name in image_name:
+			subprocess.call(['python3.6', '../plaso_tool/psort.py', '-o', '4n6time_mariadb', name + '.plaso'])
+
 def main():
 	try:
 		carpe_manager = CARPE_AM()
