@@ -35,6 +35,10 @@ class PDF:
         self.content = str()
         self.metadata = []
 
+        self.is_damaged = False
+        self.has_content = False
+        self.has_metadata = False
+
         # Open PDF file
         try:
             self.pdf = open(path, 'rb')
@@ -124,18 +128,19 @@ class PDF:
             retstr.close()
         else:
             # damaged pdf
-            self.restore()
+            self.restore_content()
 
     def parse_metadata(self):
-        if self.parse():
+        if self.document or self.parse():
             # normal pdf
             self.metadata = self.document.info
         else:
             # damaged pdf
-            self.restore()
+            self.restore_metadata()
 
-    def restore(self):
-        carpe_pdf_log.debug("Called restore()")
+    def restore_content(self):
+        carpe_pdf_log.debug("Called restore_content()")
+        self.is_damaged = True
 
         def scan_page(xref):  # private inner function
             damaged_pdf = PDFRestore(self.parser)
@@ -169,6 +174,41 @@ class PDF:
             carpe_pdf_log.trace("Page Object: {0}".format(page_object))
             page_stream = PDFPageStream(page_object, self.version)
             self.content += page_stream.interpreter()
+
+        if self.content:
+            carpe_pdf_log.debug("Complete string extraction from damaged PDF file")
+            self.has_content = True
+
+    def restore_metadata(self):
+        carpe_pdf_log.debug("Called restore_metadata()")
+        self.is_damaged = True
+
+        def scan_metadata(xref):
+            damaged_pdf = PDFRestore(self.parser)
+
+            if xref is not None:
+                damaged_pdf.xref = xref
+            else:
+                carpe_pdf_log.info("Restore Xref")
+                damaged_pdf.restore_xref()
+                carpe_pdf_log.info("Xref restoration complete")
+
+            if damaged_pdf.find_metadata():
+                carpe_pdf_log.info("Find Metadata")
+                return damaged_pdf.info
+
+        restored_xref = None
+        if not self._recovered:
+            self._recovered = True
+
+            if self.parser.doc is not None:
+                xrefs = self.parser.doc.xrefs  # this case don't need to restore Xref
+                for xref in xrefs:
+                    if isinstance(xref, PDFXRefFallback):
+                        restored_xref = xref
+                        break
+
+        self.metadata.append(dict_value(scan_metadata(restored_xref)))
 
     def print_content(self):
         if self.content:
