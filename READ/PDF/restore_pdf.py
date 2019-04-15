@@ -93,6 +93,7 @@ class PDFRestore:
         self.doc = parser.doc
         self.xref = None
         self.catalog = {}
+        self.info = None
 
     def restore_xref(self):
         xref = XRefFallback()
@@ -166,6 +167,22 @@ class PDFRestore:
 
         else:
             pass
+
+    def find_metadata(self):
+        restore_pdf_log.debug("Called find_metadata()")
+        for objid, pos in self.xref.offsets.items():
+            if not pos[0]:
+                self.parser.seek(pos[1])
+                self.parser.nextline()
+                (pos, obj) = self.parser.nextobject()
+
+                if isinstance(obj, dict) and obj.get('CreationDate'):
+                    self.info = obj
+                    break
+        else:
+            # Not Found Metadata Object
+            return False
+        return True
 
 
 class PDFPageStream:
