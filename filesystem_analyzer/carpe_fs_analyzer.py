@@ -26,6 +26,8 @@ import images
 import pytsk3
 
 import carpe_file
+import carpe_db
+
 
 def vdir(obj):
     return [x for x in dir(obj) if not x.startswith('__')]
@@ -90,10 +92,12 @@ class Carpe_FS_Analyze(object):
           directory_entry.info.name.name in [".", ".."]):
         continue
 
-      #print path
-      self.directory_entry_info(directory_entry, prefix=prefix, path=path)  
-      #print "[*]"
-      
+      files = self.directory_entry_info(directory_entry, prefix=prefix, path=path)  
+      files = map(lambda i: i.toTuple(), files)
+
+      ## To Do
+      ## DB insert code here
+
       if self._recursive:
         try:
           sub_directory = directory_entry.as_directory()
@@ -102,8 +106,7 @@ class Carpe_FS_Analyze(object):
           # This ensures that we don't recurse into a directory
           # above the current level and thus avoid circular loops.
           if inode not in stack:
-            path.append((directory_entry.info.name.name).decode('utf-8','replace'))
-            
+            path.append((directory_entry.info.name.name).decode('utf-8','replace'))            
             self.list_directory(sub_directory, stack, path)
 
         except IOError:
@@ -115,7 +118,6 @@ class Carpe_FS_Analyze(object):
 
   def open_directory(self, inode_or_path):
 
-    print (dir(self._fs_info))
     inode = None
     path = None
     if inode_or_path is None:
@@ -172,9 +174,14 @@ class Carpe_FS_Analyze(object):
       file_names=[]
       new_file = carpe_file.Carpe_file()
 
+      new_file._parent_path = u"root/"
+      for i in path:
+        new_file._parent_path += i + u"/"
+
       for attribute in directory_entry:
         
         if int(attribute.info.type) in self.ATTRIBUTE_TYPES_TO_ANALYZE:
+
           #$StandardInformation 
           if attribute.info.type == pytsk3.TSK_FS_ATTR_TYPE_NTFS_SI:
 
@@ -244,6 +251,7 @@ class Carpe_FS_Analyze(object):
       else:
         slack_size = 0
       
+      #To Do : Simplification
       for i in file_names:
         temp = carpe_file.Carpe_file()
         temp.__dict__ = new_file.__dict__.copy()
@@ -259,10 +267,8 @@ class Carpe_FS_Analyze(object):
         temp._extension = ""
         temp._name= new_file._name + u"-slack" 
         files.append(temp)
-      for i in files:
-        print(i._name)
-        print(i._size)
-
+      
+      return files
 
       #print ("---")    
       #print("===Summary Info===")          
