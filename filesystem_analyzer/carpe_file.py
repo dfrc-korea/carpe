@@ -4,10 +4,7 @@ import gc
 import pdb
 import sys
 import time
-
-import images
-import pytsk3
-import carpe_db
+import re
 
 class Carpe_file(object):
 	def __init__(self):
@@ -24,7 +21,6 @@ class Carpe_file(object):
 		self._meta_type = None
 		self._meta_flags = None
 		self._size = None
-
 		self._si_mtime = None
 		self._si_atime = None
 		self._si_ctime = None
@@ -33,7 +29,6 @@ class Carpe_file(object):
 		self._si_atime_nano = None
 		self._si_ctime_nano = None
 		self._si_etime_nano = None
-		
 		self._fn_mtime = None
 		self._fn_atime = None
 		self._fn_ctime = None
@@ -42,11 +37,16 @@ class Carpe_file(object):
 		self._fn_atime_nano = None
 		self._fn_ctime_nano = None
 		self._fn_etime_nano = None
-		
 		self._uid = None
 		self._gid = None
 		self._hash = None
 		self._parent_path = None
 		self._extension = None
 
-
+	def toTuple(self):
+		var_list = [x for x in dir(self) if (re.match(r'(^[_][a-z])', x))]
+		temp = self.__dict__
+		ret = []
+		for i in var_list:
+			ret.append(temp[i])
+		return tuple(ret)	
