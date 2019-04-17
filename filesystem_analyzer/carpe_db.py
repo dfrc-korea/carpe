@@ -3,23 +3,43 @@ import carpe_file
 
 
 class Mariadb(object):
-	TABLE_INFO = [
-		"carpe_image_info":["i_id", "type", "sector_size", "tzone", "size"],
-		"carpe_fs_info":["p_id", "fs_type", "block_size", "block_count", "root_inum", "first_inum"],
-		"carpe_file":["p_id", "inode", "name", "meta_seq", "type", "dir_type", "meta_type", "meta_flags", "size",
-					"si_mtime", "si_atime", "si_ctime", "si_etime", "si_mtime_nano", "si_atime_nano", "si_ctime_nano", "si_etime_nano",
-					"fn_mtime", "fn_atime", "fn_ctime", "fn_etime", "fn_mtime_nano", "fn_atime_nano", "fn_ctime_nano", "fn_etime_nano",
-					"uid", "gid", "hash", "parent_path", "extension"]
-	]
+	TABLE_INFO = {
+		"carpe_evidence_info":{"evidence_id":"TEXT PRIMARY KEY","device_id":"INTEGER", "time_zone":"TEXT"},
+		"carpe_image_info":{"image_id":"TEXT PRIMARY KEY", "e_id":"TEXT", "type":"INTEGER", "sector_size":"INTEGER", "time_zone":"TEXT", "size":"INTEGER"},
+		"carpe_fs_info":{"partition_id":"TEXT PRIMARY KEY", "i_id":"TEXT", "fs_type":"INTEGER", "block_size":"INTEGER", "block_count":"INTEGER", "root_inum":"INTEGER", "first_inum":"INTEGER"},
+		"carpe_file":{"file_id":"INTEGER", "p_id":"TEXT", "inode":"INTEGER", "name":"TEXT", "meta_seq":"INTEGER", "type":"INTEGER", "dir_type":"INTEGER", "meta_type":"INTEGER", "meta_flags":"INTEGER", "size":"INTEGER",
+					"si_mtime":"INTEGER", "si_atime":"INTEGER", "si_ctime":"INTEGER", "si_etime":"INTEGER", "si_mtime_nano":"INTEGER", "si_atime_nano":"INTEGER", "si_ctime_nano":"INTEGER", "si_etime_nano":"INTEGER",
+					"fn_mtime":"INTEGER", "fn_atime":"INTEGER", "fn_ctime":"INTEGER", "fn_etime":"INTEGER", "fn_mtime_nano":"INTEGER", "fn_atime_nano":"INTEGER", "fn_ctime_nano":"INTEGER", "fn_etime_nano":"INTEGER",
+					"uid":"INTEGER", "gid":"INTEGER", "hash":"TEXT", "parent_path":"TEXT", "extension":"TEXT"}
+	}
+	#To Do
+	#Fill all the values
+	INSERT_HELPER = {
+		"carpe_evidence_info":"%s, %d, %s",
+		"carpe_image_info":"",
+		"carpe_fs_info":"",
+		"carpe_file":""
+	}
+
+	# To Do 
+	# query for select specific file's metadata such as inode by extension 
+	PREPARED_QUERY = {		
+	}
+
 
 	def __init__(self):
 		self._conn = None
+
+	##To Do
+	##DB Initialize (Create Table etc...)
+
+
 
 	def open(self):
 		try:
 			self._conn = pymysql.connect(host='localhost', port=3306, user='test', passwd='dfrc4738', db='carpe',charset='utf8',autocommit=True)
 		except Exception:
-			conn=null
+			self._conn=null
 			print("db connection error")
 
 	def commit(self):
@@ -33,7 +53,27 @@ class Mariadb(object):
 			self._conn.close()
 		except Exception:
 			print("db connection close error")
-			
+
+	def check_table_exist(self, table_name):
+		if (self._conn is not None):
+			query = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME ="+ table_name
+			ret = self.execute_query(self, query)
+			if ret[0] == 1:				
+				return True
+			else:
+				return False
+		else:
+			self.open(self)
+			return self.check_table_exist(self, tables)
+
+	def initialize(self):
+		ret = False
+		for table_name in self.TABLE_INFO.keys():
+			if not (self.check_table_exist(table_name)):
+				#CREATE QUERY
+				#CREATE TABLE tsk_image_info (obj_id BIGSERIAL PRIMARY KEY, type INTEGER, ssize INTEGER, tzone TEXT, size BIGINT, md5 TEXT, display_name TEXT, FOREIGN KEY(obj_id) REFERENCES tsk_objects(obj_id));",
+				query = "CREATE TABLE {} ( e_id  TEXT PRIMARY KEY, "   
+
 	def files_object(self, files):
 		print(files)
 
@@ -57,9 +97,11 @@ class Mariadb(object):
 	##To Do
 	##Place_holder method implementation	
 	def insert_query_builder(self, table_name, columns):
-		if table_name in TABLE_INFO.keys():
-			query = "INSERT INTO {0} ({1}) VALUES ({2})".format(table_name, TABLE_INFO[table_name], place_holders)
-
+		if table_name in self.TABLE_INFO.keys():
+			query = "INSERT INTO {0} (".format(table_name)
+			query += "".join([lambda:column +") ", lambda:column+", "][column!=self.TABLE_INFO[table_name].keys()[-1]]() for column in (self.TABLE_INFO[table_name].keys()))
+			query += "VALUES ({})".format(self.INSERT_HELPER[table_name])
+			print (query)
 		return query
 
 	def execute_query(self, query):
@@ -72,4 +114,4 @@ class Mariadb(object):
 			return data
 		except Exception:
 			print("db execution error")
-			return "error"
+			return -1
