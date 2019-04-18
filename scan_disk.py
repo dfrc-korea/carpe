@@ -8,8 +8,11 @@ import os
 import sys
 
 from dfvfs.helpers import source_scanner
+from dfvfs.resolver import resolver
 from dfvfs.lib import errors
 from dfvfs.lib import definitions
+from dfvfs.lib import tsk_partition
+from dfvfs.lib import vshadow
 
 class DiskScanner(object):
     def __init__(self):
@@ -83,10 +86,31 @@ class DiskScanner(object):
         if not scan_node:
             return
 
-        part_index = getattr(scan_node.path_spec, 'part_index', None)
-        store_index = getattr(scan_node.path_spec, 'store_index', None)
-        start_offset = getattr(scan_node.path_spec, 'start_offset', None)
-        location = getattr(scan_node.path_spec, 'location', None)
+        if scan_node.path_spec.IsVolumeSystem() and ~scan_node.path_spec.IsVolumeSystemRoot():
+            file_system = resolver.Resolver.OpenFileSystem(scan_node.path_spec)
+
+            if scan_node.type_indicator == definitions.TYPE_INDICATOR_TSK_PARTITION:
+                tsk_volumes = file_system.GetTSKVolume()
+                vol_part, _ = tsk_partition.GetTSKVsPartByPathSpec(tsk_volumes, scan_node.path_spec)
+                if tsk_partition.TSKVsPartIsAllocated(vol_part):
+                    bytes_per_sector = tsk_partition.TSKVolumeGetBytesPerSector(vol_part)
+                    length = tsk_partition.TSKVsPartGetNumberOfSectors(vol_part)
+                    start_sector = tsk_partition.TSKVsPartGetStartSector(vol_part)
+                    #vol_name = getattr(scan_node.path_spec, 'location', None)[1:]
+                    #vol_name = self.prefix + str(scan_node.path_spec.part_index)
+                    #base_path_spec = scan_node.path_spec
+            elif scan_node.type_indicator == definitions.TYPE_INDICATOR_VSHADOW:
+                vss_volumes = file_system.GetVShadowVolume()
+                store_index = vshadow.VShadowPathSpecGetStoreIndex(scan_node.path_spec)
+                vss_part = list(vss_volumes.stores)[store_index]
+                bytes_per_sector = None
+                length = vss_part.volume_size
+                start_sector = None
+                identifier = getattr(vss_part, 'identifier', None)
+            vol_name = getattr(scan_node.path_spec, 'location', None)[1:]
+            baes_path_spec = scan_node.path_spec
+
+
         """disk_info = []
         self.base_path_specs = base_path_specs
         for i, base_path_spec in enumerate(self.base_path_specs):
