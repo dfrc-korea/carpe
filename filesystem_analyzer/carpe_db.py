@@ -21,7 +21,7 @@ class Mariadb(object):
 		"carpe_evidence_info":"%s, %d, %s",
 		"carpe_image_info":"",
 		"carpe_fs_info":"",
-		"carpe_file":""
+		"carpe_file":"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s"
 	}
 
 	CREATE_HELPER = {
@@ -104,7 +104,7 @@ class Mariadb(object):
 			print("db execution error")
 			return -1
 
-	def insert_query_builder(self, table_name, columns):
+	def insert_query_builder(self, table_name):
 		if table_name in self.TABLE_INFO.keys():
 			query = "INSERT INTO {0} (".format(table_name)
 			query += "".join([lambda:column +") ", lambda:column+", "][column!=self.TABLE_INFO[table_name].keys()[-1]]() for column in (self.TABLE_INFO[table_name].keys()))

@@ -37,6 +37,7 @@ class Carpe_file(object):
 		self._fn_atime_nano = None
 		self._fn_ctime_nano = None
 		self._fn_etime_nano = None
+		self._mode = None
 		self._uid = None
 		self._gid = None
 		self._hash = None
