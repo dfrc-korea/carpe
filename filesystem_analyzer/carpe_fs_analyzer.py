@@ -77,7 +77,7 @@ class Carpe_FS_Analyze(object):
     self._recursive = False
     self._carpe_files = []
 
-  def list_directory(self, directory, stack=None, path=None):
+  def list_directory(self, directory, stack=None, path=None, conn=None):
     stack.append(directory.info.fs_file.meta.addr)
     
     for directory_entry in directory:
@@ -94,9 +94,10 @@ class Carpe_FS_Analyze(object):
 
       files = self.directory_entry_info(directory_entry, prefix=prefix, path=path)  
       files = map(lambda i: i.toTuple(), files)
-
-      ## To Do
       ## DB insert code here
+      #query = conn.insert_query_builder("carpe_file")
+      #conn.bulk_execute(query, files)
+      
 
       if self._recursive:
         try:
@@ -179,7 +180,6 @@ class Carpe_FS_Analyze(object):
         new_file._parent_path += i + u"/"
 
       for attribute in directory_entry:
-        
         if int(attribute.info.type) in self.ATTRIBUTE_TYPES_TO_ANALYZE:
 
           #$StandardInformation 
@@ -233,8 +233,8 @@ class Carpe_FS_Analyze(object):
           
           #size
           new_file._size = meta.size
-          
-
+          #mode
+          new_file._mode = str(attribute.info.fs_file.meta.mode)
           #seq
           new_file._meta_seq = attribute.info.fs_file.meta.seq
           #uid
@@ -350,16 +350,22 @@ def Main():
 
   fs.open_file_system(options.offset)
 
-  #print (fs._fs_info.info.journ_inum)
 
   directory = fs.open_directory(options.inode)
 
+
+  db_connector = carpe_db.Mariadb()
+  #TO DO 
+  #db server ip / name input 
+  #db_connector.open()
+  #db_connector.initialize()
+  
 
   # Iterate over all files in the directory and print their name.
   # What you get in each iteration is a proxy object for the TSK_FS_FILE
   # struct - you can further dereference this struct into a TSK_FS_NAME
   # and TSK_FS_META structs.
-  fs.list_directory(directory, [], [])
+  fs.list_directory(directory, [], [], db_connector)
 
   return True
 
