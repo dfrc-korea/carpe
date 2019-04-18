@@ -3,14 +3,17 @@ import carpe_file
 
 
 class Mariadb(object):
+	#To Do
+	# Tune the columns
 	TABLE_INFO = {
-		"carpe_evidence_info":{"evidence_id":"TEXT PRIMARY KEY","device_id":"INTEGER", "time_zone":"TEXT"},
-		"carpe_image_info":{"image_id":"TEXT PRIMARY KEY", "e_id":"TEXT", "type":"INTEGER", "sector_size":"INTEGER", "time_zone":"TEXT", "size":"INTEGER"},
-		"carpe_fs_info":{"partition_id":"TEXT PRIMARY KEY", "i_id":"TEXT", "fs_type":"INTEGER", "block_size":"INTEGER", "block_count":"INTEGER", "root_inum":"INTEGER", "first_inum":"INTEGER"},
-		"carpe_file":{"file_id":"INTEGER", "p_id":"TEXT", "inode":"INTEGER", "name":"TEXT", "meta_seq":"INTEGER", "type":"INTEGER", "dir_type":"INTEGER", "meta_type":"INTEGER", "meta_flags":"INTEGER", "size":"INTEGER",
-					"si_mtime":"INTEGER", "si_atime":"INTEGER", "si_ctime":"INTEGER", "si_etime":"INTEGER", "si_mtime_nano":"INTEGER", "si_atime_nano":"INTEGER", "si_ctime_nano":"INTEGER", "si_etime_nano":"INTEGER",
-					"fn_mtime":"INTEGER", "fn_atime":"INTEGER", "fn_ctime":"INTEGER", "fn_etime":"INTEGER", "fn_mtime_nano":"INTEGER", "fn_atime_nano":"INTEGER", "fn_ctime_nano":"INTEGER", "fn_etime_nano":"INTEGER",
-					"uid":"INTEGER", "gid":"INTEGER", "hash":"TEXT", "parent_path":"TEXT", "extension":"TEXT"}
+		"carpe_case_info":{"case_id":"TEXT", "case_manager":"TEXT"},
+		"carpe_evidence_info":{"evidence_id":"TEXT", "c_id":"TEXT", "time_zone":"TEXT"},
+		"carpe_image_info":{"image_id":"TEXT PRIMARY KEY", "e_id":"TEXT", "type":"INTEGER", "sector_size":"INTEGER", "time_zone":"TEXT", "size":"BIGINT", "hash":"TEXT", "hash_type":"TEXT"},
+		"carpe_fs_info":{"partition_id":"TEXT PRIMARY KEY", "i_id":"TEXT", "fs_type":"INTEGER", "block_size":"BIGINT", "block_count":"BIGINT", "root_inum":"BIGINT", "first_inum":"BIGINT", "last_inum":"BIGINT"},
+		"carpe_file":{"p_id":"TEXT", "inode":"TEXT", "name":"TEXT", "meta_seq":"BIGINT", "type":"INTEGER", "dir_type":"INTEGER", "meta_type":"INTEGER", "meta_flags":"INTEGER", "size":"BIGINT",
+					"si_mtime":"BIGINT", "si_atime":"BIGINT", "si_ctime":"BIGINT", "si_etime":"BIGINT", "si_mtime_nano":"BIGINT", "si_atime_nano":"BIGINT", "si_ctime_nano":"BIGINT", "si_etime_nano":"BIGINT",
+					"fn_mtime":"BIGINT", "fn_atime":"BIGINT", "fn_ctime":"BIGINT", "fn_etime":"BIGINT", "fn_mtime_nano":"BIGINT", "fn_atime_nano":"BIGINT", "fn_ctime_nano":"BIGINT", "fn_etime_nano":"BIGINT",
+					"mode":"INTEGER", "uid":"INTEGER", "gid":"INTEGER", "hash":"TEXT", "parent_path":"TEXT", "extension":"TEXT"}
 	}
 	#To Do
 	#Fill all the values
@@ -21,6 +24,18 @@ class Mariadb(object):
 		"carpe_file":""
 	}
 
+	CREATE_HELPER = {
+		"carpe_case_info":"CREATE TABLE carpe_case_info (index BIGSERIAL PRIMARY KEY, case_id TEXT NOT NULL, case_manager TEXT);",
+		"carpe_evidence_info":"CREATE TABLE carpe_evidence_info (index BIGSERIAL PRIMARY KEY, evidence_id TEXT NOT NULL, c_id TEXT NOT NULL time_zone TEXT NOT NULL, FOREIGN KEY(c_id) REFERENCES carpe_case_info(case_id));",
+		"carpe_image_info":"CREATE TABLE carpe_image_info (index BIGSERIAL PRIMARY KEY, image_id TEXT NOT NULL, e_id TEXT NOT NULL, type INTEGER, sector_size INTEGER, time_zone TEXT, size BIGINT, hash TEXT, hash_type TEXT, FOREIGN KEY(e_id) REFERENCES carpe_evidence_info(evidence_id));",
+		"carpe_fs_info":"CREATE TABLE carpe_fs_info (index BIGSERIAL PRIMARY KEY, partition_id BIGINT NOT NULL, i_id TEXT NOT NULL, block_size BIGINT NOT NULL, block_count BIGINT NOT NULL, root_inum BIGINT NOT NULL, first_inum BIGINT NOT NULL, last_inum BIGINT NOT NULL, FOREIGN KEY(i_id) REFERENCES carpe_image_info(image_id));",
+		"carpe_file":"CREATE TABLE carpe_file (index BIGSERIAL PRIMARY KEY, p_id TEXT NOT NULL, inode TEXT, name TEXT NOT NULL, meta_seq BIGINT, type INTEGER, dir_type INTEGER, meta_type INTEGER, meta_flags INTEGER, size BIGINT, " +
+		       							"si_mtime BIGINT, si_atime BIGINT, si_ctime BIGINT, si_etime_nano BIGINT,si_mtime_nano BIGINT, si_atime_nano BIGINT, si_ctime_nano BIGINT, si_etime_nano BIGINT, fn_mtime BIGINT, fn_atime BIGINT, fn_ctime BIGINT, fn_etime BIGINT, fn_mtime_nano BIGINT, fn_atime_nano BIGINT, fn_ctime_nano BIGINT, fn_etime_nano BIGINT, " + 
+		       							"mode INTEGER, uid INTEGER, gid INTEGER, hash TEXT, hash_type TEXT, parent_path TEXT, extension TEXT, "+
+		        						"FOREIGN KEY(p_id) REFERENCES carpe_fs_info(partition_id));"
+	}
+
+
 	# To Do 
 	# query for select specific file's metadata such as inode by extension 
 	PREPARED_QUERY = {		
@@ -29,11 +44,6 @@ class Mariadb(object):
 
 	def __init__(self):
 		self._conn = None
-
-	##To Do
-	##DB Initialize (Create Table etc...)
-
-
 
 	def open(self):
 		try:
@@ -57,22 +67,23 @@ class Mariadb(object):
 	def check_table_exist(self, table_name):
 		if (self._conn is not None):
 			query = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME ="+ table_name
-			ret = self.execute_query(self, query)
+			ret = self.execute_query(query)
+			self.close()
 			if ret[0] == 1:				
 				return True
 			else:
 				return False
 		else:
-			self.open(self)
-			return self.check_table_exist(self, tables)
+			self.open()
+			return self.check_table_exist(tables)
 
 	def initialize(self):
-		ret = False
+		self.open()
 		for table_name in self.TABLE_INFO.keys():
 			if not (self.check_table_exist(table_name)):
-				#CREATE QUERY
-				#CREATE TABLE tsk_image_info (obj_id BIGSERIAL PRIMARY KEY, type INTEGER, ssize INTEGER, tzone TEXT, size BIGINT, md5 TEXT, display_name TEXT, FOREIGN KEY(obj_id) REFERENCES tsk_objects(obj_id));",
-				query = "CREATE TABLE {} ( e_id  TEXT PRIMARY KEY, "   
+				self.execute_query(self.CREATE_HELPER[table_name])
+		self.commit()
+		self.close()		
 
 	def files_object(self, files):
 		print(files)
@@ -93,9 +104,6 @@ class Mariadb(object):
 			print("db execution error")
 			return -1
 
-
-	##To Do
-	##Place_holder method implementation	
 	def insert_query_builder(self, table_name, columns):
 		if table_name in self.TABLE_INFO.keys():
 			query = "INSERT INTO {0} (".format(table_name)
