@@ -45,13 +45,12 @@ def Main():
     output_writer = split_disk.FileOutputWriter(output_dir)
  
     return_value = True
-    mediator = scan_disk.DiskScannerMediator()
-    disk_scanner = scan_disk.DiskScanner(mediator=mediator)
+    #mediator = scan_disk.DiskScannerMediator()
+    disk_scanner = scan_disk.DiskScanner()
 
     try:
-        base_path_specs = disk_scanner.GetBasePathSpecs(options.source)
 
-        disk_info = disk_scanner.ScanDisk(base_path_specs)
+        disk_info = disk_scanner.Analyze(options.source)
     except errors.ScannerError as exception:
         return_value = False
 

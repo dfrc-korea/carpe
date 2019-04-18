@@ -10,7 +10,6 @@ import sys
 from multiprocessing import Process
 
 from dfvfs.lib import errors
-from dfvfs.lib import tsk_image
 from dfvfs.resolver import resolver
 
 
@@ -26,19 +25,15 @@ class DiskSpliter:
         if self.disk_info is None:
             return
         procs = []
-        for par_name, length, par_type, base_path_spec in self.disk_info:
-            file_system = resolver.Resolver.OpenFileSystem(base_path_spec)
-            if par_type in ['VSS', 'TSK']:
-                tsk_image_object = tsk_image.TSKFileSystemImage(file_system._file_object)
-                file_name = par_name
-                imageWrite_process = Process(target=self._tskWriteImage, args=(tsk_image_object, length, output_writer, file_name))
-                imageWrite_process.start()
-                procs.append(imageWrite_process)
-            else: # apfs
-                raise NotImplementedError
-
+        for base_path_spec, type_indicator, length, bytes_per_sector, start_sector, vol_name, identifier in self.disk_info:
+            file_object = resolver.Resolver.OpenFileObject(base_path_spec)
+            imageWrite_process = Process(target=self._tskWriteImage, args=(file_object, length, output_writer, vol_name))
+            procs.append(imageWrite_process)
+            imageWrite_process.start()
+            
         for proc in procs:
             proc.join()
+        
 
     def _tskWriteImage(self, image_object, length, output_writer, file_name):
         offset = 0
@@ -51,7 +46,8 @@ class DiskSpliter:
         MAX_LENGTH = 1024 * 1024 # 1 MB
         while True: # need to add multiprocessing that extract data in 100 MB  => need not develop
             rlen = MAX_LENGTH if length - offset > MAX_LENGTH else length - offset
-            data = image_object.read(offset, rlen)
+            #image_object.seek(offset)
+            data = image_object.read(rlen)
             offset += rlen
             output_writer.Write(data)
             del data
