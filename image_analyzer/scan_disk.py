@@ -103,7 +103,9 @@ class DiskScanner(object):
                     vol_name = getattr(scan_node.path_spec, 'location', None)[1:]
                     #vol_name = self.prefix + str(scan_node.path_spec.part_index)
                     base_path_spec = scan_node.path_spec
-                    disk_info.append([base_path_spec, scan_node.type_indicator, length * bytes_per_sector, bytes_per_sector, start_sector, vol_name, None])
+                    disk_info.append({"base_path_spec" : base_path_spec, "type_indicator" : scan_node.type_indicator, \
+                        "length" : length * bytes_per_sector, "bytes_per_sector" : bytes_per_sector, "start_sector" : start_sector, \
+                            "vol_name" : vol_name, "identifier" : None})
             elif scan_node.type_indicator == definitions.TYPE_INDICATOR_VSHADOW:
                 vss_volumes = file_system.GetVShadowVolume()
                 store_index = vshadow.VShadowPathSpecGetStoreIndex(scan_node.path_spec)
@@ -112,7 +114,9 @@ class DiskScanner(object):
                 identifier = getattr(vss_part, 'identifier', None)
                 vol_name = getattr(scan_node.path_spec, 'location', None)[1:]
                 base_path_spec = scan_node.path_spec
-                disk_info.append([base_path_spec, scan_node.type_indicator, length, None, None, vol_name, identifier])
+                disk_info.append({"base_path_spec" : base_path_spec, "type_indicator" : scan_node.type_indicator, \
+                    "length" : length, "bytes_per_sector" : None, "start_sector" : None, "vol_name" : vol_name, \
+                        "identifier" : identifier})
             
             
             
