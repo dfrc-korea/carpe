@@ -10,7 +10,11 @@ import sys
 from multiprocessing import Process
 
 from dfvfs.lib import errors
+from dfvfs.lib import tsk_image
 from dfvfs.resolver import resolver
+
+# Test
+from dfvfs.lib import definitions
 
 
 class DiskSpliter:
@@ -25,15 +29,48 @@ class DiskSpliter:
         if self.disk_info is None:
             return
         procs = []
-        for base_path_spec, type_indicator, length, bytes_per_sector, start_sector, vol_name, identifier in self.disk_info:
-            file_object = resolver.Resolver.OpenFileObject(base_path_spec)
-            imageWrite_process = Process(target=self._tskWriteImage, args=(file_object, length, output_writer, vol_name))
-            procs.append(imageWrite_process)
+        for par_info in self.disk_info:
+            file_object = resolver.Resolver.OpenFileObject(par_info["base_path_spec"])
+            #tsk_image_object = tsk_image.TSKFileSystemImage(file_object)
+            #if par_info["type_indicator"] == definitions.TYPE_INDICATOR_TSK_PARTITION:
+            #    continue
+            print("type: " + str(par_info["type_indicator"]))
+            print("length: " + str(par_info["length"]))
+            print("bytes_per_sector: " + str(par_info["bytes_per_sector"]))
+            print("start_sector: " + str(par_info["start_sector"]))
+            print("name: " + par_info["vol_name"])
+            ###############################################
+            #offset = 0
+            #length = par_info["length"]
+            #vol_name = par_info["vol_name"]
+            #try:
+            #    output_writer.Open(vol_name)
+            #except IOError as exception:
+            #    print('Unable to open output writer with error: {0!s}'.format(exception))
+            #    print('')
+            #    return
+            #MAX_LENGTH = 1024 * 1024
+            #MAX_LENGTH = 512
+            #while True:
+            #    rlen = MAX_LENGTH if length - offset > MAX_LENGTH else length - offset
+            #    file_object.seek(offset)
+            #    data = file_object.read(rlen)
+            #    #data = tsk_image_object.read(offset, rlen)
+            #    offset += rlen
+            #    output_writer.Write(data)
+            #    print(offset)
+            #    del data
+            #    if offset >= length:
+            #        break
+            #output_writer.Close()
+            ###############################################
+            imageWrite_process = Process(target=self._tskWriteImage, args=(file_object, par_info["length"], output_writer, par_info["vol_name"]))
             imageWrite_process.start()
+            procs.append(imageWrite_process)
+            
             
         for proc in procs:
             proc.join()
-        
 
     def _tskWriteImage(self, image_object, length, output_writer, file_name):
         offset = 0
@@ -46,7 +83,7 @@ class DiskSpliter:
         MAX_LENGTH = 1024 * 1024 # 1 MB
         while True: # need to add multiprocessing that extract data in 100 MB  => need not develop
             rlen = MAX_LENGTH if length - offset > MAX_LENGTH else length - offset
-            #image_object.seek(offset)
+            image_object.seek(offset)
             data = image_object.read(rlen)
             offset += rlen
             output_writer.Write(data)
