@@ -14,11 +14,16 @@
 """
 
 import io
-from restore_pdf import *
-from pdfminer.layout import LAParams
-from pdfminer.converter import TextConverter
+import os, sys
+try:
+    from restore_pdf import *
+except ModuleNotFoundError:
+    sys.path.append(os.path.dirname(__file__))
+    from restore_pdf import *
 from error import *
 import logger
+from pdfminer.layout import LAParams
+from pdfminer.converter import TextConverter
 
 
 carpe_pdf_log = logger.CarpeLog("PDF", level=logger.LOG_INFO)
