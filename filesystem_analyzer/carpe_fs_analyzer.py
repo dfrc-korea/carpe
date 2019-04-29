@@ -26,6 +26,7 @@ import images
 import pytsk3
 
 import carpe_file
+import carpe_fs_info
 import carpe_db
 
 
@@ -77,6 +78,17 @@ class Carpe_FS_Analyze(object):
     self._recursive = False
     self._carpe_files = []
 
+  def fs_info(self):
+    fs_info = carpe_fs_info.Carpe_fs_info()
+    fs_info._fs_id = self._fs_info.info.fs_id
+    fs_info._block_size = self._fs_info.info.block_size
+    fs_info._block_count = self._fs_info.info.block_count
+    fs_info._root_inum = self._fs_info.info.root_inum
+    fs_info._first_inum = self._fs_info.info.first_inum
+    fs_info._last_inum = self._fs_info.info.last_inum
+    return fs_info
+
+
   def list_directory(self, directory, stack=None, path=None, conn=None):
     stack.append(directory.info.fs_file.meta.addr)
     
@@ -94,6 +106,7 @@ class Carpe_FS_Analyze(object):
 
       files = self.directory_entry_info(directory_entry, prefix=prefix, path=path)  
       files = map(lambda i: i.toTuple(), files)
+
       ## DB insert code here
       #query = conn.insert_query_builder("carpe_file")
       #conn.bulk_execute(query, files)
@@ -151,6 +164,7 @@ class Carpe_FS_Analyze(object):
   def parse_options(self, options):
     self._long_listing = getattr(options, "long_listing", False)
     self._recursive = getattr(options, "recursive", False)
+
 
 
   #To Do
@@ -344,12 +358,14 @@ def Main():
   #print (options)
 
   fs = Carpe_FS_Analyze()
+
   fs.parse_options(options)
 
   fs.open_image(options.image_type, options.images)
-
+ 
   fs.open_file_system(options.offset)
 
+  fs_info_ = fs.fs_info()
 
   directory = fs.open_directory(options.inode)
 
