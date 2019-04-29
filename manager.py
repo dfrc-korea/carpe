@@ -30,7 +30,7 @@ class CARPE_AM:
 		conn = db.open()
 
 		# Get Source Path
-		query = 'SELECT file_path FROM tn_evidence WHERE evd_no = ' + str(evd_no) + ';'
+		query = 'SELECT path FROM carpe_evidence_info WHERE evd_no = ' + str(evd_no) + ';'
 		self.src_path = db.execute_query(conn, query)
 
 		# Get Case & Evidence Name
@@ -93,10 +93,10 @@ class CARPE_AM:
 		directory = fls.open_directory('?')
 		fls.list_directory(directory, [], [])
 
-	def SysLogAndUserData_Analysis(self, case_no, evd_no, user_id, db_name):
+	def SysLogAndUserData_Analysis(self, case_no, evd_no, user_id):
 		# Conenct Carpe Database
 		db = mariadb.Mariadb()
-		conn = db.open(db_name)
+		conn = db.open()
 
 		# Get image file list
 		query = 'SELECT file_name, file_path FROM tn_evidence_splitted WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
