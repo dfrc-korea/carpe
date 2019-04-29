@@ -1,7 +1,6 @@
 import pymysql
 import carpe_file
 
-
 class Mariadb(object):
 	#To Do
 	# Tune the columns
@@ -35,19 +34,17 @@ class Mariadb(object):
 		        						"FOREIGN KEY(p_id) REFERENCES carpe_fs_info(partition_id));"
 	}
 
-
 	# To Do 
 	# query for select specific file's metadata such as inode by extension 
 	PREPARED_QUERY = {		
 	}
-
 
 	def __init__(self):
 		self._conn = None
 
 	def open(self):
 		try:
-			self._conn = pymysql.connect(host='localhost', port=3306, user='test', passwd='dfrc4738', db='carpe',charset='utf8',autocommit=True)
+			self._conn = pymysql.connect(host='192.168.1.232', port=3306, user='test', passwd='dfrc4738', db='carpe',charset='utf8',autocommit=True)
 		except Exception:
 			self._conn=null
 			print("db connection error")
