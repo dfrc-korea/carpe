@@ -26,18 +26,18 @@ class CARPE_AM:
 
 	def init_module(self, case_no, evd_no, inv_no):
 		# Connect Carpe Database
-		db = mariadb.Mariadb()
-		conn = db.open()
+		db = carpe_db.Mariadb()
+		db.open()
 
 		# Get Source Path
 		query = 'SELECT evd_name, file_path FROM tn_evidence WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
-		(self.evd_name, self.src_path) = db.execute_query(conn, query)
+		(self.evd_name, self.src_path) = db.execute_query(db._conn, query)
 
 		# Get Case & Evidence Name
 		query = 'SELECT case_name FROM tn_case WHERE case_no = ' + str(case_no) + ';'
-		self.case_name = db.execute_query(conn, query)
+		self.case_name = db.execute_query(db._conn, query)
 
-		db.close(conn)
+		db.close()
 
 		# Create directory to store splitted image
 		self.dst_path = '/data/share/image' + '/' + self.case_name + '/' + self.evd_name + '/splitted'
@@ -60,12 +60,6 @@ class CARPE_AM:
 		disk_info = disk_scanner.ScanDisk(base_path_specs)
 		
 		# Insert partition list
-		db = mariadb.Mariadb()
-		conn = db.open()
-		
-		
-
-		db.close(conn)
 
 		# Split image file
 		disk_spliter = split_disk.DiskSpliter(disk_info)
@@ -73,13 +67,13 @@ class CARPE_AM:
 
 	def FileSystem_Analysis(self, case_no, evd_no, user_id):
 		# Conenct Carpe Database
-		db = mariadb.Mariadb()
-		conn = db.open()
+		db = carpe_db.Mariadb()
+		db.open()
 
 		# Get image file list
 		query = 'SELECT file_path  FROM tn_evidence_splitted WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
-		image_list = db.execute_query(conn, query)
-		db.close(conn)
+		image_list = db.execute_query(db._conn, query)
+		db.close()
 		
 		# Temporary code
 		for image in image_list:
@@ -99,7 +93,7 @@ class CARPE_AM:
 		'''
 	
 	def ParseFilesystem(self, image):
-		fls = carpe_fls.Fls()
+		fls = carpe_fs_analyzer.Fls()
 		fls.open_image('raw', image)
 		fls.open_file_system(0)
 		directory = fls.open_directory('?')
@@ -107,13 +101,13 @@ class CARPE_AM:
 
 	def SysLogAndUserData_Analysis(self, case_no, evd_no, inv_no):
 		# Conenct Carpe Database
-		db = mariadb.Mariadb()
-		conn = db.open()
+		db = carpe_db.Mariadb()
+		db.open()
 
 		# Get image file list
 		query = 'SELECT file_name, file_path FROM tn_evidence_splitted WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
-		image_name, image_list = db.execute_query(conn, query)
-		db.close(conn)
+		image_name, image_list = db.execute_query(db._conn, query)
+		db.close()
 
 		# Temporary code
 		for name, image in image_name, image_list:
