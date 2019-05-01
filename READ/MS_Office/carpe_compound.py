@@ -2,11 +2,24 @@
 import datetime
 
 import compoundfiles
-import os
+import os, sys
 import struct
-from carpe_xls import XLS
-from carpe_ppt import PPT
-from carpe_doc import DOC
+try:
+    from carpe_xls import XLS
+except ModuleNotFoundError:
+    sys.path.append(os.path.dirname(__file__))
+    from carpe_xls import XLS
+try:
+    from carpe_ppt import PPT
+except ModuleNotFoundError:
+    sys.path.append(os.path.dirname(__file__))
+    from carpe_ppt import PPT
+try:
+    from carpe_doc import DOC
+except ModuleNotFoundError:
+    sys.path.append(os.path.dirname(__file__))
+    from carpe_doc import DOC
+
 
 class Compound:
 
