@@ -24,6 +24,9 @@ import time
 
 import images
 import pytsk3
+
+import carpe_file
+import carpe_fs_info
 import carpe_db
 
 
@@ -32,7 +35,7 @@ def vdir(obj):
 
 
 
-class Fls(object):
+class Carpe_FS_Analyze(object):
 
   FILE_TYPE_LOOKUP = {
       pytsk3.TSK_FS_NAME_TYPE_UNDEF: "-",
@@ -59,7 +62,7 @@ class Fls(object):
       pytsk3.TSK_FS_META_TYPE_WHT: "w",
       pytsk3.TSK_FS_META_TYPE_VIRT: "v"}
 
-  ATTRIBUTE_TYPES_TO_PRINT = [
+  ATTRIBUTE_TYPES_TO_ANALYZE = [
       pytsk3.TSK_FS_ATTR_TYPE_NTFS_IDXROOT,
       pytsk3.TSK_FS_ATTR_TYPE_NTFS_DATA,
       pytsk3.TSK_FS_ATTR_TYPE_NTFS_FNAME,
@@ -67,21 +70,29 @@ class Fls(object):
       pytsk3.TSK_FS_ATTR_TYPE_DEFAULT]
 
   def __init__(self):
-    super(Fls, self).__init__()
+    super(Carpe_FS_Analyze, self).__init__()
     self._fs_info = None
+    self._fs_block = None
     self._img_info = None
     self._long_listing = False
     self._recursive = False
+    self._carpe_files = []
+
+  def fs_info(self):
+    fs_info = carpe_fs_info.Carpe_fs_info()
+    fs_info._fs_id = self._fs_info.info.fs_id
+    fs_info._block_size = self._fs_info.info.block_size
+    fs_info._block_count = self._fs_info.info.block_count
+    fs_info._root_inum = self._fs_info.info.root_inum
+    fs_info._first_inum = self._fs_info.info.first_inum
+    fs_info._last_inum = self._fs_info.info.last_inum
+    return fs_info
 
 
-  def list_directory(self, directory, stack=None, path=None):
+  def list_directory(self, directory, stack=None, path=None, conn=None):
     stack.append(directory.info.fs_file.meta.addr)
     
     for directory_entry in directory:
-      #print directory_entry.info.meta.type
-      #file/directory name
-      #print directory_entry.info.name.name
-
       prefix = "+" * (len(stack) - 1)
       if prefix:
         prefix += " "
@@ -93,10 +104,14 @@ class Fls(object):
           directory_entry.info.name.name in [".", ".."]):
         continue
 
-      #print path
-      self.directory_entry_info(directory_entry, prefix=prefix, path=path)  
-      #print "[*]"
+      files = self.directory_entry_info(directory_entry, prefix=prefix, path=path)  
+      files = map(lambda i: i.toTuple(), files)
+
+      ## DB insert code here
+      #query = conn.insert_query_builder("carpe_file")
+      #conn.bulk_execute(query, files)
       
+
       if self._recursive:
         try:
           sub_directory = directory_entry.as_directory()
@@ -105,8 +120,7 @@ class Fls(object):
           # This ensures that we don't recurse into a directory
           # above the current level and thus avoid circular loops.
           if inode not in stack:
-            path.append((directory_entry.info.name.name).decode('utf-8','replace'))
-            
+            path.append((directory_entry.info.name.name).decode('utf-8','replace'))            
             self.list_directory(sub_directory, stack, path)
 
         except IOError:
@@ -117,6 +131,7 @@ class Fls(object):
       path.pop(-1)
 
   def open_directory(self, inode_or_path):
+
     inode = None
     path = None
     if inode_or_path is None:
@@ -137,6 +152,11 @@ class Fls(object):
   def open_file_system(self, offset):
     self._fs_info = pytsk3.FS_Info(self._img_info, offset=offset)
 
+
+  def open_block(self, offset):
+    self._fs_block = pytsk3.FS_Block(self._fs_info, a_addr=offset)
+
+
   def open_image(self, image_type, filenames):
     # List the actual files (any of these can raise for any reason).
     self._img_info = images.SelectImage(image_type, filenames)
@@ -147,7 +167,7 @@ class Fls(object):
 
 
   #To Do
-  # 1. connect direct to db
+  # 1. connect direct to db ?
   # 2. Error/Info Log     
   def directory_entry_info(self, directory_entry, prefix="", path=None):
       
@@ -163,93 +183,105 @@ class Fls(object):
         meta_type = self.META_TYPE_LOOKUP.get(int(meta.type), "-")
 
       directory_entry_type = "{0:s}/{1:s}".format(name_type, meta_type)
-      #print ("=== Attrubute Meta Data List ===")
-      print ("-----------")
-      
-      print (vdir(name))
-      print (vdir(meta))
-      print ("---")
-      print (vdir(directory_entry.info.fs_info))
-      print (directory_entry.info.fs_info.block_count)
-      
-      print (directory_entry.info.fs_info.block_post_size)
-      print (directory_entry.info.fs_info.block_pre_size)
-      print (directory_entry.info.fs_info.block_size)
-      print (directory_entry.info.fs_info.dev_bsize)
-      print (directory_entry.info.fs_info.first_block)
-      
-      
-      if name is not None:
-        print ("(+)")
-        print (name.name)
-        print (name.flags)        
-        print (name.meta_addr)        
-        print (name.meta_seq)
-        print (name.par_addr)
-        
-      if meta is not None:
-        print ("(+)(+)")
-        print (directory_entry.info.meta.seq)
-        print (directory_entry.info.meta.gid)
-        print (directory_entry.info.meta.uid)
-        print (directory_entry.info.meta.tag)
-        print (directory_entry.info.meta.type)
-        print (directory_entry.info.meta.mode)
-        print (directory_entry.info.meta.link)
-      #print ("-- block count --" )
-      #print (directory_entry.info.fs_info.block_count)
-      #print ("-- block size --")
-      #print (directory_entry.info.fs_info.block_size)
-      #print ("-- dev block size --")
-      #print (directory_entry.info.fs_info.dev_bsize)
-      #print ("-- par addr --")
-      #print (directory_entry.info.name.par_addr.numerator)
 
-      i = 0
+      files = []
+      file_names=[]
+      new_file = carpe_file.Carpe_file()
+
+      new_file._parent_path = u"root/"
+      for i in path:
+        new_file._parent_path += i + u"/"
+
       for attribute in directory_entry:
-        #print (attribute.info.type)
-        if int(attribute.info.type) in self.ATTRIBUTE_TYPES_TO_PRINT:
+        if int(attribute.info.type) in self.ATTRIBUTE_TYPES_TO_ANALYZE:
+
           #$StandardInformation 
           if attribute.info.type == pytsk3.TSK_FS_ATTR_TYPE_NTFS_SI:
-            si_mtime = [lambda:0, lambda:directory_entry.info.meta.mtime][directory_entry.info.meta.mtime is not None]()  
-            si_atime = [lambda:0, lambda:directory_entry.info.meta.atime][directory_entry.info.meta.atime is not None]()
-            si_etime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
-            si_crtime =[lambda:0, lambda:directory_entry.info.meta.crtime][directory_entry.info.meta.crtime is not None]()
+
+            new_file._si_mtime = [lambda:0, lambda:directory_entry.info.meta.mtime][directory_entry.info.meta.mtime is not None]()  
+            new_file._si_atime = [lambda:0, lambda:directory_entry.info.meta.atime][directory_entry.info.meta.atime is not None]()
+            new_file._si_etime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
+            new_file._si_ctime =[lambda:0, lambda:directory_entry.info.meta.crtime][directory_entry.info.meta.crtime is not None]()
             
-            si_mtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.mtime_nano is not None]()            
-            si_atime_nano = [lambda:0, lambda:directory_entry.info.meta.atime_nano][directory_entry.info.meta.atime_nano is not None]()
-            si_etime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
-            si_crtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                
+            new_file._si_mtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.mtime_nano is not None]()            
+            new_file._si_atime_nano = [lambda:0, lambda:directory_entry.info.meta.atime_nano][directory_entry.info.meta.atime_nano is not None]()
+            new_file._si_etime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
+            new_file._si_ctime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                
           #$FileName   
           if attribute.info.type == pytsk3.TSK_FS_ATTR_TYPE_NTFS_FNAME:
-            fn_mtime = [lambda:0, lambda:directory_entry.info.meta.mtime][directory_entry.info.meta.mtime is not None]()  
-            fn_atime = [lambda:0, lambda:directory_entry.info.meta.atime][directory_entry.info.meta.atime is not None]()
-            fn_etime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
-            fn_crtime =[lambda:0, lambda:directory_entry.info.meta.crtime][directory_entry.info.meta.crtime is not None]()
+
+            new_file._fn_mtime = [lambda:0, lambda:directory_entry.info.meta.mtime][directory_entry.info.meta.mtime is not None]()  
+            new_file._fn_atime = [lambda:0, lambda:directory_entry.info.meta.atime][directory_entry.info.meta.atime is not None]()
+            new_file._fn_etime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
+            new_file._fn_crtime =[lambda:0, lambda:directory_entry.info.meta.crtime][directory_entry.info.meta.crtime is not None]()
             
-            fn_mtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.mtime_nano is not None]()            
-            fn_atime_nano = [lambda:0, lambda:directory_entry.info.meta.atime_nano][directory_entry.info.meta.atime_nano is not None]()
-            fn_etime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
-            fn_crtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                                
+            new_file._fn_mtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.mtime_nano is not None]()            
+            new_file._fn_atime_nano = [lambda:0, lambda:directory_entry.info.meta.atime_nano][directory_entry.info.meta.atime_nano is not None]()
+            new_file._fn_etime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
+            new_file._fn_ctime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                                
           #Allocated status
-          inode = [lambda:"{0:d}".format(meta.addr), lambda:"{0:d}-{1:d}-{2:d}".format(meta.addr, int(attribute.info.type), attribute.info.id)][self._fs_info.info.ftype in [pytsk3.TSK_FS_TYPE_NTFS, pytsk3.TSK_FS_TYPE_NTFS_DETECT]]()          
+          new_file._inode = [lambda:"{0:d}".format(meta.addr), lambda:"{0:d}-{1:d}-{2:d}".format(meta.addr, int(attribute.info.type), attribute.info.id)][self._fs_info.info.ftype in [pytsk3.TSK_FS_TYPE_NTFS, pytsk3.TSK_FS_TYPE_NTFS_DETECT]]()          
           #File name       
-          filename =[lambda:(name.name).decode('utf-8','replace'), lambda:"{0:s}:{1:s}".format((name.name).decode('utf-8','replace'), (attribute.info.name).decode('utf-8','replace'))][(attribute.info.name is not None) & (attribute.info.name not in ["$Data", "$I30"])]()          
+          if attribute.info.type == pytsk3.TSK_FS_ATTR_TYPE_NTFS_DATA:
+            
+            if new_file._name is not None:
+              file_names.append([[lambda:(name.name).decode('utf-8','replace'), lambda:"{0:s}:{1:s}".format((name.name).decode('utf-8','replace'), (attribute.info.name).decode('utf-8','replace'))][(attribute.info.name is not None) & (attribute.info.name not in ["$Data", "$I30"])](), (attribute.info.size)])
+            else:
+              new_file._name =[lambda:(name.name).decode('utf-8','replace'), lambda:"{0:s}:{1:s}".format((name.name).decode('utf-8','replace'), (attribute.info.name).decode('utf-8','replace'))][(attribute.info.name is not None) & (attribute.info.name not in ["$Data", "$I30"])]()          
+            
+          else:
+            new_file._name =[lambda:(name.name).decode('utf-8','replace'), lambda:"{0:s}:{1:s}".format((name.name).decode('utf-8','replace'), (attribute.info.name).decode('utf-8','replace'))][(attribute.info.name is not None) & (attribute.info.name not in ["$Data", "$I30"])]()          
+            new_file._size = attribute.info.size
+
+
           #file extension
           file_extension =u""
-          for i in range( len(list(filename)) -1 , -1, -1):
-            if list(filename)[i] != u".":
-              file_extension = list(filename)[i] + file_extension  
-            else:
-              break
-          file_extension = [lambda:u"", lambda:file_extension][file_extension != filename]()          
-          #size 
-          size = meta.size
-          print (inode)
-
-
+          if directory_entry_type == "r/r":
+            for i in range( len(list(new_file._name)) -1 , -1, -1):
+              if list(new_file._name)[i] != u".":
+                file_extension = list(new_file._name)[i] + file_extension  
+              else:
+                break
+            new_file._extension = [lambda:u"", lambda:file_extension][file_extension != new_file._name]()          
+          
+          #size
+          new_file._size = meta.size
+          #mode
+          new_file._mode = str(attribute.info.fs_file.meta.mode)
+          #seq
+          new_file._meta_seq = attribute.info.fs_file.meta.seq
+          #uid
+          new_file._uid = attribute.info.fs_file.meta.uid
+          #gid
+          new_file._gid = attribute.info.fs_file.meta.gid
+          
         else:
           debug ="TO DO : Deal with other Attribute Types"
+
+      #slack-size
+      if (new_file._size > 1024):
+        slack_size = 4096 - (new_file._size % 4096)
+      else:
+        slack_size = 0
+      
+      #To Do : Simplification
+      for i in file_names:
+        temp = carpe_file.Carpe_file()
+        temp.__dict__ = new_file.__dict__.copy()
+        
+        temp._name = i[0]
+        temp._size = i[1]        
+        files.append(temp)
+
+      if slack_size > 0:
+        temp = carpe_file.Carpe_file()
+        temp.__dict__ = new_file.__dict__.copy()
+        temp._size = slack_size
+        temp._extension = ""
+        temp._name= new_file._name + u"-slack" 
+        files.append(temp)
+      
+      return files
 
       #print ("---")    
       #print("===Summary Info===")          
@@ -324,24 +356,33 @@ def Main():
   #print (type(options))
   #print (options)
 
-  fls = Fls()
-  fls.parse_options(options)
+  fs = Carpe_FS_Analyze()
 
-  fls.open_image(options.image_type, options.images)
+  fs.parse_options(options)
 
-  fls.open_file_system(options.offset)
+  fs.open_image(options.image_type, options.images)
+ 
+  fs.open_file_system(options.offset)
 
-  directory = fls.open_directory(options.inode)
+  fs_info_ = fs.fs_info()
 
+  directory = fs.open_directory(options.inode)
+
+
+  db_connector = carpe_db.Mariadb()
+  #TO DO 
+  #db server ip / name input 
+  #db_connector.open()
+  #db_connector.initialize()
+  
 
   # Iterate over all files in the directory and print their name.
   # What you get in each iteration is a proxy object for the TSK_FS_FILE
   # struct - you can further dereference this struct into a TSK_FS_NAME
   # and TSK_FS_META structs.
-  fls.list_directory(directory, [], [])
+  fs.list_directory(directory, [], [], db_connector)
 
   return True
-
 
 if __name__ == '__main__':
   if not Main():
