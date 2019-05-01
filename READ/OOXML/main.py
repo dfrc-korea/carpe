@@ -1,5 +1,7 @@
-from Carpe_OOXML import OOXML
+import os
 import sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from Carpe_OOXML import OOXML
 
 if __name__ == '__main__':
     # 정상 / 비정상
