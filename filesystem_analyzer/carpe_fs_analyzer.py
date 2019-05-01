@@ -166,7 +166,6 @@ class Carpe_FS_Analyze(object):
     self._recursive = getattr(options, "recursive", False)
 
 
-
   #To Do
   # 1. connect direct to db ?
   # 2. Error/Info Log     
