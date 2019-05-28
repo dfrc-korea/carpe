@@ -119,8 +119,16 @@ class Compound:
 
     def parse_summaryinfo(self):
         records = []
-        # Open SummaryInformation Stream
-        f = self.fp.open('\x05SummaryInformation').read()
+        if self.is_damaged == False:
+            # Open SummaryInformation Stream
+            f = self.fp.open('\x05SummaryInformation').read()
+        elif self.is_damaged == True:
+            self.fp.seek(0)
+            s = bytearray(self.fp.read(self.fileSize))
+            summary_offset = s.find(b'\xFE\xFF\x00\x00\x06\x01\x02\x00')
+            if summary_offset == -1:    # not found
+                return False
+            f = s[summary_offset:summary_offset+512]
 
         startOffset = struct.unpack('<i', f[0x2C: 0x30])[0]
         tempOffset = startOffset
@@ -189,7 +197,7 @@ class Compound:
             # Createtime
             elif record['type'] == 0x0C:
                 #entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
-                #print(datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S.%f'))
+                print(datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S.%f'))
                 self.metadata['create_time'] = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0]
 
 
