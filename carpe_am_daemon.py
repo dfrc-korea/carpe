@@ -42,7 +42,7 @@ class CARPE_AM:
 		# Create directory to store splitted image
 		self.dst_path = '/data/share/image' + '/' + self.case_name + '/' + self.evd_name + '/splitted'
 
-	def Preprocess(self, case_no, evd_no, inv_no):
+	def Preprocess(self, case_no, evd_no, inv_no, option):
 		'''
 			Module to analyze the image file.
 			This module parse the partition list in image file.
@@ -62,8 +62,9 @@ class CARPE_AM:
 		# Insert partition list
 
 		# Split image file
-		disk_spliter = split_disk.DiskSpliter(disk_info)
-		disk_spliter.SplitDisk(output_writer)
+		if option['vss']:
+			disk_spliter = split_disk.DiskSpliter(disk_info)
+			disk_spliter.SplitDisk(output_writer)
 
 	def FileSystem_Analysis(self, case_no, evd_no, user_id):
 		# Conenct Carpe Database
@@ -128,13 +129,14 @@ def do_work(connection, channel, delivery_tag, body):
 	case_no = request['case_no']
 	evd_no = request['evd_no']
 	inv_no = request['inv_no']
+	opt = request['option']
 
 	carpe_am = CARPE_AM()
 	carpe_am.init_module(case_no, evd_no, inv_no)
 	pdb.set_trace()
 	# Preprocess
 	if req_type == 'Preprocess':
-		carpe_am.Preprocess(case_no, evd_no, inv_no)
+		carpe_am.Preprocess(case_no, evd_no, inv_no, opt)
 	elif req_type == 'Filesystem':
 		carpe_am.FileSystem_Analysis(case_no, evd_no, inv_no)
 	elif req_type == 'SysLogAndUserData':
