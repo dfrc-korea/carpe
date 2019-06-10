@@ -83,12 +83,48 @@ class CARPE_AM:
 
 		'''
 	
-	def ParseFilesystem(self, image):
-		fls = carpe_fs_analyzer.Fls()
-		fls.open_image('raw', image)
-		fls.open_file_system(0)
-		directory = fls.open_directory('?')
-		fls.list_directory(directory, [], [])
+	def ParseFilesystem(self, options):
+		if not options.images:
+			print('No storage media image or device was provided.')
+			print('')
+			print('')
+			return False
+
+		#fls = carpe_fs_analyzer.Fls()
+		#fls.open_image('raw', image)
+		#fls.open_file_system(0)
+		#directory = fls.open_directory('?')
+		#fls.list_directory(directory, [], [])
+
+		#####------#####
+		fs = carpe_fs_analyzer.Carpe_FS_Analyze()
+		#fs_alloc_info = carpe_fs_alloc_info.Carpe_FS_Alloc_Info()
+
+		fs.parse_options(options)
+
+		fs.open_image("raw", options.images)
+		 
+		fs.open_file_system(0)
+
+		fs.fs_info(options.partition_id)
+
+		#fs_alloc_info = fs.block_alloc_status()
+		  
+		#fs_alloc_info._p_id = options.partition_id
+
+		directory = fs.open_directory(options.inode)
+
+		db_connector = carpe_db.Mariadb()
+
+		db_connector.open()
+		#db_connector.initialize()
+		# Iterate over all files in the directory and print their name.
+		# What you get in each iteration is a proxy object for the TSK_FS_FILE
+		# struct - you can further dereference this struct into a TSK_FS_NAME
+		# and TSK_FS_META structs.
+		fs.list_directory(directory, [], [], db_connector)
+		return True
+
 
 	def SysLogAndUserData_Analysis(self, case_no, evd_no, inv_no):
 		# Conenct Carpe Database
