@@ -1,20 +1,3 @@
-
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
-# Copyright 2011, Michael Cohen <scudette@gmail.com>.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 from __future__ import print_function
 import argparse
 import gc
@@ -33,7 +16,6 @@ import carpe_fs_alloc_info
 
 def vdir(obj):
     return [x for x in dir(obj) if not x.startswith('__')]
-
 
 
 class Carpe_FS_Analyze(object):
@@ -74,7 +56,7 @@ class Carpe_FS_Analyze(object):
     super(Carpe_FS_Analyze, self).__init__()
     self._fs_info = None
     self._fs_info_2 = None
-    self._fs_block = None
+    self._fs_blocks = []
     self._img_info = None
     self._recursive = False
     self._carpe_files = []
@@ -90,26 +72,44 @@ class Carpe_FS_Analyze(object):
     fs_info._last_inum = self._fs_info.info.last_inum
     self._fs_info_2 = fs_info
 
+  def block_alloc_status(self):
+    alloc_info = carpe_fs_alloc_info.Carpe_FS_Alloc_Info()
+    skip = 0
+    start = 0
+    for n in range(0, self._fs_info_2._block_count):  
+      if (skip == 0):
+        if(self._fs_info.blockstat(n) == 0):
+          start = n
+          skip = 1
+      else:    
+        if(self._fs_info.blockstat(n) == 1):
+          alloc_info._unallock_blocks.append((start, n-1))
+          skip = 0
+    return alloc_info
+
+
   def list_directory(self, directory, stack=None, path=None, conn=None):
+
     stack.append(directory.info.fs_file.meta.addr)  
     for directory_entry in directory:
       prefix = "+" * (len(stack) - 1)
       if prefix:
         prefix += " "
+      
       # Skip ".", ".." or directory entries without a name.
       if (not hasattr(directory_entry, "info") or
           not hasattr(directory_entry.info, "name") or
           not hasattr(directory_entry.info.name, "name") or
           directory_entry.info.name.name in [".", ".."]):
         continue
-      files_tuple = map(lambda i: i.toTuple(), self.directory_entry_info(directory_entry, prefix=prefix, path=path))
+      files_tuple = map(lambda i: i.toTuple(), self.directory_entry_info(directory_entry, parent_id=stack[-1], path=path))
       
       for i in files_tuple:
-        query = conn.insert_query_builder("carpe_file")
+        query = conn.insert_query_builder("file_info")
         query = (query + "\n values " + "%s" % (i, ))
         data=conn.execute_query(query)
       conn.commit()
-
+      
 
       if self._recursive:
         try:
@@ -155,7 +155,7 @@ class Carpe_FS_Analyze(object):
   def parse_options(self, options):
     self._recursive = True
 
-  def directory_entry_info(self, directory_entry, prefix="", path=None):
+  def directory_entry_info(self, directory_entry, parent_id="", path=None):
       
       meta = directory_entry.info.meta
       name = directory_entry.info.name
@@ -177,13 +177,14 @@ class Carpe_FS_Analyze(object):
       new_file._dir_type = [lambda:0, lambda:int(name.type)][name is not None]()
       new_file._meta_type = [lambda:0, lambda:int(meta.type)][meta is not None]()
       new_file._type = 0
+      new_file._parent_id = parent_id
       new_file._parent_path = u"root/"
       for i in path:
         new_file._parent_path += i + u"/"
 
       for attribute in directory_entry:
         if int(attribute.info.type) in self.ATTRIBUTE_TYPES_TO_ANALYZE:
-
+          #need to check value
           #$StandardInformation 
           if attribute.info.type == pytsk3.TSK_FS_ATTR_TYPE_NTFS_SI:
 
@@ -245,7 +246,7 @@ class Carpe_FS_Analyze(object):
           
         else:
           debug ="TO DO : Deal with other Attribute Types"
-
+      files.append(new_file)
       #slack-size
       if (new_file._size > 1024):
         slack_size = 4096 - (new_file._size % 4096)
@@ -271,112 +272,3 @@ class Carpe_FS_Analyze(object):
         files.append(temp)
       
       return files
-
-      #print ("---")    
-      #print("===Summary Info===")          
-      #if name and meta:
-        #data="{0:s}|{1:s}|{2:s}|{3:s}|{4:s}|{5:s}|{6:s}|{7:s}|{8:s}|{9:s}|{10:s}|{11:s}|{12:s}|{13:s}|{14:s}|{15:s}|{16:s}|{17:s}|{18:s}|{19:s}|{20:s}".format(
-        #  str(directory_entry_type), str(inode), str("root/"+"/".join(path)), "".join(filename),
-        #  str(si_mtime), str(si_atime), str(si_ctime), str(si_crtime), str(si_mtime_nano), str(si_atime_nano), str(si_ctime_nano), str(si_crtime_nano),
-        #  str(fn_mtime), str(fn_atime), str(fn_ctime), str(fn_crtime), str(fn_mtime_nano), str(fn_atime_nano), str(fn_ctime_nano), str(fn_crtime_nano),
-        #  str(file_extension))
-
-
-        #db_test = carpe_db.Mariadb()
-        #conn=db_test.open()
-        #query=db_test.query_builder("1", data, "file")
-        #data=db_test.execute_query(conn,query)
-        #db_test.close(conn)
-
-
-
-
-def Main():
-  """The main program function.
-  Returns:
-    A boolean containing True if successful or False if not.
-  """
-  args_parser = argparse.ArgumentParser(description=(
-      "Lists a file system in a storage media image or device."))
-
-  args_parser.add_argument(
-      "images", nargs="+", metavar="IMAGE", action="store", type=str,
-      default=None, help=("Storage media images or devices."))
-
-  args_parser.add_argument(
-      "inode", nargs="?", metavar="INODE", action="store",
-      type=str, default=None, help=(
-          "The inode or path to list. If [inode] is not given, the root "
-          "directory is used"))
-  # TODO: not implemented.
-  # args_parser.add_argument(
-  #     "-f", "--fstype", metavar="TYPE", dest="file_system_type",
-  #     action="store", type=str, default=None, help=(
-  #         "The file system type (use \"-f list\" for supported types)"))
-  # TODO: not implemented.
-  # args_parser.add_argument(
-  #     "-l", dest="long_listing", action="store_true", default=False,
-  #     help="Display long version (like ls -l)")
-
-  args_parser.add_argument(
-      "-o", "--offset", metavar="OFFSET", dest="offset", action="store",
-      type=int, default=0, help="The offset into image file (in bytes)")
-
-  args_parser.add_argument(
-      "-r", "--recursive", dest="recursive", action="store_true",
-      default=True, help="List subdirectories recursively.")
-
-  args_parser.add_argument(
-      "-p", "--partition_id", dest="partition_id", action="store",
-      default=0, help="Partition ID.")
-
-  options = args_parser.parse_args()
-
-  if not options.images:
-    print('No storage media image or device was provided.')
-    print('')
-    args_parser.print_help()
-    print('')
-    return False
-
-  #print (type(options))
-  #print (options)
-
-  fs = Carpe_FS_Analyze()
-  #fs_alloc_info = carpe_fs_alloc_info.Carpe_FS_Alloc_Info()
-
-  fs.parse_options(options)
-
-  fs.open_image("raw", options.images)
- 
-  fs.open_file_system(0)
-
-  fs_info_ = fs.fs_info(options.partition_id)
-
-  #To Do : allocation status
-
-  #for n in range(0, 262142):
-  #  fs._fs_info.blockstat(n)
-  
-  directory = fs.open_directory(options.inode)
-
-  db_connector = carpe_db.Mariadb()
-  #TO DO 
-  #db server ip / name input 
-  db_connector.open()
-  #db_connector.initialize()
-  
-  # Iterate over all files in the directory and print their name.
-  # What you get in each iteration is a proxy object for the TSK_FS_FILE
-  # struct - you can further dereference this struct into a TSK_FS_NAME
-  # and TSK_FS_META structs.
-
-  fs.list_directory(directory, [], [], db_connector)
-
-  return True
-
-if __name__ == '__main__':
-  if not Main():
-    sys.exit(1)
-  else:
-    sys.exit(0)
