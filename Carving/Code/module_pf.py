@@ -16,7 +16,6 @@ import os,sys
 
 from interface import ModuleComponentInterface
 from defines   import *
-
 from structureReader import structureReader as sr
 
 #from structureReader import StructureReader    as parser
