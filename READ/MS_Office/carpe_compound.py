@@ -46,8 +46,7 @@ class Compound:
             try:
                 self.fp = compoundfiles.CompoundFileReader(filePath)
                 self.is_damaged = self.CONST_DOCUMENT_NORMAL
-                temp1 = bytearray(self.fp.open('WordDocument').read())         # read test
-
+                temp1 = bytearray(self.fp.open('\x05SummaryInformation').read())         # read test
                 #print("Normal File exist!!")
             except compoundfiles.errors.CompoundFileInvalidBomError:
                 self.fp = open(filePath, 'rb')
@@ -106,7 +105,7 @@ class Compound:
             self.has_content = True
             print(self.content)
 
-        if self.is_damaged == False:
+        if self.is_damaged == self.CONST_DOCUMENT_NORMAL:
             self.parse_summaryinfo()
 
         if( self.metadata['author'] != None or self.metadata['title'] != None or self.metadata['create_time'] != None or self.metadata['modified_time'] != None):
