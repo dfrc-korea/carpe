@@ -35,7 +35,6 @@ try:
 except OSError:
   raise ImportError("libewf not found")
 
-
 class ewffile:
   """A file like object to provide access to the ewf file."""
 

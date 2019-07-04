@@ -17,22 +17,31 @@ def ack_message(channel, delivery_tag):
 		pass
 
 def do_work(connection, channel, delivery_tag, body):
+	body = body.replace("'", "\"")
 	request = json.loads(body)
+	req_id = request['req_id']
 	req_type = request['req_type']
-	case_no = request['case_no']
-	evd_no = request['evd_no']
-	inv_no = request['inv_no']
+	case_id = request['case_id']
+	evd_id = request['evd_id']
+	options = request['options']
 
-	carpe_am = CARPE_AM()
-	carpe_am.init_module(case_no, evd_no, inv_no)
-	pdb.set_trace()
-	# Preprocess
-	if req_type == 'Preprocess':
-		carpe_am.Preprocess(case_no, evd_no, inv_no)
-	elif req_type == 'Filesystem':
-		carpe_am.FileSystem_Analysis(case_no, evd_no, inv_no)
-	elif req_type == 'SysLogAndUserData':
-		carpe_am.SysLogAndUserData_Analysis(case_no, evd_no, inv_no)
+	if req_id == '1':
+		# Analysis Request
+		carpe_am = carpe_am_module.CARPE_AM()
+
+		# Set Module Information
+		carpe_am.SetModule(case_id, evd_id)
+
+		if req_type == 'analyze':
+			carpe_am.SysLogAndUserData_Analysis(case_id, evd_id)
+			print('Request Analysis!')
+		
+		else:
+			print('Request Type Error!')
+
+	elif req_id == '2':
+		# Visualzation Request
+		print('Visualzation Request')
 
 	cb = functools.partial(ack_message, channel, delivery_tag)
 	connection.add_callback_threadsafe(cb)
@@ -43,8 +52,8 @@ def on_message(channel, method_frame, header_frame, body, args):
 	t = threading.Thread(target=do_work, args=(connection, channel, delivery_tag, body))
 	t.start()
 	threads.append(t)
-
-url = os.environ.get('CARPE_URL', 'amqp://carpe_rest:dfrc4738@192.168.1.2:5672/Request')
+'''
+url = os.environ.get('CARPE_URL', 'amqp://carpe_rest:dfrc4738@218.145.27.67:5672/Request')
 params = pika.URLParameters(url)
 connection = pika.BlockingConnection(params)
 channel = connection.channel()
@@ -64,3 +73,15 @@ for thread in threads:
 	thread.join()
 
 connection.close()
+
+
+TEST SET
+
+delete from partition_info where evd_id='e1c1004619edb24ffcb5ca1e48ec3c73cf';
+'''
+case_id = 'c16011ffad0b3a44e78aed17b366023f9c'
+evd_id = 'e1c1004619edb24ffcb5ca1e48ec3c73cf'
+
+carpe_am = carpe_am_module.CARPE_AM()
+carpe_am.SetModule(case_id, evd_id)
+carpe_am.SysLogAndUserData_Analysis()

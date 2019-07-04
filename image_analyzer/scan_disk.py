@@ -124,23 +124,6 @@ class DiskScanner(object):
         for sub_scan_node in scan_node.sub_nodes:
             self._ScanDisk(scan_context, sub_scan_node, disk_info)
 
-
-        """disk_info = []
-        self.base_path_specs = base_path_specs
-        for i, base_path_spec in enumerate(self.base_path_specs):
-            file_system = resolver.Resolver.OpenFileSystem(base_path_spec)
-            par_name = self.prefix + str(i)
-            if file_system.type_indicator == 'TSK':
-                tsk_image_object = tsk_image.TSKFileSystemImage(file_system._file_object)
-                length = tsk_image_object.get_size()
-                par_type = 'TSK' if base_path_spec.parent.type_indicator != 'VSHADOW' else 'VSS'
-                par_info = [par_name, length, par_type, base_path_spec]
-                disk_info.append(par_info)
-            else:
-                raise NotImplementedError
-
-        return disk_info"""
-
     def SetPrefix(self, prefix):
         self.prefix = prefix
 

@@ -136,11 +136,12 @@ class SplitImage(pytsk3.Img_Info):
 
 def SelectImage(img_type, files):
   if img_type == "raw":
-    if len(files) == 1:
-      # For a single file this is faster.
-      return pytsk3.Img_Info(files[0])
+    # For a single file this is faster.
+    return pytsk3.Img_Info(files)
+    '''
     else:
       return SplitImage(*files)
+    '''
 
   elif img_type == "ewf":
     # Instantiate our special image object

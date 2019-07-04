@@ -1,144 +1,121 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os, subprocess
+import uuid
 
 from utility import carpe_db
 from image_analyzer import split_disk
 from image_analyzer import scan_disk
 from filesystem_analyzer import carpe_fs_analyzer
 
+# Debuggin Module
+import pdb
+
 class CARPE_AM:
 	def __init__(self):
-		self.case_name = None
-		self.evd_name = None
-		self.inv_name = None
-		self.src_path = None
-		self.dst_path = None
+		self.case_id = None
+		self.evd_id = None
+		self.path = None
+		self.tmp_path = None
 
-	def init_module(self, case_no, evd_no, inv_no):
-		# Connect Carpe Database
+	def SetModule(self, _case_id, _evd_id):
+		self.case_id = _case_id
+		self.evd_id = _evd_id
+
 		db = carpe_db.Mariadb()
 		db.open()
-
-		# Get Source Path
-		query = 'SELECT evd_name, file_path FROM tn_evidence WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
-		(self.evd_name, self.src_path) = db.execute_query(db._conn, query)
-
-		# Get Case & Evidence Name
-		query = 'SELECT case_name FROM tn_case WHERE case_no = ' + str(case_no) + ';'
-		self.case_name = db.execute_query(db._conn, query)
-
+		query = "SELECT evd_path FROM evidence_info WHERE case_id='" + _case_id + "' AND evd_id='" + _evd_id + "';"
+		self.path = "/mnt/hgfs/carpe/share/" + db.execute_query(query)[0]
+		self.tmp_path = "/mnt/hgfs/carpe/share/temp/" + self.case_id + "/" + self.evd_id + "/"
 		db.close()
 
-		# Create directory to store splitted image
-		self.dst_path = '/data/share/image' + '/' + self.case_name + '/' + self.evd_name + '/splitted'
-
-	def Preprocess(self, case_no, evd_no, inv_no):
+	def ParseImage(self, options):
 		'''
 			Module to analyze the image file.
 			This module parse the partition list in image file.
-			And split image by partition.
 		'''
-		if not os.path.exists(self.dst_path):
-			os.mkdir(self.dst_path)
-		
-		# Get partition list in image file
-		output_writer = split_disk.FileOutputWriter(self.dst_path)
-		mediator = scan_disk.DiskScannerMediator()
-		disk_scanner = scan_disk.DiskScanner(mediator=mediator)
-		
-		base_path_specs = disk_scanner.GetBasePathSpecs(self.src_path)
-		disk_info = disk_scanner.ScanDisk(base_path_specs)
-		
-		# Insert partition list
+		# Get Partition list in image file
+		disk_scanner = scan_disk.DiskScanner()
+		disk_info = disk_scanner.Analyze(self.path)
 
-		# Split image file
-		disk_spliter = split_disk.DiskSpliter(disk_info)
-		disk_spliter.SplitDisk(output_writer)
-
-	def FileSystem_Analysis(self, case_no, evd_no, user_id):
-		# Conenct Carpe Database
+		# Insert Partition info
 		db = carpe_db.Mariadb()
 		db.open()
 
-		# Get image file list
-		query = 'SELECT file_path  FROM tn_evidence_splitted WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
-		image_list = db.execute_query(db._conn, query)
+		for disk in disk_info:
+			par_id = 'p1' + str(uuid.uuid4()).replace('-', '')
+			par_name = str(disk['vol_name'])
+			par_type = str(disk['type_indicator'])
+			sector_size = str(disk['bytes_per_sector'])
+			par_size = str(disk['length'])
+			start_sector = str(disk['start_sector'])
+
+			if par_type == 'VSHADOW' and options['vss'] != 'True':
+				continue
+			else:
+				query = "INSERT INTO partition_info(par_id, par_name, evd_id, par_type, sector_size, par_size, start_sector) VALUES('" + par_id + "', '" + par_name + "', '" + self.evd_id + "', '" + par_type + "', '" + sector_size + "', '" + par_size + "', '" + start_sector + "');"
+				db.execute_query(query)
+			
+		db.close()
+
+		# Split VSS Partition
+		if options['vss'] == 'True':
+			output_writer = split_disk.FileOutputWriter(self.path)
+			disk_spliter = split_disk.DiskSpliter(disk_info)
+			disk_spliter.SplitDisk(output_writer)
+
+		print('[#] Image Analysis Finish!')
+
+	def VSSAnalysis(self):
+		print('Analyze Volume Shadow Copy!')
+	
+	def ParseFilesystem(self):
+		fs = carpe_fs_analyzer.Carpe_FS_Analyze()
+
+		db = carpe_db.Mariadb()
+		db.open()
+		query = "SELECT sub_type FROM evidence_info WHERE evd_id='" + self.evd_id + "';"
+		image_format = str(db.execute_query(query)[0]).lower()
+		fs.open_image(image_format, self.path)
+
+		query = "SELECT par_id, sector_size, start_sector FROM partition_info WHERE evd_id='" + self.evd_id + "';"
+		par_info = db.execute_query_mul(query)
 		db.close()
 		
-		# Temporary code
-		for image in image_list:
-			subprocess.call(['python', '../filesystem_analyzer/carpe_fls', 'option'])
+		for par in par_info:
+			par_id = str(par[0])
+			sector_size = int(str(par[1]))
+			start_sector = int(str(par[2]))
+			fs.open_file_system((sector_size * start_sector))
+			fs.fs_info(par_id)
 
-		'''
-		# Parse file and directory list in image file
-		procs = []
-		for image in image_list:
-			proc = Process(target=self.ParseFilesystem, args=(image))
-			proc.start()
-			procs.append(proc)
+			directory = fs.open_directory(None)
+			db_connector = carpe_db.Mariadb()
 
-		for proc in procs:
-			proc.join()
+			db_connector.open()
+			fs.list_directory(directory, [], [], db_connector)
 
-		'''
-	
-	def ParseFilesystem(self, options):
-		if not options.images:
-			print('No storage media image or device was provided.')
-			print('')
-			print('')
-			return False
+			print('[#] FileSystem Analysis : ' + par_id + ' Finish!')
 
-		#fls = carpe_fs_analyzer.Fls()
-		#fls.open_image('raw', image)
-		#fls.open_file_system(0)
-		#directory = fls.open_directory('?')
-		#fls.list_directory(directory, [], [])
-
-		#####------#####
-		fs = carpe_fs_analyzer.Carpe_FS_Analyze()
-		#fs_alloc_info = carpe_fs_alloc_info.Carpe_FS_Alloc_Info()
-
-		fs.parse_options(options)
-
-		fs.open_image("raw", options.images)
-		 
-		fs.open_file_system(0)
-
-		fs.fs_info(options.partition_id)
-
-		#fs_alloc_info = fs.block_alloc_status()
-		  
-		#fs_alloc_info._p_id = options.partition_id
-
-		directory = fs.open_directory(options.inode)
-
-		db_connector = carpe_db.Mariadb()
-
-		db_connector.open()
-		#db_connector.initialize()
-		# Iterate over all files in the directory and print their name.
-		# What you get in each iteration is a proxy object for the TSK_FS_FILE
-		# struct - you can further dereference this struct into a TSK_FS_NAME
-		# and TSK_FS_META structs.
-		fs.list_directory(directory, [], [], db_connector)
 		return True
 
-
-	def SysLogAndUserData_Analysis(self, case_no, evd_no, inv_no):
+	def SysLogAndUserData_Analysis(self):
 		# Conenct Carpe Database
 		db = carpe_db.Mariadb()
 		db.open()
 
 		# Get image file list
-		query = 'SELECT file_name, file_path FROM tn_evidence_splitted WHERE case_no = ' + str(case_no) + ' and evd_no = ' + str(evd_no) + ';'
-		image_name, image_list = db.execute_query(db._conn, query)
+		query = "SELECT par_id, par_name FROM partition_info WHERE evd_id='" + self.evd_id + "' ORDER BY start_sector;"
+		par_infos = db.execute_query_mul(query)
 		db.close()
 
-		# Temporary code
-		for name, image in image_name, image_list:
-			subprocess.call(['python3.6', '../plaso_tool/log2timeline.py', name + '.plaso', image])
+		# Call Log2Timeline & PSort Tool
+		for par_info in par_infos:
+			pdb.set_trace()
+			p_id = str(par_info[0])
+			p_name = str(par_info[1])
+			storage_path = self.tmp_path + p_name + ".plaso"
 
-		for name in image_name:
-			subprocess.call(['python3.6', '../plaso_tool/psort.py', '-o', '4n6time_mariadb', name + '.plaso'])
+			subprocess.call(['python', '../plaso_tool/carpe_l2t.py', storage_path, self.path, p_name])
+			subprocess.call(['python', '../plaso_tool/carpe_psort.py', '-o', '4n6time_mariadb', '--server', '218.145.27.66', '--port', '23306', '--user', 'root', '--password', 'dfrc4738',
+				'--db_name', 'carpe2', '--case_id', str(self.case_id), '--evd_id', str(self.evd_id), '--par_id', p_id, storage_path, p_id])

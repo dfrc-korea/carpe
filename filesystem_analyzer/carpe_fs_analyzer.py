@@ -58,7 +58,7 @@ class Carpe_FS_Analyze(object):
     self._fs_info_2 = None
     self._fs_blocks = []
     self._img_info = None
-    self._recursive = False
+    self._recursive = True
     self._carpe_files = []
 
   def fs_info(self,p_id=0):
@@ -89,7 +89,6 @@ class Carpe_FS_Analyze(object):
 
 
   def list_directory(self, directory, stack=None, path=None, conn=None):
-
     stack.append(directory.info.fs_file.meta.addr)  
     for directory_entry in directory:
       prefix = "+" * (len(stack) - 1)
@@ -103,10 +102,9 @@ class Carpe_FS_Analyze(object):
           directory_entry.info.name.name in [".", ".."]):
         continue
       files_tuple = map(lambda i: i.toTuple(), self.directory_entry_info(directory_entry, parent_id=stack[-1], path=path))
-      
       for i in files_tuple:
         query = conn.insert_query_builder("file_info")
-        query = (query + "\n values " + "%s" % (i, ))
+        query = (query + " values " + "%s" % (i, )) + ";"
         data=conn.execute_query(query)
       conn.commit()
       
@@ -156,7 +154,6 @@ class Carpe_FS_Analyze(object):
     self._recursive = True
 
   def directory_entry_info(self, directory_entry, parent_id="", path=None):
-      
       meta = directory_entry.info.meta
       name = directory_entry.info.name
 
@@ -209,8 +206,12 @@ class Carpe_FS_Analyze(object):
             new_file._fn_atime_nano = [lambda:0, lambda:directory_entry.info.meta.atime_nano][directory_entry.info.meta.atime_nano is not None]()
             new_file._fn_etime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
             new_file._fn_ctime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                                
-          #Allocated status
+          
+          new_file._file_id = meta.addr
+          
+
           new_file._inode = [lambda:"{0:d}".format(meta.addr), lambda:"{0:d}-{1:d}-{2:d}".format(meta.addr, int(attribute.info.type), attribute.info.id)][self._fs_info.info.ftype in [pytsk3.TSK_FS_TYPE_NTFS, pytsk3.TSK_FS_TYPE_NTFS_DETECT]]()          
+           
           #File name       
           if attribute.info.type == pytsk3.TSK_FS_ATTR_TYPE_NTFS_DATA:
             
@@ -246,7 +247,16 @@ class Carpe_FS_Analyze(object):
           
         else:
           debug ="TO DO : Deal with other Attribute Types"
-      files.append(new_file)
+
+
+      if (new_file._dir_type == 3):        
+        files.append(new_file)
+      elif (new_file._inode ==""):
+        files=[]
+
+      
+      # check slack existence
+
       #slack-size
       if (new_file._size > 1024):
         slack_size = 4096 - (new_file._size % 4096)

@@ -18,7 +18,7 @@ import sys
 
 from plaso import dependencies
 from plaso.cli import tools as cli_tools
-from plaso.cli import psort_tool
+from plaso.cli import carpe_psort_tool
 from plaso.lib import errors
 
 

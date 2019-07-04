@@ -1,17 +1,31 @@
 import pymysql
-from filesystem_analyzer import carpe_file
+import carpe_file
 
 class Mariadb(object):
 	#To Do
 	# Tune the columns
-	# Tune the columns
 	TABLE_INFO = {
-		"file_info":{"file_id":"BIGINT", "par_id":"TEXT", "inode":"TEXT", "name":"TEXT", "meta_seq":"BIGINT", "type":"INTEGER", "dir_type":"INTEGER", "meta_type":"INTEGER", "meta_flags":"INTEGER", "size":"BIGINT", "si_mtime":"BIGINT", "si_atime":"BIGINT", "si_ctime":"BIGINT", "si_etime":"BIGINT", "si_mtime_nano":"BIGINT", "si_atime_nano":"BIGINT", "si_ctime_nano":"BIGINT", "si_etime_nano":"BIGINT", "fn_mtime":"BIGINT", "fn_atime":"BIGINT", "fn_ctime":"BIGINT", "fn_etime":"BIGINT", "fn_mtime_nano":"BIGINT", "fn_atime_nano":"BIGINT", "fn_ctime_nano":"BIGINT", "fn_etime_nano":"BIGINT", "mode":"INTEGER", "uid":"INTEGER", "gid":"INTEGER", "md5":"TEXT", "sha1":"TEXT", "sha256":"TEXT", "parent_path":"TEXT", "extension":"TEXT", "parent_id":"TEXT", "bookmark":"INTEGER"}
+		"carpe_case_info":{"case_id":"BIGINT PRIMARY KEY", "case_no":"TEXT", "case_name":"TEXT", "administrator":"TEXT", "create_date":"DATETIME", "description":"TEXT"},
+		"investigator":{"id":"TEXT PRIMARY KEY", "name":"TEXT", "password":"TEXT", "acl":"TEXT"},
+		"carpe_evidence_info":{"evd_id":"BIGINT PRIMARY KEY", "evd_no":"TEXT", "c_id":"BIGINT", "type1":"TEXT", "type2":"TEXT", "added_date":"DATETIME", "md5":"TEXT", "sha1":"TEXT", "sha256":"TEXT", "path":"TEXT", "time_zone":"TEXT"},
+		"carpe_partition_info":{"par_id":"BIGINT PRIMARY KEY", "par_name":"TEXT", "par_path":"TEXT", "e_id":"BIGINT", "type":"INTEGER", "sector_size":"INTEGER", "size":"INTEGER", "sha1":"TEXT", "sha256":"TEXT", "time_zone":"TEXT"},
+		"carpe_fs_info":{"p_id":"BIGINT", "block_size":"BIGINT", "block_count":"BIGINT", "root_inum":"BIGINT", "first_inum":"BIGINT", "last_inum":"BIGINT"},
+		"carpe_file":{"p_id":"BIGINT", "inode":"TEXT", "name":"TEXT", "meta_seq":"BIGINT", "type":"INTEGER", "dir_type":"INTEGER", "meta_type":"INTEGER", "meta_flags":"INTEGER", "size":"BIGINT",
+					"si_mtime":"BIGINT", "si_atime":"BIGINT", "si_ctime":"BIGINT", "si_etime":"BIGINT", "si_mtime_nano":"BIGINT", "si_atime_nano":"BIGINT", "si_ctime_nano":"BIGINT", "si_etime_nano":"BIGINT",
+					"fn_mtime":"BIGINT", "fn_atime":"BIGINT", "fn_ctime":"BIGINT", "fn_etime":"BIGINT", "fn_mtime_nano":"BIGINT", "fn_atime_nano":"BIGINT", "fn_ctime_nano":"BIGINT", "fn_etime_nano":"BIGINT",
+					"mode":"INTEGER", "uid":"INTEGER", "gid":"INTEGER", "hash":"TEXT", "parent_path":"TEXT", "extension":"TEXT"},
 	}
 	#To Do
 	#Fill all the values
 	INSERT_HELPER = {
-		"file_info":"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s"
+		"carpe_case_info":"%s, %s, %s, %s, %s, %s",
+		"investigator":"%s, %s, %s, %s",
+		"carpe_evidence_info":"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s",
+		"carpe_partition_info":"%s, %s, %s, %s, %d, %d, %s, %d, %d, %d",
+		"carpe_fs_info":"%s, %s, %s, %s, %s, %s, %s",
+		#"carpe_file":"%s, %s, %s, %s, %s, %d, %d, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %d, %d, %s, %s, %s, %s"
+		#"carpe_file":"%d, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %s, %d, %s, %d, %d, %d, %d, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d"
+		"carpe_file":"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s"
 	}
 
 	CREATE_HELPER = {
@@ -33,7 +47,7 @@ class Mariadb(object):
 
 	def open(self):
 		try:
-			self._conn = pymysql.connect(host='218.145.27.66', port=23306, user='root', passwd='dfrc4738', db='carpe2',charset='utf8',autocommit=True)
+			self._conn = pymysql.connect(host='218.145.27.66', port=23306, user='root', passwd='dfrc4738', db='carpe',charset='utf8',autocommit=True)
 		except Exception:
 			self._conn=None
 			print("db connection error")
@@ -61,7 +75,7 @@ class Mariadb(object):
 				return False
 		else:
 			self.open()
-			return self.check_table_exist(table_name)
+			return self.check_table_exist(tables)
 
 	def initialize(self):
 		self.open()
@@ -77,12 +91,7 @@ class Mariadb(object):
 	def bulk_execute(self, query, values):
 		try:
 			cursor = self._conn.cursor()
-		except Exception:
-			print("db cursor error")
-			return -1
-		try:
 			cursor.executemany(query, values)
-			#cursor.executemany
 			data = cursor.fetchone()
 			cursor.close()
 			return data			
@@ -94,26 +103,13 @@ class Mariadb(object):
 		if table_name in self.TABLE_INFO.keys():
 			query = "INSERT INTO {0} (".format(table_name)
 			query += "".join([lambda:column +") ", lambda:column+", "][column!=sorted(self.TABLE_INFO[table_name].keys())[-1]]() for column in (sorted(self.TABLE_INFO[table_name].keys())))
-			#query += "VALUES ({})".format(self.INSERT_HELPER[table_name])
-		return query
+			#query += "\nVALUES({})".format(self.INSERT_HELPER[table_name])
+		return query	
 
 	def execute_query(self, query):
 		cursor = self._conn.cursor()
 		try:
 			cursor.execute(query)
-			#cursor.executemany
-			data = cursor.fetchone()
-			cursor.close()
-			return data
-		except Exception:
-			print("db execution error")
-			return -1
-
-	def execute_query_mul(self ,query):
-		cursor = self._conn.cursor()
-		try:
-			cursor.execute(query)
-			#cursor.executemany
 			data = cursor.fetchall()
 			cursor.close()
 			return data
