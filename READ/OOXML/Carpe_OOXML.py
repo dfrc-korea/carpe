@@ -27,6 +27,11 @@ class OOXML:
     def __init__(self, filename):
         # 초기화
         self.filename = filename
+        self.is_damaged = False
+        self.has_content = False
+        self.has_metadata = False
+        self.content = ""
+        self.metadata = {}
 
     def parse_ooxml(self):
         filetype = ''
@@ -82,9 +87,11 @@ class OOXML:
                             damaged_count = damaged_count + 1
                     if damaged_count is not 4:
                         isDamagedFlag = True
+                        self.is_damaged = True
                     return isDamagedFlag
                 else:
                     isDamagedFlag = True
+                    self.is_damaged = True
                     return isDamagedFlag
                 return isDamagedFlag
 
@@ -166,6 +173,7 @@ class OOXML:
 
                         data_name = f.read(data_name_length).decode("utf-8")
                         if data_name == "word/document.xml":
+                            self.has_content = True
                             recovableFlag = True
                             return recovableFlag
 
@@ -201,6 +209,7 @@ class OOXML:
 
                         data_name = f.read(data_name_length).decode("utf-8")
                         if "xl/worksheets/sheet" in data_name:
+                            self.has_content = True
                             recovableFlag = True
                             return recovableFlag
 
@@ -236,6 +245,7 @@ class OOXML:
 
                         data_name = f.read(data_name_length).decode("utf-8")
                         if data_name == "ppt/slides/slide1.xml":
+                            self.has_content = True
                             recovableFlag = True
                             return recovableFlag
 
@@ -289,6 +299,7 @@ class OOXML:
                         data_name = f.read(data_name_length).decode("utf-8")
                         if data_name == "docProps/core.xml":
                             cal_recovable_count = cal_recovable_count + 1
+                            self.has_metadata = True
                             recovableFlag = True
                             break
 
@@ -322,6 +333,7 @@ class OOXML:
                         data_name = f.read(data_name_length).decode("utf-8")
                         if data_name == "docProps/core.xml":
                             cal_recovable_count = cal_recovable_count + 1
+                            self.has_metadata = True
                             recovableFlag = True
 
                         if f.tell() + data_length > fileSize:
@@ -354,6 +366,7 @@ class OOXML:
                         data_name = f.read(data_name_length).decode("utf-8")
                         if data_name == "docProps/core.xml":
                             cal_recovable_count = cal_recovable_count + 1
+                            self.has_metadata = True
                             recovableFlag = True
                         if f.tell() + data_length > fileSize:
                             break
@@ -397,6 +410,7 @@ class OOXML:
                                 for b in a:
                                     if b.tag == TEXT:
                                         normal_content_data = normal_content_data + b.text
+                                        self.content = self.content + b.text
                 return normal_content_data
             #손상일 때
             else:
@@ -436,23 +450,23 @@ class OOXML:
                 if content_saved == "":
                     temp_size = lastpart[30+data_name_length:]
 
-                    f1 = open("d:/outputtest.zip", 'wb')
+                    f1 = open("./outputtest.zip", 'wb')
                     f1.write(b'\x78\x9C')
                     f1.write(temp_size)
                     f1.close()
 
-                    fz = open("d:/outputtest.zip",'rb')
+                    fz = open("./outputtest.zip",'rb')
                     d = fz.read()
                     fz.close()
 
                     zobj = zlib.decompressobj()
                     real_data = zobj.decompress(d)
 
-                    f2 = open("d:/test.xml",'wb')
+                    f2 = open("./test.xml",'wb')
                     f2.write(real_data)
                     f2.close()
 
-                    f3 = open("d:/test.xml",'r',encoding='utf-8')
+                    f3 = open("./test.xml",'r',encoding='utf-8')
                     a1 = f3.read()
                     f3.close()
 
@@ -472,33 +486,35 @@ class OOXML:
                                             while a1[i] != '<':
                                                 intToString = a1[i]
                                                 only_data = only_data + intToString
+                                                self.content = self.content + intToString
                                                 if i < len(a1)-1:
                                                     i = i + 1
                                                     if a1[i] == '<':
                                                         only_data = only_data + ''
+                                                        self.content = self.content + ''
                                                 else:
                                                     break
                         i = i+1
 
                     return only_data
                 else:
-                    f1 = open("d:/outputtest.zip", 'wb')
+                    f1 = open("./outputtest.zip", 'wb')
                     f1.write(b'\x78\x9C')
                     f1.write(content_saved)
                     f1.close()
 
-                    fz = open("d:/outputtest.zip", 'rb')
+                    fz = open("./outputtest.zip", 'rb')
                     d = fz.read()
                     fz.close()
 
                     zobj = zlib.decompressobj()
                     real_data = zobj.decompress(d)
 
-                    f2 = open("d:/test.xml", 'wb')
+                    f2 = open("./test.xml", 'wb')
                     f2.write(real_data)
                     f2.close()
 
-                    f3 = open("d:/test.xml", 'r', encoding='utf-8')
+                    f3 = open("./test.xml", 'r', encoding='utf-8')
                     a1 = f3.read()
                     f3.close()
 
@@ -518,10 +534,12 @@ class OOXML:
                                             while a1[i] != '<':
                                                 intToString = a1[i]
                                                 only_data = only_data + intToString
+                                                self.content = self.content + intToString
                                                 if i < len(a1) - 1:
                                                     i = i + 1
                                                     if a1[i] == '<':
                                                         only_data = only_data + ''
+                                                        self.content = self.content + ''
                                                 else:
                                                     break
                         i = i + 1
@@ -550,6 +568,7 @@ class OOXML:
                 i = 0
                 while i < nlow:
                     xlsx_normal_content_data.append(list[i])
+                    self.content = self.content + str(list[i])
                     i += 1
                 return xlsx_normal_content_data
 
@@ -581,23 +600,23 @@ class OOXML:
                             else:
                                 if "xl/sharedStrings.xml" == data_name:
                                     content_saved = f.read(data_length)
-                                    f1 = open("d:/outputtest.zip", 'wb')
+                                    f1 = open("./outputtest.zip", 'wb')
                                     f1.write(b'\x78\x9C')
                                     f1.write(content_saved)
                                     f1.close()
 
-                                    fz = open("d:/outputtest.zip", 'rb')
+                                    fz = open("./outputtest.zip", 'rb')
                                     d = fz.read()
                                     fz.close()
 
                                     zobj = zlib.decompressobj()
                                     real_data = zobj.decompress(d)
 
-                                    f2 = open("d:/test.xml", 'wb')
+                                    f2 = open("./test.xml", 'wb')
                                     f2.write(real_data)
                                     f2.close()
 
-                                    f3 = open("d:/test.xml", 'r', encoding='utf-8')
+                                    f3 = open("./test.xml", 'r', encoding='utf-8')
                                     a1 = f3.read()
                                     f3.close()
 
@@ -667,23 +686,23 @@ class OOXML:
                             else:
                                 if "xl/worksheets/sheet1.xml" == data_name:
                                     content_saved = f.read(data_length)
-                                    f1 = open("d:/outputtest.zip", 'wb')
+                                    f1 = open("./outputtest.zip", 'wb')
                                     f1.write(b'\x78\x9C')
                                     f1.write(content_saved)
                                     f1.close()
 
-                                    fz = open("d:/outputtest.zip", 'rb')
+                                    fz = open("./outputtest.zip", 'rb')
                                     d = fz.read()
                                     fz.close()
 
                                     zobj = zlib.decompressobj()
                                     real_data = zobj.decompress(d)
 
-                                    f2 = open("d:/test.xml", 'wb')
+                                    f2 = open("./test.xml", 'wb')
                                     f2.write(real_data)
                                     f2.close()
 
-                                    f3 = open("d:/test.xml", 'r', encoding='utf-8')
+                                    f3 = open("./test.xml", 'r', encoding='utf-8')
                                     a1 = f3.read()
                                     f3.close()
 
@@ -718,29 +737,30 @@ class OOXML:
 
                 for num_list in order_word:
                     final_word = final_word + list_word[int(num_list)] + ' '
+                self.content = final_word
 
                 return final_word
 
                 if "docProps" not in data_name:
                     temp_size = lastpart[30 + data_name_length:]
 
-                    f1 = open("d:/outputtest.zip", 'wb')
+                    f1 = open("./outputtest.zip", 'wb')
                     f1.write(b'\x78\x9C')
                     f1.write(temp_size)
                     f1.close()
 
-                    fz = open("d:/outputtest.zip", 'rb')
+                    fz = open("./outputtest.zip", 'rb')
                     d = fz.read()
                     fz.close()
 
                     zobj = zlib.decompressobj()
                     real_data = zobj.decompress(d)
 
-                    f2 = open("d:/test.xml", 'wb')
+                    f2 = open("./test.xml", 'wb')
                     f2.write(real_data)
                     f2.close()
 
-                    f3 = open("d:/test.xml", 'r', encoding='utf-8')
+                    f3 = open("./test.xml", 'r', encoding='utf-8')
                     a1 = f3.read()
                     f3.close()
 
@@ -756,138 +776,19 @@ class OOXML:
                                     while a1[i] != '<':
                                         intToString = a1[i]
                                         only_data = only_data + intToString
+                                        self.content = self.content + intToString
                                         if i < len(a1) - 1:
                                             i = i + 1
                                             if a1[i] == '<':
                                                 only_data = only_data + ''
+                                                self.content = self.content + ''
                                         else:
                                             break
                         i = i + 1
 
                     return only_data
 
-            '''
-            else:
-                # 손상일때
-                f = open(self.filename, "rb")
-                temp1 = 0
-                fileSize = f.seek(0, 2)
-                f.seek(0, 0)
-                #print("**********본문파싱**********")
-                while True:
-                    if f.read(1) == b'\x50':
-                        if f.read(3) == signature_last_three:
-                            f.seek(0xE, 1)
-                            data_length = int(hex(int.from_bytes(f.read(4), 'little')), 16)
-                            f.seek(4, 1)
-                            data_name_length = int(hex(int.from_bytes(f.read(2), 'little')), 16)
-                            data_offset = int(hex(int.from_bytes(f.read(2), 'little')), 16)
 
-                            data_name = f.read(data_name_length).decode("utf-8")
-
-                            f.seek(data_offset, 1)
-
-                            if f.tell() + data_length > fileSize:
-                                temp_rest = fileSize - endingpoint + 1
-                                f.seek(endingpoint + 1, 0)
-                                lastpart = f.read(temp_rest)  # 마지막까지 읽어라
-                                break
-                            else:
-                                if "xl/worksheets/sheet" in data_name:
-                                    content_saved = f.read(data_length)
-                                    f1 = open("d:/outputtest.zip", 'wb')
-                                    f1.write(b'\x78\x9C')
-                                    f1.write(content_saved)
-                                    f1.close()
-
-                                    fz = open("d:/outputtest.zip", 'rb')
-                                    d = fz.read()
-                                    fz.close()
-
-                                    zobj = zlib.decompressobj()
-                                    real_data = zobj.decompress(d)
-
-                                    f2 = open("d:/test.xml", 'wb')
-                                    f2.write(real_data)
-                                    f2.close()
-
-                                    f3 = open("d:/test.xml", 'r', encoding='utf-8')
-                                    a1 = f3.read()
-                                    f3.close()
-
-                                    i = 0
-                                    only_data = ""
-                                    while i < len(a1) - 1:
-                                        if a1[i] == '<':
-                                            i = i + 1
-                                            if a1[i] == 'v':
-                                                i = i + 1
-                                                if a1[i] == '>':
-                                                    i = i + 1
-                                                    while a1[i] != '<':
-                                                        intToString = a1[i]
-                                                        only_data = only_data + intToString
-                                                        if i < len(a1) - 1:
-                                                            i = i + 1
-                                                            if a1[i] == '<':
-                                                                only_data = only_data + ''
-                                                        else:
-                                                            break
-                                        i = i + 1
-
-                                    return only_data
-                                else:
-                                    f.seek(data_length, 1)
-                                    if "docProps" in data_name:
-                                        break
-                            endingpoint = f.tell() - 1
-                            temp1 = endingpoint - temp1
-
-                if "docProps" not in data_name:
-                    temp_size = lastpart[30 + data_name_length:]
-
-                    f1 = open("d:/outputtest.zip", 'wb')
-                    f1.write(b'\x78\x9C')
-                    f1.write(temp_size)
-                    f1.close()
-
-                    fz = open("d:/outputtest.zip", 'rb')
-                    d = fz.read()
-                    fz.close()
-
-                    zobj = zlib.decompressobj()
-                    real_data = zobj.decompress(d)
-
-                    f2 = open("d:/test.xml", 'wb')
-                    f2.write(real_data)
-                    f2.close()
-
-                    f3 = open("d:/test.xml", 'r', encoding='utf-8')
-                    a1 = f3.read()
-                    f3.close()
-
-                    i = 0
-                    only_data = ""
-                    while i < len(a1) - 1:
-                        if a1[i] == '<':
-                            i = i + 1
-                            if a1[i] == 'v':
-                                i = i + 1
-                                if a1[i] == '>':
-                                    i = i + 1
-                                    while a1[i] != '<':
-                                        intToString = a1[i]
-                                        only_data = only_data + intToString
-                                        if i < len(a1) - 1:
-                                            i = i + 1
-                                            if a1[i] == '<':
-                                                only_data = only_data + ''
-                                        else:
-                                            break
-                        i = i + 1
-
-                    return only_data
-            '''
         if filetype == 'pptx':
            if isDamaged == False:
                 #print("**********본문파싱**********")
@@ -913,6 +814,7 @@ class OOXML:
                                 for c in b:
                                     if c.tag == P_TEXT and c.text is not None:
                                         normal_content_data = normal_content_data + c.text
+                                        self.content = self.content + c.text
                     print("\n")
                 return normal_content_data
            else:
@@ -939,23 +841,23 @@ class OOXML:
                            if data_name == "docProps/app.xml":
                                content_saved = f.read(data_length)
 
-                               f1 = open("d:/outputtest.zip", 'wb')
+                               f1 = open("./outputtest.zip", 'wb')
                                f1.write(b'\x78\x9C')
                                f1.write(content_saved)
                                f1.close()
 
-                               fz = open("d:/outputtest.zip", 'rb')
+                               fz = open("./outputtest.zip", 'rb')
                                d = fz.read()
                                fz.close()
 
                                zobj = zlib.decompressobj()
                                real_data = zobj.decompress(d)
 
-                               f2 = open("d:/test.xml", 'wb')
+                               f2 = open("./test.xml", 'wb')
                                f2.write(real_data)
                                f2.close()
 
-                               f3 = open("d:/test.xml", 'r', encoding='utf-8')
+                               f3 = open("./test.xml", 'r', encoding='utf-8')
                                a1 = f3.read()
                                f3.close()
 
@@ -977,14 +879,99 @@ class OOXML:
                        elif read_threebyte == stop_signature_three:
                            break
                f.close()
-               f = open(self.filename, "rb")
-               f.seek(0, 0)
-               for slides_i in range(1, int(slides_value)+1):
+               if slides_value is not "":
+                   f = open(self.filename, "rb")
                    f.seek(0, 0)
-                   while True:
+                   for slides_i in range(1, int(slides_value)+1):
+                       f.seek(0, 0)
+                       while True:
 
+                           if f.read(1) == b'\x50':
+                               if f.read(3) == signature_three:
+                                   f.seek(0xE, 1)
+                                   data_length = int(hex(int.from_bytes(f.read(4), 'little')), 16)
+                                   f.seek(4, 1)
+                                   data_name_length = int(hex(int.from_bytes(f.read(2), 'little')), 16)
+                                   data_offset = int(hex(int.from_bytes(f.read(2), 'little')), 16)
+
+                                   data_name = f.read(data_name_length).decode("utf-8")
+                                   f.seek(data_offset, 1)
+
+                                   if f.tell() + data_length > fileSize:
+                                       temp_rest = fileSize - endingpoint + 1
+                                       f.seek(endingpoint + 1, 0)
+                                       lastpart = f.read(temp_rest)  # 마지막까지 읽어라
+                                       break
+                                   else:
+                                       if "ppt/slides/slide"+str(slides_i)+".xml" == data_name:
+                                           # 순서대로 일단 넣어야할듯...
+                                           # 엑셀은... 순서대로 나오게 해야한다.. 둘다 ㅠㅠ
+
+                                           content_saved = f.read(data_length)
+                                           pptx_ordering_table.append(content_saved)
+                                           f1 = open("./outputtest.zip", 'wb')
+                                           f1.write(b'\x78\x9C')
+                                           f1.write(content_saved)
+                                           f1.close()
+
+                                           fz = open("./outputtest.zip", 'rb')
+                                           d = fz.read()
+                                           fz.close()
+
+                                           zobj = zlib.decompressobj()
+                                           real_data = zobj.decompress(d)
+
+                                           f2 = open("./test.xml", 'wb')
+                                           f2.write(real_data)
+                                           f2.close()
+
+                                           f3 = open("./test.xml", 'r', encoding='utf-8')
+                                           a1 = f3.read()
+                                           f3.close()
+
+                                           i = 0
+
+                                           while i < len(a1) - 1:
+                                               if a1[i] == '<':
+                                                   i = i + 1
+                                                   if a1[i] == 'a':
+                                                       i = i + 1
+                                                       if a1[i] == ':':
+                                                           i = i + 1
+                                                           if a1[i] == 't':
+                                                               i = i + 1
+                                                               if a1[i] == '>':
+                                                                   i = i + 1
+                                                                   while a1[i] != '<':
+                                                                       intToString = a1[i]
+                                                                       self.content = self.content + intToString
+                                                                       only_data = only_data + intToString
+                                                                       if i < len(a1) - 1:
+                                                                           i = i + 1
+                                                                           if a1[i] == '<':
+                                                                               only_data = only_data + ''
+                                                                               self.content = self.content + ''
+                                                                       else:
+                                                                           break
+                                               i = i + 1
+                                           break
+                                       else:
+                                           f.seek(data_length, 1)
+                                           if "ppt/slideL" in data_name:
+                                               break
+                                   endingpoint = f.tell() - 1
+                                   temp1 = endingpoint - temp1
+                   return only_data
+               else:
+                   # 손상일때
+                   f = open(self.filename, "rb")
+                   temp1 = 0
+                   fileSize = f.seek(0, 2)
+                   f.seek(0, 0)
+                   # print("**********본문파싱**********")
+                   while True:
                        if f.read(1) == b'\x50':
-                           if f.read(3) == signature_three:
+                           if f.read(3) == signature_last_three:
                                f.seek(0xE, 1)
                                data_length = int(hex(int.from_bytes(f.read(4), 'little')), 16)
                                f.seek(4, 1)
@@ -992,6 +979,7 @@ class OOXML:
                                data_offset = int(hex(int.from_bytes(f.read(2), 'little')), 16)
 
                                data_name = f.read(data_name_length).decode("utf-8")
+
                                f.seek(data_offset, 1)
 
                                if f.tell() + data_length > fileSize:
@@ -1000,29 +988,29 @@ class OOXML:
                                    lastpart = f.read(temp_rest)  # 마지막까지 읽어라
                                    break
                                else:
-                                   if "ppt/slides/slide"+str(slides_i)+".xml" == data_name:
+                                   if "ppt/slides/s" in data_name:
                                        # 순서대로 일단 넣어야할듯...
                                        # 엑셀은... 순서대로 나오게 해야한다.. 둘다 ㅠㅠ
 
                                        content_saved = f.read(data_length)
                                        pptx_ordering_table.append(content_saved)
-                                       f1 = open("d:/outputtest.zip", 'wb')
+                                       f1 = open("./outputtest.zip", 'wb')
                                        f1.write(b'\x78\x9C')
                                        f1.write(content_saved)
                                        f1.close()
 
-                                       fz = open("d:/outputtest.zip", 'rb')
+                                       fz = open("./outputtest.zip", 'rb')
                                        d = fz.read()
                                        fz.close()
 
                                        zobj = zlib.decompressobj()
                                        real_data = zobj.decompress(d)
 
-                                       f2 = open("d:/test.xml", 'wb')
+                                       f2 = open("./test.xml", 'wb')
                                        f2.write(real_data)
                                        f2.close()
 
-                                       f3 = open("d:/test.xml", 'r', encoding='utf-8')
+                                       f3 = open("./test.xml", 'r', encoding='utf-8')
                                        a1 = f3.read()
                                        f3.close()
 
@@ -1042,188 +1030,74 @@ class OOXML:
                                                                while a1[i] != '<':
                                                                    intToString = a1[i]
                                                                    only_data = only_data + intToString
+                                                                   self.content = self.content + intToString
                                                                    if i < len(a1) - 1:
                                                                        i = i + 1
                                                                        if a1[i] == '<':
                                                                            only_data = only_data + ''
+                                                                           self.content = self.content + ''
                                                                    else:
                                                                        break
                                            i = i + 1
-                                       break
+                                       # return only_data
                                    else:
                                        f.seek(data_length, 1)
                                        if "ppt/slideL" in data_name:
                                            break
                                endingpoint = f.tell() - 1
                                temp1 = endingpoint - temp1
-               return only_data
 
-        ''' 예전 (슬라이드 순서 없이 파싱)
-        if filetype == 'pptx':
-           if isDamaged == False:
-                #print("**********본문파싱**********")
-                zfile = zipfile.ZipFile(filename)
-                filelist_1 = []
-                filelist_2 = []
-                for a in zfile.filelist:
-                    if 'ppt/slides/slide' in a.filename:
-                        if len(a.filename) == 21:
-                            filelist_1.append(a.filename)
-                        else:
-                            filelist_2.append(a.filename)
-                    filelist_1.sort()
-                    filelist_2.sort()
-                filelist = filelist_1 + filelist_2
+                   if "ppt/slideL" not in data_name:
+                       temp_size = lastpart[30 + data_name_length:]
 
-                for b in filelist:
-                    form = zfile.read(b)
-                    xmlroot = ET.fromstring(form)
-                    for content in xmlroot.getiterator(TXBODY):
-                        for a in content:
-                            for b in a:
-                                for c in b:
-                                    if c.tag == P_TEXT and c.text is not None:
-                                        normal_content_data = normal_content_data + c.text
-                    print("\n")
-                return normal_content_data
-           else:
-               #손상일때
-               f = open(self.filename, "rb")
-               temp1 = 0
-               fileSize = f.seek(0, 2)
-               f.seek(0, 0)
-               #print("**********본문파싱**********")
-               while True:
-                   if f.read(1) == b'\x50':
-                       if f.read(3) == signature_last_three:
-                           f.seek(0xE, 1)
-                           data_length = int(hex(int.from_bytes(f.read(4), 'little')), 16)
-                           f.seek(4, 1)
-                           data_name_length = int(hex(int.from_bytes(f.read(2), 'little')), 16)
-                           data_offset = int(hex(int.from_bytes(f.read(2), 'little')), 16)
+                       f1 = open("./outputtest.zip", 'wb')
+                       f1.write(b'\x78\x9C')
+                       f1.write(temp_size)
+                       f1.close()
 
-                           data_name = f.read(data_name_length).decode("utf-8")
+                       fz = open("./outputtest.zip", 'rb')
+                       d = fz.read()
+                       fz.close()
 
-                           f.seek(data_offset, 1)
+                       zobj = zlib.decompressobj()
+                       real_data = zobj.decompress(d)
 
-                           if f.tell() + data_length > fileSize:
-                               temp_rest = fileSize - endingpoint + 1
-                               f.seek(endingpoint + 1, 0)
-                               lastpart = f.read(temp_rest)  # 마지막까지 읽어라
-                               break
-                           else:
-                               if "ppt/slides/s" in data_name:
-                                   # 순서대로 일단 넣어야할듯...
-                                   # 엑셀은... 순서대로 나오게 해야한다.. 둘다 ㅠㅠ
+                       f2 = open("./test.xml", 'wb')
+                       f2.write(real_data)
+                       f2.close()
 
-                                   content_saved = f.read(data_length)
-                                   pptx_ordering_table.append(content_saved)
-                                   f1 = open("d:/outputtest.zip", 'wb')
-                                   f1.write(b'\x78\x9C')
-                                   f1.write(content_saved)
-                                   f1.close()
+                       f3 = open("./test.xml", 'r', encoding='utf-8')
+                       a1 = f3.read()
+                       f3.close()
 
-                                   fz = open("d:/outputtest.zip", 'rb')
-                                   d = fz.read()
-                                   fz.close()
-
-                                   zobj = zlib.decompressobj()
-                                   real_data = zobj.decompress(d)
-
-                                   f2 = open("d:/test.xml", 'wb')
-                                   f2.write(real_data)
-                                   f2.close()
-
-                                   f3 = open("d:/test.xml", 'r', encoding='utf-8')
-                                   a1 = f3.read()
-                                   f3.close()
-
-                                   i = 0
-
-                                   while i < len(a1) - 1:
-                                       if a1[i] == '<':
-                                           i = i + 1
-                                           if a1[i] == 'a':
-                                               i = i + 1
-                                               if a1[i] == ':':
-                                                   i = i + 1
-                                                   if a1[i] == 't':
-                                                       i = i + 1
-                                                       if a1[i] == '>':
-                                                           i = i + 1
-                                                           while a1[i] != '<':
-                                                               intToString = a1[i]
-                                                               only_data = only_data + intToString
-                                                               if i < len(a1) - 1:
-                                                                   i = i + 1
-                                                                   if a1[i] == '<':
-                                                                       only_data = only_data + ''
-                                                               else:
-                                                                   break
-                                       i = i + 1
-                                   #return only_data
-                               else:
-                                   f.seek(data_length, 1)
-                                   if "ppt/slideL" in data_name:
-                                       break
-                           endingpoint = f.tell() - 1
-                           temp1 = endingpoint - temp1
-
-
-               if "ppt/slideL" not in data_name:
-                   temp_size = lastpart[30 + data_name_length:]
-
-                   f1 = open("d:/outputtest.zip", 'wb')
-                   f1.write(b'\x78\x9C')
-                   f1.write(temp_size)
-                   f1.close()
-
-                   fz = open("d:/outputtest.zip", 'rb')
-                   d = fz.read()
-                   fz.close()
-
-                   zobj = zlib.decompressobj()
-                   real_data = zobj.decompress(d)
-
-                   f2 = open("d:/test.xml", 'wb')
-                   f2.write(real_data)
-                   f2.close()
-
-                   f3 = open("d:/test.xml", 'r', encoding='utf-8')
-                   a1 = f3.read()
-                   f3.close()
-
-                   i = 0
-                   while i < len(a1) - 1:
-                       if a1[i] == '<':
-                           i = i + 1
-                           if a1[i] == 'a':
+                       i = 0
+                       while i < len(a1) - 1:
+                           if a1[i] == '<':
                                i = i + 1
-                               if a1[i] == ':':
+                               if a1[i] == 'a':
                                    i = i + 1
-                                   if a1[i] == 't':
+                                   if a1[i] == ':':
                                        i = i + 1
-                                       if a1[i] == '>':
+                                       if a1[i] == 't':
                                            i = i + 1
-                                           while a1[i] != '<':
-                                               intToString = a1[i]
-                                               only_data = only_data + intToString
-                                               if i < len(a1) - 1:
-                                                   i = i + 1
-                                                   if a1[i] == '<':
-                                                       only_data = only_data + ''
-                                               else:
-                                                   break
-                       i = i + 1
+                                           if a1[i] == '>':
+                                               i = i + 1
+                                               while a1[i] != '<':
+                                                   intToString = a1[i]
+                                                   only_data = only_data + intToString
+                                                   self.content = self.content + intToString
+                                                   if i < len(a1) - 1:
+                                                       i = i + 1
+                                                       if a1[i] == '<':
+                                                           only_data = only_data + ''
+                                                           self.content = self.content + ''
+                                                   else:
+                                                       break
+                           i = i + 1
 
-                   return only_data
-               else:
-
-
-
-
-                   return only_data
-        '''
+                       return only_data
+                   else:
+                       return only_data
 
     def parse_metadata(self, filename, isDamaged):
 
@@ -1239,8 +1113,10 @@ class OOXML:
                         metadata_type = content.tag[location + 1:]
                         if (content.text == None):
                             metadata_value.append(metadata_type + " : None")
+                            self.metadata[metadata_type] = content.text
                         else:
                             metadata_value.append(metadata_type + " : " + content.text)
+                            self.metadata[metadata_type] = content.text
                     return metadata_value
 
         else:
@@ -1268,23 +1144,23 @@ class OOXML:
                         if data_name == "docProps/core.xml":
                             content_saved = f.read(data_length)
 
-                            f1 = open("d:/outputtest.zip", 'wb')
+                            f1 = open("./outputtest.zip", 'wb')
                             f1.write(b'\x78\x9C')
                             f1.write(content_saved)
                             f1.close()
 
-                            fz = open("d:/outputtest.zip", 'rb')
+                            fz = open("./outputtest.zip", 'rb')
                             d = fz.read()
                             fz.close()
 
                             zobj = zlib.decompressobj()
                             real_data = zobj.decompress(d)
 
-                            f2 = open("d:/test.xml", 'wb')
+                            f2 = open("./test.xml", 'wb')
                             f2.write(real_data)
                             f2.close()
 
-                            f3 = open("d:/test.xml", 'r', encoding='utf-8')
+                            f3 = open("./test.xml", 'r', encoding='utf-8')
                             a1 = f3.read()
                             f3.close()
 
@@ -1299,55 +1175,87 @@ class OOXML:
                             c_time = "<dcterms:created"
                             m_time = "<dcterms:modified"
 
+                            t_pos = a1.find(title)+1
                             c_pos = a1.find(creator)+1
                             c_time_pos = a1.find(c_time)+1
                             m_time_pos = a1.find(m_time)+1
                             #print('*******메타데이터파싱*******')
+                            metadata_count = 0
+                            if t_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[c_pos + i + 9] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[c_pos+i+9]
+                                    self.metadata['title'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[c_pos+i+9] == '<':
+                                        break
+                                metadata_count = metadata_count + 1
+                                i=0
+                            else:
+                                self.metadata = {'title': 'None'}
+
                             if c_pos is not 0:
-                                metadata_value.append("title : ")
+                                metadata_value.append("")
                                 while True:
                                     if a1[c_pos + i + 11] == '<':
-                                        metadata_value[0] = metadata_value[0] + ''
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
-                                    metadata_value[0] = metadata_value[0]+a1[c_pos+i+11]
+                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[c_pos+i+11]
+                                    self.metadata['creator'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[c_pos+i+11] == '<':
                                         break
+                                metadata_count = metadata_count + 1
                                 i=0
+                            else:
+                                self.metadata = {'creator': 'None'}
+
                             if c_time_pos is not 0:
-                                metadata_value.append("c_time : ")
+                                metadata_value.append("")
                                 while True:
                                     if a1[c_time_pos + i + 42] == '<':
-                                        metadata_value[1] = metadata_value[1] + ''
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
-                                    metadata_value[1] = metadata_value[1]+a1[c_time_pos+i+42]
+                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[c_time_pos+i+42]
+                                    self.metadata['created'] = metadata_value[1]
                                     i = i + 1
                                     if a1[c_time_pos+i+42] == '<':
                                         break
+                                metadata_count = metadata_count + 1
                                 i=0
+                            else:
+                                self.metadata = {'created': 'None'}
+
                             if m_time_pos is not 0:
-                                metadata_value.append("m_time : ")
+                                metadata_value.append("")
                                 while True:
                                     if a1[m_time_pos + i + 43] == '<':
-                                        metadata_value[2] = metadata_value[2] + ''
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
-                                    metadata_value[2] = metadata_value[2]+a1[m_time_pos+i+43]
+                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[m_time_pos+i+43]
+                                    self.metadata['modified'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[m_time_pos+i+43] == '<':
                                         break
+                            else:
+                                self.metadata = {'modified': 'None'}
+
                             return metadata_value
 
     def parse_media(self, filename, filetype):
         if filetype == 'docx':
             fantasy_zip = zipfile.ZipFile(filename)
-            fantasy_zip.extractall("d:/test/")
+            fantasy_zip.extractall("./test/")
             fantasy_zip.close()
-            filelists = os.listdir('d:/test/word/media')
-            if not(os.path.isdir('d:/'+filename)):
-                os.mkdir('d:/'+filename)
+            filelists = os.listdir('./test/word/media')
+            if not(os.path.isdir('./'+filename)):
+                os.mkdir('./'+filename)
             for a in filelists:
-                full_filename = os.path.join('d:/test/word/media/', a)
-                copyfile(full_filename, 'd:/'+filename+"/"+a)
+                full_filename = os.path.join('./test/word/media/', a)
+                copyfile(full_filename, './'+filename+"/"+a)
                 '''
                     # 바로 출력해주기
                     while True:
@@ -1358,25 +1266,25 @@ class OOXML:
                 '''
         if filetype == 'xlsx':
             fantasy_zip = zipfile.ZipFile(filename)
-            fantasy_zip.extractall("d:/test/")
+            fantasy_zip.extractall("./test/")
             fantasy_zip.close()
-            filelists = os.listdir('d:/test/xl/media')
-            if not(os.path.isdir('d:/'+filename)):
-                os.mkdir('d:/'+filename)
+            filelists = os.listdir('./test/xl/media')
+            if not(os.path.isdir('./'+filename)):
+                os.mkdir('./'+filename)
             for a in filelists:
-                full_filename = os.path.join('d:/test/xl/media/', a)
-                copyfile(full_filename, 'd:/'+filename+"/"+a)
+                full_filename = os.path.join('./test/xl/media/', a)
+                copyfile(full_filename, './'+filename+"/"+a)
 
         if filetype == 'pptx':
             fantasy_zip = zipfile.ZipFile(filename)
-            fantasy_zip.extractall("d:/test/")
+            fantasy_zip.extractall("./test/")
             fantasy_zip.close()
-            filelists = os.listdir('d:/test/ppt/media')
-            if not(os.path.isdir('d:/'+filename)):
-                os.mkdir('d:/'+filename)
+            filelists = os.listdir('./test/ppt/media')
+            if not(os.path.isdir('./'+filename)):
+                os.mkdir('./'+filename)
             for a in filelists:
-                full_filename = os.path.join('d:/test/ppt/media/', a)
-                copyfile(full_filename, 'd:/'+filename+"/"+a)
+                full_filename = os.path.join('./test/ppt/media/', a)
+                copyfile(full_filename, './'+filename+"/"+a)
 
     def parse_main(self, filename, filetype):
 
@@ -1434,97 +1342,26 @@ class OOXML:
         print("")
         print("********본문********")
         print(content_data)
+
+        #메모장 생성
+        filenameonly = os.path.split(filename)
+        memo_name = "./"+filenameonly[1]+'_content.txt'
+        fmemo = open(memo_name, 'w', encoding='UTF8')
+        fmemo.write(str(content_data))
+        fmemo.close()
+
         print("*****메타데이터*****")
         print(metadata_data)
 
-        #self.parse_media(filename, filetype)
-        if os.path.isdir('d:/test'):
-            shutil.rmtree('d:/test')
-
-'''
-    def parse_xlsx(self, filename, filetype):
-
-        # 손상 여부 확인 "isDamaged"
-        print("----------손상여부----------")
-        print(self.isDamaged(filename, filetype))
-
-        # 복구 가능 여부 확인
-        print("------본문복구가능여부------")
-        print(self.isRecoverable(filename, filetype, self.isDamaged(filename, filetype)))
-
-        # 복구 가능
-            # 정상일때
-        if self.isDamaged(filename, filetype) == False:
-            # 본문 파싱
-            self.parse_content(filename, filetype, self.isDamaged(filename, filetype))
-            # 메타데이터 파싱
-            self.parse_metadata(filename, filetype, self.isDamaged(filename, filetype))
-
-            # 손상일때
-        elif self.isRecoverable(filename, filetype, self.isDamaged(filename, filetype)) == True:
-            # 본문 파싱
-            self.parse_content(filename, filetype, self.isDamaged(filename, filetype))
-            # 메타데이터 파싱
-
-            print("---메타데이터복구가능여부---")
-
-            if self.isRecoverable_metadata(filename, filetype, self.isDamaged(filename, filetype)) == True:
-                print("True")
-                self.parse_metadata(filename, filetype, self.isDamaged(filename, filetype))
-            else:
-                print("False")
-        # 복구 불가
-        else:
-            print("")
-            print("***본문, 메타데이터복구불가***")
+        #메모장 생성
+        memo_name2 = "./"+filenameonly[1]+'_metadata.txt'
+        fmemo2 = open(memo_name2, 'w', encoding='UTF8')
+        fmemo2.write(str(metadata_data))
+        fmemo2.close()
 
         #self.parse_media(filename, filetype)
-        if os.path.isdir('d:/test'):
-            shutil.rmtree('d:/test')
-
-    def parse_pptx(self, filename, filetype):
-
-        # 손상 여부 확인 "isDamaged"
-        print("----------손상여부----------")
-        print(self.isDamaged(filename, filetype))
-
-        # 복구 가능 여부 확인
-        print("------본문복구가능여부------")
-        print(self.isRecoverable(filename, filetype, self.isDamaged(filename, filetype)))
-
-        # 복구 가능
-            # 정상일때
-        if self.isDamaged(filename, filetype) == False:
-            # 본문 파싱
-            self.parse_content(filename, filetype)
-            # 메타데이터 파싱
-            self.parse_metadata(filename, filetype)
-
-            # 손상일때
-        elif self.isRecoverable(filename, filetype, self.isDamaged(filename, filetype)) == True:
-            # 본문 파싱
-            self.parse_content(filename, filetype, self.isDamaged(filename, filetype))
-
-
-            # 메타데이터 파싱
-            print("---메타데이터복구가능여부---")
-
-            if self.isRecoverable_metadata(filename, filetype, self.isDamaged(filename, filetype)) == True:
-                print("True")
-                self.parse_metadata(filename, filetype, self.isDamaged(filename, filetype))
-            else:
-                print("False")
-        # 복구 불가
-        else:
-            print("")
-            print("***본문, 메타데이터복구불가***")
-
-        #self.parse_media(filename, filetype)
-        if os.path.isdir('d:/test'):
-            shutil.rmtree('d:/test')
-'''
-
-
+        if os.path.isdir('./test'):
+            shutil.rmtree('./test')
 
 
 
