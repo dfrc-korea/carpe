@@ -2,5 +2,9 @@
 Carpe Forensics
 
 Dependency Requirement
---- [ python package ] ---
+
+## [ python package ]
 * structureReader
+
+## [ Usage ]
+python actuator.py [type to carve] [file to carve]
