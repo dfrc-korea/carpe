@@ -6,6 +6,7 @@
 #   Follow the link below to listen to the OH MY GIRL's song at least once.
 #   LINK (1): https://youtu.be/RrvdjyIL0fA
 #   LINK (2): https://youtu.be/QIN5_tJRiyY
+#   LINK (3): https://youtu.be/udGwca1HBM4
 
 """
 @author:    Seonho Lee
@@ -15,6 +16,7 @@
 
 import io
 import os, sys
+from datetime import datetime, timezone
 try:
     from restore_pdf import *
 except ModuleNotFoundError:
@@ -38,7 +40,7 @@ class PDF:
         self.pdf = None
         self.document = None
         self.content = str()
-        self.metadata = []
+        self.metadata = None
 
         self.is_damaged = False
         self.has_content = False
@@ -136,12 +138,32 @@ class PDF:
             self.restore_content()
 
     def parse_metadata(self):
+
+        def timestamp(ts):
+            """
+            :description:
+            :param ts: (bytes) document.info['CreationDate']
+            :return: (str) timestamp // UTC+0
+            """
+            raw_ts = ts.decode('ascii')[2:]
+            raw_ts = raw_ts.replace("'","")
+            dt = datetime.strptime(raw_ts, "%Y%m%d%H%M%S%z")
+            utc_dt= dt.astimezone(timezone.utc)
+
+            return utc_dt.__str__()[:-6]
+
         if self.document or self.parse():
             # normal pdf
             self.metadata = self.document.info
         else:
             # damaged pdf
-            self.restore_metadata()
+            self.metadata = self.restore_metadata()
+
+        if 'CreationDate' in self.metadata[0]:
+            self.metadata[0]['CreationDate'] = timestamp(self.metadata[0]['CreationDate']).encode('ascii')
+
+        if 'ModDate' in self.metadata[0]:
+            self.metadata[0]['ModDate'] = timestamp(self.metadata[0]['ModDate']).encode('ascii')
 
     def restore_content(self):
         carpe_pdf_log.debug("Called restore_content()")
