@@ -71,7 +71,7 @@ class Compound:
 
         else:
             self.fp = None
-            print("File doesn't exist.")
+            # print("File doesn't exist.")
 
         self.fileSize = os.path.getsize(filePath)
         self.fileName = os.path.basename(filePath)
@@ -106,7 +106,9 @@ class Compound:
             self.has_content = True
             print(self.content)
 
-        self.parse_summaryinfo()
+        if self.is_damaged == False:
+            self.parse_summaryinfo()
+
         if( self.metadata['author'] != None or self.metadata['title'] != None or self.metadata['create_time'] != None or self.metadata['modified_time'] != None):
             self.has_metadata = True
             print(self.metadata['author'])
@@ -196,13 +198,13 @@ class Compound:
 
             # Createtime
             elif record['type'] == 0x0C:
-                #entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
-                print(datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S.%f'))
-                self.metadata['create_time'] = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0]
+                entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
+                self.metadata['create_time'] = datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S')
+                #self.metadata['create_time'] = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0]
 
 
             # LastSavetime
             elif record['type'] == 0x0D:
-                #entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
-                #print(datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S.%f'))
-                self.metadata['modified_time'] = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0]
+                entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
+                self.metadata['modified_time'] = datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S')
+                #self.metadata['modified_time'] = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0]
