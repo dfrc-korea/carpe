@@ -82,7 +82,7 @@ if __name__ == '__main__':
     try:
         mod.set(_requeset,ModuleConstant.FILE_ATTRIBUTE,sys.argv[2])   # File to carve
     except:
-        print("This moudule needs exactly one parameter.")
+        print("This moudule needs exactly two parameters.")
         sys.exit(1)
 
     mod.set(_requeset,ModuleConstant.IMAGE_BASE,0)                     # Set offset of the file base
