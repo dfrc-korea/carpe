@@ -77,9 +77,9 @@ class Actuator(object):
 if __name__ == '__main__':
 
     mod = Actuator()
-    _requeset = sys.argv[1]
+    _requeset = sys.argv[1]                                            # Type to carve
     try:
-        mod.set(_requeset,ModuleConstant.FILE_ATTRIBUTE,sys.argv[2])   # Insert File
+        mod.set(_requeset,ModuleConstant.FILE_ATTRIBUTE,sys.argv[2])   # File to carve
     except:
         print("This moudule needs exactly one parameter.")
         sys.exit(1)
