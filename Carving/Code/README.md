@@ -1,4 +1,6 @@
 # carpe
 Carpe Forensics
 
-Test File
+Dependency Requirement
+--- [ python package ] ---
+* structureReader
