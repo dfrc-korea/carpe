@@ -8,7 +8,7 @@ class Carving:
     CONST_GIGABYTE = 1073741824
 
     CONST_RAMSLACK_COMP_UNIT = 2
-    CONST_COMPOUND_MAX = 20*CONST_MEGABYTE
+    CONST_COMPOUND_MAX = 50*CONST_MEGABYTE
     CONST_SEARCH_SIZE = 20*CONST_MEGABYTE
     CONST_BIG_SEARCH_SIZE = 200*CONST_MEGABYTE
 
@@ -18,7 +18,6 @@ class Carving:
     CONST_ELEC_READ_UNIT = 512
 
     uClusterSize = 4096
-
     fp = None
 
     def __init__(self, filePath):
@@ -28,231 +27,66 @@ class Carving:
             print("Not exist file.")
             exit(0)
 
-
-
-    def carve_jfif(self, current_offset, next_offset):
-        sigJFIF_FOOTER = b'\xFF\xD9'
-        search_range = int(self.CONST_SEARCH_SIZE / (self.uClusterSize * 1))   #  1 => sizeof(UCHAR)
-
-        for i in range(0, search_range):
-            self.fp.seek(current_offset + i * self.uClusterSize)
-            temp = self.fp.read(self.uClusterSize)
-
-            sOffset = 0
-            while(True):
-                sTempOffset = temp.find(sigJFIF_FOOTER)
-
-                if sTempOffset >= 0:
-                    bSucceed = True
-                    sOffset = sOffset + sTempOffset + 2         # 헤더 크기 만큼 offset 추가
-
-                    # 쓰기 단위인 섹터(512바이트)의 RAM Slack 계산
-                    ramSlack = sOffset
-                    ramSlack = ramSlack % self.CONST_ELEC_WRITE_UNIT
-                    ramSlack -= self.CONST_ELEC_WRITE_UNIT
-                    ramSlack = 0 - ramSlack
-
-                    # RAM Slack의 값이 0x00인지 검사
-
-                    if(ramSlack <= 10):
-                        compUnit = 1
-                    else:
-                        compUnit = self.CONST_RAMSLACK_COMP_UNIT
-
-                    for j in range(sOffset, sOffset + ramSlack, compUnit):
-                        if temp[j] == 0x0D or temp[j] == 0x0A:
-                            continue
-
-                        if temp[j] != 0x00:
-                            bSucceed = False
-                            break
-
-                    if (bSucceed):
-                        qwDataSize = i * self.uClusterSize + sOffset
-                        print("Find!!")
-                        return True
-                else:
-                    sOffset = -1
-
-                if(sOffset < 0):
-                    break
-                if next_offset - current_offset > i * self.uClusterSize:
-                    break
-
-        print("not Found")
-
-    def carve_exif(self, current_offset, next_offset):
-        sigEXIF_FOOTER = b'\xFF\xD9'
-        search_range = int(self.CONST_SEARCH_SIZE / (self.uClusterSize * 1))   #  1 => sizeof(UCHAR)
-
-        for i in range(0, search_range):
-            self.fp.seek(current_offset + i * self.uClusterSize)
-            temp = self.fp.read(self.uClusterSize)
-
-            sOffset = 0
-            while(True):
-                sTempOffset = temp.find(sigEXIF_FOOTER)
-
-                if sTempOffset >= 0:
-                    bSucceed = True
-                    sOffset = sOffset + sTempOffset + 2         # 헤더 크기 만큼 offset 추가
-
-                    # 쓰기 단위인 섹터(512바이트)의 RAM Slack 계산
-                    ramSlack = sOffset
-                    ramSlack = ramSlack % self.CONST_ELEC_WRITE_UNIT
-                    ramSlack -= self.CONST_ELEC_WRITE_UNIT
-                    ramSlack = 0 - ramSlack
-
-                    # RAM Slack의 값이 0x00인지 검사
-
-                    if(ramSlack <= 10):
-                        compUnit = 1
-                    else:
-                        compUnit = self.CONST_RAMSLACK_COMP_UNIT
-
-                    for j in range(sOffset, sOffset + ramSlack, compUnit):
-                        if temp[j] == 0x0D or temp[j] == 0x0A:
-                            continue
-
-                        if temp[j] != 0x00:
-                            bSucceed = False
-                            break
-
-                    if (bSucceed):
-                        qwDataSize = i * self.uClusterSize + sOffset
-
-                        print("Find!!")
-                        return True
-                else:
-                    sOffset = -1
-
-                if(sOffset < 0):
-                    break
-                if next_offset - current_offset > i * self.uClusterSize:
-                    break
-
-
-        print("not Found")
-
-    def carve_gif(self, current_offset, next_offset):
-        sigGIF_FOOTER = b'\x00\x3B'
+    def signature(self, current_offset, sig_FOOTER):
         search_range = int(self.CONST_SEARCH_SIZE / (self.uClusterSize * 1))  # 1 => sizeof(UCHAR)
 
         for i in range(0, search_range):
             self.fp.seek(current_offset + i * self.uClusterSize)
             temp = self.fp.read(self.uClusterSize)
 
-            sOffset = 0
-            while (True):
-                sTempOffset = temp.find(sigGIF_FOOTER)
-
-                if sTempOffset >= 0:
-                    bSucceed = True
-                    sOffset = sOffset + sTempOffset + 2  # 헤더 크기 만큼 offset 추가
-
-                    # 쓰기 단위인 섹터(512바이트)의 RAM Slack 계산
-                    ramSlack = sOffset
-                    ramSlack = ramSlack % self.CONST_ELEC_WRITE_UNIT
-                    ramSlack -= self.CONST_ELEC_WRITE_UNIT
-                    ramSlack = 0 - ramSlack
-
-                    # RAM Slack의 값이 0x00인지 검사
-
-                    if (ramSlack <= 10):
-                        compUnit = 1
-                    else:
-                        compUnit = self.CONST_RAMSLACK_COMP_UNIT
-
-                    for j in range(sOffset, sOffset + ramSlack, compUnit):
-                        if temp[j] == 0x0D or temp[j] == 0x0A:
-                            continue
-
-                        if temp[j] != 0x00:
-                            bSucceed = False
-                            break
-
-                    if (bSucceed):
-                        qwDataSize = i * self.uClusterSize + sOffset
-
-                        print("Find!!")
-                        return True
-                else:
-                    sOffset = -1
-
-                if (sOffset < 0):
-                    break
-                if next_offset - current_offset > i * self.uClusterSize:
-                    break
-
-        print("not Found")
-
-    def carve_png(self, current_offset, next_offset):
-        sigPNG_FOOTER = b'\x49\x45\x4E\x44\xAE\x42\x60\x82'
-        search_range = int(self.CONST_SEARCH_SIZE / (self.uClusterSize * 1))  # 1 => sizeof(UCHAR)
-
-        for i in range(0, search_range):
-            self.fp.seek(current_offset + i * self.uClusterSize)
-            temp = self.fp.read(self.uClusterSize)
-
-            sOffset = temp.find(sigPNG_FOOTER)
+            sOffset = temp.find(sig_FOOTER)
 
             if sOffset > 0:
                 qwDataSize = i * self.uClusterSize + sOffset
-                print("Find!!", hex(qwDataSize))               # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
-                return True
+                return qwDataSize
 
-        print("not Found")
+        if sOffset == -1 :
+            return -1
+
+    def carve_jfif(self, current_offset, next_offset):
+        sigJFIF_FOOTER = b'\xFF\xD9'
+        fileSize = self.signature(current_offset, sigJFIF_FOOTER)
+
+        if fileSize > 0 :
+            print("Find!!", hex(fileSize))  # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
+        else:
+            print("not Found")  # 현재 offset에서 next_offset까지.
+
+    def carve_exif(self, current_offset, next_offset):
+        sigEXIF_FOOTER = b'\xFF\xD9'
+        fileSize = self.signature(current_offset, sigEXIF_FOOTER)
+
+        if fileSize > 0 :
+            print("Find!!", hex(fileSize))  # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
+        else:
+            print("not Found")  # 현재 offset에서 next_offset까지.
+
+    def carve_gif(self, current_offset, next_offset):
+        sigGIF_FOOTER = b'\x00\x3B'
+        fileSize = self.signature(current_offset, sigGIF_FOOTER)
+
+        if fileSize > 0 :
+            print("Find!!", hex(fileSize))  # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
+        else:
+            print("not Found")  # 현재 offset에서 next_offset까지.
+
+    def carve_png(self, current_offset, next_offset):
+        sigPNG_FOOTER = b'\x49\x45\x4E\x44\xAE\x42\x60\x82'
+        fileSize = self.signature(current_offset, sigPNG_FOOTER)
+
+        if fileSize > 0 :
+            print("Find!!", hex(fileSize))  # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
+        else:
+            print("not Found")  # 현재 offset에서 next_offset까지.
 
     def carve_pdf(self, current_offset, next_offset):
         sigPDF_FOOTER = b'\x25\x25\x45\x4F\x46'
-        search_range = int(self.CONST_SEARCH_SIZE / (self.uClusterSize * 1))  # 1 => sizeof(UCHAR)
+        fileSize = self.signature(current_offset, sigPDF_FOOTER)
 
-        for i in range(0, search_range):
-            self.fp.seek(current_offset + i * self.uClusterSize)
-            temp = self.fp.read(self.uClusterSize)
-
-            sOffset = 0
-            while (True):
-                sTempOffset = temp.find(sigPDF_FOOTER)
-
-                if sTempOffset >= 0:
-                    bSucceed = True
-                    sOffset = sOffset + sTempOffset + 5  # 헤더 크기 만큼 offset 추가 (이전 코드에 적혀있음)
-
-                    # 쓰기 단위인 섹터(512바이트)의 RAM Slack 계산
-                    ramSlack = sOffset
-                    ramSlack = ramSlack % self.CONST_ELEC_WRITE_UNIT
-                    ramSlack -= self.CONST_ELEC_WRITE_UNIT
-                    ramSlack = 0 - ramSlack
-
-                    # RAM Slack의 값이 0x00인지 검사
-
-                    if (ramSlack <= 10):
-                        compUnit = 1
-                    else:
-                        compUnit = self.CONST_RAMSLACK_COMP_UNIT
-
-                    for j in range(sOffset, sOffset + ramSlack, compUnit):
-                        if temp[j] == 0x0D or temp[j] == 0x0A:
-                            continue
-
-                        if temp[j] != 0x00:
-                            bSucceed = False
-                            break
-
-                    if (bSucceed):
-                        qwDataSize = i * self.uClusterSize + sOffset
-                        print("Find!!", hex(qwDataSize))  # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
-                        return True
-                else:
-                    sOffset = -1
-
-                if (sOffset < 0):
-                    break
-                if next_offset - current_offset > i * self.uClusterSize:
-                    break
-
-        print("not Found")
+        if fileSize > 0 :
+            print("Find!!", hex(fileSize))  # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
+        else:
+            print("not Found")  # 현재 offset에서 next_offset까지.
 
     def carve_zip(self, current_offset, next_offset):
         i = 0
@@ -336,53 +170,12 @@ class Carving:
 
     def carve_alz(self, current_offset, next_offset):
         sigALZ_FOOTER = b'\x43\x4C\x5A\x02'
-        search_range = int(self.CONST_SEARCH_SIZE / (self.uClusterSize * 1)) * 10 # 1 => sizeof(UCHAR) / 크기를 정해야함.
+        fileSize = self.signature(current_offset, sigALZ_FOOTER)
 
-        for i in range(0, search_range):
-            self.fp.seek(current_offset + i * self.uClusterSize)
-            temp = self.fp.read(self.uClusterSize)
-
-            sOffset = 0
-            while(True):
-                sTempOffset = temp.find(sigALZ_FOOTER)
-
-                if sTempOffset >= 0:
-                    bSucceed = True
-                    sOffset = sOffset + sTempOffset + 2         # 헤더 크기 만큼 offset 추가
-
-                    # 쓰기 단위인 섹터(512바이트)의 RAM Slack 계산
-                    ramSlack = sOffset
-                    ramSlack = ramSlack % self.CONST_ELEC_WRITE_UNIT
-                    ramSlack -= self.CONST_ELEC_WRITE_UNIT
-                    ramSlack = 0 - ramSlack
-
-                    # RAM Slack의 값이 0x00인지 검사
-
-                    if(ramSlack <= 10):
-                        compUnit = 1
-                    else:
-                        compUnit = self.CONST_RAMSLACK_COMP_UNIT
-
-                    for j in range(sOffset, sOffset + ramSlack, compUnit):
-                        if temp[j] == 0x0D or temp[j] == 0x0A:
-                            continue
-
-                        if temp[j] != 0x00:
-                            # bSucceed = False                              # 왜 여기에 걸리는지 확인해보기
-                            break
-
-                    if (bSucceed):
-                        qwDataSize = i * self.uClusterSize + sOffset + 2    # +2 는 현재 사이즈가 안맞음. 왜인지 파악
-                        print("Find!! ", hex(qwDataSize), qwDataSize)
-                        return True
-                else:
-                    sOffset = -1
-
-                if(sOffset < 0):
-                    break
-                if next_offset - current_offset > i * self.uClusterSize:
-                    break
-
+        if fileSize > 0 :
+            print("Find!!", hex(fileSize))  # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
+        else:
+            print("not Found")  # 현재 offset에서 next_offset까지.
 
         print("not Found", hex(i))
 
@@ -423,13 +216,13 @@ class Carving:
                     elif temp[pReader + 2*4 : pReader + 2*4 + 4] == b'\x68\x64\x72\x6C':      # "hdrl"
                         bHDRL = True
                     puChunkSize = pReader + 4               # 이동할 Chunk size 저장
-                    pReader += 4                            # read 포인터 이동
+                    pReader += 8                            # read 포인터 이동
                     uMove = puChunkSize + 2 * 4             # 이동한 Offset 저장
                     uRealSize += puChunkSize + 2 * 4        # 추출할 실제 사이즈
 
                 elif temp[pReader:pReader+4] == b'\x4A\x55\x4E\x4B' :     # "JUNK"
                     puChunkSize = pReader + 4               # 이동할 Chunk size 저장
-                    pReader += 4                            # read 포인터 이동
+                    pReader += 8                            # read 포인터 이동
                     uMove = puChunkSize + 2 * 4             # 이동한 Offset 저장
                     uRealSize += puChunkSize + 2 * 4        # 추출할 실제 사이즈
 
@@ -442,6 +235,16 @@ class Carving:
                 else:
                     bEND = True
                     break
+
+                if uCluSize <= uMove:
+                    uAddRead = uMove - uCluSize
+                    pReader += (uCluSize - (2 * 4))          # 2 * long size
+                    uCluSize = 0
+                    uMove = 0
+                else:
+                    uCluSize -= uMove
+                    pReader += puChunkSize
+                    uMove = 0
 
             if bEND == True :
                 break
@@ -461,6 +264,7 @@ class Carving:
                     uDecSize -= self.uClusterSize * j
                 else:
                     uDecSize -= self.uClusterSize
+        print(hex(uDecSize))
 
     def carve_eml(self, current_offset, next_offset):
         bSuccced = False
@@ -486,6 +290,435 @@ class Carving:
                     return True
 
         return False
+
+    def carve_wav(self, current_offset, next_offset):
+        self.fp.seek(0)
+        riff = self.fp.read(0x0C)
+        riff_filesize = struct.unpack('<I', riff[4:8])[0]  # 전체 사이즈를 확인하기 위한 헤더
+        uFileSize = riff_filesize + 0x08  # RIFF 헤더를 포함한 전체 크기
+        uDecSize = uFileSize
+
+        uAddRead = 0
+        uMove = 0
+        uRealSize = 0
+        pReader = 0
+        puChunkSize = 0
+        bFMT = False
+        bDATA = False
+        bEND = False
+
+        self.fp.seek(0)
+        while uDecSize > 0:
+            temp = self.fp.read(self.uClusterSize)
+            uCluSize = self.uClusterSize
+            pReader += uAddRead  # 버퍼 내 시작 Offset 설정
+            uMove += uAddRead  # 움직인 Offset 저장
+
+            if uDecSize == uFileSize:
+                pReader += 0x0C  # RIFFHEADER 크기만큼 점프
+                uMove += 0x0C  # RIFFHEADER 크기 만큼 이동한 Offset 저장
+                uRealSize += 0x0C  # 추출할 실제 사이즈
+
+            while uCluSize > 0:  # 버퍼가 남아있을 때 까지
+
+                if temp[pReader:pReader + 4] == b'\x66\x6D\x74\x20':     # "fmt "
+                    bFMT = True
+                    puChunkSize = pReader + 4  # 이동할 Chunk size 저장
+                    pReader += 8  # read 포인터 이동
+                    uMove = puChunkSize + 2 * 4  # 이동한 Offset 저장
+                    uRealSize += puChunkSize + 2 * 4  # 추출할 실제 사이즈
+                elif temp[pReader:pReader + 4] == b'\x64\x61\x74\x61':      # "data"
+                    bDATA = True
+                    bEND = True
+                    puChunkSize = pReader + 4  # 이동할 Chunk size 저장
+                    uRealSize = puChunkSize + 2 * 4  # 추출할 실제 사이즈
+                elif temp[pReader:pReader + 4] == b'\x4A\x55\x4E\x4B':      # "JUNK"
+                    puChunkSize = pReader + 4  # 이동할 Chunk size 저장
+                    pReader += 8  # read 포인터 이동
+                    uMove = puChunkSize + 2 * 4  # 이동한 Offset 저장
+                    uRealSize += puChunkSize + 2 * 4  # 추출할 실제 사이즈
+                elif temp[pReader:pReader + 4] == b'\x4C\x49\x53\x54':      # "LIST"
+                    puChunkSize = pReader + 4  # 이동할 Chunk size 저장
+                    pReader += 8  # read 포인터 이동
+                    uMove = puChunkSize + 2 * 4  # 이동한 Offset 저장
+                    uRealSize += puChunkSize + 2 * 4  # 추출할 실제 사이즈
+                elif temp[pReader:pReader + 4] == b'\x66\x61\x63\x74':      # "fact"
+                    puChunkSize = pReader + 4  # 이동할 Chunk size 저장
+                    pReader += 8  # read 포인터 이동
+                    uMove = puChunkSize + 2 * 4  # 이동한 Offset 저장
+                    uRealSize += puChunkSize + 2 * 4  # 추출할 실제 사이즈
+                else:
+                    bEND = True
+                    break
+
+
+                if uCluSize <= uMove:
+                    uAddRead = uMove - uCluSize
+                    pReader += (uCluSize - (2 * 4))          # 2 * long size
+                    uCluSize = 0
+                    uMove = 0
+                else:
+                    uCluSize -= uMove
+                    pReader += puChunkSize
+                    uMove = 0
+
+
+
+
+            if bEND == True:
+                break
+
+            if self.uClusterSize > uDecSize:
+                break
+            else:
+                i = 0
+                j = 0
+
+                if uAddRead > self.uClusterSize:
+                    i = uAddRead % self.uClusterSize
+                    j = (uAddRead - i) / self.uClusterSize
+                    uAddRead = i
+
+                if j > 0:
+                    uDecSize -= self.uClusterSize * j
+                else:
+                    uDecSize -= self.uClusterSize
+
+        if bDATA == True:
+            print(hex(uDecSize))
+
+    def carve_pst(self, current_offset, next_offset):
+        self.fp.seek(0)
+        temp = self.fp.read(512)
+        filesize = struct.unpack('<Q', temp[0xB8:0xB8 + 8])[0]
+
+        if filesize == None:
+            return False
+
+        print(hex(filesize))
+        return True
+
+    def carve_dbx(self, current_offset, next_offset):
+        self.fp.seek(0)
+        temp = self.fp.read(512)
+        filesize = struct.unpack('<I', temp[0x7C:0x7C + 4])[0]
+
+        if filesize == None:
+            return False
+
+        print(hex(filesize))
+        return True
+
+    def carve_compound(self, current_offset, next_offset):
+        i = 0
+        j = 0
+        k = 0
+        nRead = b''
+        pvBuffer = 0
+        bVerified = False
+        bNameAlloc = False
+        uMaxBat = 0
+        propCount = 0
+        propOffset = 0
+        idxTitle = 0
+        szTitle = 0
+        lenTemp = 0
+        strTemp = ""
+        strTemp2 = ""
+        lpszFileName = ""
+        temp = 0
+        uFirstXBatID = 0
+        puBatTable = b''
+        puRootEntry = 0
+        puBat = b''
+        puSBat = 0
+        pSummaryInformation = 0
+        uDirEntrySize = 0
+        pPropSbat = 0
+        pPropSum = 0
+        pOleHeader = {}
+        qwDataSize = 0
+
+        sigSummary = b'\x05\x53\x75\x6D\x6D\x61\x72\x79' # |Summary
+        sigDOC = b'\x57\x6F\x72\x64\x44\x6F\x63\x75'     # WordDocu
+        sigPPT = b'\x50\x6F\x77\x65\x72\x50\x6F\x69'     # PowerPoi
+        sigXLS = b'\x57\x6F\x72\x6B\x62\x6F\x6F\x6B'     # Workbook
+        sigXLS2 = b'\x42\x6F\x6F\x6B'                    # Book
+
+        pvBuffer = self.fp.read(0x1000)
+
+
+        pOleHeader['uFileType'] = pvBuffer[0x00:0x08]
+        pOleHeader['uMinorVersion'] = pvBuffer[0x18:0x1A]
+        pOleHeader['uDllVersion'] = pvBuffer[0x1A:0x1C]
+        pOleHeader['uByteOrder'] = pvBuffer[0x1C:0x1E]
+        pOleHeader['uLogToBigBlockSize'] = struct.unpack('<h', pvBuffer[0x1E:0x20])[0]
+        pOleHeader['uLogToSmallBlockSize'] = struct.unpack('<h', pvBuffer[0x20:0x22])[0]
+        pOleHeader['uBatCount'] = struct.unpack('<I', pvBuffer[0x2C:0x30])[0]
+        pOleHeader['idxPropertyTable'] = pvBuffer[0x30:0x34]
+        pOleHeader['uSmallBlockCutOff'] = pvBuffer[0x38:0x3C]
+        pOleHeader['idxSbat'] = struct.unpack('<I', pvBuffer[0x3C:0x40])[0]
+        pOleHeader['uSbatBlockCount'] = pvBuffer[0x40:0x44]
+        pOleHeader['idxXbat'] = struct.unpack('<I', pvBuffer[0x44:0x48])[0]
+        pOleHeader['uXbatCount'] = struct.unpack('<I', pvBuffer[0x48:0x4C])[0]
+
+        if pOleHeader['uByteOrder'] != b'\xFE\xFF' or pOleHeader['uLogToBigBlockSize'] != 9 or pOleHeader['uLogToSmallBlockSize'] != 6 or pOleHeader['uBatCount'] > 0xFFFFFF00:
+            return False
+
+
+        # puBat =
+        if pOleHeader['uXbatCount'] == 0:  # XBAT을 안쓰는 경우(작은 크기의 파일)
+            puBatTable = pvBuffer[0x4C:0x4C + pOleHeader['uBatCount'] * 4]
+        elif pOleHeader['uXbatCount'] > 0:
+
+            # 1. Header에 있는 XBAT 복사
+            puBatTable = pvBuffer[0x4C:0x4C + 109 * 4]
+
+            # 2. XBAT의 수 만큼 loop
+            uFirstXBatID = pOleHeader['idxXbat']
+
+            i = 0
+            j = 0
+            while (i < pOleHeader['uXbatCount']):
+
+                self.fp.seek((uFirstXBatID + 1) * 512)
+                puBatTable += bytearray(self.fp.read(0x200))
+
+                if puBatTable[109 * 4 + (i * 128) * 4 + 127 * 4: 109 + (i * 128) + 127 * 4 + 4] == b'\xFF\xFF\xFF\xFF' or puBatTable[109 * 4 + (i * 128) * 4 + 127 * 4: 109 + (i * 128) + 127 * 4 + 4] == b'\xFE\xFF\xFF\xFF':
+                    break
+                else:
+                    uFirstXBatID = struct.unpack('<I', puBatTable[109 * 4 + (i * 128) * 4 - (j) * 4 + 127 * 4: 109 * 4 + (i * 128) * 4 - (j) * 4 + 127 * 4 + 4])[0]
+
+                i += 1
+                j += 1
+
+        if puBatTable == b'' :
+            return False
+
+
+        # MaxBat 계산산
+        i = 0
+        while i < pOleHeader['uBatCount']:
+            temp = struct.unpack('<I', puBatTable[i * 4: (i + 1) * 4])[0]
+            if uMaxBat < temp:
+                uMaxBat = temp
+            i += 1
+
+        qwDataSize = uMaxBat  # 데이터의 크기 예측
+
+        i = 0
+        while i < pOleHeader['uBatCount']:
+            temp = struct.unpack('<I', puBatTable[i * 4: (i + 1) * 4])[0]
+            # 에러 처리
+            if (temp > 0xFFFF0000):
+                return False
+
+            self.fp.seek((temp + 1) * 512)
+            nRead = bytearray(self.fp.read(512))
+            puBat += nRead
+
+            if len(nRead) != 512:
+                return False
+
+            j = 0
+            while j < 128:
+                temp = struct.unpack('<I', puBat[i * 128 * 4 + j * 4: i * 128 * 4 + j * 4 + 4])[0]
+                if temp == 0xFFFFFFFC or temp == 0xFFFFFFFD or temp == 0xFFFFFFFE or temp == 0xFFFFFFFF:
+                    j += 1
+                    continue
+                if pOleHeader['uBatCount'] * 128 <= temp:
+                    if(uMaxBat < 2048):
+                        uMaxBat += 2048
+                    else :
+                        uMaxBat += 4096
+
+                    qwDataSize = uMaxBat
+                    break
+
+                if qwDataSize < temp:
+                    # qwDataSize = struct.unpack('<Q', puBat[i*128*4 + j*4 : i*128*4 + j*4 + 8])[0]
+                    qwDataSize = temp
+
+                j += 1
+            i += 1
+
+        qwDataSize += 2
+        qwDataSize *= 512
+
+        if qwDataSize > self.CONST_COMPOUND_MAX:
+            return False
+
+        #return qwDataSize
+
+        self.fp.seek(0)
+        temp = bytearray(self.fp.read(self.CONST_COMPOUND_MAX))
+        print(temp.find(b'\x60\xB6\xA2\x9F\x61\x10\xD4\x11'))
+        print(qwDataSize)
+
+    def carve_hwp(self, current_offset, next_offset):
+        # 3.0은 잠시 제외 5.0부터
+        pvBuffer = b''
+        strTmpFn = b''
+        nRead = b''
+        i = 0
+        j = 0
+        uMaxBat = 0
+        bFirst = True
+        propCount = 0
+        propOffset = 0
+        filetime = 0
+        idxTitle = 0
+        szTitle = 0
+        lenTemp = 0
+        strTemp  = 0
+        lpszFileName = ""
+        temp = 0
+        uFirstXBatID = 0
+        puBatTable = 0
+        puRootEntry = 0
+        puBat = b''
+        puSBat = 0
+        pHwpSummaryInformation = 0
+        sigHwpSummary = b'\x05\x48\x77\x70\x53\x75\x6D\x6D'
+        pPropSbat = 0
+        pPropHWPSum = 0
+        pOleHeader = {}
+
+        self.fp.seek(0)
+        pvBuffer = bytearray(self.fp.read(4096))
+
+        pOleHeader['uFileType'] = pvBuffer[0x00:0x08]
+        pOleHeader['uMinorVersion'] = pvBuffer[0x18:0x1A]
+        pOleHeader['uDllVersion'] = pvBuffer[0x1A:0x1C]
+        pOleHeader['uByteOrder'] = pvBuffer[0x1C:0x1E]
+        pOleHeader['uLogToBigBlockSize'] = struct.unpack('<h', pvBuffer[0x1E:0x20])[0]
+        pOleHeader['uLogToSmallBlockSize'] = struct.unpack('<h', pvBuffer[0x20:0x22])[0]
+        pOleHeader['uBatCount'] = struct.unpack('<I', pvBuffer[0x2C:0x30])[0]
+        pOleHeader['idxPropertyTable'] = pvBuffer[0x30:0x34]
+        pOleHeader['uSmallBlockCutOff'] = pvBuffer[0x38:0x3C]
+        pOleHeader['idxSbat'] = struct.unpack('<I', pvBuffer[0x3C:0x40])[0]
+        pOleHeader['uSbatBlockCount'] = pvBuffer[0x40:0x44]
+        pOleHeader['idxXbat'] = struct.unpack('<I', pvBuffer[0x44:0x48])[0]
+        pOleHeader['uXbatCount'] = struct.unpack('<I', pvBuffer[0x48:0x4C])[0]
+
+
+
+        if pOleHeader['uByteOrder'] != b'\xFE\xFF' or pOleHeader['uLogToBigBlockSize'] != 9 or pOleHeader['uLogToSmallBlockSize'] != 6 or pOleHeader['uBatCount'] > 0xFFFFFF00:
+            return False
+
+        qwDataSize = 0
+
+        # puBat =
+        if pOleHeader['uXbatCount'] == 0:       # XBAT을 안쓰는 경우(작은 크기의 파일)
+            puBatTable = pvBuffer[0x4C:0x4C + pOleHeader['uBatCount'] * 4]
+        elif pOleHeader['uXbatCount'] > 0:
+
+            # 1. Header에 있는 XBAT 복사
+            puBatTable = pvBuffer[0x4C:0x4C + 109 * 4]
+
+            # 2. XBAT의 수 만큼 loop
+            uFirstXBatID = pOleHeader['idxXbat']
+
+            i = 0
+            j = 0
+            while( i < pOleHeader['uXbatCount'] ):
+
+                self.fp.seek((uFirstXBatID + 1) * 512)
+                puBatTable += bytearray(self.fp.read(0x200))
+
+                if puBatTable[109 * 4 + (i*128)*4 + 127*4 : 109 + (i*128) + 127*4 + 4] == b'\xFF\xFF\xFF\xFF' or puBatTable[109 * 4 + (i*128)*4 + 127*4 : 109 + (i*128) + 127*4 + 4] == b'\xFE\xFF\xFF\xFF':
+                    break
+                else:
+                    uFirstXBatID = struct.unpack('<I', puBatTable[109*4 + (i * 128)*4 - (j)*4 + 127*4 : 109*4 + (i * 128)*4 - (j)*4 + 127*4 + 4])[0]
+
+                i += 1
+                j += 1
+
+        if puBatTable == b'' :
+            return False
+
+        i = 0
+        while i < pOleHeader['uBatCount']:
+            temp = struct.unpack('<I',puBatTable[i*4 : (i+1)*4])[0]
+            if uMaxBat < temp:
+                uMaxBat = temp
+            i += 1
+
+        qwDataSize = uMaxBat        # 데이터의 크기 예측
+
+        if uMaxBat < 2048:
+            uMaxBat += 2048
+        else:
+            uMaxBat += 4096
+
+        i = 0
+        while i < pOleHeader['uBatCount']:
+            temp = struct.unpack('<I', puBatTable[i * 4: (i + 1) * 4])[0]
+            # 에러 처리
+            if(temp > 0xFFFF0000):
+                return False
+
+            self.fp.seek((temp + 1)*512)
+            nRead = bytearray(self.fp.read(512))
+            puBat += nRead
+
+            if len(nRead) != 512:
+                return False
+
+            j = 0
+            while j < 128:
+                temp = struct.unpack('<I', puBat[i*128*4 + j*4 : i*128*4 + j*4 + 4])[0]
+                if temp == 0xFFFFFFFC or temp == 0xFFFFFFFD or temp == 0xFFFFFFFE or temp == 0xFFFFFFFF:
+                    j += 1
+                    continue
+
+                if uMaxBat < temp:
+                    qwDataSize = uMaxBat
+                    break
+
+                if qwDataSize < temp:
+                    #qwDataSize = struct.unpack('<Q', puBat[i*128*4 + j*4 : i*128*4 + j*4 + 8])[0]
+                    qwDataSize = temp
+
+                j += 1
+            i += 1
+
+        qwDataSize += 2
+        qwDataSize *= 512
+
+        if qwDataSize > self.CONST_COMPOUND_MAX:
+            return False
+
+        self.fp.seek(0)
+        temp = bytearray(self.fp.read(self.CONST_COMPOUND_MAX))
+        print(temp.find(b'\x60\xB6\xA2\x9F\x61\x10\xD4\x11'))
+        print(qwDataSize)
+        return qwDataSize
+
+    def carve_bmp(self, current_offset, next_offset):
+        self.fp.seek(0)
+        # Get BITMAP Header
+        temp = self.fp.read(512)
+        bfSize = struct.unpack('<I', temp[0x02:0x06])[0]
+        # bfReserved1, bfReserved1 value is \x00\x00
+        bfReserved1 = temp[0x06:0x08]
+        bfReserved2 = temp[0x08:0x0A]
+
+        if bfReserved1 != b'\x00\x00' or bfReserved2 != b'\x00\x00':
+            return False
+
+        biSize = temp[0x0E:0x12]
+        biPlanes = temp[0x1A:0x1C]
+        biCompression = struct.unpack('<I', temp[0x1E:0x22])[0]
+
+        if biSize != b'\x28\x00\x00\x00' or biPlanes != b'\x01\x00' or biCompression > 0x05:
+            return False
+
+        print(hex(bfSize))
+        return bfSize
+
+
+
 
 
 
