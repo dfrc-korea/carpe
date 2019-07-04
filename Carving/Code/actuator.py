@@ -47,6 +47,7 @@ class Actuator(object):
         del self.pf
         del self.reg
         del self.sql
+        self.dict = {}
 
     def loadModule(self,name,module):
         self.dict.update({name:module})
