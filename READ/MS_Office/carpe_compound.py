@@ -24,9 +24,8 @@ except ModuleNotFoundError:
 class Compound:
 
     ### Dameged Documents ###
-    CONST_DOCUMENT_NORMAL = 0x0000
-    CONST_DOCUMENT_DAMAGED = 0x0001
-    CONST_DOCUMENT_UNKNOWN_DAMAGED = 0x0002
+    CONST_DOCUMENT_NORMAL = False
+    CONST_DOCUMENT_DAMAGED = True
 
     ### Encrypted Documents ###
     CONST_DOCUMENT_NO_ENCRYPTED = 0x0000
@@ -103,17 +102,17 @@ class Compound:
 
         if len(self.content) > 0:
             self.has_content = True
-            print(self.content)
+            #print(self.content)
 
         if self.is_damaged == self.CONST_DOCUMENT_NORMAL:
             self.parse_summaryinfo()
 
         if( self.metadata['author'] != None or self.metadata['title'] != None or self.metadata['create_time'] != None or self.metadata['modified_time'] != None):
             self.has_metadata = True
-            print(self.metadata['author'])
-            print(self.metadata['title'])
-            print(self.metadata['create_time'])
-            print(self.metadata['modified_time'])
+            #print(self.metadata['author'])
+            #print(self.metadata['title'])
+            #print(self.metadata['create_time'])
+            #print(self.metadata['modified_time'])
 
 
 
@@ -154,7 +153,8 @@ class Compound:
                 struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
                 entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
                 #print(entryData.decode('euc-kr'))
-                self.metadata['title'] = entryData.decode('euc-kr')
+                self.metadata['title'] = entryData
+                #self.metadata['title'] = entryData.decode('euc-kr')
 
 
             # Subject
@@ -169,7 +169,8 @@ class Compound:
                 entryLength = \
                 struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
                 entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
-                self.metadata['author'] = entryData.decode('euc-kr')
+                self.metadata['author'] = entryData
+                #self.metadata['author'] = entryData.decode('euc-kr')
                 #print(entryData.decode('euc-kr'))
 
 

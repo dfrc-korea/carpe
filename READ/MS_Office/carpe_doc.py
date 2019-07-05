@@ -168,12 +168,14 @@ class DOC:
         try:
             one_table = bytearray(self.compound.fp.open('1Table').read())
         except compoundfiles.errors.CompoundFileNotFoundError:
-            print("1Table is not exist.")
+            pass
+            #print("1Table is not exist.")
 
         try:
             zero_table = bytearray(self.compound.fp.open('0Table').read())
         except compoundfiles.errors.CompoundFileNotFoundError:
-            print("0Table is not exist.")
+            pass
+            #print("0Table is not exist.")
 
         if len(one_table) == 0 and len(zero_table) == 0:
             return self.compound.CONST_ERROR

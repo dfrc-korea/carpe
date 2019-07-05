@@ -490,7 +490,7 @@ class PPT :
             self.current_offset += 8
 
             if tmpHeader['type'] != self.RT_Document:
-                print("Not RT_Document.")
+                #print("Not RT_Document.")
                 return
 
             tmpHeader.fromkeys(tmpHeader.keys(), 0)
@@ -504,7 +504,7 @@ class PPT :
                     self.current_offset += tmpHeader['length']
 
                     if self.current_offset > len(self.powerpoint_document):
-                        print("Error!")
+                        #print("Error!")
                         return
 
                     tmpHeader.fromkeys(tmpHeader.keys(), 0)
@@ -799,7 +799,7 @@ class PPT :
             self.current_offset += 8
 
             if tmpHeader['type'] != self.RT_Document:
-                print("Not RT_Document.")
+                #print("Not RT_Document.")
                 return
 
             tmpHeader.fromkeys(tmpHeader.keys(), 0)
@@ -813,7 +813,7 @@ class PPT :
                     self.current_offset += tmpHeader['length']
 
                     if self.current_offset > len(self.powerpoint_document):
-                        print("Error!")
+                        #print("Error!")
                         return
 
                     tmpHeader.fromkeys(tmpHeader.keys(), 0)
