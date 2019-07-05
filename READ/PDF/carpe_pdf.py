@@ -146,7 +146,11 @@ class PDF:
             :return: (str) timestamp // UTC+0
             """
             raw_ts = ts.decode('ascii')[2:]
-            raw_ts = raw_ts.replace("'","")
+            if "'" in raw_ts:
+                raw_ts = raw_ts.replace("'", "")
+            elif "Z" in raw_ts:
+                raw_ts = raw_ts.replace("Z", "")
+                raw_ts += '+0000'
             dt = datetime.strptime(raw_ts, "%Y%m%d%H%M%S%z")
             utc_dt= dt.astimezone(timezone.utc)
 
