@@ -394,7 +394,6 @@ class OOXML:
         order_word = []
         final_word = ''
 
-
         if filetype == 'docx':
             #정상일 때
             if isDamaged == False:
@@ -815,7 +814,7 @@ class OOXML:
                                     if c.tag == P_TEXT and c.text is not None:
                                         normal_content_data = normal_content_data + c.text
                                         self.content = self.content + c.text
-                    print("\n")
+                    #print("\n")
                 return normal_content_data
            else:
                #손상일때
@@ -1292,9 +1291,9 @@ class OOXML:
         metadata_data = ''
 
         # 손상 여부 확인 "isDamaged"
-        print("----------손상여부----------")
+        #print("----------손상여부----------")
         damaged_flag = self.isDamaged(filename, filetype)
-        print(damaged_flag)
+        #print(damaged_flag)
 
         # 복구 가능
             # 정상일때
@@ -1310,17 +1309,17 @@ class OOXML:
             # 손상일때
         elif damaged_flag == True:
             # 본문 복구 가능 여부 확인
-            print("------본문복구가능여부------")
+            #print("------본문복구가능여부------")
             content_recoverable_flag = self.isRecoverable_content(filetype)
-            print(content_recoverable_flag)
+            #print(content_recoverable_flag)
             # 본문 복구 가능일 때
             if content_recoverable_flag == True:
                 # 본문 파싱
                 content_data = self.parse_content(filename, filetype, damaged_flag)
             # 메타데이터 복구 가능 여부 확인
-            print("---메타데이터복구가능여부---")
+            #print("---메타데이터복구가능여부---")
             metadata_recoverable_flag = self.isRecoverable_metadata(filetype)
-            print(metadata_recoverable_flag)
+            #print(metadata_recoverable_flag)
             # 메타데이터 복구 가능일 때
             if metadata_recoverable_flag == True:
                 # 메타데이터 파싱
@@ -1329,20 +1328,21 @@ class OOXML:
         # 복구 불가
         else:
             # 메타데이터 복구 가능 여부 확인
-            print("---메타데이터복구가능여부---")
+            #print("---메타데이터복구가능여부---")
             metadata_recoverable_flag = self.isRecoverable_metadata(filetype)
-            print(metadata_recoverable_flag)
+            #print(metadata_recoverable_flag)
             # 메타데이터 복구 가능일 때
             if metadata_recoverable_flag == True:
                 # 메타데이터 파싱
                 metadata_data = self.parse_metadata(filename, damaged_flag)
-            else:
-                print("***본문, 메타데이터복구불가***")
+            #else:
+                #print("***본문, 메타데이터복구불가***")
 
-        print("")
-        print("********본문********")
-        print(content_data)
+        #print("")
+        #print("********본문********")
+        #print(content_data)
 
+        '''
         #메모장 생성
         filenameonly = os.path.split(filename)
         memo_name = "./"+filenameonly[1]+'_content.txt'
@@ -1350,15 +1350,15 @@ class OOXML:
         fmemo.write(str(content_data))
         fmemo.close()
 
-        print("*****메타데이터*****")
-        print(metadata_data)
+        #print("*****메타데이터*****")
+        #print(metadata_data)
 
         #메모장 생성
         memo_name2 = "./"+filenameonly[1]+'_metadata.txt'
         fmemo2 = open(memo_name2, 'w', encoding='UTF8')
         fmemo2.write(str(metadata_data))
         fmemo2.close()
-
+        '''
         #self.parse_media(filename, filetype)
         if os.path.isdir('./test'):
             shutil.rmtree('./test')
