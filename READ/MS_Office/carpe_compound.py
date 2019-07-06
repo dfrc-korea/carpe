@@ -60,8 +60,8 @@ class Compound:
             self.has_metadata = False
             self.content = ""
             self.metadata = {}
-            self.metadata['author'] = ""
-            self.metadata['title'] = ""
+            self.metadata['author'] = b''
+            self.metadata['title'] = b''
             self.metadata['create_time'] = ""
             self.metadata['modified_time'] = ""
 
@@ -74,7 +74,7 @@ class Compound:
         self.fileSize = os.path.getsize(filePath)
         self.fileName = os.path.basename(filePath)
         self.filePath = filePath
-        self.fileType = os.path.splitext(filePath)[1][1:]   # delete '.' in '.xls' r
+        self.fileType = os.path.splitext(filePath)[1][1:].lower()   # delete '.' in '.xls' r
 
         
 
@@ -88,7 +88,6 @@ class Compound:
 
     def parse(self):
         if self.fileType == "xls" :
-            #result = self.parse_xls()
             object = XLS(self)
             object.parse_xls()
 
@@ -151,7 +150,7 @@ class Compound:
             if record['type'] == 0x02:
                 entryLength = \
                 struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
-                entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
+                entryData = bytearray(f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength])
                 #print(entryData.decode('euc-kr'))
                 self.metadata['title'] = entryData
                 #self.metadata['title'] = entryData.decode('euc-kr')
@@ -168,7 +167,7 @@ class Compound:
             elif record['type'] == 0x04:
                 entryLength = \
                 struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
-                entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
+                entryData = bytearray(f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength])
                 self.metadata['author'] = entryData
                 #self.metadata['author'] = entryData.decode('euc-kr')
                 #print(entryData.decode('euc-kr'))

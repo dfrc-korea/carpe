@@ -28,7 +28,7 @@ class XLS :
         # 스트림 내부 모두 파싱해서 데이터 출력
         tempOffset = 0
         content = ""       # 최종 저장될 스트링
-
+        substream = 0
         while tempOffset < len(f):
             dic = {}
             dic['offset'] = tempOffset
@@ -47,6 +47,7 @@ class XLS :
                 sstLen = record['length']
             if record['type'] == 0x3C:
                 f[record['offset']:record['offset']+4] = bytearray(b'\xAA\xAA\xAA\xAA')
+
 
 
         cntStream = sstOffset + 4
@@ -180,6 +181,17 @@ class XLS :
                             cntStream += 4
 
                     cntStream += 1
+
+        # SubStream
+        bSubstream = False
+
+        for record in records:
+            if record['type'] == 0x809 and record['data'][0:3] == b'\x00\x06\x10':
+                bSubstream = True
+            if bSubstream == True and record['type'] == 0x3C:
+                if record['data'][0] == 1:    # Ascii Data
+                    for i in range(0, len(record['data'])-1, 2) :
+                        content += str(record['data'][1 + i: 1 + i + 2].decode("utf-16"))
 
         self.compound.content = content
 
@@ -359,5 +371,16 @@ class XLS :
                             cntStream += 4
 
                     cntStream += 1
+
+        # SubStream
+        bSubstream = False
+
+        for record in records:
+            if record['type'] == 0x809 and record['data'][0:3] == b'\x00\x06\x10':
+                bSubstream = True
+            if bSubstream == True and record['type'] == 0x3C:
+                if record['data'][0] == 1:    # Ascii Data
+                    for i in range(0, len(record['data'])-1, 2) :
+                        content += str(record['data'][1 + i: 1 + i + 2].decode("utf-16"))
 
         self.compound.content = content
