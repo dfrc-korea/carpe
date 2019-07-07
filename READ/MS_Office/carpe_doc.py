@@ -240,7 +240,7 @@ class DOC:
         Clx = byteTable[fcClxSize: fcClxSize + lcbClxSize]
 
         if Clx[0] == 0x01:
-            cbGrpprl = Clx[1:3]
+            cbGrpprl = struct.unpack("<H", Clx[1:3])[0]
             Clx = byteTable[fcClxSize + cbGrpprl + 3: (fcClxSize + cbGrpprl + 3) + lcbClxSize - cbGrpprl + 3]
         if Clx[0] != 0x02:
             return self.compound.CONST_ERROR
@@ -596,7 +596,7 @@ class DOC:
         Clx = byteTable[fcClxSize: fcClxSize + lcbClxSize]
     
         if Clx[0] == 0x01:
-            cbGrpprl = Clx[1:3]
+            cbGrpprl = struct.unpack("<H", Clx[1:3])[0]
             Clx = byteTable[fcClxSize + cbGrpprl + 3: (fcClxSize + cbGrpprl + 3) + lcbClxSize - cbGrpprl + 3]
         if Clx[0] != 0x02:
             return self.compound.CONST_ERROR
