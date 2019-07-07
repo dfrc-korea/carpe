@@ -629,7 +629,13 @@ class PPT :
                     uFilteredTextLen += uTempLen
 
         uFilteredTextLen = self.__ppt_extra_filter__(uFilteredTextLen)
-
+        """
+        for i in range(0, len(self.filteredText), 2):
+            try:
+                self.compound.content += self.filteredText[i:i+2].decode('utf-16')
+            except UnicodeDecodeError:
+                continue
+        """
         self.compound.content = self.filteredText.decode('utf-16')
 
     def __parse_ppt_damaged__(self):
@@ -670,25 +676,10 @@ class PPT :
         if isCurrentUser == False or isPowerPointDocumentation == False:
             return self.compound.CONST_ERROR
 
-
-
         self.current_user = file[self.current_offset : self.current_offset + 64]
         powerpoint_document_start = (struct.unpack('<I', m_powerpointdocumentation[0x74 : 0x78])[0] + 1) * 0x200
         powerpoint_document_size = struct.unpack('<I', m_powerpointdocumentation[0x78 : 0x7C])[0]
         self.powerpoint_document = file[powerpoint_document_start : powerpoint_document_start + powerpoint_document_size]
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         # Get User Edit Offset
