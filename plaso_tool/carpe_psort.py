@@ -20,13 +20,12 @@ from plaso import dependencies
 from plaso.cli import tools as cli_tools
 from plaso.cli import carpe_psort_tool
 from plaso.lib import errors
-
+import pdb
 
 def Main():
   """The main function."""
   input_reader = cli_tools.StdinInputReader()
-  tool = psort_tool.PsortTool(input_reader=input_reader)
-
+  tool = carpe_psort_tool.CARPEPSORTTool(input_reader=input_reader)
   if not tool.ParseArguments(sys.argv[1:]):
     return False
 

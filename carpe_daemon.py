@@ -82,6 +82,12 @@ delete from partition_info where evd_id='e1c1004619edb24ffcb5ca1e48ec3c73cf';
 case_id = 'c16011ffad0b3a44e78aed17b366023f9c'
 evd_id = 'e1c1004619edb24ffcb5ca1e48ec3c73cf'
 
+option = {
+	'vss':'false'
+}
+
 carpe_am = carpe_am_module.CARPE_AM()
 carpe_am.SetModule(case_id, evd_id)
+carpe_am.ParseImage(option)
+#carpe_am.ParseFilesystem()
 carpe_am.SysLogAndUserData_Analysis()
