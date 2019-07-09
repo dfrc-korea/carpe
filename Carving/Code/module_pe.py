@@ -23,7 +23,7 @@ import os,sys,platform
 
 if(platform.system()=='Linux'):
     try:
-        LIB_PATH = LIB_DEFAULT_PATH+ModuleConstant.Dependency.pecarve+".so"
+        LIB_PATH = ModuleConstant.LIB_DEFAULT_PATH+ModuleConstant.Dependency.pecarve+".so"
         pelib_parser = cdll.LoadLibrary(LIB_PATH)
     except:
         LIB_PATH = ModuleConstant.DEFINE_PATH + ModuleConstant.Dependency.pecarve+".so"
