@@ -55,7 +55,7 @@ class ModuleIdx(ModuleComponentInterface):
 
     def __read(self,offset):
         header = sr._IndexDatStructure()
-        fileHdr = self.parser.execute(header.IndexDatHeader,'byte',offset,os.SEEK_SET,'little')
+        fileHdr = self.parser.bexecute(header.IndexDatHeader,'byte',offset,os.SEEK_SET,'little')
         if(fileHdr==False):
             return (False,0,-1,ModuleConstant.INVALID)
 
@@ -65,21 +65,21 @@ class ModuleIdx(ModuleComponentInterface):
        
             return (True,offset,self.get_attrib(ModuleConstant.CLUSTER_SIZE),ModuleConstant.FILE_HEADER)
 
-        self.parser.goto(-self.parser.get_size())
-        self.parser.execute(header.HashTableRecord,'byte',0,os.SEEK_CUR,'little')
+        self.parser.bgoto(-self.parser.get_size())
+        self.parser.bexecute(header.HashTableRecord,'byte',0,os.SEEK_CUR,'little')
         
         if(self.parser.get_value("signature")==ModuleIdx.HASH):
             return (True,offset,self.parser.byte2int(self.parser.get_value("nob")) * ModuleIdx.HASH_BLK_SIZE,ModuleConstant.FILE_HEADER)
 
-        self.parser.goto(-self.parser.get_size())
+        self.parser.bgoto(-self.parser.get_size())
         __size  = 0
         while(True):
-            result = self.parser.execute(header.URLRecord,'byte',0,os.SEEK_CUR,'little')
+            result = self.parser.bexecute(header.URLRecord,'byte',0,os.SEEK_CUR,'little')
             if(result==False):
                 break
             if(self.parser.get_value("fver")!=b'0x05'):
-                self.parser.goto(-self.parser.get_size())
-                self.parser.execute(header.URLRecord4,'byte',0,os.SEEK_CUR,'little')
+                self.parser.bgoto(-self.parser.get_size())
+                self.parser.bexecute(header.URLRecord4,'byte',0,os.SEEK_CUR,'little')
 
             if(self.parser.byte2int(self.parser.get_value("signature")) not in (ModuleIdx.ACTIVITY_SIG_URL,ModuleIdx.ACTIVITY_SIG_REDR,ModuleIdx.ACTIVITY_SIG_LEEK)):
                 break
@@ -87,7 +87,7 @@ class ModuleIdx(ModuleComponentInterface):
             if(self.parser.byte2int(self.parser.get_value("nob"))==0):
                 break
 
-            self.parser.goto(-self.parser.get_size()+ModuleIdx.HASH_BLK_SIZE \
+            self.parser.bgoto(-self.parser.get_size()+ModuleIdx.HASH_BLK_SIZE \
                                 * self.parser.byte2int(self.parser.get_value("nob")))
             __size += ModuleIdx.HASH_BLK_SIZE*self.parser.byte2int(self.parser.get_value("nob"))
 
@@ -98,7 +98,7 @@ class ModuleIdx(ModuleComponentInterface):
 
     def __read_cont(self,offset):
         header = sr._IndexDatStructure()
-        fileHdr = self.parser.execute(header.IndexDatHeader,'byte',offset,os.SEEK_SET,'little')
+        fileHdr = self.parser.bexecute(header.IndexDatHeader,'byte',offset,os.SEEK_SET,'little')
         if(fileHdr==False):
             return (False,0,-1,ModuleConstant.INVALID)
 
@@ -108,25 +108,25 @@ class ModuleIdx(ModuleComponentInterface):
         if(self.parser.get_value("size")==b'\x00' or self.parser.get_value("offhtr")==b'\x00'):
             return (False,0,-1,ModuleConstant.INVALID)
         
-        self.parser.goto(-self.parser.get_size()+self.parser.byte2int(self.parser.get_value("offhtr")))
-        self.parser.execute(header.HashTableRecord,'byte',0,os.SEEK_CUR,'little')
+        self.parser.bgoto(-self.parser.get_size()+self.parser.byte2int(self.parser.get_value("offhtr")))
+        self.parser.bexecute(header.HashTableRecord,'byte',0,os.SEEK_CUR,'little')
         if(self.parser.get_value("signature")!=ModuleIdx.HASH):
             return (False,0,-1,ModuleConstant.INVALID)
         
         blksize = self.parser.byte2int(self.parser.get_value("nob")) * ModuleIdx.HASH_BLK_SIZE
-        self.parser.goto(-self.parser.get_size()+blksize)
+        self.parser.bgoto(-self.parser.get_size()+blksize)
         
         current = self.parser.tell() 
         __size  = 0
         
         while(True):
-            result = self.parser.execute(header.URLRecord,'byte',0,os.SEEK_CUR,'little')
+            result = self.parser.bexecute(header.URLRecord,'byte',0,os.SEEK_CUR,'little')
             if(result==False):
                 break
 
             if(self.parser.get_value("fver")!=b'0x05'):
-                self.parser.goto(-self.parser.get_size())
-                self.parser.execute(header.URLRecord4,'byte',0,os.SEEK_CUR,'little')
+                self.parser.bgoto(-self.parser.get_size())
+                self.parser.bexecute(header.URLRecord4,'byte',0,os.SEEK_CUR,'little')
 
             if(self.parser.byte2int(self.parser.get_value("signature")) not in (ModuleIdx.ACTIVITY_SIG_URL,ModuleIdx.ACTIVITY_SIG_REDR,ModuleIdx.ACTIVITY_SIG_LEEK)):
                 break
@@ -134,7 +134,7 @@ class ModuleIdx(ModuleComponentInterface):
             if(self.parser.byte2int(self.parser.get_value("nob"))==0):
                 break
 
-            self.parser.goto(-self.parser.get_size()+ModuleIdx.HASH_BLK_SIZE \
+            self.parser.bgoto(-self.parser.get_size()+ModuleIdx.HASH_BLK_SIZE \
                              * self.parser.byte2int(self.parser.get_value("nob")))
             __size += ModuleIdx.HASH_BLK_SIZE*self.parser.byte2int(self.parser.get_value("nob"))
 
@@ -144,16 +144,16 @@ class ModuleIdx(ModuleComponentInterface):
         self.__reinit__()
         self.parser.get_file_handle(
             self.get_attrib(ModuleConstant.FILE_ATTRIBUTE),
-            self.get_attrib(ModuleConstant.IMAGE_BASE)
+            self.get_attrib(ModuleConstant.IMAGE_BASE),1
         )
 
         offset  = self.get_attrib(ModuleConstant.IMAGE_BASE)
         clus    = self.get_attrib(ModuleConstant.CLUSTER_SIZE)
         last    = self.get_attrib(ModuleConstant.IMAGE_LAST)
         if(last==0):
-            last    = self.parser.goto(0,os.SEEK_END)
+            last    = self.parser.bgoto(0,os.SEEK_END)
        
-        self.parser.goto(offset,os.SEEK_SET)
+        self.parser.bgoto(offset,os.SEEK_SET)
         
         if(option==True):
             res = self.__read_cont(offset)

@@ -54,7 +54,7 @@ class ModuleEvt(ModuleComponentInterface):
 
     def __read(self,offset):
         header = sr._WindowsEventLogStructure()
-        result = self.parser.execute(header.evtFileHeader,'byte',offset,os.SEEK_SET,'little')
+        result = self.parser.bexecute(header.evtFileHeader,'byte',offset,os.SEEK_SET,'little')
         if(result==False):
             return (False,0,-1,ModuleConstant.INVALID)
         
@@ -66,30 +66,30 @@ class ModuleEvt(ModuleComponentInterface):
                 size+=_tmp
                 if(_tmp==0):
                     break
-                self.parser.goto(-self.parser.get_size()+_tmp)
-                self.parser.execute(header.evtRecord,'byte',0,os.SEEK_CUR,'little')
+                self.parser.bgoto(-self.parser.get_size()+_tmp)
+                self.parser.bexecute(header.evtRecord,'byte',0,os.SEEK_CUR,'little')
             return (True,offset,size,ModuleConstant.FILE_RECORD)
         
         # For evtx
-        self.parser.goto(-self.parser.get_size())
-        result = self.parser.execute(header.evtxFileChunkHeader,'byte',offset,os.SEEK_SET,'little')
+        self.parser.bgoto(-self.parser.get_size())
+        result = self.parser.bexecute(header.evtxFileChunkHeader,'byte',offset,os.SEEK_SET,'little')
         if(result==False):
             return (False,0,-1,ModuleConstant.INVALID)
 
         _type  = self.parser.get_value("signature")
         if(_type==ModuleEvt.EVTX_HEADER):
-            self.parser.goto(-self.parser.get_size())
-            self.parser.execute(header.evtxFileHeader,'byte',0,os.SEEK_CUR,'little')
+            self.parser.bgoto(-self.parser.get_size())
+            self.parser.bexecute(header.evtxFileHeader,'byte',0,os.SEEK_CUR,'little')
             _crc = binascii.crc32(self.parser.stream[0:self.parser.get_field_offset("flags")])
             if(_crc == self.parser.byte2int(self.parser.get_value("checksum"))):
                 return (True,offset,self.parser.byte2int(self.parser.get_value("hbsize")),ModuleConstant.FILE_HEADER)
             return (False,0,-1,ModuleConstant.INVALID)
 
         elif(_type==ModuleEvt.EVTX_CHUNK):
-            self.parser.goto(-self.parser.get_size()+ModuleEvt.CHNK_SIZE)
-            __offset = self.parser.tell()
+            self.parser.bgoto(-self.parser.get_size()+ModuleEvt.CHNK_SIZE)
+            __offset = self.parser.btell()
             while(True):
-                result = self.parser.execute(header.evtxEventRecord,'byte',__offset,os.SEEK_SET,'little')
+                result = self.parser.bexecute(header.evtxEventRecord,'byte',__offset,os.SEEK_SET,'little')
                 if(result==False):
                     break
                 elif(self.parser.byte2int(self.parser.get_value("signature"))==ModuleEvt.EVTX_RECORD):
@@ -107,16 +107,16 @@ class ModuleEvt(ModuleComponentInterface):
         self.__reinit__()
         self.parser.get_file_handle(
             self.get_attrib(ModuleConstant.FILE_ATTRIBUTE),
-            self.get_attrib(ModuleConstant.IMAGE_BASE)
+            self.get_attrib(ModuleConstant.IMAGE_BASE),1
         )
 
         offset  = self.get_attrib(ModuleConstant.IMAGE_BASE)
         clus    = self.get_attrib(ModuleConstant.CLUSTER_SIZE)
         last    = self.get_attrib(ModuleConstant.IMAGE_LAST)
         if(last==0):
-            last    = self.parser.goto(0,os.SEEK_END)
+            last    = self.parser.bgoto(0,os.SEEK_END)
        
-        self.parser.goto(offset,os.SEEK_SET)
+        self.parser.bgoto(offset,os.SEEK_SET)
 
         while(offset<last):
             res = self.__read(offset)

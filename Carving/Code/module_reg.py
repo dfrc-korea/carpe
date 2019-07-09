@@ -52,29 +52,30 @@ class ModuleRegEntry(ModuleComponentInterface):
 
     def __read(self,offset):
         header = sr._RegistryStructure()
-        result = self.parser.execute(header.BaseBlock,'int',offset,os.SEEK_SET,'little')
+        result = self.parser.bexecute(header.BaseBlock,'int',offset,os.SEEK_SET,'little')
         if(result==False):
             return (False,0,-1,ModuleConstant.INVALID)
 
         if(self.parser.get_value("signature")==ModuleRegEntry.BASE_SIGNATURE_LE):
             return (True,offset,header.BASEBLOCK_SIZE,ModuleConstant.FILE_HEADER)
 
-        result = self.parser.execute(header.HiveBin,'int',offset,os.SEEK_SET,'little')
+        result = self.parser.bexecute(header.HiveBin,'int',offset,os.SEEK_SET,'little')
         if(result==False):
             return (False,0,-1,ModuleConstant.INVALID)
 
         if(self.parser.get_value("signature")==ModuleRegEntry.HBIN_SIGNATURE_LE):
             r = self.parser.get_value("size")
             if(r==0):
-                # ---> Internal error of Python ; read (Python is too buggy!)
-                self.parser.goto(-self.parser.get_size()+8)
-                try:
-                    s = self.parser.byte2int(self.parser.read_raw(0,4,'little'))
-                    if(s!=0):
-                        return (True,offset,s,ModuleConstant.FILE_RECORD)
-                    return (False,0,-1,ModuleConstant.INVALID)
-                except:return (False,0,-1,ModuleConstant.INVALID)
-                # <---
+            #    # ---> If not binary mode
+            #    self.parser.bgoto(-self.parser.get_size()+8)
+            #    try:
+            #        s = self.parser.byte2int(self.parser.read_raw(0,4,'little'))
+            #        if(s!=0):
+            #            return (True,offset,s,ModuleConstant.FILE_RECORD)
+            #        return (False,0,-1,ModuleConstant.INVALID)
+            #    except:return (False,0,-1,ModuleConstant.INVALID)
+            #    # <---
+                 return (False,0,-1,ModuleConstant.INVALID)
             elif(r==None):
                 return (False,0,-1,ModuleConstant.INVALID)
             return (True,offset,r,ModuleConstant.FILE_RECORD)
@@ -84,14 +85,14 @@ class ModuleRegEntry(ModuleComponentInterface):
         self.__reinit__()
         self.parser.get_file_handle(
             self.get_attrib(ModuleConstant.FILE_ATTRIBUTE),
-            self.get_attrib(ModuleConstant.IMAGE_BASE)
+            self.get_attrib(ModuleConstant.IMAGE_BASE),1
         )
 
         offset  = self.get_attrib(ModuleConstant.IMAGE_BASE)
         last    = self.get_attrib(ModuleConstant.IMAGE_LAST)
         if(last==0):
-            last    = self.parser.goto(0,os.SEEK_END)       
-        self.parser.goto(offset,os.SEEK_SET)
+            last    = self.parser.bgoto(0,os.SEEK_END)       
+        self.parser.bgoto(offset,os.SEEK_SET)
 
         while(offset<last):
             res = self.__read(offset)
@@ -142,5 +143,5 @@ if __name__ == '__main__':
     reg.set_attrib(ModuleConstant.IMAGE_BASE,0)  # Set offset of the file base
     cret = reg.execute()
     print(cret)
-
+    print(len(cret))
     sys.exit(0)

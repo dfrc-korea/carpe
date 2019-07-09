@@ -6,10 +6,12 @@
 
 from defines         import *
 from interface       import ModuleComponentInterface
+
+
 from structureReader import structureReader as sr
 
-#from structureReader import StructureReader    as parser
-#from structureReader import _LinkFileStructure as structure
+#import _structureReader as sr
+
 
 import os,sys,platform
 
@@ -25,7 +27,7 @@ class ModuleLNK(ModuleComponentInterface):
         self.set_attrib(ModuleConstant.NAME,"lnk")
         self.set_attrib(ModuleConstant.VERSION,"0.1")
         self.set_attrib(ModuleConstant.AUTHOR,"HK")
-    
+
     def __reinit__(self):
         self.fileSize   = 0
         self.offset     = list()
@@ -47,22 +49,34 @@ class ModuleLNK(ModuleComponentInterface):
         return ModuleConstant.Return.SUCCESS
 
     # ShellItemList와 FileLocationInfo의 이름 필드 비교
-    def __read(self,offset):
+    def __read(self,offset,__encode):
         header = sr._LinkFileStructure()
         size   = 0
-
-        result = self.parser.execute(header.ShellLinkHeader,'int',offset,os.SEEK_SET,'little')
+        __flag = 0
+        result = self.parser.bexecute(header.ShellLinkHeader,'int',offset,os.SEEK_SET,'little')
         if(result==False):
             return (False,0,-1,ModuleConstant.INVALID)
 
-        nbase = offset+self.parser.tell()-2
+        flag        = self.parser.get_value("flags")
+        isUTF16     = flag & 0x80
+        if(isUTF16==0x80):isUTF16=1
+        hasRelative = flag & 0x08
+
+        _tmp = self.parser.get_value("lti")
+        if(self.parser.get_value('ltime')==0x00):
+            self.parser.bgoto(-self.parser.get_field_size('lti'))
+            _tmp = self.parser.byte2int(self.parser.bread_raw(0,2))
+
+        nbase = offset+self.parser.btell()-2
         sitem = nbase+2
-        size  += self.parser.get_value("lti")
+        size  += _tmp
         size  += 2
         nbase += size
-        self.parser.goto(size-2)
+        self.parser.bgoto(size-2)
 
-        result = self.parser.execute(header.FileLocationInfo,'int',0,os.SEEK_CUR,'little')
+
+        _tmp   = self.parser.btell()
+        result = self.parser.bexecute(header.FileLocationInfo,'int',0,os.SEEK_CUR,'little')
         if(result==False):
             return (False,0,-1,ModuleConstant.INVALID)
 
@@ -83,44 +97,81 @@ class ModuleLNK(ModuleComponentInterface):
         _cmp  = None
 
         try:
-            _name = self.parser.read_raw(nbase+_name,_len,os.SEEK_SET).split(b'\\')[-1].split(b'\x00')[0]
+            _name = self.parser.bread_raw(nbase+_name,_len,os.SEEK_SET).split(b'\\')[-1].split(b'\x00')[0].strip()
         except:
             return (False,0,-1,ModuleConstant.INVALID)
-        
-        self.parser.goto(sitem,os.SEEK_SET)
-        while(self.parser.tell()<nbase):
-            result = self.parser.execute(header.ShellItemList,'int',0,os.SEEK_CUR,'little')
-            if(result==False):
-                return (False,0,-1,ModuleConstant.INVALID)
+        try:
+            _name = _name.decode()
+        except:
+            __flag=1
 
-            if(self.parser.get_value("type") in sr._LinkFileStructure.CLSID.CLSID_ShellFSFolder):
-                _cp  = self.parser.tell()
-                _cmp = self.parser.read_raw(0,
-                                            self.parser.get_value("size")-
-                                            self.parser.get_size(),os.SEEK_CUR)
-                _cmp = _cmp[10:-1].split(b'\x00')[0]
-                if(_name==_cmp):
-                    break
-                self.parser.goto(_cp,os.SEEK_SET)
-            elif(self.parser.get_value("size")==0):
-                return (False,0,-1,ModuleConstant.INVALID)
-            self.parser.goto(self.parser.get_value("size")-self.parser.get_size())
+        if(__flag==1):
+            try:_name = _name.decode(__encode)
+            except:return (False,0,-1,ModuleConstant.INVALID)
 
-        return (True,offset,self.get_attrib(ModuleConstant.CLUSTER_SIZE),ModuleConstant.FILE_ONESHOT)
-        
+        if(hasRelative==0x08):
+            self.parser.bgoto(_tmp+self.parser.get_value("size"),os.SEEK_SET)
+            _tmp   = self.parser.btell()
+            _len   = self.parser.byte2int(self.parser.bread_raw(0,2,os.SEEK_CUR))*(isUTF16+1)
+            cmp    = self.parser.bread_raw(0,_len).split(b'\\\x00')[-1]
+            if(isUTF16):
+                try:
+                    cmp = cmp.decode('UTF-16').strip()
+                except:
+                    return (False,0,-1,ModuleConstant.INVALID)
+            if(_name==cmp):
+                return (True,offset,self.get_attrib(ModuleConstant.CLUSTER_SIZE),ModuleConstant.FILE_ONESHOT)
+
+        else:
+            self.parser.bgoto(sitem,os.SEEK_SET)
+
+            while(self.parser.btell()<nbase):
+                result = self.parser.bexecute(header.ShellItemList,'int',0,os.SEEK_CUR,'little')
+                if(result==False):
+                    return (False,0,-1,ModuleConstant.INVALID)
+
+                if(self.parser.get_value("type") in sr._LinkFileStructure.CLSID.CLSID_ShellFSFolder):
+                    _len = self.parser.get_value("size")-self.parser.get_size()
+                    _cmp = self.parser.bread_raw(0,_len,os.SEEK_CUR)
+                    try:
+                        _tmp = _cmp[10:-1].split(b'\x00')[0].decode()
+                        __flag = 0
+                    except:__flag = 1
+
+                    if(__flag):
+                        _tmp = _cmp[10:-1].split(b'\x00\x00')[0]
+                        if(len(_tmp)%2):_tmp+=b'\x00'
+                        try:
+                            _tmp = _tmp.decode('utf-16')
+                        except:
+                            return (False,offset,self.get_attrib(ModuleConstant.CLUSTER_SIZE),ModuleConstant.FILE_ONESHOT)
+
+                    if(_name==_tmp):
+                        return (True,offset,self.get_attrib(ModuleConstant.CLUSTER_SIZE),ModuleConstant.FILE_ONESHOT)
+                    self.parser.bgoto(-_len+self.parser.get_value("size")-self.parser.get_size())
+                    continue
+
+                elif(self.parser.get_value("size")==0):
+                    return (False,0,-1,ModuleConstant.INVALID)
+
+                self.parser.bgoto(self.parser.get_value("size")-self.parser.get_size())
+
+        return (False,offset,self.get_attrib(ModuleConstant.CLUSTER_SIZE),ModuleConstant.FILE_ONESHOT)
+
     def carve(self):
-        self.__reinit__() 
+        self.__reinit__()
         self.parser.get_file_handle(
             self.get_attrib(ModuleConstant.FILE_ATTRIBUTE),
-            self.get_attrib(ModuleConstant.IMAGE_BASE)
+            self.get_attrib(ModuleConstant.IMAGE_BASE),1
+
         )
 
-        offset  = self.get_attrib(ModuleConstant.IMAGE_BASE)     
-        self.parser.goto(offset,os.SEEK_SET)
+        offset  = self.get_attrib(ModuleConstant.IMAGE_BASE)
+        self.parser.bgoto(offset,os.SEEK_SET)
 
-        res = self.__read(offset)
+        res = self.__read(offset,self.get_attrib(ModuleConstant.ENCODE))
         if(res[0]==True):
-            self.offset.append((res[1],res[2]))
+            self.offset.append((res[1],res[2],res[3]))
             self.fileSize += res[2]
             offset+=res[2]
         else:
@@ -162,6 +213,7 @@ if __name__ == '__main__':
 
     lnk.set_attrib(ModuleConstant.IMAGE_BASE,0)                     # Set offset of the file base
     lnk.set_attrib(ModuleConstant.CLUSTER_SIZE,1024)
+    lnk.set_attrib(ModuleConstant.ENCODE,'euc-kr')
     cret = lnk.execute()
     print(cret)
 

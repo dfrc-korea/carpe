@@ -54,15 +54,15 @@ class ModuleSql(ModuleComponentInterface):
 
     def __read(self,offset):
         header = sr._SQLStructure()
-        result = self.parser.execute(header.dataBaseHeader,'int',offset,os.SEEK_SET,'big')
+        result = self.parser.bexecute(header.dataBaseHeader,'int',offset,os.SEEK_SET,'big')
         
         if(self.parser.get_value('signature')!=ModuleSql.SQL_DB_SIGNATURE):
             self.pageSize = self.paresr.get_value('size_page')
             return (True,offset,self.paresr.get_value('size_page'),ModuleConstant.FILE_HEADER)
 
-        self.parser.goto(-self.parser.get_size())
+        self.parser.bgoto(-self.parser.get_size())
 
-        self.parser.execute(header.btreePageHeader,'int',0,os.SEEK_CUR,'big')
+        self.parser.bexecute(header.btreePageHeader,'int',0,os.SEEK_CUR,'big')
 
         if(self.parser.get_value('flag') not in ModuleSql.SQL_PAGE_LIST):
             return (False,0,-1,ModuleConstant.INVALID)
@@ -72,15 +72,15 @@ class ModuleSql(ModuleComponentInterface):
 
         """
         if(self.parser.get_value('num_of_cells')==1):
-            self.parser.goto((self.parser.get_value('num_of_cells')-1)*2)
-            barray     = (self.pageSize,int.from_bytes(self.parser.read_raw(0,2),'big'))
+            self.parser.bgoto((self.parser.get_value('num_of_cells')-1)*2)
+            barray     = (self.pageSize,int.from_bytes(self.parser.bread_raw(0,2),'big'))
         else:
-            self.parser.goto((self.parser.get_value('num_of_cells')-2)*2)
-            _barray    = self.parser.read_raw(0,4)
+            self.parser.bgoto((self.parser.get_value('num_of_cells')-2)*2)
+            _barray    = self.parser.bread_raw(0,4)
             barray     = (int.from_bytes(_barray[0:2],'big'),int.from_bytes(_barray[2:4],'big'))
         
-        self.parser.goto(current+barray[1],os.SEEK_SET)
-        barray = self.parser.read_raw(0,barray[0]-barray[1])
+        self.parser.bgoto(current+barray[1],os.SEEK_SET)
+        barray = self.parser.bread_raw(0,barray[0]-barray[1])
         
         # add code to specify sqlite database...
         """
@@ -88,7 +88,7 @@ class ModuleSql(ModuleComponentInterface):
 
     def __readCont(self,offset):
         header =  sr._SQLStructure()
-        result = self.parser.execute(header.dataBaseHeader,'int',offset,os.SEEK_SET,'big')
+        result = self.parser.bexecute(header.dataBaseHeader,'int',offset,os.SEEK_SET,'big')
         
         if(self.parser.get_value('signature')!=ModuleSql.SQL_DB_SIGNATURE):
             self.offset = [(False,0,ModuleConstant.INVALID)]
@@ -100,64 +100,64 @@ class ModuleSql(ModuleComponentInterface):
         self.fileSize         = self.pageSize
         self.offset.append((offset,self.pageSize,ModuleConstant.FILE_HEADER))
         
-        self.parser.goto(-self.parser.get_size()+self.pageSize)
+        self.parser.bgoto(-self.parser.get_size()+self.pageSize)
 
-        current = self.parser.tell()
+        current = self.parser.btell()
 
         while(current<self.expectedfileSize+offset):
-            current = self.parser.tell()
-            self.parser.execute(header.btreePageHeader,'int',0,os.SEEK_CUR,'big')
+            current = self.parser.btell()
+            self.parser.bexecute(header.btreePageHeader,'int',0,os.SEEK_CUR,'big')
 
             if(self.parser.get_value('flag') not in ModuleSql.SQL_PAGE_LIST):
-                self.parser.goto(-self.parser.get_size()+self.pageSize)
+                self.parser.bgoto(-self.parser.get_size()+self.pageSize)
                 return
             if(self.parser.get_value('num_of_cells')==0):
                 self.offset.append((current,self.pageSize,ModuleConstant.FILE_RECORD))
-                self.parser.goto(-self.parser.get_size()+self.pageSize)
+                self.parser.bgoto(-self.parser.get_size()+self.pageSize)
                 continue
 
             """
             if(self.parser.get_value('flag')>0x9):
-                self.parser.goto(-self.parser.get_field_size('pointer'))
+                self.parser.bgoto(-self.parser.get_field_size('pointer'))
             
             # ---> Internal error of Python ; read (Python is too buggy!)
             if(self.parser.get_value('num_of_cells')==1):
-                self.parser.goto((self.parser.get_value('num_of_cells')-1)*2)
-                barray     = (self.pageSize,int.from_bytes(self.parser.read_raw(0,2),'big'))
+                self.parser.bgoto((self.parser.get_value('num_of_cells')-1)*2)
+                barray     = (self.pageSize,int.from_bytes(self.parser.bread_raw(0,2),'big'))
             else:
-                self.parser.goto((self.parser.get_value('num_of_cells')-2)*2)
-                _barray    = self.parser.read_raw(0,4)
+                self.parser.bgoto((self.parser.get_value('num_of_cells')-2)*2)
+                _barray    = self.parser.bread_raw(0,4)
                 barray     = (int.from_bytes(_barray[0:2],'big'),int.from_bytes(_barray[2:4],'big'))
             if(barray[0]==0 or (barray[0]<=barray[1])):       # This is a incorrect page
-                self.parser.goto(current+self.pageSize,os.SEEK_SET)
+                self.parser.bgoto(current+self.pageSize,os.SEEK_SET)
                 continue
             # <---
 
-            self.parser.goto(current+barray[1],os.SEEK_SET)
-            barray = self.parser.read_raw(0,barray[0]-barray[1])
+            self.parser.bgoto(current+barray[1],os.SEEK_SET)
+            barray = self.parser.bread_raw(0,barray[0]-barray[1])
 
             # add code to specify sqlite database...
 
             """
 
             self.offset.append((current,self.pageSize,ModuleConstant.FILE_RECORD))
-            self.parser.goto(current+self.pageSize,os.SEEK_SET)
+            self.parser.bgoto(current+self.pageSize,os.SEEK_SET)
         return
 
     def carve(self,option=True):
         self.__reinit__()
         self.parser.get_file_handle(
             self.get_attrib(ModuleConstant.FILE_ATTRIBUTE),
-            self.get_attrib(ModuleConstant.IMAGE_BASE)
+            self.get_attrib(ModuleConstant.IMAGE_BASE),1
         )
 
         offset  = self.get_attrib(ModuleConstant.IMAGE_BASE)
         clus    = self.get_attrib(ModuleConstant.CLUSTER_SIZE)
         last    = self.get_attrib(ModuleConstant.IMAGE_LAST)
         if(last==0):
-            last    = self.parser.goto(0,os.SEEK_END)
+            last    = self.parser.bgoto(0,os.SEEK_END)
        
-        self.parser.goto(offset,os.SEEK_SET)
+        self.parser.bgoto(offset,os.SEEK_SET)
 
         if(option):
             self.__readCont(offset)

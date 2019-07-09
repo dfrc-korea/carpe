@@ -56,23 +56,23 @@ class ModuleMFTEntry(ModuleComponentInterface):
 
     def __read(self,offset):
         header = sr._MFTEntryHeader()
-        result = self.parser.execute(header.MFTEntryHeader,'int',offset,os.SEEK_SET,'little')
+        result = self.parser.bexecute(header.MFTEntryHeader,'int',offset,os.SEEK_SET,'little')
         if(result==False):
             return (False,0,-1,ModuleConstant.INVALID)
         
         if(self.parser.get_value("signature")!=ModuleMFTEntry.MFT_SIGNATURE_LE):
             return (False,0,-1,ModuleConstant.INVALID)
 
-        fixup    = self.parser.read_raw(offset+int(self.parser.get_value("off_fixup")), \
+        fixup    = self.parser.bread_raw(offset+int(self.parser.get_value("off_fixup")), \
                                         int(self.parser.get_value("num_fixup"))*2,      \
                                         os.SEEK_SET)
         
         fixup_val  = fixup[0:2]
-        fixup_pg   = self.parser.read_raw(offset+ModuleMFTEntry.MFT_ENTRY_PAGE_SIZE-2,2,os.SEEK_SET)
+        fixup_pg   = self.parser.bread_raw(offset+ModuleMFTEntry.MFT_ENTRY_PAGE_SIZE-2,2,os.SEEK_SET)
         if(fixup_val!=fixup_pg):     # This is not MFT entry
             return (False,0,-1,ModuleConstant.INVALID)
 
-        fixup_pg = self.parser.read_raw(offset+ModuleMFTEntry.MFT_ENTRY_SIZE-2,2,os.SEEK_SET)
+        fixup_pg = self.parser.bread_raw(offset+ModuleMFTEntry.MFT_ENTRY_SIZE-2,2,os.SEEK_SET)
 
         if(fixup_val!=fixup_pg):
             return (True,offset,ModuleMFTEntry.MFT_ENTRY_PAGE_SIZE,ModuleConstant.FILE_RECORD) 
@@ -83,14 +83,14 @@ class ModuleMFTEntry(ModuleComponentInterface):
         self.__reinit__()
         self.parser.get_file_handle(
             self.get_attrib(ModuleConstant.FILE_ATTRIBUTE),
-            self.get_attrib(ModuleConstant.IMAGE_BASE)
+            self.get_attrib(ModuleConstant.IMAGE_BASE),1
         )
 
         offset  = self.get_attrib(ModuleConstant.IMAGE_BASE)
         last    = self.get_attrib(ModuleConstant.IMAGE_LAST)
         if(last==0):
-            last    = self.parser.goto(0,os.SEEK_END)       
-        self.parser.goto(offset,os.SEEK_SET)
+            last    = self.parser.bgoto(0,os.SEEK_END)       
+        self.parser.bgoto(offset,os.SEEK_SET)
 
         while(offset<last):
             res = self.__read(offset)
@@ -138,5 +138,5 @@ if __name__ == '__main__':
     mft.set_attrib(ModuleConstant.IMAGE_BASE,0)  # Set offset of the file base
     cret = mft.execute()
     print(cret)
-
+    print(len(cret))
     sys.exit(0)
