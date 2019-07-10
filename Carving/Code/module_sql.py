@@ -30,7 +30,7 @@ class ModuleSql(ModuleComponentInterface):
         self.set_attrib(ModuleConstant.NAME,"sql")
         self.set_attrib(ModuleConstant.VERSION,"0.1")
         self.set_attrib(ModuleConstant.AUTHOR,"HK")
-    
+
     def __reinit__(self):
         self.flag       = False
         self.fileSize   = 0
@@ -55,10 +55,10 @@ class ModuleSql(ModuleComponentInterface):
     def __read(self,offset):
         header = sr._SQLStructure()
         result = self.parser.bexecute(header.dataBaseHeader,'int',offset,os.SEEK_SET,'big')
-        
-        if(self.parser.get_value('signature')!=ModuleSql.SQL_DB_SIGNATURE):
-            self.pageSize = self.paresr.get_value('size_page')
-            return (True,offset,self.paresr.get_value('size_page'),ModuleConstant.FILE_HEADER)
+
+        if(self.parser.get_value('signature')==ModuleSql.SQL_DB_SIGNATURE):
+            self.pageSize = self.parser.get_value('size_page')
+            return (True,offset,self.parser.get_value('size_page'),ModuleConstant.FILE_HEADER)
 
         self.parser.bgoto(-self.parser.get_size())
 
@@ -66,7 +66,7 @@ class ModuleSql(ModuleComponentInterface):
 
         if(self.parser.get_value('flag') not in ModuleSql.SQL_PAGE_LIST):
             return (False,0,-1,ModuleConstant.INVALID)
-        
+
         if(self.parser.get_value('num_of_cells')==0):   # Drop empty pages
             return (False,0,-1,ModuleConstant.INVALID)
 
@@ -78,10 +78,10 @@ class ModuleSql(ModuleComponentInterface):
             self.parser.bgoto((self.parser.get_value('num_of_cells')-2)*2)
             _barray    = self.parser.bread_raw(0,4)
             barray     = (int.from_bytes(_barray[0:2],'big'),int.from_bytes(_barray[2:4],'big'))
-        
+
         self.parser.bgoto(current+barray[1],os.SEEK_SET)
         barray = self.parser.bread_raw(0,barray[0]-barray[1])
-        
+
         # add code to specify sqlite database...
         """
         return (True,offset,self.pageSize,ModuleConstant.FILE_RECORD)
@@ -89,7 +89,7 @@ class ModuleSql(ModuleComponentInterface):
     def __readCont(self,offset):
         header =  sr._SQLStructure()
         result = self.parser.bexecute(header.dataBaseHeader,'int',offset,os.SEEK_SET,'big')
-        
+
         if(self.parser.get_value('signature')!=ModuleSql.SQL_DB_SIGNATURE):
             self.offset = [(False,0,ModuleConstant.INVALID)]
             return
@@ -99,7 +99,7 @@ class ModuleSql(ModuleComponentInterface):
         self.pageSize         = self.parser.get_value('size_page')
         self.fileSize         = self.pageSize
         self.offset.append((offset,self.pageSize,ModuleConstant.FILE_HEADER))
-        
+
         self.parser.bgoto(-self.parser.get_size()+self.pageSize)
 
         current = self.parser.btell()
@@ -119,7 +119,7 @@ class ModuleSql(ModuleComponentInterface):
             """
             if(self.parser.get_value('flag')>0x9):
                 self.parser.bgoto(-self.parser.get_field_size('pointer'))
-            
+
             # ---> Internal error of Python ; read (Python is too buggy!)
             if(self.parser.get_value('num_of_cells')==1):
                 self.parser.bgoto((self.parser.get_value('num_of_cells')-1)*2)
@@ -144,7 +144,7 @@ class ModuleSql(ModuleComponentInterface):
             self.parser.bgoto(current+self.pageSize,os.SEEK_SET)
         return
 
-    def carve(self,option=True):
+    def carve(self,option):
         self.__reinit__()
         self.parser.get_file_handle(
             self.get_attrib(ModuleConstant.FILE_ATTRIBUTE),
@@ -156,8 +156,9 @@ class ModuleSql(ModuleComponentInterface):
         last    = self.get_attrib(ModuleConstant.IMAGE_LAST)
         if(last==0):
             last    = self.parser.bgoto(0,os.SEEK_END)
-       
+
         self.parser.bgoto(offset,os.SEEK_SET)
+        
 
         if(option):
             self.__readCont(offset)
@@ -165,12 +166,15 @@ class ModuleSql(ModuleComponentInterface):
             while(offset<last):
                 res = self.__read(offset)
                 if(res[0]==True):
+                    if(res[2]==0):
+                        break
                     self.offset.append((res[1],res[2],res[3]))
                     self.fileSize += res[2]
                     offset+=res[2]
                     _rest = self.parser.align(res[2],clus)
                     if(_rest!=0):
                         offset+=_rest
+                    
                 else:
                     self.missing+=1
                     offset+= clus
