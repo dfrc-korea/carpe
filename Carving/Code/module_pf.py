@@ -89,7 +89,7 @@ class ModulePrefetch(ModuleComponentInterface):
             if(expected<self.parser.get_size()):
                 return (False,0,-1,ModuleConstant.INVALID)
 
-        return (True,offset,expected,ModuleConstant.FILE_ONESHOT)
+            return (True,offset,expected,ModuleConstant.FILE_ONESHOT)
         
     def carve(self):
         self.__reinit__() 
