@@ -10,17 +10,17 @@ python actuator.py -t (type to carve) -f (file path) [-e (encoding)] [-b (block 
 
 Support type :
 
-* event(evt/evtx)
+* event (evt/evtx)
 
-* index(index.dat)
+* index (index.dat)
 
-* link(lnk)
+* link (lnk)
 
-* mft entry
+* mft
 
-* pe(exe,dll)
+* pe (exe,dll)
 
-* prefetch(pf)
+* prefetch (pf)
 
 * registry
 
