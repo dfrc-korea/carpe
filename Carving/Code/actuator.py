@@ -2,6 +2,8 @@ from defines         import *
 from interface       import ModuleComponentInterface
 
 import os,sys
+import signal
+import argparse
 
 from module_sql import *
 from module_reg import *
@@ -77,16 +79,40 @@ class Actuator(object):
 
 if __name__ == '__main__':
 
-    mod = Actuator()
-    _requeset = sys.argv[1]                                            # Type to carve
-    try:
-        mod.set(_requeset,ModuleConstant.FILE_ATTRIBUTE,sys.argv[2])   # File to carve
-    except:
-        print("This moudule needs exactly two parameters.")
-        sys.exit(1)
+    def signal_handler(signal,frame):
+        sys.exit(0)
 
-    mod.set(_requeset,ModuleConstant.IMAGE_BASE,0)                     # Set offset of the file base
-    mod.set(_requeset,ModuleConstant.CLUSTER_SIZE,1024)
+    signal.signal(signal.SIGINT, signal_handler)
+
+    mod    = Actuator()
+    parser = argparse.ArgumentParser(description="select run mode")
+    parser.add_argument("-t",action="store",dest="target",type=str,default='n',     required=True)
+    parser.add_argument("-f",action="store",dest="file",type=str,default='n',       required=True)
+    parser.add_argument("-e",action="store",dest="encode",type=str,default='euc-kr',required=False)
+    parser.add_argument("-b",action="store",dest="block",type=int,default=1024,     required=False)
+    parser.add_argument("-from",action="store",dest="start",type=int,default=0,     required=False)
+    parser.add_argument("-to",action="store",dest="end",type=int,default=0,         required=False)
+
+    args = parser.parse_args()
+
+    _requeset = args.target
+    _file     = args.file
+    _encode   = args.encode
+    _base     = args.start
+    _last     = args.end
+    _block    = args.block
+
+    if(_block<=0):
+        print("Error")
+        sys.exit(0)
+
+    mod.set(_requeset,ModuleConstant.FILE_ATTRIBUTE,_file)          # File to carve
+    mod.set(_requeset,ModuleConstant.IMAGE_BASE,_base)              # Set start offset of the file base
+    mod.set(_requeset,ModuleConstant.IMAGE_LAST,_last)              # Set last offset of the file base
+    mod.set(_requeset,ModuleConstant.ENCODE,_encode)                # Set encode type
+    mod.set(_requeset,ModuleConstant.CLUSTER_SIZE,_block)           # Set cluster size
+
     cret = mod.call(_requeset,None,None)
-
     print(cret)
+
+    sys.exit(0)
