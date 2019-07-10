@@ -6,4 +6,4 @@ Carpe Forensics
 * structureReader
 
 ## [ Usage ]
-python actuator.py [type to carve] [file to carve]
+python actuator.py -t (type to carve) -f (file path) [-e (euc-kr)] [-b (block size)] [-from (start point)] [-to (end point)] 
