@@ -92,6 +92,8 @@ if __name__ == '__main__':
     parser.add_argument("-b",action="store",dest="block",type=int,default=1024,     required=False)
     parser.add_argument("-from",action="store",dest="start",type=int,default=0,     required=False)
     parser.add_argument("-to",action="store",dest="end",type=int,default=0,         required=False)
+    parser.add_argument("-cmd",action="store",dest="cmd",type=str,default=None,     required=False)
+    parser.add_argument("-opt",action="store",dest="option",type=bool,default=True, required=False)
 
     args = parser.parse_args()
 
@@ -101,25 +103,27 @@ if __name__ == '__main__':
     _base     = args.start
     _last     = args.end
     _block    = args.block
+    _cmd      = args.cmd
+    _opt      = args.option
 
     if(_block<=0):
         print("[!] Error")
         sys.exit(0)
-        
+
     if(_request not in mod.dict.keys()):
         print("[!] Unsupport type")
         sys.exit(0)
-        
+
     print("[*] Start to verify type of the file.")
-    
+
     mod.set(_request,ModuleConstant.FILE_ATTRIBUTE,_file)          # File to carve
     mod.set(_request,ModuleConstant.IMAGE_BASE,_base)              # Set start offset of the file base
     mod.set(_request,ModuleConstant.IMAGE_LAST,_last)              # Set last offset of the file base
     mod.set(_request,ModuleConstant.ENCODE,_encode)                # Set encode type
     mod.set(_request,ModuleConstant.CLUSTER_SIZE,_block)           # Set cluster size
 
-    cret = mod.call(_request,None,None)
-    
+    cret = mod.call(_request,_cmd,_opt)
+
     print("[*] Result :\n(Start offset, Valid size, Record Type)")
     print(cret)
 
