@@ -114,6 +114,6 @@ class CARPE_AM:
 			p_id = str(par_info[0])
 			p_name = str(par_info[1])
 			storage_path = self.tmp_path + p_id + ".plaso"
-			subprocess.call(['python', '/mnt/hgfs/carpe/plaso_tool/carpe_l2t.py',  storage_path, self.path, p_name])
+			subprocess.call(['python', '/mnt/hgfs/carpe/plaso_tool/carpe_l2t.py', '--hashers', 'None',  storage_path, self.path, p_name])
 			subprocess.call(['python', '/mnt/hgfs/carpe/plaso_tool/carpe_psort.py', '-o', '4n6time_maria', '--server', '218.145.27.66', '--port', '23306', '--user', 'root', '--password', 'dfrc4738',
 				'--db_name', 'carpe2', '--case_id', str(self.case_id), '--evd_id', str(self.evd_id), '--par_id', p_id, storage_path])
