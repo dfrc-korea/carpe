@@ -162,7 +162,7 @@ class ModuleWAV(ModuleComponentInterface):
     def execute(self,cmd=None,option=None): # 모듈 호출자가 모듈을 실행하는 method
         ret = self.__evaluate()
         if(ret!=ModuleConstant.Return.SUCCESS):
-            return [(False,ret)]
+            return [(False,ret,ModuleConstant.INVALID)]
         self.carve()
         if(self.offset==[]):
             return [(False,0,ModuleConstant.INVALID)]
