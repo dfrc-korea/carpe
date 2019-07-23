@@ -46,15 +46,15 @@ class Compound:
                 self.fp = CompoundFileReader(filePath)
                 self.is_damaged = self.CONST_DOCUMENT_NORMAL
                 temp1 = bytearray(self.fp.open('\x05SummaryInformation').read())         # read test
-                print("Normal File exist!!")
+                #print("Normal File exist!!")
             except errors.CompoundFileInvalidBomError:
                 self.fp = open(filePath, 'rb')
                 self.is_damaged = self.CONST_DOCUMENT_DAMAGED
-                print("Damaged File exist!!")
+                #print("Damaged File exist!!")
             except BaseException:
                 self.fp = open(filePath, 'rb')
                 self.is_damaged = self.CONST_DOCUMENT_DAMAGED
-                print("Damaged File exist!! [else]")
+                #print("Damaged File exist!! [else]")
 
 
 
@@ -118,10 +118,10 @@ class Compound:
 
     def parse_summaryinfo(self):
         records = []
-        if self.is_damaged == False:
+        if self.is_damaged == self.CONST_DOCUMENT_NORMAL:
             # Open SummaryInformation Stream
             f = self.fp.open('\x05SummaryInformation').read()
-        elif self.is_damaged == True:
+        elif self.is_damaged == self.CONST_DOCUMENT_DAMAGED:
             self.fp.seek(0)
             s = bytearray(self.fp.read(self.fileSize))
             summary_offset = s.find(b'\xFE\xFF\x00\x00\x06\x01\x02\x00')
@@ -148,43 +148,86 @@ class Compound:
 
             # Title
             if record['type'] == 0x02:
-                entryLength = \
-                struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
+                entryType = struct.unpack('<I', f[record['offset'] : record['offset'] + 4])[0]
+                if entryType == 0x1E:
+                    entryLength = struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
+                elif entryType == 0x1F:
+                    entryLength = struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0] * 2
+                else:
+                    return False
+
                 entryData = bytearray(f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength])
-                #print(entryData.decode('euc-kr'))
-                self.metadata['title'] = entryData
-                #self.metadata['title'] = entryData.decode('euc-kr')
+                if entryType == 0x1E:
+                    self.metadata['title'] = entryData.decode('euc-kr')
+                    print(entryData.decode('euc-kr'))
+                elif entryType == 0x1F:
+                    self.metadata['title'] = entryData.decode('utf-16')
+                    print(entryData.decode('utf-16'))
+                #self.metadata['title'] = entryData
+
 
 
             # Subject
             elif record['type'] == 0x03:
-                entryLength = \
-                struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
-                entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
-                #print(entryData.decode('euc-kr'))
+                pass
+                """
+                entryType = struct.unpack('<I', f[record['offset']: record['offset'] + 4])[0]
+                if entryType == 0x1E:
+                    entryLength = \
+                    struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
+                elif entryType == 0x1F:
+                    entryLength = \
+                    struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[
+                        0] * 2
+                else:
+                    return False
+
+                entryData = bytearray(
+                    f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength])
+                if entryType == 0x1E:
+                    self.metadata['title'] = entryData.decode('euc-kr')
+                    print(entryData.decode('euc-kr'))
+                elif entryType == 0x1F:
+                    self.metadata['title'] = entryData.decode('utf-16')
+                    print(entryData.decode('utf-16'))
+                """
+
 
             # Author
             elif record['type'] == 0x04:
-                entryLength = \
-                struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
+
+                entryType = struct.unpack('<I', f[record['offset']: record['offset'] + 4])[0]
+                if entryType == 0x1E:
+                    entryLength = \
+                        struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[
+                            0]
+                elif entryType == 0x1F:
+                    entryLength = \
+                        struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[
+                            0] * 2
+                else:
+                    return False
+
                 entryData = bytearray(f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength])
-                self.metadata['author'] = entryData
-                #self.metadata['author'] = entryData.decode('euc-kr')
-                #print(entryData.decode('euc-kr'))
+                if entryType == 0x1E:
+                    self.metadata['author'] = entryData.decode('euc-kr')
+                    print(entryData.decode('euc-kr'))
+                elif entryType == 0x1F:
+                    self.metadata['author'] = entryData.decode('utf-16')
+                    print(entryData.decode('utf-16'))
+
 
 
             # LastAuthor
             elif record['type'] == 0x08:
-                entryLength = \
-                struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
+                entryLength = struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
                 entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
                 #print(entryData.decode('euc-kr'))
 
 
             # AppName
             elif record['type'] == 0x12:
-                entryLength = \
-                struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
+                entryLength = struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
                 entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
                 #print(entryData.decode('euc-kr'))
 
