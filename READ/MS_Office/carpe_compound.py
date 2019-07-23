@@ -1,7 +1,7 @@
 # carpe_compound.py
 import datetime
 
-import compoundfiles
+from compoundfiles import *
 import os, sys
 import struct
 try:
@@ -43,18 +43,20 @@ class Compound:
     def __init__(self, filePath):
         if(os.path.exists(filePath)):
             try:
-                self.fp = compoundfiles.CompoundFileReader(filePath)
+                self.fp = CompoundFileReader(filePath)
                 self.is_damaged = self.CONST_DOCUMENT_NORMAL
                 temp1 = bytearray(self.fp.open('\x05SummaryInformation').read())         # read test
-                #print("Normal File exist!!")
-            except compoundfiles.errors.CompoundFileInvalidBomError:
+                print("Normal File exist!!")
+            except errors.CompoundFileInvalidBomError:
                 self.fp = open(filePath, 'rb')
                 self.is_damaged = self.CONST_DOCUMENT_DAMAGED
-                #print("Damaged File exist!!")
+                print("Damaged File exist!!")
             except BaseException:
                 self.fp = open(filePath, 'rb')
                 self.is_damaged = self.CONST_DOCUMENT_DAMAGED
-                #print("Damaged File exist!! [else]")
+                print("Damaged File exist!! [else]")
+
+
 
             self.has_content = False
             self.has_metadata = False
@@ -112,8 +114,6 @@ class Compound:
             #print(self.metadata['title'])
             #print(self.metadata['create_time'])
             #print(self.metadata['modified_time'])
-
-
 
 
     def parse_summaryinfo(self):

@@ -433,13 +433,6 @@ class PPT :
         tmpSheet = 0
         tmpLength = 0
         ppl_block = []
-        sheet_offset = {}
-        sheet_offset['count'] = 0
-        sheet_offset['startnum'] = 0
-        sheet_offset['object'] = b''
-        sheet_offset['slidenum'] = []
-        sheet_offset['slideid'] = []
-
 
         for i in range(0, len(self.arr_user_edit_block)):
             self.current_offset = self.arr_user_edit_block[i]['persist_ptr_incremental_block_offset']
@@ -458,6 +451,13 @@ class PPT :
                 self.current_offset += 8
 
                 while True:
+                    sheet_offset = {}
+                    sheet_offset['count'] = 0
+                    sheet_offset['startnum'] = 0
+                    sheet_offset['object'] = b''
+                    sheet_offset['slidenum'] = []
+                    sheet_offset['slideid'] = []
+
                     sheet_offset.fromkeys(sheet_offset.keys(), 0)
                     tmpSheet = 0
 
