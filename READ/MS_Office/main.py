@@ -1,35 +1,35 @@
 import unittest
 from carpe_compound import Compound
-import sys
+import sys, os
 
 
 def main(filePath):
-    """
-    with MariaDB(user='root', password='toor') as maria:
-        maria.query("CREATE DATABASE carpe_vegetable")
-    """
+    
+    filepath = sys.argv[1]
+    for root, dirs, files in os.walk(filepath):
+        for fname in files:
+            full_fname = os.path.join(root, fname)
+            print(full_fname)
+            object = Compound(full_fname)
+            if object.fp == None:
+                return
 
+            object.parse()
+            fp = open(".\\result\\" + fname[:-4] + ".txt", 'w', encoding='UTF-8')
+            fp.write(object.content)
+            fp.write(str(object.metadata['author']))
+            fp.write(str(object.metadata['title']))
+            object.fp.close()
+    """
     object = Compound(filePath)
-
     if object.fp == None:
         return
 
-    """
-    ### Test Code ###
-    print("fileSize : " + str(object.fileSize))
-    print("fileName : " + str(object.fileName))
-    print("fileType : " + str(object.fileType))
-    print("filePath : " + str(object.filePath))
-    print("isDamaged : ")
-    if object.is_damaged == object.CONST_DOCUMENT_NORMAL:
-        print("Normal")
-    if object.is_damaged == object.CONST_DOCUMENT_DAMAGED:
-        print("Damaged")
-    """
-
     object.parse()
-
+    print(object.content)
     object.fp.close()
+    """
+
 
 if __name__ == "__main__":
     main(sys.argv[1])
