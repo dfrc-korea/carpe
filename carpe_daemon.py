@@ -33,7 +33,9 @@ def do_work(connection, channel, delivery_tag, body):
 		carpe_am.SetModule(case_id, evd_id)
 
 		if req_type == 'analyze':
-			carpe_am.SysLogAndUserData_Analysis(case_id, evd_id)
+			carpe_am.ParseImage(options)
+			carpe_am.ParseFilesystem()
+			carpe_am.SysLogAndUserData_Analysis(options)
 			print('Request Analysis!')
 		
 		else:

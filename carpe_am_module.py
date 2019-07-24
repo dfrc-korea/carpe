@@ -99,7 +99,7 @@ class CARPE_AM:
 
 		return True
 
-	def SysLogAndUserData_Analysis(self):
+	def SysLogAndUserData_Analysis(self, options):
 		# Conenct Carpe Database
 		db = carpe_db.Mariadb()
 		db.open()
