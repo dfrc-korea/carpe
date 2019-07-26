@@ -69,7 +69,7 @@ class Actuator(object):
         return tmp
 
     def checkImportedPlugin(self,module):
-        return (True if module in self.importList.keys() else False)[0]
+        return (True if module in self.importList.keys() else False)
 
     def loadModule(self,name,module):
         self.dict.update({name:module})
