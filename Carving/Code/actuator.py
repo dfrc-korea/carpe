@@ -29,7 +29,7 @@ class Actuator(object):
         self.reg = ModuleRegEntry()
         self.sql = ModuleSql()
 
-        self.dict = {
+        self.__moduleTbl = {
             "event":self.evt,
             "index":self.idx,
             "link":self.lnk,
@@ -40,7 +40,7 @@ class Actuator(object):
             "sqlite":self.sql,
         }
 
-        self.importList = {}
+        self.__importTbl = {}
 
     def clear(self):
         del self.evt
@@ -51,46 +51,61 @@ class Actuator(object):
         del self.pf
         del self.reg
         del self.sql
-        self.dict = {}
+        self.__moduleTbl = {}
 
-        for k,v in self.importList.items():
+        for k,v in self.__importTbl.items():
             self.unloadPlugin(k)
 
+    # Load/Unload a python package
     def loadPlugin(self,module):
         tmp = __import__(module,fromlist=[module])
-        self.importList.update({module:tmp})
+        self.__importTbl.update({module:tmp})
         return tmp
 
     def unloadPlugin(self,module):
-        tmp = self.importList.pop(module,None)
+        tmp = self.__importTbl.pop(module,None)
         if(tmp!=None):
             try:del tmp
             except:pass
         return tmp
 
-    def checkImportedPlugin(self,module):
-        return (True if module in self.importList.keys() else False)
-
+    # Load/Unload a module
     def loadModule(self,name,module):
-        self.dict.update({name:module})
+        self.__moduleTbl.update({name:module})
 
     def unloadModule(self,name):
-        return self.dict.pop(name,None)
+        return self.__moduleTbl.pop(name,None)
 
+    # Check
+    def checkPluginImported(self,module):
+        return (True if module in self.__importTbl.keys() else False)
+
+    def getLoadedPluginList(self):
+        return self.__importTbl.copy()
+
+    def checkModuleLoaded(self,name):
+        return (True if name in self.__moduleTbl.keys() else False)
+
+    def getLoadedModuleList(self):
+        return self.__moduleTbl.copy()
+
+    # Activity
     def call(self,key,cmd,option):
-        obj = self.dict.get(key)
+        obj = self.__moduleTbl.get(key)
         if(obj==None):
             return [(False,0,ModuleConstant.INVALID)]
         return obj.execute(cmd,option)
 
+    # Get (a) module parameter(s)
     def get(self,key,attr):
-        obj = self.dict.get(key)
+        obj = self.__moduleTbl.get(key)
         if(obj==None):
             return False
         return obj.get_attrib(attr)
 
+    # Set (a) module parameter(s)
     def set(self,key,attr,value):
-        obj = self.dict.get(key)
+        obj = self.__moduleTbl.get(key)
         if(obj==None):
             return False
         obj.set_attrib(attr,value)
