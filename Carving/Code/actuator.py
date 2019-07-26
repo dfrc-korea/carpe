@@ -17,9 +17,9 @@ from module_evt import *
 
 class Actuator(object):
     def __init__(self):
-        self.loadDefaultModule()
+        self.init()
 
-    def loadDefaultModule(self):
+    def init(self):
         self.evt = ModuleEvt()
         self.idx = ModuleIdx()
         self.lnk = ModuleLNK()
@@ -40,7 +40,9 @@ class Actuator(object):
             "sqlite":self.sql,
         }
 
-    def unloadDefaultModule(self):
+        self.importList = {}
+
+    def clear(self):
         del self.evt
         del self.idx
         del self.lnk
@@ -51,18 +53,35 @@ class Actuator(object):
         del self.sql
         self.dict = {}
 
+        for k,v in self.importList.items():
+            self.unloadPlugin(k)
+
+    def loadPlugin(self,module):
+        tmp = __import__(module,fromlist=[module])
+        self.importList.update({module:tmp})
+        return tmp
+
+    def unloadPlugin(self,module):
+        tmp = self.importList.pop(module,None)
+        if(tmp!=None):
+            try:del tmp
+            except:pass
+        return tmp
+
+    def checkImportedPlugin(self,module):
+        return (True if module in self.importList.keys() else False)[0]
+
     def loadModule(self,name,module):
         self.dict.update({name:module})
 
     def unloadModule(self,name):
         return self.dict.pop(name,None)
 
-    def set(self,key,attr,value):
+    def call(self,key,cmd,option):
         obj = self.dict.get(key)
         if(obj==None):
-            return False
-        obj.set_attrib(attr,value)
-        return True
+            return [(False,0,ModuleConstant.INVALID)]
+        return obj.execute(cmd,option)
 
     def get(self,key,attr):
         obj = self.dict.get(key)
@@ -70,11 +89,12 @@ class Actuator(object):
             return False
         return obj.get_attrib(attr)
 
-    def call(self,key,cmd,option):
+    def set(self,key,attr,value):
         obj = self.dict.get(key)
         if(obj==None):
-            return [(False,0,ModuleConstant.INVALID)]
-        return obj.execute(cmd,option)
+            return False
+        obj.set_attrib(attr,value)
+        return True
 
 
 if __name__ == '__main__':
