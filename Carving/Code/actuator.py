@@ -145,7 +145,7 @@ if __name__ == '__main__':
         print("[!] Error")
         sys.exit(0)
 
-    if(_request not in mod.dict.keys()):
+    if(_request not in mod.getLoadedModuleList().keys()):
         print("[!] Unsupport type")
         sys.exit(0)
 
