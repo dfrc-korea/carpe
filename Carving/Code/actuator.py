@@ -5,6 +5,8 @@ import os,sys
 import signal
 import argparse
 
+import importlib
+
 from module_sql import *
 from module_reg import *
 from module_pe  import *
@@ -58,9 +60,11 @@ class Actuator(object):
 
     # Load/Unload a python package
     def loadPlugin(self,module):
-        tmp = __import__(module,fromlist=[module])
-        self.__importTbl.update({module:tmp})
-        return tmp
+        try:
+            tmp = importlib.import_module(module)
+            self.__importTbl.update({module:tmp})
+            return tmp
+        except:return None
 
     def unloadPlugin(self,module):
         tmp = self.__importTbl.pop(module,None)
@@ -68,6 +72,9 @@ class Actuator(object):
             try:del tmp
             except:pass
         return tmp
+
+    def getModuleHandle(self,module):
+        return self.__importTbl.get(module,None)
 
     # Load/Unload a module
     def loadModule(self,name,module):
@@ -119,6 +126,7 @@ if __name__ == '__main__':
 
     signal.signal(signal.SIGINT, signal_handler)
 
+    # python .\actuator.py -t module_bmp -f '.\sample\img.bmp' -i module_bmp -c ModuleBMP
     mod    = Actuator()
     parser = argparse.ArgumentParser(description="select run mode")
     parser.add_argument("-t",action="store",dest="target",type=str,default='n',     required=True)
@@ -129,6 +137,9 @@ if __name__ == '__main__':
     parser.add_argument("-to",action="store",dest="end",type=int,default=0,         required=False)
     parser.add_argument("-cmd",action="store",dest="cmd",type=str,default=None,     required=False)
     parser.add_argument("-opt",action="store",dest="option",type=bool,default=True, required=False)
+    
+    parser.add_argument("-i",action="store",dest="lib",type=str,default=None,       required=False)
+    parser.add_argument("-c",action="store",dest="cls",type=str,default=None,       required=False)
 
     args = parser.parse_args()
 
@@ -140,10 +151,22 @@ if __name__ == '__main__':
     _block    = args.block
     _cmd      = args.cmd
     _opt      = args.option
+    _lib      = args.lib
+    _cls      = args.cls
 
     if(_block<=0):
         print("[!] Error")
         sys.exit(0)
+    
+    if(_lib!=None and _cls!=None):
+        if(mod.checkPluginImported(_lib)==False):
+            if(mod.loadPlugin(_lib)==None):
+                print("[*] No a such file.")
+                sys.exit(0)
+        ClassObject = getattr(mod.getModuleHandle(_lib),_cls)
+        Object      = ClassObject()
+        mod.loadModule(_lib,Object)
+        print("[*] Module loaded.")
 
     if(_request not in mod.getLoadedModuleList().keys()):
         print("[!] Unsupport type")
