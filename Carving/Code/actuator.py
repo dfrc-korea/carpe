@@ -118,6 +118,45 @@ class Actuator(object):
         obj.set_attrib(attr,value)
         return True
 
+    # load("module_name","class_name")
+    def load(self,module,clss):
+        if(mod.checkPluginImported(module)==False):
+            if(mod.loadPlugin(module)==None):
+                return None
+        try:
+            ClassObject = getattr(mod.getModuleHandle(module),clss)
+            Object      = ClassObject()
+            mod.loadModule(module,Object)
+            return True
+        except:
+            return False
+
+    # loadClass("module_name","class_name")
+    def loadClass(self,module,clss):
+        if(mod.checkPluginImported(module)==False):
+            return False
+        try:
+            ClassObject = getattr(mod.getModuleHandle(module),clss)
+            Object      = ClassObject()
+            mod.loadModule(module,Object)
+            return True
+        except:
+            return False
+
+    # loadLibrary("module_name")
+    def loadLibrary(self,module):
+        if(mod.checkPluginImported(module)==False):
+            if(mod.loadPlugin(module)==None):
+                return None
+            return True
+        return False
+    
+    # unloadLibrary("module_name")
+    def unloadLibrary(self,module):
+        if(mod.checkPluginImported(module)==False):
+            return False
+        return self.unloadPlugin(module)
+
 
 if __name__ == '__main__':
 
@@ -158,14 +197,7 @@ if __name__ == '__main__':
         sys.exit(0)
     
     if(_lib!=None and _cls!=None):
-        if(mod.checkPluginImported(_lib)==False):
-            if(mod.loadPlugin(_lib)==None):
-                print("[*] No a such file.")
-                sys.exit(0)
-        ClassObject = getattr(mod.getModuleHandle(_lib),_cls)
-        Object      = ClassObject()
-        mod.loadModule(_lib,Object)
-        print("[*] Module loaded.")
+        mod.load(_lib,_cls)
 
     if(_request not in mod.getLoadedModuleList().keys()):
         print("[!] Unsupport type")
