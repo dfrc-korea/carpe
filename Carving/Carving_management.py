@@ -299,7 +299,7 @@ if __name__ == '__main__':
                         "ip":'localhost',
                         "port":0,
                         "id":'root',
-                        "password":'dfrc4738',
+                        "password":HIDE,
                         "category":'carving'
                     }       
     )
@@ -309,7 +309,7 @@ if __name__ == '__main__':
                         "ip":'218.145.27.66',
                         "port":23306,
                         "id":'root',
-                        "password":'dfrc4738',
+                        "password":HIDE,
                         "category":'carpe_3'
                     }
     )
