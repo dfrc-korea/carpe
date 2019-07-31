@@ -12,6 +12,7 @@ from actuator  import Actuator
 
 from Carving_Management_Defines import C_defy
 from Include.carpe_db import Mariadb
+
 """
     Key      :Value
     "name"   :"Carpe_Management",    # 모듈 이름
@@ -23,11 +24,14 @@ from Include.carpe_db import Mariadb
     "base"   :0,            # Base 주소(오프셋)
     "excl"   :False         # 모듈의 유니크(배타적) 속성
 """
+
 class Management(ModuleComponentInterface,C_defy):
-    def __init__(self):
+    def __init__(self,debug=True):
         super().__init__()
         self.actor  = Actuator()
         self.cursor = None
+        self.debug  = debug
+        self.hits   = {}
 
     def _loadModule(self,module,cls,alias=None):
         if(alias!=None):
@@ -38,42 +42,65 @@ class Management(ModuleComponentInterface,C_defy):
             return self.actor.loadClass(module,cls)
 
     def loadModule(self):
-        print("Load : {0} {1}".format("alz",self._loadModule("module_alz","ModuleALZ","alz")))
-        print("Load : {0} {1}".format("avi",self._loadModule("module_avi","ModuleAVI","avi")))
-        print("Load : {0} {1}".format("bmp",self._loadModule("module_bmp","ModuleBMP","bmp")))
-        print("Load : {0} {1}".format("compound",self._loadModule("module_compound","ModuleCOMPOUND","compound")))
-        print("Load : {0} {1}".format("dbx",self._loadModule("module_dbx","ModuleDBX","dbx")))
-        print("Load : {0} {1}".format("eml",self._loadModule("module_eml","ModuleEML","eml")))
-        print("Load : {0} {1}".format("exif",self._loadModule("module_exif","ModuleEXIF","exif")))
-        print("Load : {0} {1}".format("gif",self._loadModule("module_gif","ModuleGIF","gif")))
-        print("Load : {0} {1}".format("hwp",self._loadModule("module_hwp","ModuleHWP","hwp")))
-        print("Load : {0} {1}".format("jfif",self._loadModule("module_jfif","ModuleJFIF","jfif")))
-        print("Load : {0} {1}".format("pdf",self._loadModule("module_pdf","ModulePDF","pdf")))
-        print("Load : {0} {1}".format("png",self._loadModule("module_png","ModulePNG","png")))
-        print("Load : {0} {1}".format("pst",self._loadModule("module_pst","ModulePST","pst")))
-        print("Load : {0} {1}".format("wav",self._loadModule("module_wav","ModuleWAV","wav")))
-        print("Load : {0} {1}".format("zip",self._loadModule("module_zip","ModuleZIP","zip")))
+        if(self.debug):
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("alz",self._loadModule("module_alz","ModuleALZ","alz")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("avi",self._loadModule("module_avi","ModuleAVI","avi")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("bmp",self._loadModule("module_bmp","ModuleBMP","bmp")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("compound",self._loadModule("module_compound","ModuleCOMPOUND","compound")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("dbx",self._loadModule("module_dbx","ModuleDBX","dbx")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("eml",self._loadModule("module_eml","ModuleEML","eml")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("exif",self._loadModule("module_exif","ModuleEXIF","exif")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("gif",self._loadModule("module_gif","ModuleGIF","gif")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("hwp",self._loadModule("module_hwp","ModuleHWP","hwp")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("jfif",self._loadModule("module_jfif","ModuleJFIF","jfif")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("pdf",self._loadModule("module_pdf","ModulePDF","pdf")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("png",self._loadModule("module_png","ModulePNG","png")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("pst",self._loadModule("module_pst","ModulePST","pst")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("wav",self._loadModule("module_wav","ModuleWAV","wav")))
+            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("zip",self._loadModule("module_zip","ModuleZIP","zip")))
+        else:
+            self._loadModule("module_alz","ModuleALZ","alz")
+            self._loadModule("module_avi","ModuleAVI","avi")
+            self._loadModule("module_bmp","ModuleBMP","bmp")
+            self._loadModule("module_compound","ModuleCOMPOUND","compound")
+            self._loadModule("module_dbx","ModuleDBX","dbx")
+            self._loadModule("module_eml","ModuleEML","eml")
+            self._loadModule("module_exif","ModuleEXIF","exif")
+            self._loadModule("module_gif","ModuleGIF","gif")
+            self._loadModule("module_hwp","ModuleHWP","hwp")
+            self._loadModule("module_jfif","ModuleJFIF","jfif")
+            self._loadModule("module_pdf","ModulePDF","pdf")
+            self._loadModule("module_png","ModulePNG","png")
+            self._loadModule("module_pst","ModulePST","pst")
+            self._loadModule("module_wav","ModuleWAV","wav")
+            self._loadModule("module_zip","ModuleZIP","zip")
 
-    def carving_conn(self):
+    def debugText(self,level,context,always=False):
+        if(self.debug==True or always==True):
+            print("[{0}] {1}".format(level,context))
+
+    def carving_conn(self,cred):
         try :
             db = Mariadb()
-            cursor = db.i_open('localhost', 0, 'root', 'dfrc4738', 'carving')
+            cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
+            #cursor = db.i_open('localhost', 0, 'root', 'dfrc4738', 'carving')
             return cursor
         except Exception :
-            print("[ERROR] Carving DB connection ERROR")
+            self.debugText("ERROR","Carving DB connection ERROR.")
             exit(C_defy.Return.EFAIL_DB)
 
-    def db_conn_create(self,cursor):
+    def db_conn_create(self,cursor,cred):
         db = Mariadb()
         # CARPE DB 연결 및 정보 추출
         try :
-            cursor1 = db.i_open('218.145.27.66',23306,'root','dfrc4738','carpe_3')
+            #cursor1 = db.i_open('218.145.27.66',23306,'root','dfrc4738','carpe_3')
+            cursor1 = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
             cursor1.execute('select * from carpe_block_info where p_id = %s', self.case)
             data = cursor1.fetchall()
             cursor1.execute('show create table carpe_block_info')
             c_table_query = cursor1.fetchone()
         except Exception :
-            print("[ERROR] CARPE DB connection ERROR")
+            self.debugText("ERROR","CARPE DB connection ERROR.")
             exit(C_defy.Return.EFAIL_DB)
         # Table 존재여부 확인 및 테이블 생성
         try :
@@ -87,7 +114,7 @@ class Management(ModuleComponentInterface,C_defy):
             cursor.execute('select count(*) from carpe_block_info where p_id = %s', self.case)
             init_count = cursor.fetchone()
             if len(data) == init_count[0] :
-                print("[WARNING] this case is already finished Convert DB processing in carving")
+                self.debugText("WARNING","This case is already finished Convert DB processing in carving.")
                 pass
             else :
                 start = time.time()
@@ -95,11 +122,11 @@ class Management(ModuleComponentInterface,C_defy):
                 for row in data :
                     cursor.execute('insert into carpe_block_info values (%s,%s,%s,%s)',(row[0],row[1],row[2],row[3]))
                 cursor.execute('commit')
-                print("[DEBUG] copy db time : ",time.time() - start)
+                self.debugText("DEBUG","copy db time : {0}".format(time.time() - start))
                 cursor.execute(db.CREATE_HELPER['datamap'])
                 self.convert_db(cursor)
         except Exception:
-            print("[ERROR] unallocated area DB porting ERROR")
+            self.debugText("ERROR","unallocated area DB porting ERROR")
         cursor1.close()
         db.close()
 
@@ -118,9 +145,9 @@ class Management(ModuleComponentInterface,C_defy):
                     cursor.execute(sql,(map_id, row[0]))
                     map_id = map_id + 1
                 cursor.execute('commit')
-            print("[DEBUG] converting time : ", time.time() - start)
+            self.debugText("DEBUG","converting time : {0}.".format(time.time() - start))
         except Exception :
-            print("[ERROR] check signature module ERROR")
+            self.debugText("ERROR","check signature module ERROR.")
 
     def Fast_Detect(self, cursor):
         try :
@@ -152,38 +179,52 @@ class Management(ModuleComponentInterface,C_defy):
                     isthere = 0
                 C_offset += self.blocksize
                 FP.seek(C_offset)
-            print("[DEBUG] converting time : ", time.time() - start)
+            self.debugText("DEBUG","converting time : {0}.".format(time.time() - start))
         except Exception :
-            print("[ERROR] Fast Signature Detector ERROR")
+            self.debugText("ERROR","Fast Signature Detector ERROR.")
 
     def carving(self,cursor):
         cursor.execute('select block_id, blk_num, blk_sig from datamap where blk_sig is not null')
         data = cursor.fetchall()
         i = 0
         total = len(data)
+        self.hit = {}
         for sigblk in data :
             # 맨 마지막 레코드
+            if (self.hit.get(data[i+1][2])==None):
+                self.hit.update({data[i+1][2]:[0,0]})
+            value   = self.hit.get(data[i+1][2])
+
             if i+1 == total:
                 end_pos = os.path.getsize(self.I_path)
-                result = self.r_module(data[i][2],data[i][1]*self.blocksize,end_pos,1024)
-                print(result)
-                #파일 추출 모듈
+                result  = self.r_module(data[i][2],data[i][1]*self.blocksize,end_pos,1024) 
+                if(result[0]==False):
+                    self.hit.update({data[i+1][2]:[value[0]+1,value[1]]})
+                    continue
+                self.hit.update({data[i+1][2]:[value[0]+1,value[1]+1]})
+                self.extractor(result) #파일 추출 모듈
+
             else :
                 # 같은 블록에 여러개의 sig가 발견
                 if sigblk[0] == data[i+1][0] :
-                    #print("같은 블록에 여러개의 sig가 발견")
                     result = self.r_module(data[i][2],data[i][1]*self.blocksize,data[i+1][1]*self.blocksize,self.blocksize)
-                    print(result)
-                    #파일 추출 모듈
+                    if(result[0]==False):
+                        self.hit.update({data[i+1][2]:[value[0]+1,value[1]]})
+                        continue
+                    self.hit.update({data[i+1][2]:[value[0]+1,value[1]+1]})
+                    self.extractor(result) #파일 추출 모듈
+                # 다른 블록으로 변경됨
+
                 else :
-                    #print("다른 블록으로 변경됨")
                     cursor.execute('select blk_num from datamap where blk_num > %s and block_id = %s order by blk_num desc',(sigblk[1],sigblk[0]))
                     end_pos = cursor.fetchone()
                     if(end_pos!=None):
                         result = self.r_module(data[i][2],data[i][1]*self.blocksize,end_pos[0]*self.blocksize,1024)
-                        print(result)
-                    #파일 추출 모듈
-            
+                        if(result[0]==False):
+                            self.hit.update({data[i+1][2]:[value[0]+1,value[1]]})
+                            continue
+                        self.hit.update({data[i+1][2]:[value[0]+1,value[1]+1]})
+                        self.extractor(result) #파일 추출 모듈
             i += 1
 
     def r_module(self,_request,start,end,cluster,etype='euc-kr'):
@@ -193,6 +234,9 @@ class Management(ModuleComponentInterface,C_defy):
         self.actor.set(_request, ModuleConstant.CLUSTER_SIZE, cluster)
         self.actor.set(_request, ModuleConstant.ENCODE, etype)
         return self.actor.call(_request, None, None)
+
+    def extractor(self,result):
+        pass
 
     def module_open(self,id=1):             # Reserved method for multiprocessing
         pass
@@ -216,24 +260,30 @@ class Management(ModuleComponentInterface,C_defy):
             self.loadModule()
 
         elif(cmd==ModuleConstant.CONNECT_DB):
-            self.cursor = self.carving_conn()
+            self.cursor = self.carving_conn(option)
 
         elif(cmd==ModuleConstant.CREATE_DB):
             if(self.cursor!=None):
-                self.db_conn_create(self.cursor)
+                self.db_conn_create(self.cursor,option)
 
         elif(cmd==ModuleConstant.DISCONNECT_DB):
             if(self.cursor!=None):
                 self.cursor.close()
                 self.cursor = None
 
-        elif(cmd==ModuleConstant.EXEC and optiond==None):
+        elif(cmd==ModuleConstant.EXEC and option==None):
             self.Fast_Detect(self.cursor) # 시그니처 탐지
-            self.carving(self.cursor) # 카빙 동작
+            start = time.time()
+            self.carving(self.cursor)     # 카빙 동작
+            self.debugText("DEBUG","converting time : {0}.".format(time.time() - start))
+            self.debugText("INFO",self.hit)
 
 
 if __name__ == '__main__':
     manage = Management()
+    
+    manage.execute(ModuleConstant.LOAD_MODULE)
+
     manage.execute(ModuleConstant.PARAMETER,
                     {
                         "case":"TEST_2",
@@ -243,10 +293,29 @@ if __name__ == '__main__':
                         "path":"D:\\iitp_carv\\[NTFS] Carving_Test_Image1.001"
                     }
     )
-    manage.execute(ModuleConstant.LOAD_MODULE)
-    manage.execute(ModuleConstant.CONNECT_DB)
-    manage.execute(ModuleConstant.CREATE_DB)
+    
+    manage.execute(ModuleConstant.CONNECT_DB,
+                    {
+                        "ip":'localhost',
+                        "port":0,
+                        "id":'root',
+                        "password":'dfrc4738',
+                        "category":'carving'
+                    }       
+    )
+    
+    manage.execute(ModuleConstant.CREATE_DB,
+                    {
+                        "ip":'218.145.27.66',
+                        "port":23306,
+                        "id":'root',
+                        "password":'dfrc4738',
+                        "category":'carpe_3'
+                    }
+    )
+    
     manage.execute(ModuleConstant.EXEC)
+    
     manage.execute(ModuleConstant.DISCONNECT_DB)
 
     sys.exit(0)
