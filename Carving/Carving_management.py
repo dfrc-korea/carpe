@@ -189,17 +189,18 @@ class Management(ModuleComponentInterface,C_defy):
         self.hit = {}
         for sigblk in data :
             # 맨 마지막 레코드
-            if (self.hit.get(data[i+1][2])==None):
-                self.hit.update({data[i+1][2]:[0,0]})
-            value   = self.hit.get(data[i+1][2])
+            if (self.hit.get(data[i][2])==None):
+                self.hit.update({data[i][2]:[0,0]})
+            
+            value   = self.hit.get(data[i][2])
+            self.hit.update({data[i][2]:[value[0]+1,value[1]]})
 
             if i+1 == total:
                 end_pos = os.path.getsize(self.I_path)
                 result  = self.r_module(data[i][2],data[i][1]*self.blocksize,end_pos,1024) 
                 if(result[0]==False):
-                    self.hit.update({data[i+1][2]:[value[0]+1,value[1]]})
                     continue
-                self.hit.update({data[i+1][2]:[value[0]+1,value[1]+1]})
+                self.hit.update({data[i][2]:[value[0]+1,value[1]+1]})
                 self.extractor(result) #파일 추출 모듈
 
             else :
@@ -207,9 +208,8 @@ class Management(ModuleComponentInterface,C_defy):
                 if sigblk[0] == data[i+1][0] :
                     result = self.r_module(data[i][2],data[i][1]*self.blocksize,data[i+1][1]*self.blocksize,self.blocksize)
                     if(result[0]==False):
-                        self.hit.update({data[i+1][2]:[value[0]+1,value[1]]})
                         continue
-                    self.hit.update({data[i+1][2]:[value[0]+1,value[1]+1]})
+                    self.hit.update({data[i][2]:[value[0]+1,value[1]+1]})
                     self.extractor(result) #파일 추출 모듈
                 # 다른 블록으로 변경됨
 
@@ -219,9 +219,8 @@ class Management(ModuleComponentInterface,C_defy):
                     if(end_pos!=None):
                         result = self.r_module(data[i][2],data[i][1]*self.blocksize,end_pos[0]*self.blocksize,1024)
                         if(result[0]==False):
-                            self.hit.update({data[i+1][2]:[value[0]+1,value[1]]})
                             continue
-                        self.hit.update({data[i+1][2]:[value[0]+1,value[1]+1]})
+                        self.hit.update({data[i][2]:[value[0]+1,value[1]+1]})
                         self.extractor(result) #파일 추출 모듈
             i += 1
 
