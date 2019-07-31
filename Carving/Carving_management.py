@@ -83,7 +83,6 @@ class Management(ModuleComponentInterface,C_defy):
         try :
             db = Mariadb()
             cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
-            #cursor = db.i_open('localhost', 0, 'root', 'dfrc4738', 'carving')
             return cursor
         except Exception :
             self.debugText("ERROR","Carving DB connection ERROR.")
@@ -93,7 +92,6 @@ class Management(ModuleComponentInterface,C_defy):
         db = Mariadb()
         # CARPE DB 연결 및 정보 추출
         try :
-            #cursor1 = db.i_open('218.145.27.66',23306,'root','dfrc4738','carpe_3')
             cursor1 = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
             cursor1.execute('select * from carpe_block_info where p_id = %s', self.case)
             data = cursor1.fetchall()
