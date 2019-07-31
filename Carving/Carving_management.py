@@ -3,9 +3,14 @@
 
 import os,sys,time,binascii
 
+sys.path.append(os.path.abspath(os.path.dirname(__file__)+"\\Code"))
+sys.path.append(os.path.abspath(os.path.dirname(__file__)+"\\include"))
+
+from defines         import *
+from interface       import ModuleComponentInterface
+from actuator  import Actuator
+
 from Carving_Management_Defines import C_defy
-from defines import *
-from actuator import Actuator
 from Include.carpe_db import Mariadb
 """
     Key      :Value
@@ -18,20 +23,41 @@ from Include.carpe_db import Mariadb
     "base"   :0,            # Base 주소(오프셋)
     "excl"   :False         # 모듈의 유니크(배타적) 속성
 """
-class Management(Actuator, C_defy):
+class Management(ModuleComponentInterface,C_defy):
     def __init__(self):
-        self.data = 0
-        # CARPE DB에서 입력을 받음
-        self.case = 'TEST_2' #Partition ID 구분자
-        self.blocksize = 4096
-        self.sectorsize = 512
-        self.par_startoffset = 0x10000
-        self.I_path = "Y:\\Data\\Developing Tool\\3. Carving\\IITP3_Gimin\\0. TEST\\[NTFS] Carving_Test_Image1.001"
+        super().__init__()
+        self.actor  = Actuator()
+        self.cursor = None
+
+    def _loadModule(self,module,cls,alias=None):
+        if(alias!=None):
+            self.actor.loadLibraryAs(module,alias)
+            return self.actor.loadClass(alias,cls)
+        else:
+            self.actor.loadLibrary(module)
+            return self.actor.loadClass(module,cls)
+
+    def loadModule(self):
+        print("Load : {0} {1}".format("alz",self._loadModule("module_alz","ModuleALZ","alz")))
+        print("Load : {0} {1}".format("avi",self._loadModule("module_avi","ModuleAVI","avi")))
+        print("Load : {0} {1}".format("bmp",self._loadModule("module_bmp","ModuleBMP","bmp")))
+        print("Load : {0} {1}".format("compound",self._loadModule("module_compound","ModuleCOMPOUND","compound")))
+        print("Load : {0} {1}".format("dbx",self._loadModule("module_dbx","ModuleDBX","dbx")))
+        print("Load : {0} {1}".format("eml",self._loadModule("module_eml","ModuleEML","eml")))
+        print("Load : {0} {1}".format("exif",self._loadModule("module_exif","ModuleEXIF","exif")))
+        print("Load : {0} {1}".format("gif",self._loadModule("module_gif","ModuleGIF","gif")))
+        print("Load : {0} {1}".format("hwp",self._loadModule("module_hwp","ModuleHWP","hwp")))
+        print("Load : {0} {1}".format("jfif",self._loadModule("module_jfif","ModuleJFIF","jfif")))
+        print("Load : {0} {1}".format("pdf",self._loadModule("module_pdf","ModulePDF","pdf")))
+        print("Load : {0} {1}".format("png",self._loadModule("module_png","ModulePNG","png")))
+        print("Load : {0} {1}".format("pst",self._loadModule("module_pst","ModulePST","pst")))
+        print("Load : {0} {1}".format("wav",self._loadModule("module_wav","ModuleWAV","wav")))
+        print("Load : {0} {1}".format("zip",self._loadModule("module_zip","ModuleZIP","zip")))
 
     def carving_conn(self):
         try :
             db = Mariadb()
-            cursor = db.i_open('localhost', 0, 'carpe', 'dfrc4738', 'carving')
+            cursor = db.i_open('localhost', 0, 'root', 'dfrc4738', 'carving')
             return cursor
         except Exception :
             print("[ERROR] Carving DB connection ERROR")
@@ -82,7 +108,7 @@ class Management(Actuator, C_defy):
             cursor.execute('select * from carpe_block_info where p_id = %s',self.case)
             data = cursor.fetchall()
             start = time.time()
-            # 모든 미할당 블록을 DB 레코드로 변경하는 코드부분 [수정]
+            # 모든 미할당 블록을 DB 레코드로 변경하는 코드부분 [NULL 영역.]
             for row in data :
                 map_id = ((row[2] * self.blocksize)+self.par_startoffset) / self.blocksize
                 end_id = ((row[3] * self.blocksize)+self.par_startoffset) / self.blocksize
@@ -131,52 +157,96 @@ class Management(Actuator, C_defy):
             print("[ERROR] Fast Signature Detector ERROR")
 
     def carving(self,cursor):
-        cursor.execute('select block_id, blk_num from datamap where blk_sig is not null')
+        cursor.execute('select block_id, blk_num, blk_sig from datamap where blk_sig is not null')
         data = cursor.fetchall()
         i = 0
         total = len(data)
         for sigblk in data :
             # 맨 마지막 레코드
-            if i+1 == total :
+            if i+1 == total:
                 end_pos = os.path.getsize(self.I_path)
-                #r_module 호출
+                result = self.r_module(data[i][2],data[i][1]*self.blocksize,end_pos,1024)
+                print(result)
                 #파일 추출 모듈
             else :
                 # 같은 블록에 여러개의 sig가 발견
                 if sigblk[0] == data[i+1][0] :
-                    print("같은 블록에 여러개의 sig가 발견")
-                    end_pos = data[i+1][1]
-
-                    #r_module 호출
+                    #print("같은 블록에 여러개의 sig가 발견")
+                    result = self.r_module(data[i][2],data[i][1]*self.blocksize,data[i+1][1]*self.blocksize,self.blocksize)
+                    print(result)
                     #파일 추출 모듈
                 else :
-                    print("다른 블록으로 변경됨")
+                    #print("다른 블록으로 변경됨")
                     cursor.execute('select blk_num from datamap where blk_num > %s and block_id = %s order by blk_num desc',(sigblk[1],sigblk[0]))
                     end_pos = cursor.fetchone()
-                    print(end_pos)
-                    #r_module 호출
+                    if(end_pos!=None):
+                        result = self.r_module(data[i][2],data[i][1]*self.blocksize,end_pos[0]*self.blocksize,1024)
+                        print(result)
                     #파일 추출 모듈
+            
             i += 1
 
-    def r_module(self,_request):
-        # _request : Type to carve
-        try:
-            Actuator.set(_request, ModuleConstant.FILE_ATTRIBUTE,self.I_path)  # File to carve
-        except:
-            print("This moudule needs exactly two parameters.")
-            sys.exit(1)
+    def r_module(self,_request,start,end,cluster,etype='euc-kr'):
+        self.actor.set(_request, ModuleConstant.FILE_ATTRIBUTE,self.I_path)  # File to carve
+        self.actor.set(_request, ModuleConstant.IMAGE_BASE, start)  # Set offset of the file base
+        self.actor.set(_request, ModuleConstant.IMAGE_LAST, end)
+        self.actor.set(_request, ModuleConstant.CLUSTER_SIZE, cluster)
+        self.actor.set(_request, ModuleConstant.ENCODE, etype)
+        return self.actor.call(_request, None, None)
 
-        Actuator.set(_request, ModuleConstant.IMAGE_BASE, 0)  # Set offset of the file base
-        Actuator.set(_request, ModuleConstant.CLUSTER_SIZE, 1024)
-        cret = Actuator.call(_request, None, None)
+    def module_open(self,id=1):             # Reserved method for multiprocessing
+        pass
+    def module_close(self):                 # Reserved method for multiprocessing
+        pass
+    def set_attrib(self,key,value):         # 모듈 호출자가 모듈 속성 변경/추가하는 method interface
+        pass
+    def get_attrib(self,key,value=None):    # 모듈 호출자가 모듈 속성 획득하는 method interface
+        pass
 
-        print(cret)
+    def execute(self,cmd=None,option=None):
+        if(cmd==ModuleConstant.PARAMETER):
+            self.data = 0
+            self.case = option.get("case",None)
+            self.blocksize = option.get("block",4096)
+            self.sectorsize = option.get("sector",512)
+            self.par_startoffset = option.get("start",0)
+            self.I_path = option.get("path",None)
+
+        elif(cmd==ModuleConstant.LOAD_MODULE):
+            self.loadModule()
+
+        elif(cmd==ModuleConstant.CONNECT_DB):
+            self.cursor = self.carving_conn()
+
+        elif(cmd==ModuleConstant.CREATE_DB):
+            if(self.cursor!=None):
+                self.db_conn_create(self.cursor)
+
+        elif(cmd==ModuleConstant.DISCONNECT_DB):
+            if(self.cursor!=None):
+                self.cursor.close()
+                self.cursor = None
+
+        elif(cmd==ModuleConstant.EXEC and optiond==None):
+            self.Fast_Detect(self.cursor) # 시그니처 탐지
+            self.carving(self.cursor) # 카빙 동작
+
 
 if __name__ == '__main__':
     manage = Management()
-    cursor = manage.carving_conn() # DB 연결
-    manage.db_conn_create(cursor) # DB 생성
-    manage.Fast_Detect(cursor) # 시그니처 탐지
-    manage.carving(cursor) # 카빙 동작
-    cursor.close()
+    manage.execute(ModuleConstant.PARAMETER,
+                    {
+                        "case":"TEST_2",
+                        "block":4096,
+                        "sector":512,
+                        "start":0x10000,
+                        "path":"D:\\iitp_carv\\[NTFS] Carving_Test_Image1.001"
+                    }
+    )
+    manage.execute(ModuleConstant.LOAD_MODULE)
+    manage.execute(ModuleConstant.CONNECT_DB)
+    manage.execute(ModuleConstant.CREATE_DB)
+    manage.execute(ModuleConstant.EXEC)
+    manage.execute(ModuleConstant.DISCONNECT_DB)
 
+    sys.exit(0)
