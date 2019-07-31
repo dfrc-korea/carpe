@@ -66,6 +66,13 @@ class Actuator(object):
             return tmp
         except:return None
 
+    def loadPluginAs(self,module,alias):
+        try:
+            tmp = importlib.import_module(module)
+            self.__importTbl.update({alias:tmp})
+            return tmp
+        except:return None
+
     def unloadPlugin(self,module):
         tmp = self.__importTbl.pop(module,None)
         if(tmp!=None):
@@ -150,7 +157,16 @@ class Actuator(object):
                 return None
             return True
         return False
-    
+
+    def loadLibraryAs(self,module,alias):
+        if(self.checkPluginImported(alias)==True):
+            return False
+        if(self.checkPluginImported(module)==False):
+            if(self.loadPluginAs(module,alias)==None):
+                return None
+            return True
+        return False
+
     # unloadLibrary("module_name")
     def unloadLibrary(self,module):
         if(self.checkPluginImported(module)==False):
