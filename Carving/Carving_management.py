@@ -2,6 +2,7 @@
 #!/usr/bin/python3
 
 import os,sys,time,binascii
+import pymysql
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)+"\\Code"))
 sys.path.append(os.path.abspath(os.path.dirname(__file__)+"\\include"))
@@ -80,6 +81,11 @@ class Management(ModuleComponentInterface,C_defy):
             print("[{0}] {1}".format(level,context))
 
     def carving_conn(self,cred):
+        if(cred.get('init')==True):
+            conn = pymysql.connect(host=cred.get('ip'),port=cred.get('port'),user=cred.get('id'),passwd=cred.get('password'))
+            conn.cursor().execute("create database {0}".format(cred.get('category')))
+            conn.close()
+            del conn
         try :
             db = Mariadb()
             cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
@@ -108,7 +114,7 @@ class Management(ModuleComponentInterface,C_defy):
                 pass
             else :
                 cursor.execute(c_table_query[1])
-
+                
             cursor.execute('select count(*) from carpe_block_info where p_id = %s', self.case)
             init_count = cursor.fetchone()
             if len(data) == init_count[0] :
@@ -272,7 +278,7 @@ class Management(ModuleComponentInterface,C_defy):
             self.Fast_Detect(self.cursor) # 시그니처 탐지
             start = time.time()
             self.carving(self.cursor)     # 카빙 동작
-            self.debugText("DEBUG","converting time : {0}.".format(time.time() - start))
+            self.debugText("DEBUG","carving time : {0}.".format(time.time() - start))
             self.debugText("INFO",self.hit)
 
 
@@ -297,8 +303,9 @@ if __name__ == '__main__':
                         "port":0,
                         "id":'root',
                         "password":HIDE,
-                        "category":'carving'
-                    }       
+                        "category":'carving',
+                        "init":False
+                    }
     )
     
     manage.execute(ModuleConstant.CREATE_DB,
