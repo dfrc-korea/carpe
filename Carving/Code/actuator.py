@@ -4,7 +4,6 @@ from interface       import ModuleComponentInterface
 import os,sys
 import signal
 import argparse
-
 import importlib
 
 from module_sql import *
@@ -20,6 +19,9 @@ from module_evt import *
 class Actuator(object):
     def __init__(self):
         self.init()
+
+    def __del__(self):
+        self.clear()
 
     def init(self):
 
@@ -46,21 +48,14 @@ class Actuator(object):
         self.__importTbl = {}
 
     def clear(self):
-
-        del self.evt
-        del self.idx
-        del self.lnk
-        del self.mft
-        del self.pe
-        del self.pf
-        del self.reg
-        del self.sql
-
-        self.__moduleTbl = {}
-
-        for k,v in self.__importTbl.items():
+        keylist = self.__importTbl.copy().keys()
+        for k in keylist:
             self.unloadPlugin(k)
 
+        keylist = self.__moduleTbl.copy().keys()
+        for k in keylist:
+            self.unloadModule(k)
+        
     # Load/Unload a python package
     def loadPlugin(self,module):
         try:
@@ -81,6 +76,7 @@ class Actuator(object):
         if(tmp!=None):
             try:del tmp
             except:pass
+            return
         return tmp
 
     def getModuleHandle(self,module):
@@ -91,7 +87,12 @@ class Actuator(object):
         self.__moduleTbl.update({name:module})
 
     def unloadModule(self,name):
-        return self.__moduleTbl.pop(name,None)
+        tmp = self.__moduleTbl.pop(name,None)
+        if(tmp!=None):
+            try:del tmp
+            except:pass
+            return
+        return tmp
 
     # Check
     def checkPluginImported(self,module):
