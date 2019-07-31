@@ -22,6 +22,7 @@ class Actuator(object):
         self.init()
 
     def init(self):
+
         self.evt = ModuleEvt()
         self.idx = ModuleIdx()
         self.lnk = ModuleLNK()
@@ -32,19 +33,20 @@ class Actuator(object):
         self.sql = ModuleSql()
 
         self.__moduleTbl = {
-            "event":self.evt,
-            "index":self.idx,
-            "link":self.lnk,
+            "evt":self.evt,
+            "idx":self.idx,
+            "lnk":self.lnk,
             "mft":self.mft,
             "pe":self.pe,
-            "prefetch":self.pf,
-            "registry":self.reg,
-            "sqlite":self.sql,
+            "pf":self.pf,
+            "reg":self.reg,
+            "sql":self.sql,
         }
 
         self.__importTbl = {}
 
     def clear(self):
+
         del self.evt
         del self.idx
         del self.lnk
@@ -53,6 +55,7 @@ class Actuator(object):
         del self.pf
         del self.reg
         del self.sql
+
         self.__moduleTbl = {}
 
         for k,v in self.__importTbl.items():
