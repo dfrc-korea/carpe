@@ -74,9 +74,9 @@ class ModuleLNK(ModuleComponentInterface):
         nbase += size
         self.parser.bgoto(size-2)
 
-
         _tmp   = self.parser.btell()
         result = self.parser.bexecute(header.FileLocationInfo,'int',0,os.SEEK_CUR,'little')
+
         if(result==False):
             return (False,0,-1,ModuleConstant.INVALID)
 
@@ -113,14 +113,15 @@ class ModuleLNK(ModuleComponentInterface):
             self.parser.bgoto(_tmp+self.parser.get_value("size"),os.SEEK_SET)
             _tmp   = self.parser.btell()
             _len   = self.parser.byte2int(self.parser.bread_raw(0,2,os.SEEK_CUR))*(isUTF16+1)
-            cmp    = self.parser.bread_raw(0,_len).split(b'\\\x00')[-1]
-            if(isUTF16):
-                try:
-                    cmp = cmp.decode('UTF-16').strip()
-                except:
-                    return (False,0,-1,ModuleConstant.INVALID)
-            if(_name==cmp):
-                return (True,offset,self.get_attrib(ModuleConstant.CLUSTER_SIZE),ModuleConstant.FILE_ONESHOT)
+            if(_len!=0):
+                cmp    = self.parser.bread_raw(0,_len).split(b'\\\x00')[-1]
+                if(isUTF16):
+                    try:
+                        cmp = cmp.decode('UTF-16').strip()
+                    except:
+                        return (False,0,-1,ModuleConstant.INVALID)
+                if(_name==cmp):
+                    return (True,offset,self.get_attrib(ModuleConstant.CLUSTER_SIZE),ModuleConstant.FILE_ONESHOT)
 
         else:
             self.parser.bgoto(sitem,os.SEEK_SET)
