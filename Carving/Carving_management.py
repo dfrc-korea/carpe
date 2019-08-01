@@ -233,7 +233,7 @@ class Management(ModuleComponentInterface,C_defy):
                 #print(data[i][2],hex(data[i][1]*self.blocksize),result)
                 if(result[0][1]>0):
                     self.hit.update({data[i][2]:[value[0],value[1]+1]})
-                #self.extractor(result) #파일 추출 모듈
+                    #self.extractor(result) #파일 추출 모듈
 
             else :
                 # 같은 블록에 여러개의 sig가 발견
@@ -249,7 +249,7 @@ class Management(ModuleComponentInterface,C_defy):
                     #print(data[i][2],hex(data[i][1]*self.blocksize),result)
                     if(result[0][1]>0):
                         self.hit.update({data[i][2]:[value[0],value[1]+1]})
-                    #self.extractor(result) #파일 추출 모듈
+                        #self.extractor(result) #파일 추출 모듈
                 # 다른 블록으로 변경됨
 
                 else :
@@ -391,7 +391,7 @@ if __name__ == '__main__':
                         "ip":'localhost',
                         "port":0,
                         "id":'root',
-                        "password":'dfrc4738',
+                        "password":HIDE,
                         "category":'carving',
                         "init":False
                     }
@@ -402,7 +402,7 @@ if __name__ == '__main__':
                         "ip":'218.145.27.66',
                         "port":23306,
                         "id":'root',
-                        "password":'dfrc4738',
+                        "password":HIDE,
                         "category":'carpe_3'
                     }
     )
