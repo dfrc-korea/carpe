@@ -69,7 +69,11 @@ class ModuleMFTEntry(ModuleComponentInterface):
         
         fixup_val  = fixup[0:2]
         fixup_pg   = self.parser.bread_raw(offset+ModuleMFTEntry.MFT_ENTRY_PAGE_SIZE-2,2,os.SEEK_SET)
+
         if(fixup_val!=fixup_pg):     # This is not MFT entry
+            return (False,0,-1,ModuleConstant.INVALID)
+
+        if(self.parser.byte2int(fixup_pg)==0):
             return (False,0,-1,ModuleConstant.INVALID)
 
         fixup_pg = self.parser.bread_raw(offset+ModuleMFTEntry.MFT_ENTRY_SIZE-2,2,os.SEEK_SET)
