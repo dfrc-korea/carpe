@@ -4,8 +4,8 @@
 import os,sys,time,binascii
 import pymysql
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__)+"\\Code"))
-sys.path.append(os.path.abspath(os.path.dirname(__file__)+"\\include"))
+sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}Code".format(os.sep)))
+sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}include".format(os.sep)))
 
 from defines         import *
 from interface       import ModuleComponentInterface
@@ -29,36 +29,54 @@ from Include.carpe_db import Mariadb
 class Management(ModuleComponentInterface,C_defy):
     def __init__(self,debug=True):
         super().__init__()
-        self.actor  = Actuator()
-        self.cursor = None
-        self.debug  = debug
-        self.hits   = {}
+        self.__actor    = Actuator()
+        self.cursor   = None
+        self.debug    = debug
+        self.destPath = ".{0}result".format(os.sep)
+        self.hits     = {}
 
-    def _loadModule(self,module,cls,alias=None):
+    def get_file_handle(self,path):
+        try:
+            self.__fd = open(path,'rb')
+        except:
+            return ModuleConstant.Return.EINVAL_FILE
+        self.__fd.seek(0,os.SEEK_SET)
+        return ModuleConstant.Return.SUCCESS
+
+    def goto(self,offset,mode):
+        return self.__fd.seek(offset,mode)
+
+    def cleanup(self):
+        if(self.__fd!=None):
+            try:self.__fd.close()
+            except:pass
+            self.__fd = None
+
+    def _load_module(self,module,cls,alias=None):
         if(alias!=None):
-            self.actor.loadLibraryAs(module,alias)
-            return self.actor.loadClass(alias,cls)
+            self.__actor.loadLibraryAs(module,alias)
+            return self.__actor.loadClass(alias,cls)
         else:
-            self.actor.loadLibrary(module)
-            return self.actor.loadClass(module,cls)
+            self.__actor.loadLibrary(module)
+            return self.__actor.loadClass(module,cls)
 
     def loadModule(self):
         if(self.debug):
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("alz",self._loadModule("module_alz","ModuleALZ","alz")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("avi",self._loadModule("module_avi","ModuleAVI","avi")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("bmp",self._loadModule("module_bmp","ModuleBMP","bmp")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("compound",self._loadModule("module_compound","ModuleCOMPOUND","compound")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("dbx",self._loadModule("module_dbx","ModuleDBX","dbx")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("eml",self._loadModule("module_eml","ModuleEML","eml")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("exif",self._loadModule("module_exif","ModuleEXIF","exif")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("gif",self._loadModule("module_gif","ModuleGIF","gif")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("hwp",self._loadModule("module_hwp","ModuleHWP","hwp")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("jfif",self._loadModule("module_jfif","ModuleJFIF","jfif")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("pdf",self._loadModule("module_pdf","ModulePDF","pdf")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("png",self._loadModule("module_png","ModulePNG","png")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("pst",self._loadModule("module_pst","ModulePST","pst")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("wav",self._loadModule("module_wav","ModuleWAV","wav")))
-            self.debugText("INFO","result - {1:>2} name - {0:>10}".format("zip",self._loadModule("module_zip","ModuleZIP","zip")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("alz",self._load_module("module_alz","ModuleALZ","alz")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("avi",self._load_module("module_avi","ModuleAVI","avi")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("bmp",self._load_module("module_bmp","ModuleBMP","bmp")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("compound",self._load_module("module_compound","ModuleCOMPOUND","compound")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("dbx",self._load_module("module_dbx","ModuleDBX","dbx")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("eml",self._load_module("module_eml","ModuleEML","eml")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("exif",self._load_module("module_exif","ModuleEXIF","exif")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("gif",self._load_module("module_gif","ModuleGIF","gif")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("hwp",self._load_module("module_hwp","ModuleHWP","hwp")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("jfif",self._load_module("module_jfif","ModuleJFIF","jfif")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("pdf",self._load_module("module_pdf","ModulePDF","pdf")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("png",self._load_module("module_png","ModulePNG","png")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("pst",self._load_module("module_pst","ModulePST","pst")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("wav",self._load_module("module_wav","ModuleWAV","wav")))
+            self.debug_text("INFO","loading module result [{1:>2}] name [{0:>10}]".format("zip",self._load_module("module_zip","ModuleZIP","zip")))
         else:
             self._loadModule("module_alz","ModuleALZ","alz")
             self._loadModule("module_avi","ModuleAVI","avi")
@@ -76,7 +94,7 @@ class Management(ModuleComponentInterface,C_defy):
             self._loadModule("module_wav","ModuleWAV","wav")
             self._loadModule("module_zip","ModuleZIP","zip")
 
-    def debugText(self,level,context,always=False):
+    def debug_text(self,level,context,always=False):
         if(self.debug==True or always==True):
             print("[{0}] {1}".format(level,context))
 
@@ -91,7 +109,7 @@ class Management(ModuleComponentInterface,C_defy):
             cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
             return cursor
         except Exception :
-            self.debugText("ERROR","Carving DB connection ERROR.")
+            self.debug_text("ERROR","Carving DB connection ERROR.")
             exit(C_defy.Return.EFAIL_DB)
 
     def db_conn_create(self,cursor,cred):
@@ -104,7 +122,7 @@ class Management(ModuleComponentInterface,C_defy):
             cursor1.execute('show create table carpe_block_info')
             c_table_query = cursor1.fetchone()
         except Exception :
-            self.debugText("ERROR","CARPE DB connection ERROR.")
+            self.debug_text("ERROR","CARPE DB connection ERROR.")
             exit(C_defy.Return.EFAIL_DB)
         # Table 존재여부 확인 및 테이블 생성
         try :
@@ -118,7 +136,7 @@ class Management(ModuleComponentInterface,C_defy):
             cursor.execute('select count(*) from carpe_block_info where p_id = %s', self.case)
             init_count = cursor.fetchone()
             if len(data) == init_count[0] :
-                self.debugText("WARNING","This case is already finished Convert DB processing in carving.")
+                self.debug_text("WARNING","This case is already finished Convert DB processing in carving.")
                 pass
             else :
                 start = time.time()
@@ -126,11 +144,11 @@ class Management(ModuleComponentInterface,C_defy):
                 for row in data :
                     cursor.execute('insert into carpe_block_info values (%s,%s,%s,%s)',(row[0],row[1],row[2],row[3]))
                 cursor.execute('commit')
-                self.debugText("DEBUG","copy db time : {0}".format(time.time() - start))
+                self.debug_text("DEBUG","copy db time : {0}".format(time.time() - start))
                 cursor.execute(db.CREATE_HELPER['datamap'])
                 self.convert_db(cursor)
         except Exception:
-            self.debugText("ERROR","unallocated area DB porting ERROR")
+            self.debug_text("ERROR","unallocated area DB porting ERROR")
         cursor1.close()
         db.close()
 
@@ -149,9 +167,9 @@ class Management(ModuleComponentInterface,C_defy):
                     cursor.execute(sql,(map_id, row[0]))
                     map_id = map_id + 1
                 cursor.execute('commit')
-            self.debugText("DEBUG","converting time : {0}.".format(time.time() - start))
+            self.debug_text("DEBUG","converting time : {0}.".format(time.time() - start))
         except Exception :
-            self.debugText("ERROR","check signature module ERROR.")
+            self.debug_text("ERROR","check signature module ERROR.")
 
     def Fast_Detect(self, cursor):
         try :
@@ -183,9 +201,9 @@ class Management(ModuleComponentInterface,C_defy):
                     isthere = 0
                 C_offset += self.blocksize
                 FP.seek(C_offset)
-            self.debugText("DEBUG","converting time : {0}.".format(time.time() - start))
+            self.debug_text("DEBUG","converting time : {0}.".format(time.time() - start))
         except Exception :
-            self.debugText("ERROR","Fast Signature Detector ERROR.")
+            self.debug_text("ERROR","Fast Signature Detector ERROR.")
 
     def carving(self,cursor):
         cursor.execute('select block_id, blk_num, blk_sig from datamap where blk_sig is not null')
@@ -196,50 +214,120 @@ class Management(ModuleComponentInterface,C_defy):
         for sigblk in data :
             # 맨 마지막 레코드
             if (self.hit.get(data[i][2])==None):
-                self.hit.update({data[i][2]:[0,0]})
+                self.hit.update({data[i][2]:[-1,0]})
             
             value   = self.hit.get(data[i][2])
             self.hit.update({data[i][2]:[value[0]+1,value[1]]})
+            value   = self.hit.get(data[i][2])
 
             if i+1 == total:
                 end_pos = os.path.getsize(self.I_path)
-                result  = self.r_module(data[i][2],data[i][1]*self.blocksize,end_pos,1024) 
-                if(result[0]==False):
-                    continue
-                self.hit.update({data[i][2]:[value[0]+1,value[1]+1]})
-                self.extractor(result) #파일 추출 모듈
+                result  = self.call_sub_module(data[i][2],data[i][1]*self.blocksize,end_pos,1024)
+
+                if(type(result)==tuple):
+                    result = [list(result)]
+
+                if(len(result[0])==4):
+                    result[0].pop(0)
+
+                #print(data[i][2],hex(data[i][1]*self.blocksize),result)
+                if(result[0][1]>0):
+                    self.hit.update({data[i][2]:[value[0],value[1]+1]})
+                #self.extractor(result) #파일 추출 모듈
 
             else :
                 # 같은 블록에 여러개의 sig가 발견
                 if sigblk[0] == data[i+1][0] :
-                    result = self.r_module(data[i][2],data[i][1]*self.blocksize,data[i+1][1]*self.blocksize,self.blocksize)
-                    if(result[0]==False):
-                        continue
-                    self.hit.update({data[i][2]:[value[0]+1,value[1]+1]})
-                    self.extractor(result) #파일 추출 모듈
+                    result = self.call_sub_module(data[i][2],data[i][1]*self.blocksize,data[i+1][1]*self.blocksize,self.blocksize)
+                    
+                    if(type(result)==tuple):
+                        result = [list(result)]
+
+                    if(len(result[0])==4):
+                        result[0].pop(0)
+
+                    #print(data[i][2],hex(data[i][1]*self.blocksize),result)
+                    if(result[0][1]>0):
+                        self.hit.update({data[i][2]:[value[0],value[1]+1]})
+                    #self.extractor(result) #파일 추출 모듈
                 # 다른 블록으로 변경됨
 
                 else :
                     cursor.execute('select blk_num from datamap where blk_num > %s and block_id = %s order by blk_num desc',(sigblk[1],sigblk[0]))
                     end_pos = cursor.fetchone()
                     if(end_pos!=None):
-                        result = self.r_module(data[i][2],data[i][1]*self.blocksize,end_pos[0]*self.blocksize,1024)
-                        if(result[0]==False):
-                            continue
-                        self.hit.update({data[i][2]:[value[0]+1,value[1]+1]})
-                        self.extractor(result) #파일 추출 모듈
+                        result = self.call_sub_module(data[i][2],data[i][1]*self.blocksize,end_pos[0]*self.blocksize,1024)
+
+                        if(type(result)==tuple):
+                            result = [list(result)]
+
+                        if(len(result[0])==4):
+                            result[0].pop(0)
+
+                        #print(data[i][2],hex(data[i][1]*self.blocksize),result)
+                        if(result[0][1]>0):
+                            self.hit.update({data[i][2]:[value[0],value[1]+1]})
+                            #self.extractor(result) #파일 추출 모듈
             i += 1
 
-    def r_module(self,_request,start,end,cluster,etype='euc-kr'):
-        self.actor.set(_request, ModuleConstant.FILE_ATTRIBUTE,self.I_path)  # File to carve
-        self.actor.set(_request, ModuleConstant.IMAGE_BASE, start)  # Set offset of the file base
-        self.actor.set(_request, ModuleConstant.IMAGE_LAST, end)
-        self.actor.set(_request, ModuleConstant.CLUSTER_SIZE, cluster)
-        self.actor.set(_request, ModuleConstant.ENCODE, etype)
-        return self.actor.call(_request, None, None)
+    def call_sub_module(self,_request,start,end,cluster,etype='euc-kr'):
+        self.__actor.set(_request, ModuleConstant.FILE_ATTRIBUTE,self.I_path)  # File to carve
+        self.__actor.set(_request, ModuleConstant.IMAGE_BASE, start)  # Set offset of the file base
+        self.__actor.set(_request, ModuleConstant.IMAGE_LAST, end)
+        self.__actor.set(_request, ModuleConstant.CLUSTER_SIZE, cluster)
+        self.__actor.set(_request, ModuleConstant.ENCODE, etype)
+        return self.__actor.call(_request, None, None)
 
-    def extractor(self,result):
-        pass
+    # Extract file(s) from image.
+    def extractor(self,extension,result,disable):
+        if(disable==True):
+            return ModuleConstant.Return.EINVAL_TYPE
+
+        fname  = self.destPath+os.sep+str(time.time())+"."+extension
+        length = len(result)
+
+        try:
+            fd = open(fname,'wb')
+        except:
+            return ModuleConstant.Return.EINVAL_NONE
+
+        if(length==1):
+            wrtn = 0
+            byte2copy = result[0][1]
+            self.goto(result[0][0],os.SEEK_SET)
+
+            while(byte2copy<=0):
+                if(byte2copy<self.blocksize):
+                    data = self.__fd.read(byte2copy)
+                    wrtn +=self.fd.write(data)
+                    byte2copy-=byte2copy
+                    break
+                data = self.__fd.read(self.blocksize)
+                wrtn +=self.fd.write(data)
+                byte2copy-=self.blocksize
+            fd.close()
+        else:
+            wrtn = 0
+            i    = 0
+            while(i==length):
+                byte2copy = result[i][1]
+                self.goto(result[i][0],os.SEEK_SET)
+
+                while(byte2copy<=0):
+                    if(byte2copy<self.blocksize):
+                        data    = self.__fd.read(byte2copy)
+                        zerofill = bytearray(self.blocksize-byte2copy)
+                        wrtn +=self.fd.write(data)
+                        wrtn +=self.fd.write(zerofill)
+                        byte2copy-=byte2copy
+                    else:
+                        data = self.__fd.read(self.blocksize)
+                        wrtn +=self.fd.write(data)
+                        byte2copy-=self.blocksize
+                fd.close()
+        
+        return (fname,wrtn) 
+    
 
     def module_open(self,id=1):             # Reserved method for multiprocessing
         pass
@@ -252,12 +340,13 @@ class Management(ModuleComponentInterface,C_defy):
 
     def execute(self,cmd=None,option=None):
         if(cmd==ModuleConstant.PARAMETER):
-            self.data = 0
-            self.case = option.get("case",None)
-            self.blocksize = option.get("block",4096)
-            self.sectorsize = option.get("sector",512)
+            self.data            = 0
+            self.case            = option.get("case",None)
+            self.blocksize       = option.get("block",4096)
+            self.sectorsize      = option.get("sector",512)
             self.par_startoffset = option.get("start",0)
-            self.I_path = option.get("path",None)
+            self.I_path          = option.get("path",None)
+            self.destPath        = option.get("dest",".{0}result".format(os.sep))
 
         elif(cmd==ModuleConstant.LOAD_MODULE):
             self.loadModule()
@@ -278,8 +367,8 @@ class Management(ModuleComponentInterface,C_defy):
             self.Fast_Detect(self.cursor) # 시그니처 탐지
             start = time.time()
             self.carving(self.cursor)     # 카빙 동작
-            self.debugText("DEBUG","carving time : {0}.".format(time.time() - start))
-            self.debugText("INFO",self.hit)
+            self.debug_text("DEBUG","carving time : {0}.".format(time.time() - start))
+            self.debug_text("INFO",self.hit)
 
 
 if __name__ == '__main__':
@@ -293,7 +382,7 @@ if __name__ == '__main__':
                         "block":4096,
                         "sector":512,
                         "start":0x10000,
-                        "path":"D:\\iitp_carv\\[NTFS] Carving_Test_Image1.001"
+                        "path":"D:\\iitp_carv\\[NTFS]_Carving_Test_Image1.001"
                     }
     )
     
@@ -302,7 +391,7 @@ if __name__ == '__main__':
                         "ip":'localhost',
                         "port":0,
                         "id":'root',
-                        "password":HIDE,
+                        "password":'dfrc4738',
                         "category":'carving',
                         "init":False
                     }
@@ -313,7 +402,7 @@ if __name__ == '__main__':
                         "ip":'218.145.27.66',
                         "port":23306,
                         "id":'root',
-                        "password":HIDE,
+                        "password":'dfrc4738',
                         "category":'carpe_3'
                     }
     )
