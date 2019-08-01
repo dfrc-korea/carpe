@@ -208,9 +208,16 @@ class Management(ModuleComponentInterface,C_defy):
     def carving(self,cursor):
         cursor.execute('select block_id, blk_num, blk_sig from datamap where blk_sig is not null')
         data = cursor.fetchall()
-        i = 0
-        total = len(data)
+        i        = 0
+        total    = len(data)
+        disable  = False
         self.hit = {}
+
+        errno = self.get_file_handle(self.I_path)
+        if(errno==ModuleConstant.Return.EINVAL_FILE):
+            self.debug_text("ERROR","Cannot create a file handle.")
+            disable = True
+
         for sigblk in data :
             # 맨 마지막 레코드
             if (self.hit.get(data[i][2])==None):
@@ -233,7 +240,7 @@ class Management(ModuleComponentInterface,C_defy):
                 #print(data[i][2],hex(data[i][1]*self.blocksize),result)
                 if(result[0][1]>0):
                     self.hit.update({data[i][2]:[value[0],value[1]+1]})
-                    #self.extractor(result) #파일 추출 모듈
+                    self.extractor(data[i][2],result,disable) #파일 추출 모듈
 
             else :
                 # 같은 블록에 여러개의 sig가 발견
@@ -249,7 +256,7 @@ class Management(ModuleComponentInterface,C_defy):
                     #print(data[i][2],hex(data[i][1]*self.blocksize),result)
                     if(result[0][1]>0):
                         self.hit.update({data[i][2]:[value[0],value[1]+1]})
-                        #self.extractor(result) #파일 추출 모듈
+                        self.extractor(data[i][2],result,disable) #파일 추출 모듈
                 # 다른 블록으로 변경됨
 
                 else :
@@ -267,7 +274,7 @@ class Management(ModuleComponentInterface,C_defy):
                         #print(data[i][2],hex(data[i][1]*self.blocksize),result)
                         if(result[0][1]>0):
                             self.hit.update({data[i][2]:[value[0],value[1]+1]})
-                            #self.extractor(result) #파일 추출 모듈
+                            self.extractor(data[i][2],result,disable) #파일 추출 모듈
             i += 1
 
     def call_sub_module(self,_request,start,end,cluster,etype='euc-kr'):
@@ -285,6 +292,7 @@ class Management(ModuleComponentInterface,C_defy):
 
         fname  = self.destPath+os.sep+str(time.time())+"."+extension
         length = len(result)
+        fd = None
 
         try:
             fd = open(fname,'wb')
@@ -296,35 +304,36 @@ class Management(ModuleComponentInterface,C_defy):
             byte2copy = result[0][1]
             self.goto(result[0][0],os.SEEK_SET)
 
-            while(byte2copy<=0):
+            while(byte2copy>0):
                 if(byte2copy<self.blocksize):
                     data = self.__fd.read(byte2copy)
-                    wrtn +=self.fd.write(data)
+                    wrtn +=fd.write(data)
                     byte2copy-=byte2copy
                     break
                 data = self.__fd.read(self.blocksize)
-                wrtn +=self.fd.write(data)
+                wrtn +=fd.write(data)
                 byte2copy-=self.blocksize
             fd.close()
         else:
             wrtn = 0
             i    = 0
-            while(i==length):
+            while(i<length):
                 byte2copy = result[i][1]
                 self.goto(result[i][0],os.SEEK_SET)
 
-                while(byte2copy<=0):
+                while(byte2copy>0):
                     if(byte2copy<self.blocksize):
                         data    = self.__fd.read(byte2copy)
                         zerofill = bytearray(self.blocksize-byte2copy)
-                        wrtn +=self.fd.write(data)
-                        wrtn +=self.fd.write(zerofill)
+                        wrtn +=fd.write(data)
+                        wrtn +=fd.write(zerofill)
                         byte2copy-=byte2copy
                     else:
                         data = self.__fd.read(self.blocksize)
-                        wrtn +=self.fd.write(data)
+                        wrtn +=fd.write(data)
                         byte2copy-=self.blocksize
-                fd.close()
+                i+=1
+            fd.close()
         
         return (fname,wrtn) 
     
