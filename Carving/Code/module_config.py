@@ -10,7 +10,6 @@ from collections import OrderedDict
 from defines   import *
 from interface import ModuleComponentInterface
 
-# Testing import
 from multiprocessing import Process, Lock
 
 class ModuleConfiguration(ModuleComponentInterface):
@@ -27,8 +26,11 @@ class ModuleConfiguration(ModuleComponentInterface):
         self.set_attrib(ModuleConstant.AUTHOR,"HK")            # 모듈 기본 속성 작성자 재정의
         self.set_attrib(ModuleConstant.EXCLUSIVE,True)         # 모듈 기본 속성 배타적(유니크) 속성 정의
 
-    def init(self):
-        self.config  = self.get_attrib(ModuleConstant.FILE_ATTRIBUTE)
+    def init(self,path):
+        if(path==None):
+            self.path  = ModuleConstant.DEFINE_PATH + self.get_attrib(ModuleConstant.FILE_ATTRIBUTE)
+        else:
+            self.path  = path
         try:
             self.__read__()
         except:
@@ -38,16 +40,16 @@ class ModuleConfiguration(ModuleComponentInterface):
         pass
 
     def __read__(self):
-        with open(self.path+self.config,"r+") as file:
+        with open(self.path,"r+") as file:
             line = file.readline()
             if(line==['']):pass
             while line:
                 line = file.readline().split(':',1)
-                try:self.__content.update({line[0]:line[1]})
+                try:self.__content.update({line[0].strip():line[1].strip()})
                 except:break
 
     def __initialize__(self):
-        with open(self.path+self.config,"w+") as file:
+        with open(self.path,"w+") as file:
             file.write("Module_Configuration\n")
         self.status = ModuleConstant.Return.SUCCESS
 
@@ -63,7 +65,7 @@ class ModuleConfiguration(ModuleComponentInterface):
     def save(self):
         # 변경된 환경 변수를 저장
         if(self.__dirty == True):
-            with open(self.path+self.config,"w") as file:
+            with open(self.path,"w") as file:
                 file.write("Module_Configuration\n")
                 for item,value in self.__content.items():
                     file.write("{0}:{1}\n".format(item.lower(),value.strip()))
@@ -99,7 +101,7 @@ class ModuleConfiguration(ModuleComponentInterface):
         ret = ModuleConstant.Return.SUCCESS
         self.lock.acquire()
         if(cmd==ModuleConstant.INIT):
-            self.init()
+            self.init(option)
             ret = self.__content
         elif(cmd==ModuleConstant.READ):
             ret = self.get(option)
@@ -107,6 +109,8 @@ class ModuleConfiguration(ModuleComponentInterface):
             self.set(option[0],option[1])
         elif(cmd==ModuleConstant.SAVE):
             self.save()
+        elif(cmd==ModuleConstant.GETALL):
+            ret = self.getAll()
         self.lock.release()
         return ret
 
@@ -119,7 +123,7 @@ if __name__ == '__main__':
 
     mm.set_attrib(ModuleConstant.FILE_ATTRIBUTE,ModuleConstant.CONFIG_FILE)
     
-    mm.execute(ModuleConstant.INIT)
+    mm.execute(ModuleConstant.INIT,"config.txt")
 
     mm.execute(ModuleConstant.WRITE,["path",os.path.abspath(os.path.dirname(__file__))])
     mm.execute(ModuleConstant.WRITE,["dependency","Windows"])
