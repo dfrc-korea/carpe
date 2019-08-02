@@ -24,37 +24,17 @@ class Actuator(object):
         self.clear()
 
     def init(self):
-
-        self.evt = ModuleEvt()
-        self.idx = ModuleIdx()
-        self.lnk = ModuleLNK()
-        self.mft = ModuleMFTEntry()
-        self.pe  = ModulePEParser()
-        self.pf  = ModulePrefetch()
-        self.reg = ModuleRegEntry()
-        self.sql = ModuleSql()
-
-        self.__moduleTbl = {
-            "evt":self.evt,
-            "idx":self.idx,
-            "lnk":self.lnk,
-            "mft":self.mft,
-            "pe":self.pe,
-            "pf":self.pf,
-            "reg":self.reg,
-            "sql":self.sql,
-        }
-
+        self.__moduleTbl = {}
         self.__importTbl = {}
 
     def clear(self):
-        keylist = self.__importTbl.copy().keys()
-        for k in keylist:
-            self.unloadPlugin(k)
-
         keylist = self.__moduleTbl.copy().keys()
         for k in keylist:
             self.unloadModule(k)
+
+        keylist = self.__importTbl.copy().keys()
+        for k in keylist:
+            self.unloadPlugin(k)
         
     # Load/Unload a python package
     def loadPlugin(self,module):
@@ -129,6 +109,18 @@ class Actuator(object):
         obj.set_attrib(attr,value)
         return True
 
+    def open(self,key,id,value):
+        obj = self.__moduleTbl.get(key)
+        if(obj==None):
+            return False
+        return obj.module_open(id,value)
+
+    def close(self,key,id,value):
+        obj = self.__moduleTbl.get(key)
+        if(obj==None):
+            return False
+        return obj.module_close(id)
+
     # load("module_name","class_name")
     def load(self,module,clss):
         if(self.checkPluginImported(module)==False):
@@ -162,6 +154,7 @@ class Actuator(object):
             return True
         return False
 
+    # loadLibraryAs("module_name","namespace")
     def loadLibraryAs(self,module,alias):
         if(self.checkPluginImported(alias)==True):
             return False
@@ -177,6 +170,14 @@ class Actuator(object):
             return False
         return self.unloadPlugin(module)
 
+    # loadModuleClassAs("module_name","class_name","namespace")
+    def loadModuleClassAs(self,module,cls,alias=None):
+        if(alias!=None):
+            self.loadLibraryAs(module,alias)
+            return self.loadClass(alias,cls)
+        else:
+            self.loadLibrary(module)
+            return self.loadClass(module,cls)
 
 if __name__ == '__main__':
 
