@@ -32,6 +32,14 @@ class ModuleConstant(object):
     EXCLUSIVE        = "excl"
     CLUSTER_SIZE     = "cluster"
 
+    # Management Control
+    LOAD_MODULE      = "load_module"
+    UNLOAD_MODULE    = "unload_module"
+    CONNECT_DB       = "connect_db"
+    CREATE_DB        = "create_db"
+    DISCONNECT_DB    = "disconnect_db"
+    EXEC             = "exec"
+
     # Confiugration Operations
     COLLABORATE      = 6
     CONFIG_FILE      = "config.txt"
@@ -41,11 +49,14 @@ class ModuleConstant(object):
     CREATE           = 0b00000100
     DELETE           = 0b00001000
     SAVE             = 0b00010000
+    GETALL           = 0b00100000
 
     # Page Type
     FILE_HEADER      = 0b00000001
     FILE_RECORD      = 0b00000010
     FILE_ONESHOT     = 0b00000100
+    FILE_LOOSE       = 0b00000100
+    FILE_STRICT      = 0b01000000
     INVALID          = 0b10000000
 
     # Error
