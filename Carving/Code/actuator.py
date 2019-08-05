@@ -24,6 +24,12 @@ class Actuator(object):
     def __del__(self):
         self.clear()
 
+    def __str__(self):
+        return "Module Component {0}".format(self.__class__.__name__)
+
+    def __repr__(self):
+        return "Module Component {0}".format(self.__class__.__name__)
+
     def init(self):
         self.__moduleTbl = {}
         self.__importTbl = {}
