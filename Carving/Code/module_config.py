@@ -45,8 +45,9 @@ class ModuleConfiguration(ModuleComponentInterface):
             line = file.readline()
             if(line==['']):pass
             while line:
-                line = file.readline().split(':',1)
-                try:self.__content.update({line[0].strip():line[1].strip()})
+                try:
+                    line = file.readline().split(':',1)
+                    self.__content.update({line[0].strip():line[1].strip()})
                 except:break
 
     def __initialize__(self):
@@ -63,13 +64,13 @@ class ModuleConfiguration(ModuleComponentInterface):
         # 환경 변수에 대한 값 리턴/없으면 None 타입 리턴
         return self.__content.get(key.lower(),None)
 
-    def save(self): 
+    def save(self):
         # 변경된 환경 변수를 저장
         if(self.__dirty == True):
             with open(self.path,"w") as file:
                 file.write(self.description)
                 for item,value in self.__content.items():
-                    file.write("{0}:{2}\n".format(item.lower(),value.strip()))
+                    file.write("{0}:{1}\n".format(item.lower(),value.strip()))
             self.__dirty = False
 
     def getAll(self):
