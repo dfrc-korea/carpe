@@ -63,13 +63,13 @@ class ModuleConfiguration(ModuleComponentInterface):
         # 환경 변수에 대한 값 리턴/없으면 None 타입 리턴
         return self.__content.get(key.lower(),None)
 
-    def save(self):
+    def save(self): 
         # 변경된 환경 변수를 저장
         if(self.__dirty == True):
             with open(self.path,"w") as file:
                 file.write(self.description)
                 for item,value in self.__content.items():
-                    file.write("{0}:{1}\n".format(item.lower(),value.strip()))
+                    file.write("{0}:{2}\n".format(item.lower(),value.strip()))
             self.__dirty = False
 
     def getAll(self):
@@ -116,7 +116,7 @@ class ModuleConfiguration(ModuleComponentInterface):
             if(type(option)==None):ret = self.description
             else:
                 try:
-                    self.description = str(option).strip().remove("\n",",")+"\n"
+                    self.description = str(option).strip().replace("\n",",").replace(":"," ")+"\n"
                     ret = self.description
                 except:ret = None
         self.lock.release()
