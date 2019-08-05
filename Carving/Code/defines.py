@@ -50,6 +50,7 @@ class ModuleConstant(object):
     DELETE           = 0b00001000
     SAVE             = 0b00010000
     GETALL           = 0b00100000
+    DESCRIPTION      = 0b01000000
 
     # Page Type
     FILE_HEADER      = 0b00000001

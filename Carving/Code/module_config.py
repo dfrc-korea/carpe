@@ -16,10 +16,11 @@ class ModuleConfiguration(ModuleComponentInterface):
 
     def __init__(self):
         super().__init__()
-        self.lock      = False
-        self.__dirty   = False
-        self.__content = OrderedDict()
-        self.path      = ModuleConstant.DEFINE_PATH
+        self.lock        = False
+        self.__dirty     = False
+        self.__content   = OrderedDict()
+        self.path        = ModuleConstant.DEFINE_PATH
+        self.description = "Module_Configuration\n"
 
         self.set_attrib(ModuleConstant.NAME,"configuration")   # 모듈 기본 속성 이름 재정의
         self.set_attrib(ModuleConstant.VERSION,"0.1")          # 모듈 기본 속성 버전 재정의
@@ -50,7 +51,7 @@ class ModuleConfiguration(ModuleComponentInterface):
 
     def __initialize__(self):
         with open(self.path,"w+") as file:
-            file.write("Module_Configuration\n")
+            file.write(self.description)
         self.status = ModuleConstant.Return.SUCCESS
 
     def set(self,key,value):
@@ -66,7 +67,7 @@ class ModuleConfiguration(ModuleComponentInterface):
         # 변경된 환경 변수를 저장
         if(self.__dirty == True):
             with open(self.path,"w") as file:
-                file.write("Module_Configuration\n")
+                file.write(self.description)
                 for item,value in self.__content.items():
                     file.write("{0}:{1}\n".format(item.lower(),value.strip()))
             self.__dirty = False
@@ -111,6 +112,13 @@ class ModuleConfiguration(ModuleComponentInterface):
             self.save()
         elif(cmd==ModuleConstant.GETALL):
             ret = self.getAll()
+        elif(cmd==ModuleConstant.DESCRIPTION):
+            if(type(option)==None):ret = self.description
+            else:
+                try:
+                    self.description = str(option).strip().remove("\n",",")+"\n"
+                    ret = self.description
+                except:ret = None
         self.lock.release()
         return ret
 
