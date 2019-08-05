@@ -29,7 +29,7 @@ class ModuleComponentInterface(metaclass=ABCMeta):
 
     @property
     def id(self):
-        return self.get_attrib(id,0)
+        return self.get_attrib("id",0)
 
     def status(self,status):
         if(type(status)==int):
