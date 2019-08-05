@@ -42,6 +42,7 @@ class ModuleComponentInterface(metaclass=ABCMeta):
     def module_open(self,id=2):             # Reserved method for multiprocessing
         self.__status = 0
         self.attrib.update({"id":int(id)})
+    @abstractmethod
     def module_close(self):                 # Reserved method for multiprocessing
         pass
     @abstractmethod
