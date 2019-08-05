@@ -70,16 +70,13 @@ class Carpe_FS_Analyze(object):
       pytsk3.TSK_FS_ATTR_TYPE_NTFS_SI,
       pytsk3.TSK_FS_ATTR_TYPE_DEFAULT,
       pytsk3.TSK_FS_ATTR_TYPE_HFS_DEFAULT]
-  
   ATTRIBUTE_TYPES_TO_ANALYZE_TIME = [
       pytsk3.TSK_FS_ATTR_TYPE_NTFS_SI,
       pytsk3.TSK_FS_ATTR_TYPE_HFS_DEFAULT
   ]
-
-  ATTRIBUTE_TYPES_TO_ANALYZE_TIME = [
-      pytsk3.TSK_FS_ATTR_TYPE_NTFS_FN
-  ]
-
+  ATTRIBUTE_TYPES_TO_ANALYZE_ADDITIONAL_TIME =[
+      pytsk3.TSK_FS_ATTR_TYPE_NTFS_FNAME
+      ]
   def __init__(self):
     super(Carpe_FS_Analyze, self).__init__()
     self._fs_info = None
@@ -104,19 +101,23 @@ class Carpe_FS_Analyze(object):
     alloc_info = carpe_fs_alloc_info.Carpe_FS_Alloc_Info()
     skip = 0
     start = 0
-    
+
     for n in range(0, self._fs_info_2._block_count):  
       if (skip == 0):
         if(self._fs_info.blockstat(n) == 0):
           start = n
-          skip = 1          
-      else:    
+          skip = 1
+      else:
         if(self._fs_info.blockstat(n) == 1):
           alloc_info._unallock_blocks.append((start, n-1))
           skip = 0
-    
+
+      if(n == self._fs_info_2._block_count -1 and self._fs_info.blockstat(n) == 0):
+        alloc_info._unallock_blocks.append((start, n))
     return alloc_info
 
+  def my_join(tpl):
+    return ', '.join(x if isinstance(x, str) else my_join(x) for x in tpl)  
 
   def list_directory(self, directory, stack=None, path=None, conn=None):
 
@@ -132,10 +133,12 @@ class Carpe_FS_Analyze(object):
           not hasattr(directory_entry.info.name, "name") or
           directory_entry.info.name.name in [".", ".."]):
         continue
-      self.directory_entry_info(directory_entry, parent_id=stack[-1], path=path)  
-      '''
+      #self.directory_entry_info(directory_entry, parent_id=stack[-1], path=path)  
+      
       files_tuple = map(lambda i: i.toTuple(), self.directory_entry_info(directory_entry, parent_id=stack[-1], path=path))
-       
+      for i in files_tuple:
+        print ( *i, sep=",")
+      ''' 
       for i in files_tuple:
         query = conn.insert_query_builder("file_info")
         query = (query + "\n values " + "%s" % (i, ))
@@ -187,10 +190,13 @@ class Carpe_FS_Analyze(object):
     self._recursive = True
 
   def directory_entry_info(self, directory_entry, parent_id="", path=None):
+      #print("=== Entry Start ===")
 
       meta = directory_entry.info.meta
       name = directory_entry.info.name
 
+      #print(meta.addr)
+      #print(name.meta_addr)
       name_type = "-"
       if name:
         name_type = self.FILE_TYPE_LOOKUP.get(int(name.type), "-")
@@ -214,6 +220,7 @@ class Carpe_FS_Analyze(object):
         new_file._parent_path += i + u"/"
 
       for attribute in directory_entry:
+        #print("=== Attribute Start ===")
         
         if int(attribute.info.type) in self.ATTRIBUTE_TYPES_TO_ANALYZE:
           #need to check value
@@ -230,17 +237,17 @@ class Carpe_FS_Analyze(object):
             new_file._etime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
             new_file._ctime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                
           #$FileName   
-          if attribute.info.type in self.ATTRIBUTE_TYPES_TO_ANALYZE_TIME:
+          if attribute.info.type in self.ATTRIBUTE_TYPES_TO_ANALYZE_ADDITIONAL_TIME:
 
-            new_file._extend_mtime = [lambda:0, lambda:directory_entry.info.meta.mtime][directory_entry.info.meta.mtime is not None]()  
-            new_file._extend_atime = [lambda:0, lambda:directory_entry.info.meta.atime][directory_entry.info.meta.atime is not None]()
-            new_file._extend_etime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
-            new_file._extend_ctime =[lambda:0, lambda:directory_entry.info.meta.crtime][directory_entry.info.meta.crtime is not None]()
+            new_file._additional_mtime = [lambda:0, lambda:directory_entry.info.meta.mtime][directory_entry.info.meta.mtime is not None]()  
+            new_file._additional_atime = [lambda:0, lambda:directory_entry.info.meta.atime][directory_entry.info.meta.atime is not None]()
+            new_file._additional_etime = [lambda:0, lambda:directory_entry.info.meta.ctime][directory_entry.info.meta.ctime is not None]()
+            new_file._additional_ctime =[lambda:0, lambda:directory_entry.info.meta.crtime][directory_entry.info.meta.crtime is not None]()
             
-            new_file._extend_mtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.mtime_nano is not None]()            
-            new_file._extend_atime_nano = [lambda:0, lambda:directory_entry.info.meta.atime_nano][directory_entry.info.meta.atime_nano is not None]()
-            new_file._extend_etime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
-            new_file._extend_ctime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                                
+            new_file._additional_mtime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.mtime_nano is not None]()            
+            new_file._additional_atime_nano = [lambda:0, lambda:directory_entry.info.meta.atime_nano][directory_entry.info.meta.atime_nano is not None]()
+            new_file._additional_etime_nano = [lambda:0, lambda:directory_entry.info.meta.ctime_nano][directory_entry.info.meta.ctime_nano is not None]()
+            new_file._additional_ctime_nano = [lambda:0, lambda:directory_entry.info.meta.mtime_nano][directory_entry.info.meta.crtime_nano is not None]()                                
           
           new_file._file_id = meta.addr
           
@@ -248,7 +255,7 @@ class Carpe_FS_Analyze(object):
           new_file._inode = [lambda:"{0:d}".format(meta.addr), lambda:"{0:d}-{1:d}-{2:d}".format(meta.addr, int(attribute.info.type), attribute.info.id)][self._fs_info.info.ftype in [pytsk3.TSK_FS_TYPE_NTFS, pytsk3.TSK_FS_TYPE_NTFS_DETECT]]()          
            
           #File name       
-          if attribute.info.type == pytsk3.TSK_FS_ATTR_TYPE_NTFS_DATA:
+          if int(attribute.info.type) in self.ATTRIBUTE_TYPES_TO_ANALYZE:
             
             if new_file._name is not None:
               file_names.append([[lambda:(name.name).decode('utf-8','replace'), lambda:"{0:s}:{1:s}".format((name.name).decode('utf-8','replace'), (attribute.info.name).decode('utf-8','replace'))][(attribute.info.name is not None) & (attribute.info.name not in ["$Data", "$I30"])](), (attribute.info.size)])
@@ -298,7 +305,7 @@ class Carpe_FS_Analyze(object):
       else:
         slack_size = 0
       
-      #To Do : Simplification
+      #To Do : Simplify
       for i in file_names:
         temp = carpe_file.Carpe_File()
         temp.__dict__ = new_file.__dict__.copy()
@@ -306,7 +313,7 @@ class Carpe_FS_Analyze(object):
         temp._name = i[0]
         temp._size = i[1]        
         files.append(temp)
-
+      '''
       if slack_size > 0:
         temp = carpe_file.Carpe_File()
         temp.__dict__ = new_file.__dict__.copy()
@@ -315,121 +322,5 @@ class Carpe_FS_Analyze(object):
         temp._type = 7
         temp._name = new_file._name + u"-slack" 
         files.append(temp)
-      
+      '''
       return files
-
-      #print ("---")    
-      #print("===Summary Info===")          
-      #if name and meta:
-        #data="{0:s}|{1:s}|{2:s}|{3:s}|{4:s}|{5:s}|{6:s}|{7:s}|{8:s}|{9:s}|{10:s}|{11:s}|{12:s}|{13:s}|{14:s}|{15:s}|{16:s}|{17:s}|{18:s}|{19:s}|{20:s}".format(
-        #  str(directory_entry_type), str(inode), str("root/"+"/".join(path)), "".join(filename),
-        #  str(si_mtime), str(si_atime), str(si_ctime), str(si_crtime), str(si_mtime_nano), str(si_atime_nano), str(si_ctime_nano), str(si_crtime_nano),
-        #  str(fn_mtime), str(fn_atime), str(fn_ctime), str(fn_crtime), str(fn_mtime_nano), str(fn_atime_nano), str(fn_ctime_nano), str(fn_crtime_nano),
-        #  str(file_extension))
-
-
-        #db_test = carpe_db.Mariadb()
-        #conn=db_test.open()
-        #query=db_test.query_builder("1", data, "file")
-        #data=db_test.execute_query(conn,query)
-        #db_test.close(conn)
-
-
-'''
-
-def Main():
-  """The main program function.
-  Returns:
-    A boolean containing True if successful or False if not.
-  """
-  args_parser = argparse.ArgumentParser(description=(
-      "Lists a file system in a storage media image or device."))
-
-  args_parser.add_argument(
-      "images", nargs="+", metavar="IMAGE", action="store", type=str,
-      default=None, help=("Storage media images or devices."))
-
-  args_parser.add_argument(
-      "inode", nargs="?", metavar="INODE", action="store",
-      type=str, default=None, help=(
-          "The inode or path to list. If [inode] is not given, the root "
-          "directory is used"))
-  # TODO: not implemented.
-  # args_parser.add_argument(
-  #     "-f", "--fstype", metavar="TYPE", dest="file_system_type",
-  #     action="store", type=str, default=None, help=(
-  #         "The file system type (use \"-f list\" for supported types)"))
-  # TODO: not implemented.
-  # args_parser.add_argument(
-  #     "-l", dest="long_listing", action="store_true", default=False,
-  #     help="Display long version (like ls -l)")
-
-  args_parser.add_argument(
-      "-o", "--offset", metavar="OFFSET", dest="offset", action="store",
-      type=int, default=0, help="The offset into image file (in bytes)")
-
-  args_parser.add_argument(
-      "-r", "--recursive", dest="recursive", action="store_true",
-      default=True, help="List subdirectories recursively.")
-
-  args_parser.add_argument(
-      "-p", "--partition_id", dest="partition_id", action="store",
-      default=0, help="Partition ID.")
-
-  options = args_parser.parse_args()
-
-  if not options.images:
-    print('No storage media image or device was provided.')
-    print('')
-    args_parser.print_help()
-    print('')
-    return False
-
-  fs = Carpe_FS_Analyze()
-  fs_alloc_info = carpe_fs_alloc_info.Carpe_FS_Alloc_Info()
-
-  fs.parse_options(options)
-
-  fs.open_image("raw", options.images)
- 
-  fs.open_file_system(0)
-
-  fs.fs_info(options.partition_id)
-
-  fs_alloc_info = fs.block_alloc_status()
-
-  fs_alloc_info._p_id = options.partition_id
-
-
-  directory = fs.open_directory(options.inode)
-
-  db_connector = carpe_db.Mariadb()
-
-  db_connector.open()
-  
-  for i in fs_alloc_info._unallock_blocks:
-    query = db_connector.insert_query_builder("carpe_block_info")
-    query = (query + "\n values " + "%s" % (i, ))
-
-    print (query)
-    raw_input
-    data=db_connector.execute_query(query)
-  db_connector.commit()
-  
-  #db_connector.initialize()
-  # Iterate over all files in the directory and print their name.
-  # What you get in each iteration is a proxy object for the TSK_FS_FILE
-  # struct - you can further dereference this struct into a TSK_FS_NAME
-  # and TSK_FS_META structs.
-
-  fs.list_directory(directory, [], [], db_connector)
-
-  return True
-
-if __name__ == '__main__':
-  if not Main():
-    sys.exit(1)
-  else:
-    sys.exit(0)
-
-'''
