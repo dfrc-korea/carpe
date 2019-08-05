@@ -285,17 +285,17 @@ class Management(ModuleComponentInterface,C_defy):
         self.__actuator.set(_request, ModuleConstant.ENCODE, etype)
         return self.__actuator.call(_request, None, None)
 
+    # @ Jimin_Hur
     # Extract file(s) from image.
     def __extractor(self,extension,result,disable):
         if(disable==True):
             return ModuleConstant.Return.EINVAL_TYPE
 
-        i=0
-        while(1):
-            fname  = self.destPath+os.sep+str(time.time())+"_"+str(i)+"."+extension
-            if(os.path.exists(fname)):i+=1
-            else:break
+        path = self.destPath+os.sep+extension+os.sep
+        if(not os.path.exists(path)):
+            os.mkdir(path)
 
+        fname  = path+str(hex(result[0][0]))+"."+extension
         length = len(result)
         fd     = None
 
