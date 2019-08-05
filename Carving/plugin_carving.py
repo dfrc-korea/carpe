@@ -66,6 +66,7 @@ class Management(ModuleComponentInterface,C_defy):
             return False
         self.__actuator.open("config",2,self.lock)
         self.__actuator.set( "config",ModuleConstant.FILE_ATTRIBUTE,ModuleConstant.CONFIG_FILE)
+        self.__actuator.call("config",ModuleConstant.DESCRIPTION,"Carving Module List")
 
     # @ Gibartes
     def ___loadModule(self):
@@ -293,6 +294,7 @@ class Management(ModuleComponentInterface,C_defy):
 
         path = self.destPath+os.sep+extension+os.sep
         if(not os.path.exists(path)):
+            self.debug_text("INFO","extract::create a result directory at {0}".format(path))
             os.mkdir(path)
 
         fname  = path+str(hex(result[0][0]))+"."+extension
