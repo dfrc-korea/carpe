@@ -6,15 +6,6 @@ import signal
 import argparse
 import importlib
 
-from module_sql import *
-from module_reg import *
-from module_pe  import *
-from module_pf  import *
-from module_mft import *
-from module_lnk import *
-from module_idx import *
-from module_evt import *
-
 # @Gibartes
 
 class Actuator(object):
