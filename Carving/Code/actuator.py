@@ -19,10 +19,6 @@ class Actuator(object):
     def __str__(self):
         return (ModuleID.ACTUATOR,
                 "Module Component {0}".format(self.__class__.__name__))
-
-    def __repr__(self):
-        return (ModuleID.ACTUATOR,
-                "Module Component {0}".format(self.__class__.__name__))
     
     def init(self):
         self.__moduleTbl = {}
