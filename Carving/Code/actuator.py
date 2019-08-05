@@ -19,7 +19,47 @@ class Actuator(object):
     def __str__(self):
         return (ModuleID.ACTUATOR,
                 "Module Component {0}".format(self.__class__.__name__))
-    
+
+    # <--------------------------------
+    # @ Module Executor
+    def open(self,key,id,value):
+        obj = self.__objectTbl.get(key)
+        if(obj==None):
+            return False
+        return obj.module_open(id,value)
+
+    def close(self,key,id,value):
+        obj = self.__objectTbl.get(key)
+        if(obj==None):
+            return False
+        return obj.module_close(id)
+
+    # Get (a) module parameter(s)
+    def get(self,key,attr):
+        obj = self.__objectTbl.get(key)
+        if(obj==None):
+            return False
+        return obj.get_attrib(attr)
+
+    # Set (a) module parameter(s)
+    def set(self,key,attr,value):
+        obj = self.__objectTbl.get(key)
+        if(obj==None):
+            return False
+        obj.set_attrib(attr,value)
+        return True
+
+    # Start Activity
+    def call(self,key,cmd,option):
+        obj = self.__objectTbl.get(key)
+        if(obj==None):
+            return [(False,0,ModuleConstant.INVALID)]
+        return obj.execute(cmd,option)
+
+    # -------------------------------->
+
+    # <--------------------------------
+    # @ Module Loader
     def init(self):
         self.__objectTbl = {}
         self.__importTbl = {}
@@ -41,7 +81,7 @@ class Actuator(object):
             return tmp
         except:return None
 
-    def loadPluginAs(self,module,alias):
+    def loadModuleAs(self,module,alias):
         try:
             tmp = importlib.import_module(module)
             self.__importTbl.update({alias:tmp})
@@ -72,55 +112,21 @@ class Actuator(object):
         return tmp
 
     # Check
-    def checkPluginImported(self,module):
+    def checkModuleLoaded(self,module):
         return (True if module in self.__importTbl.keys() else False)
 
-    def getLoadedPluginList(self):
+    def getLoadedModuleList(self):
         return self.__importTbl.copy()
 
-    def checkModuleLoaded(self,name):
+    def checkObjectLoaded(self,name):
         return (True if name in self.__objectTbl.keys() else False)
 
-    def getLoadedModuleList(self):
+    def getLoadedObjectList(self):
         return self.__objectTbl.copy()
-
-    # Activity
-    def call(self,key,cmd,option):
-        obj = self.__objectTbl.get(key)
-        if(obj==None):
-            return [(False,0,ModuleConstant.INVALID)]
-        return obj.execute(cmd,option)
-
-    # Get (a) module parameter(s)
-    def get(self,key,attr):
-        obj = self.__objectTbl.get(key)
-        if(obj==None):
-            return False
-        return obj.get_attrib(attr)
-
-    # Set (a) module parameter(s)
-    def set(self,key,attr,value):
-        obj = self.__objectTbl.get(key)
-        if(obj==None):
-            return False
-        obj.set_attrib(attr,value)
-        return True
-
-    def open(self,key,id,value):
-        obj = self.__objectTbl.get(key)
-        if(obj==None):
-            return False
-        return obj.module_open(id,value)
-
-    def close(self,key,id,value):
-        obj = self.__objectTbl.get(key)
-        if(obj==None):
-            return False
-        return obj.module_close(id)
 
     # load("module_name","class_name")
     def load(self,module,clss):
-        if(self.checkPluginImported(module)==False):
+        if(self.checkModuleLoaded(module)==False):
             if(self.loadModule(module)==None):
                 return None
         try:
@@ -133,7 +139,7 @@ class Actuator(object):
 
     # loadClass("module_name","class_name")
     def loadClass(self,module,clss):
-        if(self.checkPluginImported(module)==False):
+        if(self.checkModuleLoaded(module)==False):
             return False
         try:
             ClassObject = getattr(self.getModuleHandle(module),clss)
@@ -145,7 +151,7 @@ class Actuator(object):
 
     # loadLibrary("module_name")
     def loadLibrary(self,module):
-        if(self.checkPluginImported(module)==False):
+        if(self.checkModuleLoaded(module)==False):
             if(self.loadModule(module)==None):
                 return None
             return True
@@ -153,17 +159,17 @@ class Actuator(object):
 
     # loadLibraryAs("module_name","namespace")
     def loadLibraryAs(self,module,alias):
-        if(self.checkPluginImported(alias)==True):
+        if(self.checkModuleLoaded(alias)==True):
             return False
-        if(self.checkPluginImported(module)==False):
-            if(self.loadPluginAs(module,alias)==None):
+        if(self.checkModuleLoaded(module)==False):
+            if(self.loadModuleAs(module,alias)==None):
                 return None
             return True
         return False
 
     # unloadLibrary("module_name")
     def unloadLibrary(self,module):
-        if(self.checkPluginImported(module)==False):
+        if(self.checkModuleLoaded(module)==False):
             return False
         return self.unloadModule(module)
 
@@ -175,6 +181,9 @@ class Actuator(object):
         else:
             self.loadLibrary(module)
             return self.loadClass(module,cls)
+
+    # -------------------------------->
+
 
 if __name__ == '__main__':
 
@@ -217,7 +226,7 @@ if __name__ == '__main__':
     if(_lib!=None and _cls!=None):
         mod.load(_lib,_cls)
 
-    if(_request not in mod.getLoadedModuleList().keys()):
+    if(_request not in mod.getLoadedObjectList().keys()):
         print("[!] Unsupport type")
         sys.exit(0)
 
