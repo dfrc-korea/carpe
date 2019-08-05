@@ -70,3 +70,11 @@ class ModuleConstant(object):
     # Dependency List (Static)
     class Dependency(object):
         pecarve          = "pecarve"
+
+
+class ModuleID(object):
+    UNALLOC          = 0x0000
+    ACTUATOR         = 0x0001
+    INIT             = 0X0002
+    RESERVED         = 0xFFFF
+    

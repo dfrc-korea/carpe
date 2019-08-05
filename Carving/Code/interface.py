@@ -23,9 +23,14 @@ class ModuleComponentInterface(metaclass=ABCMeta):
     def __del__(self):
         pass
 
+    @property
     def errno(self):
         return self.__status
-      
+
+    @property
+    def id(self):
+        return self.get_attrib(id,0)
+
     def status(self,status):
         if(type(status)==int):
             self.__status = status
@@ -34,7 +39,7 @@ class ModuleComponentInterface(metaclass=ABCMeta):
         self.attrib.update({key:value})
 
     @abstractmethod
-    def module_open(self,id=1):             # Reserved method for multiprocessing
+    def module_open(self,id=2):             # Reserved method for multiprocessing
         self.__status = 0
         self.attrib.update({"id":int(id)})
     def module_close(self):                 # Reserved method for multiprocessing
