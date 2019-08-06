@@ -4,15 +4,16 @@
 import os,sys,time,binascii
 from multiprocessing import Process, Lock
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}Code".format(os.sep)))
-
 from moduleInterface.defines   import *
 from moduleInterface.interface import ModuleComponentInterface
 from moduleInterface.actuator  import Actuator
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}include".format(os.sep)))
+sys.path.append(os.path.abspath(os.path.dirname(__file__))+"{0}Code".format(os.sep))        # For carving module
+
 from plugin_carving_defines import C_defy
 from Include.carpe_db import Mariadb
+
 
 """
     Key      :Value
@@ -25,6 +26,7 @@ from Include.carpe_db import Mariadb
     "base"   :0,                     # Base 주소(오프셋)
     "excl"   :False                  # 모듈의 유니크(배타적) 속성
 """
+
 
 class Management(ModuleComponentInterface,C_defy):
     def __init__(self,debug=False):
@@ -82,7 +84,9 @@ class Management(ModuleComponentInterface,C_defy):
     def __loadModule(self):
         self.__actuator.clear()
         self.__actuator.init()
-        self.__loadConfig()
+        ret = self.__loadConfig()
+        if(ret==False):
+            return False
         return self.___loadModule()
 
     # @ Jimin_Hur
@@ -395,7 +399,11 @@ if __name__ == '__main__':
     manage = Management()
 
     manage.debug_text("INFO","Module loading...",always=True)    
-    manage.execute(ModuleConstant.LOAD_MODULE)
+    res = manage.execute(ModuleConstant.LOAD_MODULE)
+
+    if(res==False):
+        manage.debug_text("INFO","No config module found...",always=True)
+        sys.exit(0)
 
     manage.debug_text("INFO","Set parameters...",always=True)   
     manage.execute(ModuleConstant.PARAMETER,
