@@ -4,15 +4,13 @@
 import os,sys,time,binascii
 from multiprocessing import Process, Lock
 
-
 sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}Code".format(os.sep)))
 
-from defines   import *
-from interface import ModuleComponentInterface
-from actuator  import Actuator
+from moduleInterface.defines   import *
+from moduleInterface.interface import ModuleComponentInterface
+from moduleInterface.actuator  import Actuator
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}include".format(os.sep)))
-
 from plugin_carving_defines import C_defy
 from Include.carpe_db import Mariadb
 
