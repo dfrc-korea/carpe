@@ -15,7 +15,7 @@ The default attribute of module :
 
 """
 
-from interface     import ModuleComponentInterface
+from moduleInterface.interface import ModuleComponentInterface
 from defines import *
 
 from ctypes  import *

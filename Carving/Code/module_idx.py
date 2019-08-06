@@ -4,10 +4,11 @@
 
 #!/Author : Gibartes
 
-from defines         import *
-from interface       import ModuleComponentInterface
+from moduleInterface.defines   import *
+from moduleInterface.interface import ModuleComponentInterface
+#from defines         import *
+#from interface       import ModuleComponentInterface
 from structureReader import structureReader as sr
-
 #from structureReader import StructureReader    as parser
 #from structureReader import _IndexDatStructure as structure
 

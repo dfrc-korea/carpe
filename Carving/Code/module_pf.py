@@ -14,10 +14,11 @@ The default attribute of module :
 """
 import os,sys
 
-from interface import ModuleComponentInterface
-from defines   import *
+from moduleInterface.defines   import *
+from moduleInterface.interface import ModuleComponentInterface
+#from defines         import *
+#from interface       import ModuleComponentInterface
 from structureReader import structureReader as sr
-
 #from structureReader import StructureReader    as parser
 #from structureReader import _PrefetchStructure as structure
 
