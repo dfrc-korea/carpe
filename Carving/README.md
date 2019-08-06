@@ -5,4 +5,4 @@ Carpe Forensics
 1. moduleInterface @ Gibartes :
 - The convention of the current module system
 2. structureReader @ Gibartes :
-- The byte strucutured stream parser for carving module
+- The byte structured stream parser for carving module
