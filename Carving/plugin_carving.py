@@ -12,7 +12,7 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}include".format(os
 sys.path.append(os.path.abspath(os.path.dirname(__file__))+"{0}Code".format(os.sep))        # For carving module
 
 from plugin_carving_defines import C_defy
-from Include.carpe_db import Mariadb
+from Include.carpe_db       import Mariadb
 
 
 """
@@ -29,7 +29,7 @@ from Include.carpe_db import Mariadb
 
 
 class Management(ModuleComponentInterface,C_defy):
-    def __init__(self,debug=False,out=False):
+    def __init__(self,debug=False,out=None,logBuffer=0x409600):
         super().__init__()
         self.__actuator  = Actuator()
         self.cursor      = None
@@ -37,19 +37,48 @@ class Management(ModuleComponentInterface,C_defy):
         self.destPath    = ".{0}result".format(os.sep)
         self.hits        = {}
         self.lock        = Lock()
-        self.defaultModuleLoaderFile  = str(__file__).split(os.sep)[0]+os.sep+"config.txt"
-        self.stdout                   = str(__file__).split(os.sep)[0]+os.sep+"debug.log"
-        self.moduleLoaderFile         = self.defaultModuleLoaderFile
-        self.__lp          = None
+        self.__lp        = None
+        self.logBuffer   = logBuffer
+        self.out         = out
+        self.defaultModuleLoaderFile = str(__file__).split(os.sep)[0]+os.sep+"config.txt"
+        self.moduleLoaderFile        = self.defaultModuleLoaderFile
+
+        if(type(self.out)==str):
+            self.stdout  = str(__file__).split(os.sep)[0]+os.sep+str(self.out)
+            self.out     = True
+        else:
+            self.out     = False
         
-        if(out==True):
-            self.__lp = open(self.stdout,'w')
-       
+        self.__log_open()
+
     def __del__(self):
         try:
             if(self.__lp!=None):
                 self.__lp.close()
         except:pass
+
+    def __log_open(self):
+        if(self.out==True):
+            if(os.path.exists(self.stdout)):
+                if(os.path.getsize(self.stdout)<self.logBuffer):
+                    self.__lp = open(self.stdout,'a+')
+                    return
+            self.__lp = open(self.stdout,'w')
+            self.__log_write("INFO","Main::Initiate carving plugin log.",always=True) 
+        else:
+            self.__lp   = None
+
+    def __log_write(self,level,context,always=False,init=False):
+        if((self.debug==True or always==True) and self.__lp==None):
+            print("[{0}] At:{1} Text:{2}".format(level,time.ctime(),context))
+        elif((self.debug==True or always==True) and (self.__lp!=None and init==True)):
+            self.__lp.close()
+            self.__log_open()
+        elif((self.debug==True or always==True) and self.__lp!=None):
+            try:
+                self.__lp.write("[{0}]::At::{1}::Text::{2}\n".format(level,time.ctime(),context))
+                self.__lp.flush()
+            except:self.__lp==None
 
     def __get_file_handle(self,path):
         try:
@@ -70,9 +99,9 @@ class Management(ModuleComponentInterface,C_defy):
 
     # @ Gibartes
     def __loadConfig(self):
-        self.debug_text("INFO","Loader::Start to module load...",always=True)
+        self.__log_write("INFO","Loader::Start to module load...",always=True)
         if(self.__actuator.loadModuleClassAs("module_config","ModuleConfiguration","config")==False):
-            self.debug_text("ERROR","Loader::[module_config] module is not loaded. system exit.",always=True)
+            self.__log_write("ERR_","Loader::[module_config] module is not loaded. system exit.",always=True)
             return False
         self.__actuator.open("config",2,self.lock)
         self.__actuator.set( "config",ModuleConstant.FILE_ATTRIBUTE,ModuleConstant.CONFIG_FILE)
@@ -82,18 +111,18 @@ class Management(ModuleComponentInterface,C_defy):
     def ___loadModule(self):
         self.__actuator.call("config",ModuleConstant.INIT,self.moduleLoaderFile)
         modlist = self.__actuator.call("config",ModuleConstant.GETALL,None).values()
-        self.debug_text("INFO","Loader::[module_config] Read module list from {0}.".format(self.moduleLoaderFile),always=True)
+        self.__log_write("INFO","Loader::[module_config] Read module list from {0}.".format(self.moduleLoaderFile),always=True)
         if(len(modlist)==0):
-            self.debug_text("INFO","Loader::[module_config] No module to import.",always=True)
+            self.__log_write("INFO","Loader::[module_config] No module to import.",always=True)
             return False
         for i in modlist:
             i   = i.split(",")
             if(len(i)!=3):continue
             res = self.__actuator.loadModuleClassAs(i[0],i[1],i[2])
-            self.debug_text("INFO","Loader::loading module result [{0:>2}] name [{1:<16}]".format(res,i[0]),always=True)
+            self.__log_write("INFO","Loader::loading module result [{0:>2}] name [{1:<16}]".format(res,i[0]),always=True)
             if(res==False):
-                self.debug_text("WARNING","Loader::[{0:<16}] module is not loaded.".format(i[0]),always=True)
-        self.debug_text("INFO","Loader::Completed.",always=True)
+                self.__log_write("WARN","Loader::[{0:<16}] module is not loaded.".format(i[0]),always=True)
+        self.__log_write("INFO","Loader::Completed.",always=True)
         return True
 
     # @ Gibartes
@@ -104,6 +133,15 @@ class Management(ModuleComponentInterface,C_defy):
         if(ret==False):
             return False
         return self.___loadModule()
+
+    # @ Gibartes
+    def __call_sub_module(self,_request,start,end,cluster,etype='euc-kr'):
+        self.__actuator.set(_request, ModuleConstant.FILE_ATTRIBUTE,self.I_path)  # File to carve
+        self.__actuator.set(_request, ModuleConstant.IMAGE_BASE, start)  # Set offset of the file base
+        self.__actuator.set(_request, ModuleConstant.IMAGE_LAST, end)
+        self.__actuator.set(_request, ModuleConstant.CLUSTER_SIZE, cluster)
+        self.__actuator.set(_request, ModuleConstant.ENCODE, etype)
+        return self.__actuator.call(_request, None, None)
 
     # @ Jimin_Hur
     def __carving_conn(self,cred):
@@ -117,7 +155,7 @@ class Management(ModuleComponentInterface,C_defy):
             cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
             return cursor
         except Exception :
-            self.debug_text("ERROR","DB::Carving DB(local) connection ERROR.")
+            self.__log_write("ERR_","Database::Carving DB(local) connection ERROR.")
             exit(C_defy.Return.EFAIL_DB)
 
     # @ Jimin_Hur
@@ -131,7 +169,7 @@ class Management(ModuleComponentInterface,C_defy):
             cursor1.execute('show create table carpe_block_info')
             c_table_query = cursor1.fetchone()
         except Exception :
-            self.debug_text("ERROR","DB::CARPE DB(master) connection ERROR.")
+            self.__log_write("ERR_","Database::CARPE DB(master) connection ERROR.")
             exit(C_defy.Return.EFAIL_DB)
         # Table 존재여부 확인 및 테이블 생성
         try :
@@ -145,7 +183,7 @@ class Management(ModuleComponentInterface,C_defy):
             self.cursor.execute('select count(*) from carpe_block_info where p_id = %s', self.case)
             init_count = self.cursor.fetchone()
             if len(data) == init_count[0] :
-                self.debug_text("WARNING","DB::This case is already finished Convert DB processing in carving.")
+                self.__log_write("WARN","Database::This case is already finished Convert DB processing in carving.")
                 pass
             else :
                 start = time.time()
@@ -153,11 +191,11 @@ class Management(ModuleComponentInterface,C_defy):
                 for row in data :
                     self.cursor.execute('insert into carpe_block_info values (%s,%s,%s,%s)',(row[0],row[1],row[2],row[3]))
                 self.cursor.execute('commit')
-                self.debug_text("DEBUG","copy db time : {0}".format(time.time() - start))
+                self.__log_write("DBG_","copy db time : {0}".format(time.time() - start))
                 self.cursor.execute(db.CREATE_HELPER['datamap'])
                 self.__convert_db()
         except Exception:
-            self.debug_text("ERROR","DB::Unallocated area DB porting ERROR")
+            self.__log_write("ERR_","Database::Unallocated area DB porting ERROR")
         cursor1.close()
         db.close()
 
@@ -177,9 +215,9 @@ class Management(ModuleComponentInterface,C_defy):
                     self.cursor.execute(sql,(map_id, row[0]))
                     map_id = map_id + 1
                 self.cursor.execute('commit')
-            self.debug_text("DEBUG","converting time : {0}.".format(time.time() - start))
+            self.__log_write("DBG_","converting time : {0}.".format(time.time() - start))
         except Exception :
-            self.debug_text("ERROR","DB::Check signature module ERROR.")
+            self.__log_write("ERR_","Database::Check signature module ERROR.")
 
     # @ Jimin_Hur
     def __signature_scan(self):
@@ -212,9 +250,9 @@ class Management(ModuleComponentInterface,C_defy):
                     isthere = 0
                 C_offset += self.blocksize
                 FP.seek(C_offset)
-            self.debug_text("DEBUG","carving::converting time : {0}.".format(time.time() - start))
+            self.__log_write("DBG_","Carving::converting time : {0}.".format(time.time() - start))
         except Exception :
-            self.debug_text("ERROR","carving::Fast Signature Detector ERROR.")
+            self.__log_write("ERR_","Carving::Fast Signature Detector ERROR.")
 
     # @ Jimin_Hur
     def __carving(self):
@@ -230,7 +268,7 @@ class Management(ModuleComponentInterface,C_defy):
 
         errno = self.__get_file_handle(self.I_path)
         if(errno==ModuleConstant.Return.EINVAL_FILE):
-            self.debug_text("ERROR","carving::Cannot create a file handle.")
+            self.__log_write("ERR_","Carving::Cannot create a file handle.")
             disable = True
 
         for sigblk in data :
@@ -295,15 +333,6 @@ class Management(ModuleComponentInterface,C_defy):
                                 self.hit.update({data[i][2]:[value[0],value[1]+1]})
             i += 1
 
-    # @ Gibartes
-    def __call_sub_module(self,_request,start,end,cluster,etype='euc-kr'):
-        self.__actuator.set(_request, ModuleConstant.FILE_ATTRIBUTE,self.I_path)  # File to carve
-        self.__actuator.set(_request, ModuleConstant.IMAGE_BASE, start)  # Set offset of the file base
-        self.__actuator.set(_request, ModuleConstant.IMAGE_LAST, end)
-        self.__actuator.set(_request, ModuleConstant.CLUSTER_SIZE, cluster)
-        self.__actuator.set(_request, ModuleConstant.ENCODE, etype)
-        return self.__actuator.call(_request, None, None)
-
     # @ Jimin_Hur
     # Extract file(s) from image.
     def __extractor(self,extension,result,disable):
@@ -312,7 +341,7 @@ class Management(ModuleComponentInterface,C_defy):
 
         path = self.destPath+os.sep+extension+os.sep
         if(not os.path.exists(path)):
-            self.debug_text("INFO","extract::create a result directory at {0}".format(path))
+            self.__log_write("INFO","Extract::create a result directory at {0}".format(path))
             os.mkdir(path)
 
         fname  = path+str(hex(result[0][0]))+"."+extension
@@ -360,18 +389,12 @@ class Management(ModuleComponentInterface,C_defy):
                 i+=1
             fd.close()
         
-        self.debug_text("DEBUG","extract::type:{0} name:{1} copied:{2} bytes details:{3}".format(extension,fname,wrtn,result))
+        self.__log_write("DBG_","Extract::type:{0} name:{1} copied:{2} bytes details:{3}".format(extension,fname,wrtn,result))
 
-        return (fname,wrtn) 
+        return (fname,wrtn)
 
-    def debug_text(self,level,context,always=False):
-        if((self.debug==True or always==True) and self.__lp==None):
-            print("[{0}] At:{1} Text:{2}".format(level,time.ctime(),context))
-        elif((self.debug==True or always==True) and self.__lp!=None):
-            try:
-                self.__lp.write("[{0}] At:{1} Text:{2}\n".format(level,time.ctime(),context))
-                self.__lp.flush()
-            except:self.__lp==None
+
+    # @ Module Interface
 
     def module_open(self,id=1):             # Reserved method for multiprocessing
         pass
@@ -392,41 +415,47 @@ class Management(ModuleComponentInterface,C_defy):
             self.I_path          = option.get("path",None)
             self.destPath        = option.get("dest",".{0}result".format(os.sep))
             self.config          = option.get("config",self.defaultModuleLoaderFile)
+            self.__log_write("INFO","Main::Request to set parameters.",always=True)
 
         elif(cmd==ModuleConstant.LOAD_MODULE):
+            self.__log_write("INFO","Main::Request to load module(s).",always=True)
             return self.__loadModule()
 
         elif(cmd==ModuleConstant.CONNECT_DB):
+            self.__log_write("INFO","Main::Request to connect to local database.",always=True)  
             self.cursor = self.__carving_conn(option)
 
         elif(cmd==ModuleConstant.CREATE_DB):
             if(self.cursor!=None):
+                self.__log_write("INFO","Main::Request to connect to remote database and update local database.",always=True) 
                 self.__db_conn_create(option)
 
         elif(cmd==ModuleConstant.DISCONNECT_DB):
+            self.__log_write("INFO","Main::Request to clean up.",always=True) 
             if(self.cursor!=None):
                 self.cursor.close()
                 self.cursor = None
+            else:
+                self.__log_write("WARN","Main::Database handle is already closed.",always=True) 
 
         elif(cmd==ModuleConstant.EXEC and option==None):
+            self.__log_write("","",always=True,init=True)
+            self.__log_write("INFO","Main::Request to run carving process.",always=True)  
             self.__signature_scan() # 시그니처 탐지
             start = time.time()
-            self.__carving()     # 카빙 동작
-            self.debug_text("DEBUG","carving::carving time : {0}.".format(time.time() - start))
-            self.debug_text("INFO",self.hit,always=True)
+            self.__carving()        # 카빙 동작
+            self.__log_write("DBG_","Carving::carving time : {0}.".format(time.time() - start))
+            self.__log_write("INFO","Carving::result:{0}".format(self.hit),always=True)
 
 
 if __name__ == '__main__':
-    manage = Management(debug=True,out=True)
+    manage = Management(debug=False,out="carving.log")
 
-    manage.debug_text("INFO","Module loading...",always=True)    
     res = manage.execute(ModuleConstant.LOAD_MODULE)
 
     if(res==False):
-        manage.debug_text("INFO","No config module found...",always=True)
         sys.exit(0)
 
-    manage.debug_text("INFO","Set parameters...",always=True)   
     manage.execute(ModuleConstant.PARAMETER,
                     {
                         "case":"TEST_2",
@@ -437,7 +466,6 @@ if __name__ == '__main__':
                     }
     )
     
-    manage.debug_text("INFO","Connect to local database...",always=True)   
     manage.execute(ModuleConstant.CONNECT_DB,
                     {
                         "ip":'localhost',
@@ -448,8 +476,7 @@ if __name__ == '__main__':
                         "init":False
                     }
     )
-    
-    manage.debug_text("INFO","Connect to remote database and update local database...",always=True)  
+     
     manage.execute(ModuleConstant.CREATE_DB,
                     {
                         "ip":'218.145.27.66',
@@ -460,10 +487,8 @@ if __name__ == '__main__':
                     }
     )
     
-    manage.debug_text("INFO","Run scanning and carving...",always=True)  
     manage.execute(ModuleConstant.EXEC)
-    
-    manage.debug_text("INFO","Cleaning up...",always=True)  
+
     manage.execute(ModuleConstant.DISCONNECT_DB)
 
     sys.exit(0)
