@@ -7,8 +7,10 @@
 import os
 from collections import OrderedDict
 
-from defines   import *
-from interface import ModuleComponentInterface
+from moduleInterface.defines   import *
+from moduleInterface.interface import ModuleComponentInterface
+#from defines   import *
+#from interface import ModuleComponentInterface
 
 from multiprocessing import Process, Lock
 
