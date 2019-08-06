@@ -29,7 +29,7 @@ from Include.carpe_db import Mariadb
 
 
 class Management(ModuleComponentInterface,C_defy):
-    def __init__(self,debug=False):
+    def __init__(self,debug=False,out=False):
         super().__init__()
         self.__actuator  = Actuator()
         self.cursor      = None
@@ -38,10 +38,18 @@ class Management(ModuleComponentInterface,C_defy):
         self.hits        = {}
         self.lock        = Lock()
         self.defaultModuleLoaderFile  = str(__file__).split(os.sep)[0]+os.sep+"config.txt"
+        self.stdout                   = str(__file__).split(os.sep)[0]+os.sep+"debug.log"
         self.moduleLoaderFile         = self.defaultModuleLoaderFile
-
+        self.__lp          = None
+        
+        if(out==True):
+            self.__lp = open(self.stdout,'w')
+       
     def __del__(self):
-        pass
+        try:
+            if(self.__lp!=None):
+                self.__lp.close()
+        except:pass
 
     def __get_file_handle(self,path):
         try:
@@ -62,7 +70,9 @@ class Management(ModuleComponentInterface,C_defy):
 
     # @ Gibartes
     def __loadConfig(self):
+        self.debug_text("INFO","Loader::Start to module load...",always=True)
         if(self.__actuator.loadModuleClassAs("module_config","ModuleConfiguration","config")==False):
+            self.debug_text("ERROR","Loader::[module_config] module is not loaded. system exit.",always=True)
             return False
         self.__actuator.open("config",2,self.lock)
         self.__actuator.set( "config",ModuleConstant.FILE_ATTRIBUTE,ModuleConstant.CONFIG_FILE)
@@ -72,12 +82,18 @@ class Management(ModuleComponentInterface,C_defy):
     def ___loadModule(self):
         self.__actuator.call("config",ModuleConstant.INIT,self.moduleLoaderFile)
         modlist = self.__actuator.call("config",ModuleConstant.GETALL,None).values()
-        if(len(modlist)==0):return False
+        self.debug_text("INFO","Loader::[module_config] Read module list from {0}.".format(self.moduleLoaderFile),always=True)
+        if(len(modlist)==0):
+            self.debug_text("INFO","Loader::[module_config] No module to import.",always=True)
+            return False
         for i in modlist:
             i   = i.split(",")
             if(len(i)!=3):continue
             res = self.__actuator.loadModuleClassAs(i[0],i[1],i[2])
-            self.debug_text("INFO","loading module result [{0:>2}] name [{1:<16}]".format(res,i[0]),always=True)
+            self.debug_text("INFO","Loader::loading module result [{0:>2}] name [{1:<16}]".format(res,i[0]),always=True)
+            if(res==False):
+                self.debug_text("WARNING","Loader::[{0:<16}] module is not loaded.".format(i[0]),always=True)
+        self.debug_text("INFO","Loader::Completed.",always=True)
         return True
 
     # @ Gibartes
@@ -101,7 +117,7 @@ class Management(ModuleComponentInterface,C_defy):
             cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
             return cursor
         except Exception :
-            self.debug_text("ERROR","Carving DB connection ERROR.")
+            self.debug_text("ERROR","DB::Carving DB(local) connection ERROR.")
             exit(C_defy.Return.EFAIL_DB)
 
     # @ Jimin_Hur
@@ -115,7 +131,7 @@ class Management(ModuleComponentInterface,C_defy):
             cursor1.execute('show create table carpe_block_info')
             c_table_query = cursor1.fetchone()
         except Exception :
-            self.debug_text("ERROR","CARPE DB connection ERROR.")
+            self.debug_text("ERROR","DB::CARPE DB(master) connection ERROR.")
             exit(C_defy.Return.EFAIL_DB)
         # Table 존재여부 확인 및 테이블 생성
         try :
@@ -129,7 +145,7 @@ class Management(ModuleComponentInterface,C_defy):
             self.cursor.execute('select count(*) from carpe_block_info where p_id = %s', self.case)
             init_count = self.cursor.fetchone()
             if len(data) == init_count[0] :
-                self.debug_text("WARNING","This case is already finished Convert DB processing in carving.")
+                self.debug_text("WARNING","DB::This case is already finished Convert DB processing in carving.")
                 pass
             else :
                 start = time.time()
@@ -141,7 +157,7 @@ class Management(ModuleComponentInterface,C_defy):
                 self.cursor.execute(db.CREATE_HELPER['datamap'])
                 self.__convert_db()
         except Exception:
-            self.debug_text("ERROR","unallocated area DB porting ERROR")
+            self.debug_text("ERROR","DB::Unallocated area DB porting ERROR")
         cursor1.close()
         db.close()
 
@@ -163,7 +179,7 @@ class Management(ModuleComponentInterface,C_defy):
                 self.cursor.execute('commit')
             self.debug_text("DEBUG","converting time : {0}.".format(time.time() - start))
         except Exception :
-            self.debug_text("ERROR","check signature module ERROR.")
+            self.debug_text("ERROR","DB::Check signature module ERROR.")
 
     # @ Jimin_Hur
     def __signature_scan(self):
@@ -196,9 +212,9 @@ class Management(ModuleComponentInterface,C_defy):
                     isthere = 0
                 C_offset += self.blocksize
                 FP.seek(C_offset)
-            self.debug_text("DEBUG","converting time : {0}.".format(time.time() - start))
+            self.debug_text("DEBUG","carving::converting time : {0}.".format(time.time() - start))
         except Exception :
-            self.debug_text("ERROR","Fast Signature Detector ERROR.")
+            self.debug_text("ERROR","carving::Fast Signature Detector ERROR.")
 
     # @ Jimin_Hur
     def __carving(self):
@@ -214,7 +230,7 @@ class Management(ModuleComponentInterface,C_defy):
 
         errno = self.__get_file_handle(self.I_path)
         if(errno==ModuleConstant.Return.EINVAL_FILE):
-            self.debug_text("ERROR","Cannot create a file handle.")
+            self.debug_text("ERROR","carving::Cannot create a file handle.")
             disable = True
 
         for sigblk in data :
@@ -344,13 +360,18 @@ class Management(ModuleComponentInterface,C_defy):
                 i+=1
             fd.close()
         
-        self.debug_text("INFO","extract::type:{0} name:{1} copied:{2} bytes details:{3}".format(extension,fname,wrtn,result))
+        self.debug_text("DEBUG","extract::type:{0} name:{1} copied:{2} bytes details:{3}".format(extension,fname,wrtn,result))
 
         return (fname,wrtn) 
 
     def debug_text(self,level,context,always=False):
-        if(self.debug==True or always==True):
+        if((self.debug==True or always==True) and self.__lp==None):
             print("[{0}] At:{1} Text:{2}".format(level,time.ctime(),context))
+        elif((self.debug==True or always==True) and self.__lp!=None):
+            try:
+                self.__lp.write("[{0}] At:{1} Text:{2}\n".format(level,time.ctime(),context))
+                self.__lp.flush()
+            except:self.__lp==None
 
     def module_open(self,id=1):             # Reserved method for multiprocessing
         pass
@@ -391,12 +412,12 @@ class Management(ModuleComponentInterface,C_defy):
             self.__signature_scan() # 시그니처 탐지
             start = time.time()
             self.__carving()     # 카빙 동작
-            self.debug_text("DEBUG","carving time : {0}.".format(time.time() - start))
+            self.debug_text("DEBUG","carving::carving time : {0}.".format(time.time() - start))
             self.debug_text("INFO",self.hit,always=True)
 
 
 if __name__ == '__main__':
-    manage = Management()
+    manage = Management(debug=True,out=True)
 
     manage.debug_text("INFO","Module loading...",always=True)    
     res = manage.execute(ModuleConstant.LOAD_MODULE)
