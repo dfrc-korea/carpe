@@ -11,6 +11,8 @@ Carpe Forensics
 # The description about Module Interface (moduleInterface)
 
 ## ModuleComoponentInterface
+[ ModuleComoponentInterface Class ]
+
 ### Interface Design
 ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가지 method를 구현해야 합니다.
 1. module_open(id)
@@ -37,7 +39,7 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
 
 
 ## Actuator
-[ Module Interface Actuator Class ]
+[ Actuator Class ]
 
 ### Methods - Manage
 1. init()
