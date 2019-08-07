@@ -113,7 +113,7 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
     )
 ```
 3. CONNECT_DB
-- 특정 Case에 대한 Local Database에 연결합니다.
+- Local Database에 연결합니다.
 ```python
     manage.execute(ModuleConstant.CONNECT_DB,
                     {
@@ -127,8 +127,8 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
     )
 ```
 4. CREATE_DB
-- 원격 Database에 연결하고 Local Database로 필요한 데이터를 가져옵니다.
-```python
+- 원격 Database에 연결합니다. PARAMETER에 입력했던 case로 쿼리하여 case에 해당하는 블록 정보 Database를 Local Database로 가져옵니다. 미할당 영역의 크기가 커지면 소요시간이 길어질 수 있습니다.
+```
     manage.execute(ModuleConstant.CREATE_DB,
                     {
                         "ip":'remote ip',
@@ -140,12 +140,12 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
     )
 ```
 5. EXEC
-- 시그니처 스캔 및 카빙 작업을 수행합니다. 1~4단계가 완료되어야 합니다. 파라미터 설정의 "dest" 영역에 기록된 곳에 추출된 파일들이 확장자별로 저장됩니다.
+- 시그니처 스캔 및 카빙 작업을 수행합니다. 이 작업을 수행 전 올바른 결과를 얻기 위해서는 위의 1~4까지 설정되어 있어야 합니다. 파라미터 설정의 "dest" 영역에 기록된 곳에 추출된 파일들이 확장자별로 저장됩니다.
 ```python
     manage.execute(ModuleConstant.EXEC)
 ```
 6. DISCONNECT_DB
-- Local Database를 닫습니다.
+- Local Database를 닫습니다. LOAD_MODULE로부터 임포트된 모듈들은 유지됩니다.
 ```python
     manage.execute(ModuleConstant.DISCONNECT_DB)
 ```
