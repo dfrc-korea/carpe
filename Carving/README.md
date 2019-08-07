@@ -13,11 +13,11 @@ Carpe Forensics
 ## ModuleComoponentInterface
 [ ModuleComoponentInterface Class ]
 
-### Interface Design
+### Interface implementation
 ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가지 method를 구현해야 합니다.
 1. module_open(id)
 - 모듈 객체를 열 때 처리해야할 과정을 호출합니다.
-2. module_close(id)
+2. module_close()
 - 모듈 객체를 닫을 때 처리해야할 과정을 호출합니다.
 3. get_attrib(key)
 - 모듈의 속성을 key에 대응되는 값으로 얻습니다. 모듈 속성은 사전 형태로 정의되어 있습니다.
