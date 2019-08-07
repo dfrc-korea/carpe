@@ -54,7 +54,7 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
 3. get(object,attr)
 - 모듈 객체에 해당하는 속성 정보를 얻습니다.
 4. set(object,attr,value)
-- 모듈 겍체에 해당하는 속성(attr) 정보를 value로 추가 및 변경합니다.
+- 모듈 객체에 해당하는 속성(attr) 정보를 value로 추가 및 변경합니다.
 5. call(object,cmd,option)
 - 모듈 객체를 명령 프로토콜(cmd)를 가지고 파라미터(option)을 부여하여 실행합니다. 모듈 실행 결과가 리턴됩니다.
 ### Methods - Loader
