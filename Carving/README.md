@@ -35,11 +35,11 @@ Carpe Forensics
 1. loadLibrary(module)
 - module 이름을 가진 라이브러리를 모듈 테이블로 로드합니다. 인자 module은 string 타입입니다. 결과에 대한 bool 값이 리턴됩니다.
 2. loadLibraryAs(module,alias)
-- module 이름을 가진 라이브러리를 alias의 이름을 primary 키로 인식하여 모듈 테이블로 로드합니다. 결과에 대한 bool 값이 리턴됩니다. 인자 module과 alias는 은 string 타입입니다.
+- module 이름을 가진 파이썬 라이브러리를 alias의 이름으로 모듈 테이블 로드합니다. alias를 이용해 모듈 테이블에서 해당 객체를 검색할 수 있습니다. 결과에 대한 bool 값이 리턴됩니다. 인자 module과 alias는 string 타입입니다.
 3. unloadLibrary(module)
 - 모듈 테이블에 등록된 모듈을 언로드합니다. 인자 module은 string 타입입니다. 결과에 대한 bool 값이 리턴됩니다.
 4. loadClass(module,class)
-- 모듈 내 클래스를 객체를 생성하고, 객체가 성공적으로 생성되면 객체 테이블에 등록합니다. 인자 module과 class는 string 타입이고, class는 module 내부에 있는 class 이름입니다. 결과에 대한 bool 값이 리턴됩니다.
+- 모듈 내 클래스를 객체를 생성하고, 객체가 성공적으로 생성되면 객체 테이블에 등록합니다. 이 작업이 성공하려면 module이 모듈 테이블에 존재해야 합니다. 인자 module과 class는 string 타입이고, class는 module 내부에 있는 class 이름입니다. 결과에 대한 bool 값이 리턴됩니다.
 5. loadObject(name,class)
 - class 객체를 name으로 객체 테이블에 등록합니다. 인자 module과 class는 string 타입입니다.
 6. unloadObject(name)
