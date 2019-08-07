@@ -86,7 +86,7 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
 
 ## Management
 ### Class Management(debug=False,out=None,logBuffer=0x409600)
-- Carving 작업을 수행할 Management Class를 만듭니다. debug모드이면 자세한 내용이 출력되며 out에 파일이름을 넣으면 해당 파일로 데이터가 출력됩니다. logBuffer는 최대 log 파일 크기로 기본적으로 0x409600Bytes 으로 설정되어 있습니다. Management Class는 6가지의 작업을 수행할 수 있습니다.
+- Carving 작업을 수행할 Management Class입니다. Management Class는 ModuleComponentInterface의 원칙에 따라 구성하였으므로 Actuator Class에 붙여 실행시킬 수 있습니다. debug모드이면 진행 과정에 대한 자세한 내용이 출력되며, out에 파일이름을 넣으면 해당 파일로 데이터가 출력됩니다. logBuffer는 최대 log 파일 크기로 기본적으로 0x409600Bytes 으로 설정되어 있습니다. Management Class는 6가지의 작업이 정의되어 있습니다.
 ```python
     manage = Management(debug=False,out="carving.log")
 ```
