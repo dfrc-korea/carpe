@@ -135,11 +135,11 @@ manage.execute(ModuleConstant.CONNECT_DB,
 5. EXEC
 - 시그니처 스캔 및 카빙 작업을 수행합니다. 1~4단계가 완료되어야 합니다. 파라미터 설정의 "dest" 영역에 기록된 곳에 추출된 파일들이 확장자별로 저장됩니다.
 ```python
-manage.execute(ModuleConstant.EXEC)
+    manage.execute(ModuleConstant.EXEC)
 ```
 6. DISCONNECT_DB
 - Local Database를 닫습니다.
 ```python
-manage.execute(ModuleConstant.DISCONNECT_DB)
+    manage.execute(ModuleConstant.DISCONNECT_DB)
 ```
 
