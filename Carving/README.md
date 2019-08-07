@@ -91,9 +91,12 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
     manage = Management(debug=False,out="carving.log")
 ```
 1. LOAD_MODULE
-- Management Class에는 기본적으로 탑재된 Carving Module이 존재하지 않으며 config.txt를 읽어 config.txt에 기록된 모듈을 임포트합니다. 이 작업을 통해 Management Class는 동적으로 모듈을 필요할 때마다 불러들여 사용할 수 있습니다. 이 작업은 모듈 추가가 되지 않으면 Management 클래스의 Life time 동안 한번만 실행해도 됩니다. config.txt에 기록된 모듈이 모두 사용이 불가능한 상태이거 module_config.py 파일이 없으면 False가 리턴됩니다.
+- Management Class에는 기본적으로 탑재된 Carving Module이 존재하지 않으며 config.txt를 읽어 config.txt에 기록된 모듈을 임포트합니다. 이 작업을 통해 Management Class는 동적으로 모듈을 필요할 때마다 불러들여 사용할 수 있습니다. 이 작업은 모듈 추가가 되지 않으면 Management 클래스의 Life time 동안 한번만 실행해도 됩니다. config.txt에 기록된 모듈이 모두 사용이 불가능한 상태이거나 module_config.py 파일이 없으면 False가 리턴됩니다.
 ```python
-    manage.execute(ModuleConstant.LOAD_MODULE)
+    result = manage.execute(ModuleConstant.LOAD_MODULE)
+    if(result==False):
+        Handle_an_exception()
+        ...
 ```
 2. PARAMETER
 - Managemet Class의 기본 파라미터들을 설정합니다.
