@@ -13,8 +13,10 @@ Carpe Forensics
 ## ModuleComoponentInterface
 [ ModuleComoponentInterface Class ]
 
+각 Module을 제작하는데 있어 필수적으로 구현해야 하는 규약입니다.
+
 ### Interface implementation
-ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가지 method를 구현해야 합니다.
+ModuleComponentInterface는 추상 클래스로 이 클래스를 상속받는 하위 클래스에서 다음의 method들을 반드시 구현해야 합니다.
 1. module_open(id)
 - 모듈 객체를 열 때 처리해야할 과정을 호출합니다.
 2. module_close()
@@ -41,6 +43,8 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
 ## Actuator
 [ Actuator Class ]
 
+ModuleComponentInterface에 맞추어 개발된 각 모듈들을 효율적이고 체계적으로 관리하고, 통일성있게 구동시키는 기능을 가진 클래스입니다.
+
 ### Methods - Manage
 1. init()
 - Actuator 클래스의 초기화 작업을 수행합니다. 모듈 테이블과 객체 테이블이 모두 비워집니다.
@@ -61,13 +65,13 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
 1. loadLibrary(module)
 - module 이름을 가진 라이브러리를 모듈 테이블로 로드합니다. 인자 module은 string 타입입니다. 결과에 대한 bool 값이 리턴됩니다.
 2. loadLibraryAs(module,alias)
-- module 이름을 가진 파이썬 라이브러리를 alias의 이름으로 모듈 테이블 로드합니다. alias를 이용해 모듈 테이블에서 해당 객체를 검색할 수 있습니다. 결과에 대한 bool 값이 리턴됩니다. 인자 module과 alias는 string 타입입니다.
+- module 이름을 가진 파이썬 라이브러리를 alias의 이름으로 모듈 테이블 로드합니다. alias를 이용해 모듈 테이블에서 해당 객체를 검색할 수 있습니다. 결과에 대한 bool 값이 리턴됩니다. 인자 module과 alias는 string 입니다.
 3. unloadLibrary(module)
-- 모듈 테이블에 등록된 모듈을 언로드합니다. 인자 module은 string 타입입니다. 결과에 대한 bool 값이 리턴됩니다.
+- 모듈 테이블에 등록된 모듈을 언로드합니다. 인자 module은 string 입니다. 결과에 대한 bool 값이 리턴됩니다.
 4. loadClass(module,class)
 - 모듈 내 클래스를 객체를 생성하고, 객체가 성공적으로 생성되면 객체 테이블에 등록합니다. 이 작업이 성공하려면 module이 모듈 테이블에 존재해야 합니다. 인자 module과 class는 string 타입이고, class는 module 내부에 있는 class 이름입니다. 결과에 대한 bool 값이 리턴됩니다.
 5. loadObject(name,class)
-- class 객체를 name으로 객체 테이블에 등록합니다. 인자 module과 class는 string 타입입니다.
+- class 객체를 name으로 객체 테이블에 등록합니다. 인자 module과 class는 string 입니다.
 6. unloadObject(name)
 - name으로 객체 테이블에 등록된 객체를 제거합니다.
 7. getModuleHandle(module)
