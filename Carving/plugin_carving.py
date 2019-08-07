@@ -272,17 +272,20 @@ class Management(ModuleComponentInterface,C_defy):
             disable = True
 
         for sigblk in data :
-            # 맨 마지막 레코드
+            
             if (self.hit.get(data[i][2])==None):
                 self.hit.update({data[i][2]:[0,0]})
             
             value   = self.hit.get(data[i][2])
             self.hit.update({data[i][2]:[value[0]+1,value[1]]})
             value   = self.hit.get(data[i][2])
+            
+            current = data[i][1]*self.blocksize
 
+            # 맨 마지막 레코드
             if i+1 == total:
                 end_pos = os.path.getsize(self.I_path)
-                result  = self.__call_sub_module(data[i][2],data[i][1]*self.blocksize,end_pos,1024)
+                result  = self.__call_sub_module(data[i][2],current,end_pos,self.blocksize)
 
                 if(type(result)==tuple):
                     result = [list(result)]
@@ -299,7 +302,7 @@ class Management(ModuleComponentInterface,C_defy):
             else :
                 # 같은 블록에 여러개의 sig가 발견
                 if sigblk[0] == data[i+1][0] :
-                    result = self.__call_sub_module(data[i][2],data[i][1]*self.blocksize,data[i+1][1]*self.blocksize,self.blocksize)
+                    result = self.__call_sub_module(data[i][2],current,data[i+1][1]*self.blocksize,self.blocksize)
                     
                     if(type(result)==tuple):
                         result = [list(result)]
@@ -312,25 +315,45 @@ class Management(ModuleComponentInterface,C_defy):
                         res = self.__extractor(data[i][2],result,disable) #파일 추출 모듈
                         if(res!=ModuleConstant.Return.EINVAL_NONE):
                             self.hit.update({data[i][2]:[value[0],value[1]+1]})
+                
                 # 다른 블록으로 변경됨
 
                 else :
                     self.cursor.execute('select blk_num from datamap where blk_num > %s and block_id = %s order by blk_num desc',(sigblk[1],sigblk[0]))
                     end_pos = self.cursor.fetchone()
+                    
                     if(end_pos!=None):
-                        result = self.__call_sub_module(data[i][2],data[i][1]*self.blocksize,end_pos[0]*self.blocksize,1024)
-
+                        result = self.__call_sub_module(data[i][2],current,end_pos[0]*self.blocksize,self.blocksize)
                         if(type(result)==tuple):
                             result = [list(result)]
 
                         if(len(result[0])==4):
                             result[0].pop(0)
-
+                        
                         #print(data[i][2],hex(data[i][1]*self.blocksize),result)
                         if(result[0][1]>0):
                             res = self.__extractor(data[i][2],result,disable) #파일 추출 모듈
                             if(res!=ModuleConstant.Return.EINVAL_NONE):
                                 self.hit.update({data[i][2]:[value[0],value[1]+1]})
+
+                    else:
+                        # --------------------------------------------
+                        # 데이터가 있음에도 불구하고 리턴 값 None 추가 처리 요함 (DB 파트 협의 필요)
+                        # 임시 처리 : (블록 크기만큼)
+                        result = self.__call_sub_module(data[i][2],current,current+self.blocksize,self.blocksize)
+                        if(type(result)==tuple):
+                            result = [list(result)]
+
+                        if(len(result[0])==4):
+                            result[0].pop(0)
+                        
+                        #print(data[i][2],hex(data[i][1]*self.blocksize),result)
+                        if(result[0][1]>0):
+                            res = self.__extractor(data[i][2],result,disable) #파일 추출 모듈
+                            if(res!=ModuleConstant.Return.EINVAL_NONE):
+                                self.hit.update({data[i][2]:[value[0],value[1]+1]})
+                        # --------------------------------------------
+
             i += 1
 
     # @ Jimin_Hur
@@ -351,6 +374,7 @@ class Management(ModuleComponentInterface,C_defy):
         try:
             fd = open(fname,'wb')
         except:
+            self.__log_write("ERR_","Extract::an error while creating file.".format(path))
             return ModuleConstant.Return.EINVAL_NONE
 
         if(length==1):
@@ -449,7 +473,7 @@ class Management(ModuleComponentInterface,C_defy):
 
 
 if __name__ == '__main__':
-    manage = Management(debug=False,out="carving.log")
+    manage = Management(debug=True,out="carving.log")
 
     res = manage.execute(ModuleConstant.LOAD_MODULE)
 
