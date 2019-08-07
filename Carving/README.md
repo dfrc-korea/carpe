@@ -89,13 +89,57 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
 - Carving 작업을 수행할 Management Class를 만듭니다. debug모드이면 자세한 내용이 출력되며 out에 파일이름을 넣으면 해당 파일로 데이터가 출력됩니다. logBuffer는 최대 log 파일 크기로 기본적으로 0x409600Bytes 으로 설정되어 있습니다. Management Class는 6가지의 작업을 수행할 수 있습니다.
 1. LOAD_MODULE
 - Management Class에는 기본적으로 탑재된 Carving Module이 존재하지 않으며 config.txt를 읽어 config.txt에 기록된 모듈을 임포트합니다. 이 작업을 통해 Management Class는 동적으로 모듈을 필요할 때마다 불러들여 사용할 수 있습니다. 이 작업은 모듈 추가가 되지 않으면 Management 클래스의 Life time 동안 한번만 실행해도 됩니다.
+```python
+manage.execute(ModuleConstant.LOAD_MODULE)
+```
 2. PARAMETER
 - Managemet Class의 기본 파라미터들을 설정합니다.
+```python
+manage.execute(ModuleConstant.PARAMETER,
+                    {
+                        "case":"CaseName",
+                        "block":4096,
+                        "sector":512,
+                        "start":0x10000,
+                        "path":"./img/disk.img"
+                    }
+    )
+```
 3. CONNECT_DB
 - 특정 Case에 대한 Local Database에 연결합니다.
+```python
+manage.execute(ModuleConstant.CONNECT_DB,
+                    {
+                        "ip":'localhost',
+                        "port":0,
+                        "id":'loacl_id',
+                        "password":'local_password',
+                        "category":'carving',
+                        "init":False
+                    }
+    )
+```
 4. CREATE_DB
 - 원격 Database에 연결하고 Local Database로 필요한 데이터를 가져옵니다.
+```python
+    manage.execute(ModuleConstant.CREATE_DB,
+                    {
+                        "ip":'remote ip',
+                        "port":remote_port,
+                        "id":'remote_id',
+                        "password":'remote_password',
+                        "category":'remote_database'
+                    }
+    )
+```
 5. EXEC
-- 시그니처 스캔 및 카빙 작업을 수행합니다. 1~4단계가 완료되어야 합니다.
+- 시그니처 스캔 및 카빙 작업을 수행합니다. 1~4단계가 완료되어야 합니다. 파라미터 설정의 "dest" 영역에 기록된 곳에 추출된 파일들이 확장자별로 저장됩니다.
+```python
+manage.execute(ModuleConstant.EXEC)
+```
 6. DISCONNECT_DB
 - Local Database를 닫습니다.
+```python
+manage.execute(ModuleConstant.DISCONNECT_DB)
+```
+
