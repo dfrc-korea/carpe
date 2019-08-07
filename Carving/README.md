@@ -87,15 +87,18 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
 ## Management
 ### Class Management(debug=False,out=None,logBuffer=0x409600)
 - Carving 작업을 수행할 Management Class를 만듭니다. debug모드이면 자세한 내용이 출력되며 out에 파일이름을 넣으면 해당 파일로 데이터가 출력됩니다. logBuffer는 최대 log 파일 크기로 기본적으로 0x409600Bytes 으로 설정되어 있습니다. Management Class는 6가지의 작업을 수행할 수 있습니다.
-1. LOAD_MODULE
-- Management Class에는 기본적으로 탑재된 Carving Module이 존재하지 않으며 config.txt를 읽어 config.txt에 기록된 모듈을 임포트합니다. 이 작업을 통해 Management Class는 동적으로 모듈을 필요할 때마다 불러들여 사용할 수 있습니다. 이 작업은 모듈 추가가 되지 않으면 Management 클래스의 Life time 동안 한번만 실행해도 됩니다.
 ```python
-manage.execute(ModuleConstant.LOAD_MODULE)
+    manage = Management(debug=False,out="carving.log")
+```
+1. LOAD_MODULE
+- Management Class에는 기본적으로 탑재된 Carving Module이 존재하지 않으며 config.txt를 읽어 config.txt에 기록된 모듈을 임포트합니다. 이 작업을 통해 Management Class는 동적으로 모듈을 필요할 때마다 불러들여 사용할 수 있습니다. 이 작업은 모듈 추가가 되지 않으면 Management 클래스의 Life time 동안 한번만 실행해도 됩니다. config.txt에 기록된 모듈이 모두 사용이 불가능한 상태이거 module_config.py 파일이 없으면 False가 리턴됩니다.
+```python
+    manage.execute(ModuleConstant.LOAD_MODULE)
 ```
 2. PARAMETER
 - Managemet Class의 기본 파라미터들을 설정합니다.
 ```python
-manage.execute(ModuleConstant.PARAMETER,
+    manage.execute(ModuleConstant.PARAMETER,
                     {
                         "case":"CaseName",
                         "block":4096,
@@ -108,7 +111,7 @@ manage.execute(ModuleConstant.PARAMETER,
 3. CONNECT_DB
 - 특정 Case에 대한 Local Database에 연결합니다.
 ```python
-manage.execute(ModuleConstant.CONNECT_DB,
+    manage.execute(ModuleConstant.CONNECT_DB,
                     {
                         "ip":'localhost',
                         "port":0,
