@@ -80,3 +80,22 @@ ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가�
 - 객체 테이블에 name으로 배정된 class가 등록되어 있는지 확인합니다. 결과에 대한 bool 값이 리턴됩니다.
 11. getLoadedObjectList()
 - 객체 테이블을 사전 형식으로 복사합니다. 리턴된 객체를 수정해도 반영되지 않습니다. 
+
+
+# The Description of Carving Plugin
+
+## Management
+### Class Management(debug=False,out=None,logBuffer=0x409600)
+- Carving 작업을 수행할 Management Class를 만듭니다. debug모드이면 자세한 내용이 출력되며 out에 파일이름을 넣으면 해당 파일로 데이터가 출력됩니다. logBuffer는 최대 log 파일 크기로 기본적으로 0x409600Bytes 으로 설정되어 있습니다. Management Class는 6가지의 작업을 수행할 수 있습니다.
+1. LOAD_MODULE
+- Management Class에는 기본적으로 탑재된 Carving Module이 존재하지 않으며 config.txt를 읽어 config.txt에 기록된 모듈을 임포트합니다. 이 작업을 통해 Management Class는 동적으로 모듈을 필요할 때마다 불러들여 사용할 수 있습니다.
+2. PARAMETER
+- Managemet Class의 기본 파라미터들을 설정합니다.
+3. CONNECT_DB
+- 특정 Case에 대한 Local Database에 연결합니다.
+4. CREATE_DB
+- 원격 Database에 연결합니다.
+5. EXEC
+- 시그니처 스캔 및 카빙 작업을 수행합니다. 1~4단계가 완료되어야 합니다.
+6. DISCONNECT_DB
+- Local Database를 닫습니다.
