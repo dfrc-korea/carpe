@@ -8,7 +8,7 @@ Carpe Forensics
 - The byte structured stream parser for carving module
 
 
-# The description about Module Interface (moduleInterface)
+# The escription about Module Interface (moduleInterface)
 
 ## ModuleComoponentInterface
 [ ModuleComoponentInterface Class ]
