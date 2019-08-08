@@ -22,9 +22,9 @@ ModuleComponentInterface는 추상 클래스로 이 클래스를 상속받는 �
 2. module_close()
 - 모듈 객체를 닫을 때 처리해야할 과정을 호출합니다.
 3. get_attrib(key,value=None)
-- 모듈의 속성을 key에 대응되는 값으로 얻습니다. 모듈 속성은 사전 형태로 정의되어 있습니다. 키에 대한 유일한 값을 얻는 것 이외에 처리해야할 것이 없다면 return super().get_attrib(key) 코드를 이 method에 추가하십시오. 
+- 모듈의 속성을 key에 대응되는 값으로 얻습니다. 모듈 속성은 사전 형태로 정의되어 있습니다. 키에 대한 유일한 값을 얻는 것 이외에 처리해야할 이 없다면 return super().get_attrib(key) 코드를 이 method에 추가하십시오. 
 4. set_attrib(key,value=None)
-- 모듈의 속성을 key에 해당되는 내용을 value로 설정합니다. 키에 대한 유일한 값을 얻는 설정하는 것 이외에 별도로 처리해야할 것이 없다면 return super().set_attrib(key,value) 코드를 이 method에 추가하십시오. 
+- 모듈의 속성을 key에 해당되는 내용을 value로 설정합니다. 키에 대한 유일한 값을 얻는 것 이외에 별도로 처리해야할 작업이 없다면 return super().set_attrib(key,value) 코드를 이 method에 추가하십시오. 
 5. execute(cmd=None,option=None)
 - 모듈의 동작 메서드를 실행합니다. 이 코드 내부에 ioctl처럼 동작을 구현하십시오.
 ### Accessible Variables and Methods - etc.
