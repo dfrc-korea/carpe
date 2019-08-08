@@ -130,7 +130,7 @@ ModuleComponentInterface에 맞추어 개발된 각 모듈들을 효율적이고
     )
 ```
 4. CREATE_DB
-- 원격 Database에 연결합니다. PARAMETER에 입력했던 case로 쿼리하여 case에 해당하는 블록 정보 Database를 Local Database로 가져옵니다. 미할당 영역의 크기가 커지면 소요시간이 길어질 수 있습니다.
+- 원격 Database에 연결합니다. PARAMETER에 입력했던 case로 쿼리하여 case에 해당하는 블록 정보 Database를 Local Database로 가져옵니다. 분석 대상의 크기가 커지면 소요시간이 길어질 수 있습니다.
 ```
     manage.execute(ModuleConstant.CREATE_DB,
                     {
