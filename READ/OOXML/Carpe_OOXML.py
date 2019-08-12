@@ -1125,7 +1125,10 @@ class OOXML:
 
         else:
             # 손상 시
-
+            self.metadata["title"] = "None"
+            self.metadata["creator"] = "None"
+            self.metadata["created"] = "None"
+            self.metadata["modified"] = "None"
             f = open(self.filename, "rb")
             cal_recovable_count = 0
             f.seek(0, 0)
@@ -1197,8 +1200,6 @@ class OOXML:
                                         break
                                 metadata_count = metadata_count + 1
                                 i=0
-                            else:
-                                self.metadata = {'title': 'None'}
 
                             if c_pos is not 0:
                                 metadata_value.append("")
@@ -1213,8 +1214,6 @@ class OOXML:
                                         break
                                 metadata_count = metadata_count + 1
                                 i=0
-                            else:
-                                self.metadata = {'creator': 'None'}
 
                             if c_time_pos is not 0:
                                 metadata_value.append("")
@@ -1223,14 +1222,13 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count]+a1[c_time_pos+i+42]
-                                    self.metadata['created'] = metadata_value[1]
+                                    #self.metadata['created'] = metadata_value[1]
+                                    self.metadata['created'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[c_time_pos+i+42] == '<':
                                         break
                                 metadata_count = metadata_count + 1
                                 i=0
-                            else:
-                                self.metadata = {'created': 'None'}
 
                             if m_time_pos is not 0:
                                 metadata_value.append("")
@@ -1243,8 +1241,6 @@ class OOXML:
                                     i = i + 1
                                     if a1[m_time_pos+i+43] == '<':
                                         break
-                            else:
-                                self.metadata = {'modified': 'None'}
 
                             return metadata_value
 
