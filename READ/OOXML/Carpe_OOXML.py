@@ -711,7 +711,22 @@ class OOXML:
                                         only_data = ""
                                         if a1[i] == '<':
                                             i = i + 1
-                                            if a1[i] == 'v':
+                                            if a1[i] == 'f':
+                                                i = i+1
+                                                if a1[i] == '>':
+                                                    while a1[i] != '<':
+                                                        i = i+1
+                                                        if a1[i] == '<':
+                                                            i = i+1
+                                                            if a1[i] == 'v':
+                                                                i = i+1
+                                                                if a1[i] == '>':
+                                                                    i = i+1
+                                                                    while a1[i] != '<':
+                                                                        final_word = final_word + a1[i]
+                                                                        i = i+1
+                                                                    final_word = final_word + ' '
+                                            elif a1[i] == 'v':
                                                 i = i + 1
                                                 if a1[i] == '>':
                                                     i = i + 1
@@ -721,7 +736,12 @@ class OOXML:
                                                         if i < len(a1) - 1:
                                                             i = i + 1
                                                             if a1[i] == '<':
-                                                                order_word.append(only_data)
+                                                                if int(only_data) > len(list_word):
+                                                                    final_word = final_word + only_data + ' '
+                                                                else:
+                                                                    final_word = final_word + list_word[int(only_data)] + ' '
+
+                                                                #order_word.append(only_data)
                                                         else:
                                                             break
                                         i = i + 1
@@ -733,11 +753,14 @@ class OOXML:
                                         break
                             endingpoint = f.tell() - 1
                             temp1 = endingpoint - temp1
-
+                '''
                 for num_list in order_word:
-                    final_word = final_word + list_word[int(float(num_list))] + ' '
+                    if int(num_list) > len(list_word):
+                        final_word = final_word + num_list + ' '
+                    else:
+                        final_word = final_word + list_word[int(num_list)] + ' '
+                '''
                 self.content = final_word
-
                 return final_word
 
                 if "docProps" not in data_name:
