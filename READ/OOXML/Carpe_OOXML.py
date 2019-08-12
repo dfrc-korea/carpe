@@ -745,7 +745,7 @@ class OOXML:
                                                             if a1[i] == '<':
                                                                 if isNumber(only_data) == False:
                                                                     final_word = final_word + only_data + ' '
-                                                                elif int(only_data) > len(list_word):
+                                                                elif int(only_data) >= len(list_word):
                                                                     final_word = final_word + only_data + ' '
                                                                 else:
                                                                     final_word = final_word + list_word[int(only_data)] + ' '
