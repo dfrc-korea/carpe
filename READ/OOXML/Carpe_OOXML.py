@@ -22,6 +22,13 @@ content_recoverable_flag = False
 metadata_recoverable_flag = False
 filetype  = ''
 
+def isNumber(s):
+  try:
+    int(s)
+    return True
+  except ValueError:
+    return False
+
 class OOXML:
 
     def __init__(self, filename):
@@ -736,7 +743,9 @@ class OOXML:
                                                         if i < len(a1) - 1:
                                                             i = i + 1
                                                             if a1[i] == '<':
-                                                                if int(only_data) > len(list_word):
+                                                                if isNumber(only_data) == False:
+                                                                    final_word = final_word + only_data + ' '
+                                                                elif int(only_data) > len(list_word):
                                                                     final_word = final_word + only_data + ' '
                                                                 else:
                                                                     final_word = final_word + list_word[int(only_data)] + ' '
