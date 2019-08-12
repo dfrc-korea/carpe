@@ -636,7 +636,12 @@ class PPT :
             except UnicodeDecodeError:
                 continue
         """
-        self.compound.content = self.filteredText.decode('utf-16')
+        for i in range(0, len(self.filteredText), 2):
+            try:
+                self.compound.content += self.filteredText[i:i+2].decode('utf-16')
+            except UnicodeDecodeError:
+                continue
+        #self.compound.content = self.filteredText.decode('utf-16')
 
     def __parse_ppt_damaged__(self):
         file = bytearray(self.compound.fp.read())
@@ -726,20 +731,10 @@ class PPT :
                 self.current_offset += 4
                 self.arr_user_edit_block.append(editblock)
 
-
-
-
         # SetPersistPtrIncrementalBlockChain
         tmpSheet = 0
         tmpLength = 0
         ppl_block = []
-        sheet_offset = {}
-        sheet_offset['count'] = 0
-        sheet_offset['startnum'] = 0
-        sheet_offset['object'] = b''
-        sheet_offset['slidenum'] = []
-        sheet_offset['slideid'] = []
-
 
         for i in range(0, len(self.arr_user_edit_block)):
             self.current_offset = self.arr_user_edit_block[i]['persist_ptr_incremental_block_offset']
@@ -747,26 +742,36 @@ class PPT :
             tmpHeader.fromkeys(tmpHeader.keys(), 0)
             ppl_block.clear()
 
-
             tmpLength = 0
 
-            tmpHeader['option'] = struct.unpack('<H', self.powerpoint_document[self.current_offset: self.current_offset + 2])[0]
+            tmpHeader['option'] = \
+            struct.unpack('<H', self.powerpoint_document[self.current_offset: self.current_offset + 2])[0]
             tmpHeader['type'] = self.powerpoint_document[self.current_offset + 2: self.current_offset + 4]
-            tmpHeader['length'] = struct.unpack('<I', self.powerpoint_document[self.current_offset + 4: self.current_offset + 8])[0]
+            tmpHeader['length'] = \
+            struct.unpack('<I', self.powerpoint_document[self.current_offset + 4: self.current_offset + 8])[0]
 
             if tmpHeader['type'] == self.RT_PersistPtrIncrementalAtom:
                 self.current_offset += 8
 
                 while True:
+                    sheet_offset = {}
+                    sheet_offset['count'] = 0
+                    sheet_offset['startnum'] = 0
+                    sheet_offset['object'] = b''
+                    sheet_offset['slidenum'] = []
+                    sheet_offset['slideid'] = []
+
                     sheet_offset.fromkeys(sheet_offset.keys(), 0)
                     tmpSheet = 0
 
-                    tmpSheet = struct.unpack('<I', self.powerpoint_document[self.current_offset : self.current_offset + 4])[0]
+                    tmpSheet = \
+                    struct.unpack('<I', self.powerpoint_document[self.current_offset: self.current_offset + 4])[0]
                     self.current_offset += 4
 
                     sheet_offset['count'] = tmpSheet >> 20
                     sheet_offset['startnum'] = tmpSheet & 0x000FFFFF
-                    sheet_offset['object'] = self.powerpoint_document[self.current_offset : self.current_offset + sheet_offset['count'] * 4]
+                    sheet_offset['object'] = self.powerpoint_document[
+                                             self.current_offset: self.current_offset + sheet_offset['count'] * 4]
                     self.current_offset += sheet_offset['count'] * 4
 
                     ppl_block.append(sheet_offset)
@@ -929,6 +934,13 @@ class PPT :
                     uFilteredTextLen += uTempLen
 
         uFilteredTextLen = self.__ppt_extra_filter__(uFilteredTextLen)
-        self.compound.content = self.filteredText.decode('utf-16')
+
+        for i in range(0, len(self.filteredText), 2):
+            try:
+                self.compound.content += self.filteredText[i:i+2].decode('utf-16')
+            except UnicodeDecodeError:
+                continue
+
+        #self.compound.content = self.filteredText.decode('utf-16')
 
 
