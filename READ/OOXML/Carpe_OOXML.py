@@ -564,7 +564,6 @@ class OOXML:
                     low = []
                     i += 1
                     j = 0
-                    print(i," 번쨰줄")
                 i = 0
                 while i < nlow:
                     xlsx_normal_content_data.append(list[i])
@@ -736,7 +735,7 @@ class OOXML:
                             temp1 = endingpoint - temp1
 
                 for num_list in order_word:
-                    final_word = final_word + list_word[int(num_list)] + ' '
+                    final_word = final_word + list_word[int(float(num_list))] + ' '
                 self.content = final_word
 
                 return final_word
