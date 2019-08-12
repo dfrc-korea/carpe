@@ -1129,7 +1129,10 @@ class OOXML:
             f = open(self.filename, "rb")
             cal_recovable_count = 0
             f.seek(0, 0)
-
+            self.metadata["title"] = "None"
+            self.metadata["creator"] = "None"
+            self.metadata["created"] = "None"
+            self.metadata["modified"] = "None"
             signature_three = b'\x4b\x03\x04'
             while True:
                 read_onebyte = f.read(1)
