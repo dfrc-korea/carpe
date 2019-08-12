@@ -509,8 +509,13 @@ class DOC:
 
         filteredText = dictionary['string']
         filteredLen = dictionary['length']
-        self.compound.content = filteredText.decode("utf-16")
+        #self.compound.content = filteredText.decode("utf-16")
 
+        for i in range(0, len(filteredText), 2):
+            try:
+                self.compound.content += filteredText[i:i+2].decode('utf-16')
+            except UnicodeDecodeError:
+                continue
 
 
 
@@ -569,8 +574,9 @@ class DOC:
             tableSize = struct.unpack('<I', m_table[0x78:0x7C])[0]
             byteTable = file[(tableStartIndex + 1) * 0x200 : (tableStartIndex + 1) * 0x200 + tableSize]
     
-    
-    
+        if len(word_document) <= 0x200:     ### No Data
+            return False
+
         # Get cppText in FibRgLw
         ccpText = word_document[0x4C:0x50]
         ccpTextSize = struct.unpack('<I', ccpText)[0]
@@ -830,7 +836,12 @@ class DOC:
         filteredText = dictionary['string']
         filteredLen = dictionary['length']
 
-        self.compound.content = filteredText.decode("utf-16")
+        #self.compound.content = filteredText.decode("utf-16")
+        for i in range(0, len(filteredText), 2):
+            try:
+                self.compound.content += filteredText[i:i+2].decode('utf-16')
+            except UnicodeDecodeError:
+                continue
 
 
 

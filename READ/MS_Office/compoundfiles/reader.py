@@ -188,21 +188,25 @@ class CompoundFileReader(object):
                     'filename_or_obj must support fileno(), '
                     'or seek() and tell()')
             else:
+                """
                 warnings.warn(
                     CompoundFileEmulationWarning(
                         'file-like object has no file descriptor; using '
                         'slower emulated mmap'))
+                """
                 self._mmap = FakeMemoryMap(filename_or_obj)
         else:
             try:
                 self._mmap = mmap.mmap(fd, 0, access=mmap.ACCESS_READ)
             except EnvironmentError as e:
                 if e.errno == errno.ENOMEM:
+                    """
                     warnings.warn(
                         CompoundFileEmulationWarning(
                             'unable to map all of file into memory; using '
                             'slower emulated mmap (use a 64-bit Python '
                             'installation to avoid this)'))
+                    """
                     self._mmap = FakeMemoryMap(filename_or_obj)
                 else:
                     raise
@@ -246,16 +250,20 @@ class CompoundFileReader(object):
         self._normal_sector_size = 1 << normal_sector_size
         self._mini_sector_size = 1 << mini_sector_size
         if not (128 <= self._normal_sector_size <= 1048576):
+            """
             warnings.warn(
                 CompoundFileSectorSizeWarning(
                     'FAT sector size is silly (%d bytes), '
                     'assuming 512' % self._normal_sector_size))
+            """
             self._normal_sector_size = 512
         if not (8 <= self._mini_sector_size < self._normal_sector_size):
+            """
             warnings.warn(
                 CompoundFileSectorSizeWarning(
                     'mini FAT sector size is silly (%d bytes), '
                     'assuming 64' % self._mini_sector_size))
+            """
             self._mini_sector_size = 64
         self._normal_sector_format = st.Struct(
                 native_str('<%dL' % (self._normal_sector_size // 4)))
@@ -267,42 +275,64 @@ class CompoundFileReader(object):
         # More correctness checks, but mostly warnings at this stage
         if self._dll_version == 3:
             if self._normal_sector_size != 512:
+                """
                 warnings.warn(
                     CompoundFileSectorSizeWarning(
                         'unexpected sector size in v3 file '
                         '(%d)' % self._normal_sector_size))
+                """
             if self._dir_sector_count != 0:
+                """
                 warnings.warn(
                     CompoundFileHeaderWarning(
                         'directory chain sector count is non-zero '
                         '(%d)' % self._dir_sector_count))
+                        
+                """
         elif self._dll_version == 4:
             if self._normal_sector_size != 4096:
+                """
                 warnings.warn(
                     CompoundFileSectorSizeWarning(
                         'unexpected sector size in v4 file '
                         '(%d)' % self._normal_sector_size))
+                """
         else:
+            """
             warnings.warn(
                 CompoundFileVersionWarning(
                     'unrecognized DLL version (%d)' % self._dll_version))
+            """
+            pass
         if self._mini_sector_size != 64:
+            """
             warnings.warn(
                 CompoundFileSectorSizeWarning(
                     'unexpected mini sector size '
                     '(%d)' % self._mini_sector_size))
+            """
+            pass
         if uuid != (b'\0' * 16):
+            """
             warnings.warn(
                 CompoundFileHeaderWarning(
                     'CLSID of compound file is non-zero (%r)' % uuid))
+            """
+            pass
         if txn_signature != 0:
+            """
             warnings.warn(
                 CompoundFileHeaderWarning(
                     'transaction signature is non-zero (%d)' % txn_signature))
+            """
+            pass
         if unused != (b'\0' * 6):
+            """
             warnings.warn(
                 CompoundFileHeaderWarning(
                     'unused header bytes are non-zero (%r)' % unused))
+            """
+            pass
         self._file_size = self._mmap.size()
         self._header_size = max(self._normal_sector_size, 512)
         self._max_sector = (self._file_size - self._header_size) // self._normal_sector_size
@@ -385,19 +415,26 @@ class CompoundFileReader(object):
                     self._mmap[offset:offset + (109 * 4)]))
         sector = self._master_first_sector
         if count == 0 and sector == FREE_SECTOR:
+            """
             warnings.warn(
                 CompoundFileMasterFatWarning(
                     'DIFAT extension pointer is FREE_SECTOR, assuming no '
                     'extension'))
+            """
             sector = END_OF_CHAIN
         elif count == 0 and sector != END_OF_CHAIN:
+            """
             warnings.warn(
                 CompoundFileMasterFatWarning(
                     'DIFAT extension pointer with zero count'))
+            """
+            pass
         elif count != 0 and sector == END_OF_CHAIN:
+            """
             warnings.warn(
                 CompoundFileMasterFatWarning(
                     'DIFAT chained from header, or incorrect count'))
+            """
             sector = self._master_fat.pop()
 
         while True:
@@ -408,15 +445,21 @@ class CompoundFileReader(object):
                     if value in (END_OF_CHAIN, FREE_SECTOR):
                         pass
                     elif value > MAX_NORMAL_SECTOR:
+                        """
                         warnings.warn(
                             CompoundFileMasterFatWarning(
                                 'DIFAT terminated by invalid special '
                                 'value (%d)' % value))
+                        """
+                        pass
                     else:
+                        """
                         warnings.warn(
                             CompoundFileMasterFatWarning(
                                 'sector in DIFAT chain beyond file '
                                 'end (%d)' % value))
+                        """
+                        pass
                     value = END_OF_CHAIN
                     break
             if value == END_OF_CHAIN:
@@ -445,19 +488,27 @@ class CompoundFileReader(object):
                         'DIFAT loop encountered (sector %d)' % sector)
 
         if count > 0:
+            """
             warnings.warn(
                 CompoundFileMasterFatWarning(
                     'DIFAT end encountered early (expected %d more sectors)' % count))
+            """
+            pass
         elif count < 0:
+            """
             warnings.warn(
                 CompoundFileMasterFatWarning(
                     'DIFAT end encountered late (overran by %d sectors)' % -count))
+            """
+            pass
         self._master_sector_count -= count
         if len(self._master_fat) != self._normal_sector_count:
+            """
             warnings.warn(
                 CompoundFileMasterFatWarning(
                     'DIFAT length does not match FAT sector count '
                     '(%d != %d)' % (len(self._master_fat), self._normal_sector_count)))
+            """
             self._normal_sector_count = len(self._master_fat)
         return sectors
 
@@ -482,6 +533,7 @@ class CompoundFileReader(object):
         # sectors are marked appropriately in the normal-FAT
         for master_sector in master_sectors:
             if self._normal_fat[master_sector] != MASTER_FAT_SECTOR:
+                """
                 warnings.warn(
                     CompoundFileMasterSectorWarning(
                         'DIFAT sector %d marked incorrectly in FAT '
@@ -491,9 +543,11 @@ class CompoundFileReader(object):
                             MASTER_FAT_SECTOR,
                             )
                         ))
+                """
                 self._normal_fat[master_sector] = MASTER_FAT_SECTOR
         for normal_sector in self._master_fat:
             if self._normal_fat[normal_sector] != NORMAL_FAT_SECTOR:
+                """
                 warnings.warn(
                     CompoundFileNormalSectorWarning(
                         'FAT sector %d marked incorrectly in FAT '
@@ -503,6 +557,7 @@ class CompoundFileReader(object):
                             NORMAL_FAT_SECTOR,
                             )
                         ))
+                """
                 self._normal_fat[normal_sector] = NORMAL_FAT_SECTOR
 
     def _load_mini_fat(self):
@@ -519,15 +574,19 @@ class CompoundFileReader(object):
         # mini-FAT sector count, or the number of occupied sectors (whichever
         # is shorter)
         if self._mini_first_sector == FREE_SECTOR:
+            """
             warnings.warn(
                 CompoundFileMiniFatWarning(
                     'mini FAT first sector set to FREE_SECTOR'))
+            """
             self._mini_first_sector = END_OF_CHAIN
         elif self._max_sector < self._mini_first_sector <= MAX_NORMAL_SECTOR:
+            """
             warnings.warn(
                 CompoundFileMiniFatWarning(
                     'mini FAT first sector beyond file end '
                     '(%d)' % self._mini_first_sector))
+            """
             self._mini_first_sector = END_OF_CHAIN
         if self._mini_first_sector != END_OF_CHAIN:
             with CompoundFileNormalStream(

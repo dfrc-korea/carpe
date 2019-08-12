@@ -159,74 +159,119 @@ class CompoundFileEntity(object):
         try:
             self.name = self.name[:self.name.index('\0')]
         except ValueError:
+            """
             warnings.warn(
                 CompoundFileDirNameWarning(
                     'missing NULL terminator in name'))
+            """
             self.name = self.name[:(name_len // 2) - 1]
         if index == 0:
             if self._entry_type != DIR_ROOT:
+                """
                 warnings.warn(
                     CompoundFileDirTypeWarning('invalid type'))
+                """
             self._entry_type = DIR_ROOT
         elif not self._entry_type in (DIR_STREAM, DIR_STORAGE, DIR_INVALID):
+            """
             warnings.warn(
                 CompoundFileDirTypeWarning('invalid type'))
+            """
             self._entry_type = DIR_INVALID
         if self._entry_type == DIR_INVALID:
             if self.name != '':
+                """
                 warnings.warn(
                     CompoundFileDirNameWarning('non-empty name'))
+                """
+                pass
             if name_len != 0:
+                """
                 warnings.warn(
                     CompoundFileDirNameWarning('non-zero name length'))
+                """
+                pass
             if user_flags != 0:
+                """
                 warnings.warn(
                     CompoundFileDirEntryWarning('non-zero user flags'))
+                """
+                pass
         else:
             # Name length is in bytes, including NULL terminator ... for a
             # unicode encoded name ... *headdesk*
             if (len(self.name) + 1) * 2 != name_len:
+                """
                 warnings.warn(
                     CompoundFileDirNameWarning('invalid name length (%d)' % name_len))
+                """
+                pass
         if self._entry_type in (DIR_INVALID, DIR_ROOT):
             if self._left_index != NO_STREAM:
+                """
                 warnings.warn(
                     CompoundFileDirIndexWarning('invalid left sibling'))
+                """
+                pass
             if self._right_index != NO_STREAM:
+                """
                 warnings.warn(
                     CompoundFileDirIndexWarning('invalid right sibling'))
+                """
+                pass
             self._left_index = NO_STREAM
             self._right_index = NO_STREAM
         if self._entry_type in (DIR_INVALID, DIR_STREAM):
             if self._child_index != NO_STREAM:
+                """
                 warnings.warn(
                     CompoundFileDirIndexWarning('invalid child index'))
+                """
+                pass
             if self.uuid != b'\0' * 16:
+                """
                 warnings.warn(
                     CompoundFileDirEntryWarning('non-zero UUID'))
+                """
+                pass
             if created != 0:
+                """
                 warnings.warn(
                     CompoundFileDirTimeWarning('non-zero creation timestamp'))
+                """
+                pass
             if modified != 0:
+                """
                 warnings.warn(
                     CompoundFileDirTimeWarning('non-zero modification timestamp'))
+                """
+                pass
             self._child_index = NO_STREAM
             self.uuid = b'\0' * 16
             created = 0
             modified = 0
         if self._entry_type in (DIR_INVALID, DIR_STORAGE):
             if self._start_sector != 0:
+                """
                 warnings.warn(
                     CompoundFileDirSectorWarning(
                         'non-zero start sector (%d)' % self._start_sector))
+                """
+                pass
             if size_low != 0:
+                """
                 warnings.warn(
                     CompoundFileDirSizeWarning(
                         'non-zero size low-bits (%d)' % size_low))
+                """
+                pass
             if size_high != 0:
+                """
                 warnings.warn(
                     CompoundFileDirSizeWarning(
                         'non-zero size high-bits (%d)' % size_high))
+                """
+                pass
             self._start_sector = 0
             size_low = 0
             size_high = 0
@@ -234,14 +279,19 @@ class CompoundFileEntity(object):
             # Surely this should be checking DLL version instead of sector
             # size?! But the spec does state sector size ...
             if size_high != 0:
+                """
                 warnings.warn(
                     CompoundFileDirSizeWarning(
                         'invalid size in small sector file'))
+                """
                 size_high = 0
             if size_low >= 1<<31:
+                """
                 warnings.warn(
                     CompoundFileDirSizeWarning(
                         'size too large for small sector file'))
+                """
+                pass
         self.size = (size_high << 32) | size_low
         epoch = dt.datetime(1601, 1, 1)
 
@@ -276,19 +326,25 @@ class CompoundFileEntity(object):
                 try:
                     walk(node._left_index)
                 except IndexError:
+                    """
                     warnings.warn(
                         CompoundFileDirIndexWarning(
                             'invalid left index (%d) in entry at '
                             'index %d' % (node._left_index, index)))
+                    """
+                    pass
             self._children.append(node)
             if node._right_index != NO_STREAM:
                 try:
                     walk(node._right_index)
                 except IndexError:
+                    """
                     warnings.warn(
                         CompoundFileDirIndexWarning(
                             'invalid right index (%d) in entry at '
                             'index %d' % (node._right_index, index)))
+                    """
+                    pass
             node._build_tree(entries)
 
         if self.isdir:
@@ -297,8 +353,11 @@ class CompoundFileEntity(object):
                 walk(self._child_index)
             except IndexError:
                 if self._child_index != NO_STREAM:
+                    """
                     warnings.warn(
                         CompoundFileDirIndexWarning('invalid child index'))
+                    """
+                    pass
 
     def __len__(self):
         return len(self._children)
