@@ -276,7 +276,7 @@ class OOXML:
         recovableFlag = False
         signature_three = b'\x4b\x03\x04'
         stop_signature_three = b'\x4b\x01\x02'
-
+        self.has_metadata = False
         # docx 일때
         if filetype == "docx":
             f = open(self.filename, "rb")
@@ -564,6 +564,7 @@ class OOXML:
                     low = []
                     i += 1
                     j = 0
+                    print(i," 번쨰줄")
                 i = 0
                 while i < nlow:
                     xlsx_normal_content_data.append(list[i])
@@ -786,7 +787,6 @@ class OOXML:
                         i = i + 1
 
                     return only_data
-
 
         if filetype == 'pptx':
            if isDamaged == False:
@@ -1129,10 +1129,6 @@ class OOXML:
             f = open(self.filename, "rb")
             cal_recovable_count = 0
             f.seek(0, 0)
-            self.metadata["title"] = "None"
-            self.metadata["creator"] = "None"
-            self.metadata["created"] = "None"
-            self.metadata["modified"] = "None"
             signature_three = b'\x4b\x03\x04'
             while True:
                 read_onebyte = f.read(1)
@@ -1332,7 +1328,11 @@ class OOXML:
             if metadata_recoverable_flag == True:
                 # 메타데이터 파싱
                 metadata_data = self.parse_metadata(filename, damaged_flag)
-
+            if metadata_recoverable_flag == False:
+                self.metadata["title"] = "None"
+                self.metadata["creator"] = "None"
+                self.metadata["created"] = "None"
+                self.metadata["modified"] = "None"
         # 복구 불가
         else:
             # 메타데이터 복구 가능 여부 확인
