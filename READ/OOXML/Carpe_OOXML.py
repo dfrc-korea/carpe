@@ -1107,9 +1107,14 @@ class OOXML:
                 if 'docProps/core.xml' in a.filename:
                     form = zfile.read(a)
                     xmlroot = ET.fromstring(form)
+                    self.metadata["title"] = "None"
+                    self.metadata["creator"] = "None"
+                    self.metadata["created"] = "None"
+                    self.metadata["modified"] = "None"
                     for content in xmlroot:
                         location = content.tag.find('}')
                         metadata_type = content.tag[location + 1:]
+
                         if (content.text == None):
                             metadata_value.append(metadata_type + " : None")
                             self.metadata[metadata_type] = content.text
