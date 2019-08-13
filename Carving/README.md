@@ -42,7 +42,7 @@ ModuleComponentInterface는 추상 클래스로 이 클래스를 상속받는 �
 ## Actuator
 [ Actuator Class ]
 
-ModuleComponentInterface에 맞추어 개발된 각 모듈들을 효율적이고 체계적으로 관리하고, 통일성있게 구동시키는 기능을 가진 클래스입니다.
+ModuleComponentInterface에 맞추어 개발된 각 모듈들을 효율적이고 체계적으로 관리하고, 통일성있게 구동시키는 기능을 가진 클래스입니다. Actuator가 관리하는 객체들은 외부에서 직접 호출할 수 없으며 반드시 Actuator를 거쳐야 합니다.
 
 ### Methods - Manage
 1. init()
