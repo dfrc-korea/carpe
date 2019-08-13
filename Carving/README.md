@@ -78,11 +78,11 @@ ModuleComponentInterface에 맞추어 개발된 각 모듈들을 효율적이고
 8. checkModuleLoaded(namespace)
 - 모듈의 이름공간이 모듈 테이블에 로드 되어있는지 점검합니다. 결과에 대한 bool 값이 리턴됩니다.
 9. getLoadedModuleList(void)
-- 모듈 테이블을 사전 형식으로 복사합니다. 리턴된 객체를 수정해도 반영되지 않습니다. 
+- 모듈 테이블에 기록된 이름을 리스트 형식으로 복사합니다. 리턴된 객체를 수정해도 반영되지 않습니다. 
 10. checkObjectLoaded(name)
 - 객체 테이블에 name으로 배정된 class가 등록되어 있는지 확인합니다. 결과에 대한 bool 값이 리턴됩니다.
 11. getLoadedObjectList(void)
-- 객체 테이블을 사전 형식으로 복사합니다. 리턴된 객체를 수정해도 반영되지 않습니다. 
+- 객체 테이블에 기록된 이름을 리스트 형식으로 복사합니다. 리턴된 객체를 수정해도 반영되지 않습니다. 
 
 
 # The Description of Carving Plugin
