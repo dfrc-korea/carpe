@@ -83,7 +83,7 @@ ModuleComponentInterface에 맞추어 개발된 각 모듈들을 효율적이고
 - 객체 테이블에 name으로 배정된 class가 등록되어 있는지 확인합니다. 결과에 대한 bool 값이 리턴됩니다.
 11. getLoadedObjectList(void)
 - 객체 테이블에 기록된 이름을 리스트 형식으로 복사합니다. 리턴된 객체를 수정해도 반영되지 않습니다. 
-12. loadModuleClassAs(self,module,cls,mod_alias=None,cls_alias=None,force=False)
+12. loadModuleClassAs(module,cls,mod_alias=None,cls_alias=None,force=False)
 - 모듈에 속한 클래스를 생성하고 로드합니다. 만일 해당 모듈이 존재하지 않았다면 module 이름을 가진 파이썬 라이브러리를 모듈 테이블로 로드합니다. module과 class 이름에 대한 alias를 지원하며, 결과에 대한 bool 값이 리턴됩니다. force 옵션이 True이면 기존 객체를 삭제하고, 새객체를 등록합니다. force 값이 False이면 기존 클래스 이름에 덮어쓰여지지 않고 오브젝트 테이블 등록에 실패합니다.
 
 
