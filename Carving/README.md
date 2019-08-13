@@ -7,7 +7,7 @@ Carpe Forensics
 2. structureReader @ Gibartes :
 - The byte structured stream parser for carving module
 
-
+*****
 # The Description about Module Interface (moduleInterface)
 moduleInterface 패키지에 대한 문서입니다.
 ## ModuleComoponentInterface
@@ -84,7 +84,7 @@ ModuleComponentInterface에 맞추어 개발된 각 모듈들을 효율적이고
 * getLoadedObjectList(void)
   - 객체 테이블에 기록된 이름을 리스트 형식으로 복사합니다. 리턴된 객체를 수정해도 반영되지 않습니다. 
 
-
+*****
 # The Description of Carving Plugin
 
 ## Management
