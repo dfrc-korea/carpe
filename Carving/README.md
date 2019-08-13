@@ -64,7 +64,7 @@ ModuleComponentInterface에 맞추어 개발된 각 모듈들을 효율적이고
 * loadLibrary(module)
   - module 이름을 가진 라이브러리를 모듈 테이블로 로드합니다. 인자 module은 string 타입입니다. 결과에 대한 bool 값이 리턴됩니다.
 * loadLibraryAs(module,alias)
-  - module 이름을 가진 파이썬 라이브러리를 alias의 이름으로 모듈 테이블 로드합니다. alias를 이용해 모듈 테이블에서 해당 객체를 검색할 수 있습니다. 결과에 대한 bool 값이 리턴됩니다. 인자 module과 alias는 string 입니다.
+  - module 이름을 가진 파이썬 라이브러리를 alias의 이름으로 모듈 테이블에 로드합니다. alias를 이용해 모듈 테이블에서 해당 객체를 검색할 수 있습니다.  인자 module과 alias는 string 입니다. 결과에 대한 bool 값이 리턴됩니다. 
 * unloadLibrary(module)
   - 모듈 테이블에 등록된 모듈을 언로드합니다. 인자 module은 string 입니다. 결과에 대한 bool 값이 리턴됩니다.
 * loadClass(module,clss,alias=None,force=False)
