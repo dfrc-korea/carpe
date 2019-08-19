@@ -10,8 +10,8 @@ Carpe Forensics
 *****
 # The Description about Module Interface (moduleInterface)
 moduleInterface 패키지에 대한 문서입니다.
-## ModuleComoponentInterface
-[ ModuleComoponentInterface Class ]
+## ModuleComponentInterface
+[ ModuleComponentInterface Class ]
 
 각 Module을 제작하는데 있어 필수적으로 구현해야 하는 규약입니다.
 
