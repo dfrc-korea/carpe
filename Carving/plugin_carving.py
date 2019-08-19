@@ -37,7 +37,7 @@ class Management(ModuleComponentInterface,C_defy):
         self.cursor      = None
         self.debug       = debug
         self.destPath    = ".{0}result".format(os.sep)
-        self.hits        = {}
+        self.hit         = {}
         self.lock        = Lock()
         self.__lp        = None
         self.logBuffer   = logBuffer
@@ -503,7 +503,7 @@ if __name__ == '__main__':
                         "id":'root',
                         "password":'dfrc4738',
                         "category":'carving',
-                        "init":True
+                        "init":False
                     }
     )
      
