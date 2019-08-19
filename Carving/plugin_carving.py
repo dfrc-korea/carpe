@@ -470,10 +470,11 @@ class Management(ModuleComponentInterface,C_defy):
             self.__carving()        # 카빙 동작
             self.__log_write("DBG_","Carving::carving time : {0}.".format(time.time() - start))
             self.__log_write("INFO","Carving::result:{0}".format(self.hit),always=True)
+            return self.hit
 
 
 if __name__ == '__main__':
-    manage = Management(debug=True,out="carving.log")
+    manage = Management(debug=False,out="carving.log")
 
     res = manage.execute(ModuleConstant.LOAD_MODULE)
 
