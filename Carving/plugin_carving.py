@@ -150,13 +150,13 @@ class Management(ModuleComponentInterface,C_defy):
         if(cred.get('init')==True):
             conn = pymysql.connect(host=cred.get('ip'),port=cred.get('port'),user=cred.get('id'),passwd=cred.get('password'))
             self.__log_write("INFO","Database::Intiailze a database.",always=True)
-            conn.cursor().execute("drop database if exists {0}".format(cred.get('category')))
-            conn.cursor().execute("create database {0}".format(cred.get('category')))
+            conn.cursor().execute("drop database if exists {0}".format(cred.get('category','carving')))
+            conn.cursor().execute("create database {0}".format(cred.get('category','carving')))
             conn.close()
             del conn
         try :
             db = Mariadb()
-            cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
+            cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category','carving'))
             self.__log_write("INFO","Database::Database is now connected.")
             return cursor
         except Exception :
