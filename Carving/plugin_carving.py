@@ -2,6 +2,8 @@
 #!/usr/bin/python3
 
 import os,sys,time,binascii
+import pymysql
+
 from multiprocessing import Process, Lock
 
 from moduleInterface.defines   import *
@@ -147,12 +149,15 @@ class Management(ModuleComponentInterface,C_defy):
     def __carving_conn(self,cred):
         if(cred.get('init')==True):
             conn = pymysql.connect(host=cred.get('ip'),port=cred.get('port'),user=cred.get('id'),passwd=cred.get('password'))
+            self.__log_write("INFO","Database::Intiailze a database.",always=True)
+            conn.cursor().execute("drop database {0}".format(cred.get('category')))
             conn.cursor().execute("create database {0}".format(cred.get('category')))
             conn.close()
             del conn
         try :
             db = Mariadb()
             cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
+            self.__log_write("INFO","Database::Database is now connected.")
             return cursor
         except Exception :
             self.__log_write("ERR_","Database::Carving DB(local) connection ERROR.")
@@ -498,7 +503,7 @@ if __name__ == '__main__':
                         "id":'root',
                         "password":'dfrc4738',
                         "category":'carving',
-                        "init":False
+                        "init":True
                     }
     )
      
