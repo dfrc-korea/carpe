@@ -150,7 +150,7 @@ class Management(ModuleComponentInterface,C_defy):
         if(cred.get('init')==True):
             conn = pymysql.connect(host=cred.get('ip'),port=cred.get('port'),user=cred.get('id'),passwd=cred.get('password'))
             self.__log_write("INFO","Database::Intiailze a database.",always=True)
-            conn.cursor().execute("drop database {0}".format(cred.get('category')))
+            conn.cursor().execute("drop database if exists {0}".format(cred.get('category')))
             conn.cursor().execute("create database {0}".format(cred.get('category')))
             conn.close()
             del conn
@@ -503,7 +503,7 @@ if __name__ == '__main__':
                         "id":'root',
                         "password":'dfrc4738',
                         "category":'carving',
-                        "init":False
+                        "init":True
                     }
     )
      
