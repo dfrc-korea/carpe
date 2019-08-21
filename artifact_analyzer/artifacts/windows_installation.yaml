@@ -1,0 +1,30 @@
+Name: WindowsInstallation
+Desc: Windows Operating System Installation Information
+Table:
+  - TableName: OSInstallation
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - os_type
+      - product_name
+      - release_id
+      - os_version
+      - build_version
+      - install_date
+      - product_id
+      - owner
+    Types:
+      - [VARCHAR(100), NOT NULL PRIMARY KEY]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [DATETIME, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+Artifacts:
+  - [REG_KEY, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion]

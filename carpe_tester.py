@@ -11,8 +11,8 @@ import carpe_am_module
 import pdb
 
 def Init_Dummy_Case():
-  print 'e1' + str(uuid.uuid4()).replace('-', '')
-'''
+  print('e1' + str(uuid.uuid4()).replace('-', ''))
+
 # Case, Evidence ID
 case_id = sys.argv[1]
 evd_id = sys.argv[2]
@@ -33,6 +33,5 @@ carpe_am.SetModule(case_id, evd_id)
 carpe_am.ParseImage(vss_option)
 carpe_am.ParseFilesystem()
 carpe_am.SysLogAndUserData_Analysis(filter_option)
-'''
 
 Init_Dummy_Case()
