@@ -326,7 +326,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
 
         if(enable==False):
             self.__hit.update({ext:[value[0],value[1]+1]})
-            self.__data.update({str(hex(start)):(ext,start,last)})
+            self.__data.update({str(hex(start)):(ext,start,last,abs(last-start))})
             self.__log_write("DBG_","Calculated::type:{0} name:{1} copied:{2} bytes details:{3}".format(ext,fname,hex(wrtn),result[0]))
             return (fname,wrtn)
 
@@ -337,7 +337,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             return ModuleConstant.Return.EINVAL_NONE
     
         self.__hit.update({ext:[value[0],value[1]+1]})
-        self.__data.update({str(hex(start)):(ext,start,last)})
+        self.__data.update({str(hex(start)):(ext,start,last,abs(last-start))})
 
         if(length==1):
             byte2copy = abs(last-start)
@@ -376,11 +376,11 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         return (fname,wrtn) 
 
     def __save_result(self,data):
-        fname = self.get_bin_file()
-        if(not os.path.exists(self.__cache+self.__part_id)):
-            self.__log_write("INFO","Extract::Saved as {0}".format(fname),always=True)
-            os.makedirs(".cache"+os.sep+self.__part_id)
+        print(self.__get_cache_master())
+        if(not os.path.exists(self.__get_cache_master())):
+            os.makedirs(self.__get_cache_master())
 
+        fname = self.get_bin_file()
         with open(fname,'wb') as file:
             pickle.dump(data,file)
 
@@ -426,14 +426,20 @@ class CarvingManager(ModuleComponentInterface,C_defy):
     def Return(self):
         return self.__Return
 
+    def __get_cache_partition(self):
+        return self.__cache+self.__part_id+os.sep
+
+    def __get_cache_master(self):
+        return self.__cache+self.__part_id+os.sep+os.path.basename(self.__i_path)+os.sep
+
     def get_bin_file(self):
-        return self.__cache+self.__part_id+os.sep+os.path.basename(self.__i_path)+".bin"
+        return self.__get_cache_master()+os.path.basename(self.__i_path)+".bin"
 
     def get_cbin_file(self):
-        return self.__cache+self.__part_id+os.sep+os.path.basename(self.__i_path)+".cbin"
+        return self.__get_cache_master()+os.path.basename(self.__i_path)+".cbin"
 
     def get_csv_file(self):
-        return self.__cache+self.__part_id+os.sep+os.path.basename(self.__i_path)+".csv"
+        return self.__get_cache_master()+os.path.basename(self.__i_path)+".csv"
 
     # @ Module Interface
 
@@ -491,6 +497,10 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 return ModuleConstant.Return.EINVAL_FILE
 
             self.__parser.get_file_handle(self.__i_path,0,1)
+            if(os.path.exists(self.__dest_path)):
+                self.__log_write("DBG_","Extract::clear the current workspace:{0}".format(self.__dest_path))
+                shutil.rmtree(self.__dest_path)
+
             start = time.time()
             data = self.__scan_signature(data)
             self.__carving(data,self.__enable)
@@ -544,7 +554,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             target = data.get(tmp,None)
             if(target==None):
                 return ModuleConstant.Return.EINVAL_NONE
-            if(len(target)!=3):
+            if(len(target)!=4):
                 return ModuleConstant.Return.EINVAL_TYPE
             
             self.__parser.get_file_handle(self.__i_path,0,1)
@@ -574,7 +584,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
 
             for i in selected:
                 tmp = data.get(i,None)
-                if(type(tmp)==tuple and len(tmp)==3):
+                if(type(tmp)==tuple and len(tmp)==4):
                     target.append(tmp)
 
             if(target==[]):
@@ -616,14 +626,26 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             # 현재 이미지에 대한 캐시를 삭제
             if(option==None):
                 try:
-                    os.remove(self.get_bin_file())
-                    os.remove(self.get_cbin_file())
-                    os.remove(self.get_csv_file())
-                    self.__log_write("INFO","MAIN::Clean cache data:{0}.".format(self.get_bin_file()),always=True)
+                    shutil.rmtree(self.__get_cache_master())
+                    self.__log_write("INFO","MAIN::Clean cache data:{0}.".format(self.__get_cache_master()),always=True)
                     return ModuleConstant.Return.SUCCESS
                 except:
                     return ModuleConstant.Return.EINVAL_FILE
-            # 모든 이미지에 대한 캐시 삭제
+            # 현재 파티션에 대한 캐시 삭제
+            elif(option==1):
+                try:
+                    shutil.rmtree(self.__get_cache_partition())
+                    self.__log_write("INFO","MAIN::Clean cache data:{0}.".format(self.__get_cache_partition()),always=True)
+                    return ModuleConstant.Return.SUCCESS
+                except:
+                    return ModuleConstant.Return.EINVAL_FILE
+            elif(type(option)==str):
+                try:
+                    shutil.rmtree(self.__cache+os.sep+option)
+                    self.__log_write("INFO","MAIN::Clean cache data:{0}.".format(self.__cache+option),always=True)
+                    return ModuleConstant.Return.SUCCESS
+                except:
+                    return ModuleConstant.Return.EINVAL_FILE
             else:
                 try:
                     shutil.rmtree(".cache")
@@ -742,6 +764,6 @@ if __name__ == '__main__':
 
     #print(manage.execute(C_defy.WorkLoad.SELECT_LIST,{"name":["0x1c2c000","0x2aaa000"]}))
     #manage.execute(C_defy.WorkLoad.REPLAY,manage.get_bin_file())
-    #manage.execute(C_defy.WorkLoad.REMOVE_CACHE,True)
+    #manage.execute(C_defy.WorkLoad.REMOVE_CACHE)
 
     sys.exit(0)
