@@ -8,6 +8,7 @@ import zlib
 WORD_NAMESPACE = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
 PARA = WORD_NAMESPACE + 'p'
 TEXT = WORD_NAMESPACE + 't'
+S_TEXT = WORD_NAMESPACE + 'r'
 
 EXCEL_NAMESPACE = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
 SI = EXCEL_NAMESPACE + 'si'
@@ -417,6 +418,11 @@ class OOXML:
                                     if b.tag == TEXT:
                                         normal_content_data = normal_content_data + b.text
                                         self.content = self.content + b.text
+                                    if b.tag == S_TEXT:
+                                        for c in b:
+                                            if c.tag == TEXT:
+                                                normal_content_data = normal_content_data + c.text
+                                                self.content = self.content + c.text
                 return normal_content_data
             #손상일 때
             else:
@@ -845,7 +851,6 @@ class OOXML:
                                     if c.tag == P_TEXT and c.text is not None:
                                         normal_content_data = normal_content_data + c.text
                                         self.content = self.content + c.text
-                    #print("\n")
                 return normal_content_data
            else:
                #손상일때
