@@ -518,7 +518,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__hit = {}
             self.__log_write("INFO","Main::Request to re-run carving process from stored data.",always=True)
 
-            data = self.__import_result(option)
+            data = self.__import_result(self.get_bin_file())
             if(data==""):
                 return ModuleConstant.Return.EINVAL_FILE
 
@@ -694,33 +694,35 @@ if __name__ == '__main__':
     """
     {
         "path":path                 # .cbin 파일 경로
-        "name":name                 # 확장자 제외한 파일 이름(오프셋 값)
+        "name":name                 # 필수 : 확장자 제외한 파일 이름(오프셋 값)
     }
     {
         "path":path                 # .cbin 파일 경로
-        "name":[]                   # 확장자 제외한 파일 이름 목록(오프셋 값)
+        "name":[]                   # 필수 : 확장자 제외한 파일 이름 목록(오프셋 값)
     }
     """
     # CARVING_OPCODE :
     """
     Carving Opcode:
         # manage.Instruction.Opcode
-        Opcode                      Description
-        -------------------------------------------------------------------------------------------------
-        LOAD_MODULE                 # 카빙에 사용되는 모듈 등록
-        PARAMETER                   # 작업 파라미터 설정
-        CONNECT_DB                  # Master DB에 연결
-        DISCONNECT_DB               # Master DB와의 세션 종료
-        EXEC                        # (enable=True일 때) 카빙 작업 실행 및 (save=True일 때) 캐시 데이터 생성
-        REPLAY                      # 캐시 데이터를 이용해 작업 실행
-        SELECT_ONE                  # 캐시 데이터를 이용해 한 파일만 추출
-        SELECT_LIST                 # 캐시 데이터를 이용해 name 리스트에 있는 파일만 추출
-        POLICY                      # 카빙 정책 설정 (즉시 추출/캐시 저장)
-        EXPORT_CACHE                # 캐시 데이터를 Code에 반환
-        EXPORT_CACHE_TO_CSV         # 캐시된 목록을 csv형식으로 반환
-        REMOVE_CACHE                # 현재 이미지의 캐시 삭제/인자 인가시 모든 캐시 삭제
-
-        # cache path : $CarvingPath/.cache/partition_id/[image_name].(bin/cbin/csv)
+        Opcode                Param      Return     Description
+        -----------------------------------------------------------------------------------------------------------------
+        LOAD_MODULE           None         Int      # 카빙에 사용되는 모듈 등록
+        PARAMETER             Dict         Int      # 작업 파라미터 설정
+        CONNECT_DB            Dict         Int      # Master DB에 연결
+        DISCONNECT_DB         None         Int      # Master DB와의 세션 종료
+        EXEC                  None         Dict     # (enable=True일 때) 카빙 작업 실행 및 (save=True일 때) 캐시 데이터 생성
+        REPLAY                None         Dict     # (eanble과 관계없음) 캐시 데이터를 이용해 현재 이미지에 대한 카빙 작업
+        SELECT_ONE            Dict         Dict     # 캐시 데이터를 이용해 한 파일만 추출
+        SELECT_LIST           Dict         Dict     # 캐시 데이터를 이용해 name 리스트에 있는 파일만 추출
+        POLICY                Dict         Int      # 카빙 정책 설정 (즉시 추출/캐시 저장)
+        EXPORT_CACHE          None         Object   # 캐시 데이터를 Code에 반환
+        EXPORT_CACHE_TO_CSV   None         String   # 캐시된 목록을 csv형식으로 반환. 파일 경로 리턴
+        REMOVE_CACHE          None/1/str/* Int      # 현재 이미지/파티션/특정 이미지/모든 캐시 삭제
+        -----------------------------------------------------------------------------------------------------------------
+        # cache path : ${CarvingPath}/.cache/partition_id/[image_name]/[image_name].(bin/cbin/csv)
+        # Return Dict Format :
+            {"Format":[찾은 시그니처 파일 수,검증 통과한 파일 수],}
     """
 
     manage = CarvingManager(debug=False,out="carving.log")
@@ -743,7 +745,7 @@ if __name__ == '__main__':
     if(res==C_defy.Return.EFAIL_DB):
         sys.exit(0)
 
-    #manage.enable   = False
+    manage.enable   = True
     manage.save     = True
 
     manage.execute(C_defy.WorkLoad.PARAMETER,

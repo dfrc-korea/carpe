@@ -18,7 +18,7 @@ import binascii
 # --> module_config.py
 class C_defy(object):
 
-    COLUMNS =["EXTENSION","START","LAST"]
+    COLUMNS =["EXTENSION","START","LAST","SIZE"]
 
     # Error
     class Return(object):
