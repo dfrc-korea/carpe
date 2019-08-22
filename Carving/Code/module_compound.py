@@ -1,8 +1,8 @@
 #-*- coding: utf-8 -*-
 import os, sys, struct
 
-from defines import ModuleConstant
-from interface       import ModuleComponentInterface
+from moduleInterface.defines   import ModuleConstant
+from moduleInterface.interface import ModuleComponentInterface
 
 
 class ModuleCOMPOUND(ModuleComponentInterface):
@@ -44,6 +44,7 @@ class ModuleCOMPOUND(ModuleComponentInterface):
 
     def carve(self):
         self.fp = open(self.get_attrib(ModuleConstant.FILE_ATTRIBUTE), 'rb')
+        self.fp.seek(self.get_attrib(ModuleConstant.IMAGE_BASE),os.SEEK_SET)
 
         i = 0
         j = 0
@@ -81,7 +82,6 @@ class ModuleCOMPOUND(ModuleComponentInterface):
         sigXLS2 = b'\x42\x6F\x6F\x6B'                    # Book
 
         pvBuffer = self.fp.read(0x1000)
-
 
         pOleHeader['uFileType'] = pvBuffer[0x00:0x08]
         pOleHeader['uMinorVersion'] = pvBuffer[0x18:0x1A]

@@ -62,7 +62,7 @@ class ModuleGIF(ModuleComponentInterface):
         sigGIF_FOOTER = b'\x00\x3B'
 
         self.fp = open(self.get_attrib(ModuleConstant.FILE_ATTRIBUTE), 'rb')
-
+        self.fp.seek(self.get_attrib(ModuleConstant.IMAGE_BASE),os.SEEK_SET)
         self.offset = self.signature(self.get_attrib(ModuleConstant.IMAGE_BASE), sigGIF_FOOTER)
 
         if self.offset != () :
