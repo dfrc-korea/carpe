@@ -2,16 +2,19 @@
 #!/usr/bin/python3
 
 import os,sys,time,binascii
-import pymysql
+import pickle
+import shutil
+import pandas as pd
 
 from multiprocessing import Process, Lock
 
-from moduleInterface.defines   import *
+from moduleInterface.defines   import ModuleConstant
 from moduleInterface.interface import ModuleComponentInterface
 from moduleInterface.actuator  import Actuator
+from structureReader import structureReader as sr
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}include".format(os.sep)))
-sys.path.append(os.path.abspath(os.path.dirname(__file__))+"{0}Code".format(os.sep))        # For carving module
+sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}Code".format(os.sep)))        # For carving module
 
 from plugin_carving_defines import C_defy
 from Include.carpe_db       import Mariadb
@@ -19,8 +22,8 @@ from Include.carpe_db       import Mariadb
 
 """
     Key      :Value
-    "name"   :"Carpe_Management",    # 모듈 이름
-    "author" :"Gimin Hur",           # 모듈 작성자
+    "name"   :"CarvingManager",      # 모듈 이름
+    "author" :"",                    # 모듈 작성자
     "ver"    :"0.1",                 # 모듈 버전
     "id"     :0,                     # onload 시 고유 ID (int 형)
     "param"  :"이미지 경로", "CASE명" # 모듈 파라미터
@@ -29,27 +32,41 @@ from Include.carpe_db       import Mariadb
     "excl"   :False                  # 모듈의 유니크(배타적) 속성
 """
 
-
-class Management(ModuleComponentInterface,C_defy):
+# CarvingManager : DB 수정권한 없음 (For safety)
+class CarvingManager(ModuleComponentInterface,C_defy):
     def __init__(self,debug=False,out=None,logBuffer=0x409600):
         super().__init__()
-        self.__actuator  = Actuator()
-        self.cursor      = None
-        self.debug       = debug
-        self.destPath    = ".{0}result".format(os.sep)
-        self.hit         = {}
-        self.lock        = Lock()
-        self.__lp        = None
-        self.logBuffer   = logBuffer
-        self.out         = out
+        self.__cursor      = None
+        self.__cache       = os.path.dirname(__file__)+os.sep+".cache"+os.sep
+        self.__db          = None
+        self.__dest_path   = ".{0}result".format(os.sep)
+        self.__fd          = None
+        self.__hit         = {}
+        self.__parser      = sr.StructureReader()
+        self.__data        = dict()
+        self.__save        = True
+        self.__enable      = False
+        self.lock          = Lock()
+        self.__Return      = C_defy.Return
+        self.__Instruction = C_defy.WorkLoad
+
+        """ Module Manager """
+        self.__actuator    = Actuator()
         self.defaultModuleLoaderFile = str(__file__).split(os.sep)[0]+os.sep+"config.txt"
         self.moduleLoaderFile        = self.defaultModuleLoaderFile
 
-        if(type(self.out)==str):
-            self.stdout  = str(__file__).split(os.sep)[0]+os.sep+str(self.out)
-            self.out     = True
+        """ Logger """
+        self.debug         = debug
+        self.logBuffer     = logBuffer
+        self.__lp          = None
+        self.__out         = out
+
+        if(type(self.__out)==str):
+            self.__stdout      = str(__file__).split(os.sep)[0]+os.sep+str(self.__out)
+            self.__stdout_old  = self.__stdout+".old"
+            self.__out         = True
         else:
-            self.out     = False
+            self.__out         = False
         
         self.__log_open()
 
@@ -57,15 +74,28 @@ class Management(ModuleComponentInterface,C_defy):
         try:
             if(self.__lp!=None):
                 self.__lp.close()
+            if(self.__cursor!=None):
+                self.__cursor.close()
+            if(self.__db!=None):
+                self.__db.close()
         except:pass
 
+    def __str__(self):
+        print("Carving Manager")
+
     def __log_open(self):
-        if(self.out==True):
-            if(os.path.exists(self.stdout)):
-                if(os.path.getsize(self.stdout)<self.logBuffer):
-                    self.__lp = open(self.stdout,'a+')
+        if(self.__out==True):
+            if(os.path.exists(self.__stdout)):
+                if(os.path.getsize(self.__stdout)<self.logBuffer):
+                    self.__lp = open(self.__stdout,'a+')
                     return
-            self.__lp = open(self.stdout,'w')
+                else:
+                    try:
+                        shutil.move(self.__stdout,self.__stdout_old)
+                    except:
+                        self.__out = False
+                        return
+            self.__lp = open(self.__stdout,'w')
             self.__log_write("INFO","Main::Initiate carving plugin log.",always=True) 
         else:
             self.__lp   = None
@@ -82,25 +112,15 @@ class Management(ModuleComponentInterface,C_defy):
                 self.__lp.flush()
             except:self.__lp==None
 
-    def __get_file_handle(self,path):
-        try:
-            self.__fd = open(path,'rb')
-        except:
-            return ModuleConstant.Return.EINVAL_FILE
-        self.__fd.seek(0,os.SEEK_SET)
-        return ModuleConstant.Return.SUCCESS
-
-    def __goto(self,offset,mode):
-        return self.__fd.seek(offset,mode)
-
     def __cleanup(self):
         if(self.__fd!=None):
             try:self.__fd.close()
             except:pass
             self.__fd = None
 
-    # @ Gibartes
-    def __loadConfig(self):
+
+
+    def __load_config(self):
         self.__log_write("INFO","Loader::Start to module load...",always=True)
         if(self.__actuator.loadModuleClassAs("module_config","ModuleConfiguration","config")==False):
             self.__log_write("ERR_","Loader::[module_config] module is not loaded. system exit.",always=True)
@@ -109,8 +129,7 @@ class Management(ModuleComponentInterface,C_defy):
         self.__actuator.set( "config",ModuleConstant.FILE_ATTRIBUTE,ModuleConstant.CONFIG_FILE)
         self.__actuator.call("config",ModuleConstant.DESCRIPTION,"Carving Module List")
 
-    # @ Gibartes
-    def ___loadModule(self):
+    def ___load_module(self):
         self.__actuator.call("config",ModuleConstant.INIT,self.moduleLoaderFile)
         modlist = self.__actuator.call("config",ModuleConstant.GETALL,None).values()
         self.__log_write("INFO","Loader::[module_config] Read module list from {0}.".format(self.moduleLoaderFile),always=True)
@@ -127,301 +146,294 @@ class Management(ModuleComponentInterface,C_defy):
         self.__log_write("INFO","Loader::Completed.",always=True)
         return True
 
-    # @ Gibartes
-    def __loadModule(self):
+    def __load_module(self):
         self.__actuator.clear()
         self.__actuator.init()
-        ret = self.__loadConfig()
+        ret = self.__load_config()
         if(ret==False):
             return False
-        return self.___loadModule()
+        return self.___load_module()
 
-    # @ Gibartes
     def __call_sub_module(self,_request,start,end,cluster,etype='euc-kr'):
-        self.__actuator.set(_request, ModuleConstant.FILE_ATTRIBUTE,self.I_path)  # File to carve
-        self.__actuator.set(_request, ModuleConstant.IMAGE_BASE, start)  # Set offset of the file base
-        self.__actuator.set(_request, ModuleConstant.IMAGE_LAST, end)
-        self.__actuator.set(_request, ModuleConstant.CLUSTER_SIZE, cluster)
-        self.__actuator.set(_request, ModuleConstant.ENCODE, etype)
-        return self.__actuator.call(_request, None, None)
+        self.__actuator.set(_request,ModuleConstant.FILE_ATTRIBUTE,self.__i_path)  # File to carve
+        self.__actuator.set(_request,ModuleConstant.IMAGE_BASE,start)  # Set offset of the file base
+        self.__actuator.set(_request,ModuleConstant.IMAGE_LAST,end)
+        self.__actuator.set(_request,ModuleConstant.CLUSTER_SIZE,cluster)
+        self.__actuator.set(_request,ModuleConstant.ENCODE,etype)
+        return self.__actuator.call(_request,None,None)
 
-    # @ Jimin_Hur
-    def __carving_conn(self,cred):
-        if(cred.get('init')==True):
-            conn = pymysql.connect(host=cred.get('ip'),port=cred.get('port'),user=cred.get('id'),passwd=cred.get('password'))
-            self.__log_write("INFO","Database::Intiailze a database.",always=True)
-            conn.cursor().execute("drop database if exists {0}".format(cred.get('category','carving')))
-            conn.cursor().execute("create database {0}".format(cred.get('category','carving')))
-            conn.close()
-            del conn
-        try :
-            db = Mariadb()
-            cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category','carving'))
-            self.__log_write("INFO","Database::Database is now connected.")
-            return cursor
-        except Exception :
-            self.__log_write("ERR_","Database::Carving DB(local) connection ERROR.")
-            exit(C_defy.Return.EFAIL_DB)
 
-    # @ Jimin_Hur
-    def __db_conn_create(self,cred):
+
+    def __connect_master(self,cred):
         db = Mariadb()
-        # CARPE DB 연결 및 정보 추출
-        try :
-            cursor1 = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
-            cursor1.execute('select * from carpe_block_info where p_id = %s', self.case)
-            data = cursor1.fetchall()
-            cursor1.execute('show create table carpe_block_info')
-            c_table_query = cursor1.fetchone()
-        except Exception :
-            self.__log_write("ERR_","Database::CARPE DB(master) connection ERROR.")
-            exit(C_defy.Return.EFAIL_DB)
-        # Table 존재여부 확인 및 테이블 생성
-        try :
-            self.cursor.execute('show tables like "carpe_block_info"')
-            temp = self.cursor.fetchone()
-            if temp is not None :
-                pass
-            else :
-                self.cursor.execute(c_table_query[1])
-                
-            self.cursor.execute('select count(*) from carpe_block_info where p_id = %s', self.case)
-            init_count = self.cursor.fetchone()
-            if len(data) == init_count[0] :
-                self.__log_write("WARN","Database::This case is already finished Convert DB processing in carving.")
-                pass
-            else :
-                start = time.time()
-                self.cursor.execute('start transaction')
-                for row in data :
-                    self.cursor.execute('insert into carpe_block_info values (%s,%s,%s,%s)',(row[0],row[1],row[2],row[3]))
-                self.cursor.execute('commit')
-                self.__log_write("DBG_","copy db time : {0}".format(time.time() - start))
-                self.cursor.execute(db.CREATE_HELPER['datamap'])
-                self.__convert_db()
-        except Exception:
-            self.__log_write("ERR_","Database::Unallocated area DB porting ERROR")
-        cursor1.close()
-        db.close()
+        try:
+            self.__cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
+            self.__db = db
+            return C_defy.Return.SUCCESS
+        except:
+            db.close()
+            return C_defy.Return.EFAIL_DB
 
-    # @ Jimin_Hur
-    def __convert_db(self):
-        try :
-            self.cursor.execute('select * from carpe_block_info where p_id = %s',self.case)
-            data = self.cursor.fetchall()
-            start = time.time()
-            # 모든 미할당 블록을 DB 레코드로 변경하는 코드부분 [NULL 영역.]
-            for row in data :
-                map_id = ((row[2] * self.blocksize)+self.par_startoffset) / self.blocksize
-                end_id = ((row[3] * self.blocksize)+self.par_startoffset) / self.blocksize
-                self.cursor.execute('start transaction')
-                while map_id <= end_id :
-                    sql = 'insert into datamap (blk_num,block_id) values(%s, %s)'
-                    self.cursor.execute(sql,(map_id, row[0]))
-                    map_id = map_id + 1
-                self.cursor.execute('commit')
-            self.__log_write("DBG_","converting time : {0}.".format(time.time() - start))
-        except Exception :
-            self.__log_write("ERR_","Database::Check signature module ERROR.")
+    def __evaluate(self):
+        try:
+            fd = os.open(self.__i_path,os.O_RDONLY)
+            os.close(fd)
+            return ModuleConstant.Return.SUCCESS
+        except:return ModuleConstant.Return.EINVAL_FILE
 
-    # @ Jimin_Hur
-    def __signature_scan(self):
-        try :
-            FP = open(self.I_path,'rb')
-            FP.seek(self.par_startoffset)
-            C_offset = self.par_startoffset
-            Max_offset = os.path.getsize(self.I_path)
-            flag = 0
-            isthere = 0
+    # This job have to work exclusively
+    def __excl_get_master_data(self):
+        try:
+            self.__cursor.execute('select * from carpe_block_info where p_id = %s',self.__part_id)
+            return self.__cursor.fetchall()
+        except:
+            return C_defy.Return.EFAIL_DB
+        
+    def __scan_signature(self,data):
+        dataIndex    = 0
+        dataLength   = len(data)
+        crafted_data = list()
+        
+        while(dataIndex<dataLength):
+            (start,end) = (data[dataIndex][2]*self.__blocksize+self.__par_startoffset,
+                           data[dataIndex][3]*self.__blocksize+self.__par_startoffset)
+            self.__parser.bgoto(start,os.SEEK_SET)
+            info = self.__scan_block(start,end)
+            if(info!=[]):
+                crafted_data.append((data[dataIndex],info))
+            dataIndex+=1
 
-            # (현) Block 단위로 Signature 스캔 진행
-            # Block 안의 Sector 단위에 대한 처리 방법 고려하기 - Schema
-            start = time.time()
-            while C_offset <= Max_offset :
-                buffer = FP.read(self.blocksize)
-                for key in C_defy.Signature.Sig :
-                    temp = C_defy.Signature.Sig[key]
-                    if binascii.b2a_hex(buffer[temp[1]:temp[2]]) == temp[0] :
-                        # 특정 파일포맷에 대한 추가 검증 알고리즘
-                        if key == 'aac_1' or key == 'aac_2' :
-                            if binascii.b2a_hex(buffer[7:8]) == b'21' :
-                                flag = 1
-                        # DB 업데이트
-                        isthere = self.cursor.execute('select * from datamap where blk_num = %s', C_offset/self.blocksize)
-                        if flag == 0 and isthere == 1:
-                            self.cursor.execute('update datamap set blk_type = %s,blk_sig = %s, blk_stat = %s where blk_num = %s',('sig',key,'carving',C_offset/self.blocksize))
-                        #print("[DEBUG] : Find : ",key,"  Offset : ",hex(C_offset))
-                    flag = 0
-                    isthere = 0
-                C_offset += self.blocksize
-                FP.seek(C_offset)
-            self.__log_write("DBG_","Carving::converting time : {0}.".format(time.time() - start))
-        except Exception :
-            self.__log_write("ERR_","Carving::Fast Signature Detector ERROR.")
+        return crafted_data
 
-    # @ Jimin_Hur
-    def __carving(self):
-        self.cursor.execute('select block_id, blk_num, blk_sig from datamap where blk_sig is not null')
-        data = self.cursor.fetchall()
-        i        = 0
-        total    = len(data)
-        disable  = False
-        self.hit = {}
+    def __scan_block(self,start,end):
+        current = start
+        info    = list()
+        
+        while(current<=end):
+            _info = self.__scan(current)
+            if(_info[1]!=None):
+                info.append(_info)
+            current+=self.__blocksize
+        
+        return info
 
-        if not os.path.exists(self.destPath):
-            os.mkdir(self.destPath)
+    def __scan(self,offset):
+        flag   = 0
+        keys   = None
+        buffer = self.__parser.bread_raw(offset,self.__blocksize,os.SEEK_SET)
+        if(buffer==None):
+            return (offset,keys,flag)
+        
+        for key in C_defy.Signature.Sig:
+            temp = C_defy.Signature.Sig[key]
+            if binascii.b2a_hex(buffer[temp[1]:temp[2]])==temp[0]:
+                keys = key
+                # 특정 파일포맷에 대한 추가 검증 알고리즘
+                if key=='aac_1' or key=='aac_2' :
+                    if binascii.b2a_hex(buffer[7:8])==b'21':
+                        flag = 1
+                break
+        
+        return (offset,keys,flag)
 
-        errno = self.__get_file_handle(self.I_path)
-        if(errno==ModuleConstant.Return.EINVAL_FILE):
-            self.__log_write("ERR_","Carving::Cannot create a file handle.")
-            disable = True
+    def __carving(self,data,enable):
+        dataIndex  = 0
+        dataLength = len(data)-1
+        isDone     = False
+        self.__data  = dict()
+        self.__parser.bgoto(0,os.SEEK_SET)
 
-        for sigblk in data :
+        while(dataIndex<dataLength):
+            internalIndex  = 0
+            internalList   = data[dataIndex][1]
+            internalLength = len(internalList)-1
             
-            if (self.hit.get(data[i][2])==None):
-                self.hit.update({data[i][2]:[0,0]})
+            if(internalList==[]):
+                dataIndex+=1
+                continue
+
+            while(internalIndex<internalLength):
+                self.__extractor(internalList[internalIndex][1],   # extensions
+                                 internalList[internalIndex][0],   # start offset to carve
+                                 internalList[internalIndex+1][0], # last offset to carve
+                                 enable)
+                internalIndex+=1
+
+            while((dataIndex<dataLength) and (data[dataIndex+1][1]==[])):
+                dataIndex+=1
             
-            value   = self.hit.get(data[i][2])
-            self.hit.update({data[i][2]:[value[0]+1,value[1]]})
-            value   = self.hit.get(data[i][2])
+            # 블록에 있는 마지막 데이터 처리
+            if(dataIndex>=dataLength):
+                lastPtr = os.path.getsize(self.__i_path)
+                isDone  = True
+            else:
+                lastPtr = data[dataIndex+1][0][2] * self.__blocksize
+            self.__extractor(internalList[internalLength][1],      # extensions
+                             internalList[internalLength][0],      # start offset to carve
+                             lastPtr,                              # last offset to carve
+                             enable)
+            dataIndex+=1
+
+        # 마지막 블록처리
+        if(isDone==False):
+            internalIndex  = 0
+            internalList   = data[dataIndex][1]
+            internalLength = len(internalList)-1
+            while(internalIndex<internalLength):
+                self.__extractor(internalList[internalIndex][1],   # extensions
+                                 internalList[internalIndex][0],   # start offset to carve
+                                 internalList[internalIndex+1][0], # last offset to carve
+                                 enable)
+                internalIndex+=1
+
+            lastPtr = os.path.getsize(self.__i_path)
+            self.__extractor(internalList[internalLength][1],      # extensions
+                             internalList[internalLength][0],      # start offset to carve
+                             lastPtr,                              # last offset to carve
+                             enable)
             
-            current = data[i][1]*self.blocksize
-
-            # 맨 마지막 레코드
-            if i+1 == total:
-                end_pos = os.path.getsize(self.I_path)
-                result  = self.__call_sub_module(data[i][2],current,end_pos,self.blocksize)
-
-                if(type(result)==tuple):
-                    result = [list(result)]
-
-                if(len(result[0])==4):
-                    result[0].pop(0)
-
-                #print(data[i][2],hex(data[i][1]*self.blocksize),result)
-                if(result[0][1]>0):
-                    res = self.__extractor(data[i][2],result,disable) #파일 추출 모듈
-                    if(res!=ModuleConstant.Return.EINVAL_NONE):
-                        self.hit.update({data[i][2]:[value[0],value[1]+1]})
-
-            else :
-                # 같은 블록에 여러개의 sig가 발견
-                if sigblk[0] == data[i+1][0] :
-                    result = self.__call_sub_module(data[i][2],current,data[i+1][1]*self.blocksize,self.blocksize)
-                    
-                    if(type(result)==tuple):
-                        result = [list(result)]
-
-                    if(len(result[0])==4):
-                        result[0].pop(0)
-
-                    #print(data[i][2],hex(data[i][1]*self.blocksize),result)
-                    if(result[0][1]>0):
-                        res = self.__extractor(data[i][2],result,disable) #파일 추출 모듈
-                        if(res!=ModuleConstant.Return.EINVAL_NONE):
-                            self.hit.update({data[i][2]:[value[0],value[1]+1]})
-                
-                # 다른 블록으로 변경됨
-
-                else :
-                    self.cursor.execute('select blk_num from datamap where blk_num > %s and block_id = %s order by blk_num desc',(sigblk[1],sigblk[0]))
-                    end_pos = self.cursor.fetchone()
-                    
-                    if(end_pos!=None):
-                        result = self.__call_sub_module(data[i][2],current,end_pos[0]*self.blocksize,self.blocksize)
-                        if(type(result)==tuple):
-                            result = [list(result)]
-
-                        if(len(result[0])==4):
-                            result[0].pop(0)
-                        
-                        #print(data[i][2],hex(data[i][1]*self.blocksize),result)
-                        if(result[0][1]>0):
-                            res = self.__extractor(data[i][2],result,disable) #파일 추출 모듈
-                            if(res!=ModuleConstant.Return.EINVAL_NONE):
-                                self.hit.update({data[i][2]:[value[0],value[1]+1]})
-
-                    else:
-                        # --------------------------------------------
-                        # 데이터가 있음에도 불구하고 리턴 값 None 추가 처리 요함 (DB 파트 협의 필요)
-                        # 임시 처리 : (블록 크기만큼)
-                        result = self.__call_sub_module(data[i][2],current,current+self.blocksize,self.blocksize)
-                        if(type(result)==tuple):
-                            result = [list(result)]
-
-                        if(len(result[0])==4):
-                            result[0].pop(0)
-                        
-                        #print(data[i][2],hex(data[i][1]*self.blocksize),result)
-                        if(result[0][1]>0):
-                            res = self.__extractor(data[i][2],result,disable) #파일 추출 모듈
-                            if(res!=ModuleConstant.Return.EINVAL_NONE):
-                                self.hit.update({data[i][2]:[value[0],value[1]+1]})
-                        # --------------------------------------------
-
-            i += 1
-
-    # @ Jimin_Hur
     # Extract file(s) from image.
-    def __extractor(self,extension,result,disable):
-        if(disable==True):
-            return ModuleConstant.Return.EINVAL_TYPE
+    def __extractor(self,ext,start,last,enable=True):
 
-        path = self.destPath+os.sep+extension+os.sep
+        value   = self.__hit.get(ext,None)
+        if(value==None):
+            self.__hit.update({ext:[1,0]})
+            value = [1,0]
+        else:
+            self.__hit.update({ext:[value[0]+1,value[1]]})
+            value   = self.__hit.get(ext)
+
+        result = self.__call_sub_module(ext,start,last,self.__blocksize)
+        if(type(result)==tuple):
+            result = [list(result)]
+
+        if(len(result[0])==4):
+            result[0].pop(0)
+
+        fd     = None
+        wrtn   = 0
+        length = len(result)
+
+        path   = self.__dest_path+os.sep+ext+os.sep
+        fname  = path+str(hex(start))+"."+ext
+        if(result[0][0]==False or result[0][1]==0):
+            return (fname,wrtn)
+
         if(not os.path.exists(path)):
             self.__log_write("INFO","Extract::create a result directory at {0}".format(path))
-            os.mkdir(path)
+            os.makedirs(path)
 
-        fname  = path+str(hex(result[0][0]))+"."+extension
-        length = len(result)
-        fd     = None
+
+        if(enable==False):
+            self.__hit.update({ext:[value[0],value[1]+1]})
+            self.__data.update({str(hex(start)):(ext,start,last)})
+            self.__log_write("DBG_","Calculated::type:{0} name:{1} copied:{2} bytes details:{3}".format(ext,fname,hex(wrtn),result[0]))
+            return (fname,wrtn)
 
         try:
             fd = open(fname,'wb')
         except:
-            self.__log_write("ERR_","Extract::an error while creating file.".format(path))
+            self.__log_write("ERR_","Extract::an error while creating file:{0}.".format(path))
             return ModuleConstant.Return.EINVAL_NONE
+    
+        self.__hit.update({ext:[value[0],value[1]+1]})
+        self.__data.update({str(hex(start)):(ext,start,last)})
 
         if(length==1):
-            wrtn = 0
-            byte2copy = result[0][1]
-            self.__goto(result[0][0],os.SEEK_SET)
+            byte2copy = abs(last-start)
+            self.__parser.bgoto(start,os.SEEK_SET)
 
             while(byte2copy>0):
-                if(byte2copy<self.sectorsize):
-                    data = self.__fd.read(byte2copy)
+                if(byte2copy<self.__sectorsize):
+                    data = self.__parser.bread_raw(0,byte2copy)
                     wrtn +=fd.write(data)
                     byte2copy-=byte2copy
                     break
-                data = self.__fd.read(self.sectorsize)
+                data = self.__parser.bread_raw(0,self.__sectorsize)
                 wrtn +=fd.write(data)
-                byte2copy-=self.sectorsize
-            fd.close()
+                byte2copy-=self.__sectorsize
         else:
-            wrtn = 0
-            i    = 0
+            i = 0
             while(i<length):
                 byte2copy = result[i][1]
-                self.__goto(result[i][0],os.SEEK_SET)
+                self.__parser.bgoto(result[i][0],os.SEEK_SET)
 
                 while(byte2copy>0):
-                    if(byte2copy<self.sectorsize):
-                        data     = self.__fd.read(byte2copy)
-                        zerofill = bytearray(self.sectorsize-byte2copy)
+                    if(byte2copy<self.__sectorsize):
+                        data     = self.__parser.bread_raw(0,byte2copy)
+                        zerofill = bytearray(self.__sectorsize-byte2copy)
                         wrtn +=fd.write(data)
                         wrtn +=fd.write(zerofill)
                         byte2copy-=byte2copy
                     else:
-                        data = self.__fd.read(self.sectorsize)
+                        data = self.__parser.bread_raw(0,self.__sectorsize)
                         wrtn +=fd.write(data)
-                        byte2copy-=self.sectorsize
+                        byte2copy-=self.__sectorsize
                 i+=1
-            fd.close()
-        
-        self.__log_write("DBG_","Extract::type:{0} name:{1} copied:{2} bytes details:{3}".format(extension,fname,wrtn,result))
+            
+        fd.close()
+        self.__log_write("DBG_","Extract::type:{0} name:{1} copied:{2} bytes details:{3}".format(ext,fname,hex(wrtn),result[0]))
+        return (fname,wrtn) 
 
-        return (fname,wrtn)
+    def __save_result(self,data):
+        fname = self.get_bin_file()
+        if(not os.path.exists(self.__cache+self.__part_id)):
+            self.__log_write("INFO","Extract::Saved as {0}".format(fname),always=True)
+            os.makedirs(".cache"+os.sep+self.__part_id)
 
+        with open(fname,'wb') as file:
+            pickle.dump(data,file)
+
+        fname = self.get_cbin_file()
+        with open(fname,'wb') as file:
+            pickle.dump(self.__data,file)
+        self.__data = dict()
+
+    def __import_result(self,path):
+        data = ""
+        with open(path,'rb') as file:
+            try:data = pickle.load(file)
+            except:pass
+        return data
+
+    @property
+    def hit(self):
+        return self.__hit.copy()
+
+    @property
+    def Instruction(self):
+        return self.__Instruction
+
+    @property
+    def enable(self):
+        return self.__enable
+
+    @enable.setter
+    def enable(self,boolean):
+        if(type(boolean)==bool):
+            self.__enable = boolean
+
+    @property
+    def save(self):
+        return self.__save
+
+    @save.setter
+    def save(self,boolean):
+        if(type(boolean)==bool):
+            self.__save = boolean
+
+    @property
+    def Return(self):
+        return self.__Return
+
+    def get_bin_file(self):
+        return self.__cache+self.__part_id+os.sep+os.path.basename(self.__i_path)+".bin"
+
+    def get_cbin_file(self):
+        return self.__cache+self.__part_id+os.sep+os.path.basename(self.__i_path)+".cbin"
+
+    def get_csv_file(self):
+        return self.__cache+self.__part_id+os.sep+os.path.basename(self.__i_path)+".csv"
 
     # @ Module Interface
 
@@ -435,79 +447,268 @@ class Management(ModuleComponentInterface,C_defy):
         pass
 
     def execute(self,cmd=None,option=None):
-        if(cmd==ModuleConstant.PARAMETER):
-            self.data            = 0
-            self.case            = option.get("case",None)
-            self.blocksize       = option.get("block",4096)
-            self.sectorsize      = option.get("sector",512)
-            self.par_startoffset = option.get("start",0)
-            self.I_path          = option.get("path",None)
-            self.destPath        = option.get("dest",".{0}result".format(os.sep))
-            self.config          = option.get("config",self.defaultModuleLoaderFile)
+        if(cmd==C_defy.WorkLoad.PARAMETER):
+            if(type(option)!=dict):
+                return ModuleConstant.Return.EINVAL_TYPE
+            self.__part_id         = option.get("p_id",None)
+            self.__blocksize       = option.get("block",4096)
+            self.__sectorsize      = option.get("sector",512)
+            self.__par_startoffset = option.get("start",0)
+            self.__i_path          = option.get("path",None)
+            self.__dest_path       = option.get("dest",".{0}result".format(os.sep))
             self.__log_write("INFO","Main::Request to set parameters.",always=True)
 
-        elif(cmd==ModuleConstant.LOAD_MODULE):
+        elif(cmd==C_defy.WorkLoad.LOAD_MODULE):
             self.__log_write("INFO","Main::Request to load module(s).",always=True)
-            return self.__loadModule()
+            return self.__load_module()
 
-        elif(cmd==ModuleConstant.CONNECT_DB):
-            self.__log_write("INFO","Main::Request to connect to local database.",always=True)  
-            self.cursor = self.__carving_conn(option)
+        elif(cmd==C_defy.WorkLoad.CONNECT_DB):
+            if(type(option)!=dict):
+                return ModuleConstant.Return.EINVAL_TYPE
+            self.__log_write("INFO","Main::Request to connect to master database.",always=True)  
+            return self.__connect_master(option)
 
-        elif(cmd==ModuleConstant.CREATE_DB):
-            if(self.cursor!=None):
-                self.__log_write("INFO","Main::Request to connect to remote database and update local database.",always=True) 
-                self.__db_conn_create(option)
+        elif(cmd==C_defy.WorkLoad.DISCONNECT_DB):
+            self.__log_write("INFO","Main::Request to clean up. It would be disconnected with the master database.",always=True) 
+            if(self.__cursor!=None):
+                self.__cursor.close()
+                self.__cursor = None
+            if(self.__db!=None):
+                self.__db.close()
+                self.__db = None
 
-        elif(cmd==ModuleConstant.DISCONNECT_DB):
-            self.__log_write("INFO","Main::Request to clean up.",always=True) 
-            if(self.cursor!=None):
-                self.cursor.close()
-                self.cursor = None
-            else:
-                self.__log_write("WARN","Main::Database handle is already closed.",always=True) 
-
-        elif(cmd==ModuleConstant.EXEC and option==None):
+        elif(cmd==C_defy.WorkLoad.EXEC and option==None):
+            self.__hit = {}
             self.__log_write("","",always=True,init=True)
             self.__log_write("INFO","Main::Request to run carving process.",always=True)  
-            self.__signature_scan() # 시그니처 탐지
+            
+            data  = self.__excl_get_master_data()
+            if(data==C_defy.Return.EFAIL_DB):
+                self.__log_write("ERR_","Carving::Cannot connect master database.",always=True)
+                return None
+            if(self.__evaluate()!=ModuleConstant.Return.SUCCESS):
+                self.__log_write("ERR_","Carving::Cannot read the target file.",always=True)
+                return ModuleConstant.Return.EINVAL_FILE
+
+            self.__parser.get_file_handle(self.__i_path,0,1)
             start = time.time()
-            self.__carving()        # 카빙 동작
-            self.__log_write("DBG_","Carving::carving time : {0}.".format(time.time() - start))
-            self.__log_write("INFO","Carving::result:{0}".format(self.hit),always=True)
-            return self.hit
+            data = self.__scan_signature(data)
+            self.__carving(data,self.__enable)
+            self.__log_write("DBG_","Carving::processing time:{0}.".format(time.time()-start))
+
+            if(self.__save!=False):
+                self.__save_result(data)
+
+            self.__parser.cleanup()
+            self.__log_write("INFO","Carving::result:{0}".format(self.__hit),always=True)
+            del data
+            return self.__hit.copy()
+
+        elif(cmd==C_defy.WorkLoad.REPLAY):
+            self.__hit = {}
+            self.__log_write("INFO","Main::Request to re-run carving process from stored data.",always=True)
+
+            data = self.__import_result(option)
+            if(data==""):
+                return ModuleConstant.Return.EINVAL_FILE
+
+            self.__log_write("INFO","Main::Data loaded from {0}".format(option),always=True)
+            
+            self.__parser.get_file_handle(self.__i_path,0,1)
+            start = time.time() 
+
+            self.__carving(data,True)
+            self.__log_write("DBG_","Carving::processing time:{0}.".format(time.time()-start))
+            
+            self.__parser.cleanup()
+            self.__log_write("INFO","Carving::result:{0}".format(self.__hit),always=True)
+            del data
+            return self.__hit.copy()
+
+        elif(cmd==C_defy.WorkLoad.SELECT_ONE):
+            self.__hit = {}
+            self.__log_write("INFO","Main::Request to re-run carving process from stored data.",always=True)
+            if(type(option)!=dict):
+                return ModuleConstant.Return.EINVAL_TYPE
+
+            tmp = option.get("name",None)
+            if(type(tmp)!=str):
+                return ModuleConstant.Return.EINVAL_TYPE
+            
+            data = self.__import_result(option.get("path",self.get_cbin_file()))
+            if(data==""):
+                return ModuleConstant.Return.EINVAL_FILE
+            if(type(data)!=dict):
+                return ModuleConstant.Return.EINVAL_FILE
+            
+            target = data.get(tmp,None)
+            if(target==None):
+                return ModuleConstant.Return.EINVAL_NONE
+            if(len(target)!=3):
+                return ModuleConstant.Return.EINVAL_TYPE
+            
+            self.__parser.get_file_handle(self.__i_path,0,1)
+            try:self.__extractor(target[0],target[1],target[2])
+            except:self.__log_write("DBG_","Carving::Cannot carving some specific object:{0}.".format(target[1]),always=True)
+            self.__parser.cleanup()
+            self.__data = dict()
+            del data
+            return self.__hit.copy()
+
+        elif(cmd==C_defy.WorkLoad.SELECT_LIST):
+            self.__hit = {}
+            target = list()
+            self.__log_write("INFO","Main::Request to re-run carving process from stored data.",always=True)
+            if(type(option)!=dict):
+                return ModuleConstant.Return.EINVAL_TYPE
+
+            selected = option.get("name",None)
+            if(type(selected)!=list):
+                return ModuleConstant.Return.EINVAL_TYPE
+
+            data = self.__import_result(option.get("path",self.get_cbin_file()))
+            if(data==""):
+                return ModuleConstant.Return.EINVAL_FILE
+            if(type(data)!=dict):
+                return ModuleConstant.Return.EINVAL_FILE
+
+            for i in selected:
+                tmp = data.get(i,None)
+                if(type(tmp)==tuple and len(tmp)==3):
+                    target.append(tmp)
+
+            if(target==[]):
+                return ModuleConstant.Return.EINVAL_NONE
+            self.__parser.get_file_handle(self.__i_path,0,1)
+            for i in target:
+                try:self.__extractor(i[0],i[1],i[2])
+                except:self.__log_write("DBG_","Carving::Cannot carving some specific object:{0}.".format(target[1]),always=True)
+            self.__parser.cleanup()
+            self.__data = dict()
+            del data
+            return self.__hit.copy()
+
+        elif(cmd==C_defy.WorkLoad.POLICY):
+            if(type(option)!=dict):
+                return ModuleConstant.Return.EINVAL_TYPE
+            self.__log_write("INFO","MAIN::Change carving policies.",always=True)
+            self.__config     = option.get("config",self.defaultModuleLoaderFile)
+            self.__enable     = option.get("enable",True)
+            self.__save       = option.get("save",True)
+            return ModuleConstant.Return.SUCCESS
+
+        elif(cmd==C_defy.WorkLoad.EXPORT_CACHE):
+            self.__log_write("INFO","MAIN::Export cache data as object:{0}".format(self.__i_path),always=True)
+            return self.__import_result(option.get("path",self.get_cbin_file()))
+
+        elif(cmd==C_defy.WorkLoad.EXPORT_CACHE_TO_CSV):
+            data = self.__import_result(self.get_cbin_file())
+            if(type(data)!=dict):
+                return ModuleConstant.Return.EINVAL_TYPE
+            
+            df   = pd.DataFrame.from_dict(data,columns=C_defy.COLUMNS,orient='index')
+            df.to_csv(self.get_csv_file(),mode='w')
+            del data
+            self.__log_write("INFO","MAIN::Export cache data to csv:{0}.".format(self.get_csv_file()),always=True)
+            return self.get_csv_file()
+
+        elif(cmd==C_defy.WorkLoad.REMOVE_CACHE):
+            # 현재 이미지에 대한 캐시를 삭제
+            if(option==None):
+                try:
+                    os.remove(self.get_bin_file())
+                    os.remove(self.get_cbin_file())
+                    os.remove(self.get_csv_file())
+                    self.__log_write("INFO","MAIN::Clean cache data:{0}.".format(self.get_bin_file()),always=True)
+                    return ModuleConstant.Return.SUCCESS
+                except:
+                    return ModuleConstant.Return.EINVAL_FILE
+            # 모든 이미지에 대한 캐시 삭제
+            else:
+                try:
+                    shutil.rmtree(".cache")
+                    self.__log_write("INFO","MAIN::Clean all cache data.",always=True)
+                    return ModuleConstant.Return.SUCCESS
+                except:
+                    return ModuleConstant.Return.EINVAL_FILE
+
+        else:
+            return C_defy.Return.EIOCTL
 
 
 if __name__ == '__main__':
-    manage = Management(debug=False,out="carving.log")
 
-    res = manage.execute(ModuleConstant.LOAD_MODULE)
+    # PARAMETER :
+    """
+    {
+        "case":"TEST_2",
+        "block":4096,               # Block size
+        "sector":512,               # Sector size
+        "start":0x10000,            # Start offset (par-offset)
+        "path":"D:\\iitp_carv\\[NTFS]_Carving_Test_Image1.001", # Image to carve
+        #"dest":".{0}result".format(os.sep), # Output directory
+    }
+    """
+    # CONNECT_DB :
+    """
+    {
+        "ip":'218.145.27.66',       # 2세부 addr
+        "port":23306,               # 2세부 port
+        "id":'root',                # 2세부 ID
+        "password":'dfrc4738',      # 2세부 P/W
+        "category":'carpe_3'        # 2새부 Database
+    }
+    """
+    # POLICY :
+    """
+    {
+        "enable":True,              # 카빙 추출 기능 활성화(
+                                        True :캐시정보 기록 및 파일 추출
+                                        False:캐시정보만 기록(Lazy))
+        "save":True                 # 카빙 캐시 정보 저장(*.bin, *.cbin)
+    }
+    """
+    # SELECT_ONE/SELECT_LIST
+    """
+    {
+        "path":path                 # .cbin 파일 경로
+        "name":name                 # 확장자 제외한 파일 이름(오프셋 값)
+    }
+    {
+        "path":path                 # .cbin 파일 경로
+        "name":[]                   # 확장자 제외한 파일 이름 목록(오프셋 값)
+    }
+    """
+    # CARVING_OPCODE :
+    """
+    Carving Opcode:
+        # manage.Instruction.Opcode
+        Opcode                      Description
+        -------------------------------------------------------------------------------------------------
+        LOAD_MODULE                 # 카빙에 사용되는 모듈 등록
+        PARAMETER                   # 작업 파라미터 설정
+        CONNECT_DB                  # Master DB에 연결
+        DISCONNECT_DB               # Master DB와의 세션 종료
+        EXEC                        # (enable=True일 때) 카빙 작업 실행 및 (save=True일 때) 캐시 데이터 생성
+        REPLAY                      # 캐시 데이터를 이용해 작업 실행
+        SELECT_ONE                  # 캐시 데이터를 이용해 한 파일만 추출
+        SELECT_LIST                 # 캐시 데이터를 이용해 name 리스트에 있는 파일만 추출
+        POLICY                      # 카빙 정책 설정 (즉시 추출/캐시 저장)
+        EXPORT_CACHE                # 캐시 데이터를 Code에 반환
+        EXPORT_CACHE_TO_CSV         # 캐시된 목록을 csv형식으로 반환
+        REMOVE_CACHE                # 현재 이미지의 캐시 삭제/인자 인가시 모든 캐시 삭제
+
+        # cache path : $CarvingPath/.cache/partition_id/[image_name].(bin/cbin/csv)
+    """
+
+    manage = CarvingManager(debug=False,out="carving.log")
+
+    res = manage.execute(C_defy.WorkLoad.LOAD_MODULE)
 
     if(res==False):
         sys.exit(0)
 
-    manage.execute(ModuleConstant.PARAMETER,
-                    {
-                        "case":"TEST_2",
-                        "block":4096,
-                        "sector":512,
-                        "start":0x10000,
-                        "path":"D:\\iitp_carv\\[NTFS]_Carving_Test_Image1.001"
-                    }
-    )
-    
-    manage.execute(ModuleConstant.CONNECT_DB,
-                    {
-                        "ip":'localhost',
-                        "port":0,
-                        "id":'root',
-                        "password":'dfrc4738',
-                        "category":'carving',
-                        "init":True
-                    }
-    )
-     
-    manage.execute(ModuleConstant.CREATE_DB,
+    res = manage.execute(C_defy.WorkLoad.CONNECT_DB,
                     {
                         "ip":'218.145.27.66',
                         "port":23306,
@@ -516,9 +717,31 @@ if __name__ == '__main__':
                         "category":'carpe_3'
                     }
     )
-    
-    manage.execute(ModuleConstant.EXEC)
 
-    manage.execute(ModuleConstant.DISCONNECT_DB)
+    if(res==C_defy.Return.EFAIL_DB):
+        sys.exit(0)
+
+    #manage.enable   = False
+    manage.save     = True
+
+    manage.execute(C_defy.WorkLoad.PARAMETER,
+                    {
+                        "p_id":"TEST_2",
+                        "block":4096,
+                        "sector":512,
+                        "start":0x10000,
+                        "path":"D:\\iitp_carv\\[NTFS]_Carving_Test_Image1.001",
+                    }
+    )
+
+    manage.execute(C_defy.WorkLoad.EXEC)
+
+    manage.execute(C_defy.WorkLoad.DISCONNECT_DB)
+
+    manage.execute(C_defy.WorkLoad.EXPORT_CACHE_TO_CSV)
+
+    #print(manage.execute(C_defy.WorkLoad.SELECT_LIST,{"name":["0x1c2c000","0x2aaa000"]}))
+    #manage.execute(C_defy.WorkLoad.REPLAY,manage.get_bin_file())
+    #manage.execute(C_defy.WorkLoad.REMOVE_CACHE,True)
 
     sys.exit(0)

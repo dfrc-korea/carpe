@@ -17,38 +17,28 @@ import binascii
 # 동적인 설정은 ModuleConfiguration을 이용하여 config.txt에 기록!
 # --> module_config.py
 class C_defy(object):
-    # System Environment
-    LIB_DEFAULT_PATH = "/usr/local/lib/"
-    DEFINE_PATH      = os.path.abspath(os.path.dirname(__file__))+os.sep
 
-    # Module Attribute
-    NAME             = "name"
-    AUTHOR           = "author"
-    VERSION          = "ver"
-    ID               = "id"
-    PARAMETER        = "param"
-    ENCODE           = "encode"
-    FILE_ATTRIBUTE   = "file"
-    IMAGE_BASE       = "base"
-    EXCLUSIVE        = "excl"
-
-    # Confiugration Operations
-    CONFIG_FILE      = "config.txt"
-    INIT             = 0
-    READ             = 1
-    WRITE            = 2
-    CREATE           = 3
-    DELETE           = 4
-    SAVE             = 5
+    COLUMNS =["EXTENSION","START","LAST"]
 
     # Error
     class Return(object):
         SUCCESS          = 0   # 성공
         EFAIL_DB         = -1  # Fail to connect DB
+        EIOCTL           = -99 # Unsupport command
 
-    # Dependency List (Static)
-    class Dependency(object):
-        pecarve          = "pecarve"
+    class WorkLoad(object):
+        LOAD_MODULE         = 0b0000000000
+        PARAMETER           = 0b0000000001
+        CONNECT_DB          = 0b0000000010
+        DISCONNECT_DB       = 0b0000000100
+        EXEC                = 0b0000001000
+        REPLAY              = 0b0000010000
+        SELECT_ONE          = 0b0000100000
+        SELECT_LIST         = 0b0001000000
+        POLICY              = 0b0010000000
+        EXPORT_CACHE        = 0b0100000000
+        EXPORT_CACHE_TO_CSV = 0b1000000000
+        REMOVE_CACHE        = 0b1100000000
 
     class Signature(object) :
         Sig = {
