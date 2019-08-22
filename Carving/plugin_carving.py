@@ -601,14 +601,14 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         elif(cmd==C_defy.WorkLoad.POLICY):
             if(type(option)!=dict):
                 return ModuleConstant.Return.EINVAL_TYPE
-            self.__log_write("INFO","MAIN::Change carving policies.",always=True)
+            self.__log_write("INFO","Main::Change carving policies.",always=True)
             self.__config     = option.get("config",self.defaultModuleLoaderFile)
             self.__enable     = option.get("enable",True)
             self.__save       = option.get("save",True)
             return ModuleConstant.Return.SUCCESS
 
         elif(cmd==C_defy.WorkLoad.EXPORT_CACHE):
-            self.__log_write("INFO","MAIN::Export cache data as object:{0}".format(self.__i_path),always=True)
+            self.__log_write("INFO","Main::Export cache data as object:{0}".format(self.__i_path),always=True)
             return self.__import_result(option.get("path",self.get_cbin_file()))
 
         elif(cmd==C_defy.WorkLoad.EXPORT_CACHE_TO_CSV):
@@ -619,7 +619,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             df   = pd.DataFrame.from_dict(data,columns=C_defy.COLUMNS,orient='index')
             df.to_csv(self.get_csv_file(),mode='w')
             del data
-            self.__log_write("INFO","MAIN::Export cache data to csv:{0}.".format(self.get_csv_file()),always=True)
+            self.__log_write("INFO","Main::Export cache data to csv:{0}.".format(self.get_csv_file()),always=True)
             return self.get_csv_file()
 
         elif(cmd==C_defy.WorkLoad.REMOVE_CACHE):
@@ -627,7 +627,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             if(option==None):
                 try:
                     shutil.rmtree(self.__get_cache_master())
-                    self.__log_write("INFO","MAIN::Clean cache data:{0}.".format(self.__get_cache_master()),always=True)
+                    self.__log_write("INFO","Main::Clean cache data:{0}.".format(self.__get_cache_master()),always=True)
                     return ModuleConstant.Return.SUCCESS
                 except:
                     return ModuleConstant.Return.EINVAL_FILE
@@ -635,21 +635,21 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             elif(option==1):
                 try:
                     shutil.rmtree(self.__get_cache_partition())
-                    self.__log_write("INFO","MAIN::Clean cache data:{0}.".format(self.__get_cache_partition()),always=True)
+                    self.__log_write("INFO","Main::Clean cache data:{0}.".format(self.__get_cache_partition()),always=True)
                     return ModuleConstant.Return.SUCCESS
                 except:
                     return ModuleConstant.Return.EINVAL_FILE
             elif(type(option)==str):
                 try:
                     shutil.rmtree(self.__cache+os.sep+option)
-                    self.__log_write("INFO","MAIN::Clean cache data:{0}.".format(self.__cache+option),always=True)
+                    self.__log_write("INFO","Main::Clean cache data:{0}.".format(self.__cache+option),always=True)
                     return ModuleConstant.Return.SUCCESS
                 except:
                     return ModuleConstant.Return.EINVAL_FILE
             else:
                 try:
                     shutil.rmtree(".cache")
-                    self.__log_write("INFO","MAIN::Clean all cache data.",always=True)
+                    self.__log_write("INFO","Main::Clean all cache data.",always=True)
                     return ModuleConstant.Return.SUCCESS
                 except:
                     return ModuleConstant.Return.EINVAL_FILE
@@ -745,7 +745,7 @@ if __name__ == '__main__':
     if(res==C_defy.Return.EFAIL_DB):
         sys.exit(0)
 
-    manage.enable   = True
+    manage.enable   = False
     manage.save     = True
 
     manage.execute(C_defy.WorkLoad.PARAMETER,
@@ -765,7 +765,7 @@ if __name__ == '__main__':
     manage.execute(C_defy.WorkLoad.EXPORT_CACHE_TO_CSV)
 
     #print(manage.execute(C_defy.WorkLoad.SELECT_LIST,{"name":["0x1c2c000","0x2aaa000"]}))
-    #manage.execute(C_defy.WorkLoad.REPLAY,manage.get_bin_file())
+    manage.execute(C_defy.WorkLoad.REPLAY,manage.get_bin_file())
     #manage.execute(C_defy.WorkLoad.REMOVE_CACHE)
 
     sys.exit(0)
