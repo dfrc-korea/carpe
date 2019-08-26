@@ -72,7 +72,7 @@ class ModuleHWP(ModuleComponentInterface):
         pPropHWPSum = 0
         pOleHeader = {}
 
-        self.fp.seek(0)
+        self.fp.seek(self.get_attrib(ModuleConstant.IMAGE_BASE), os.SEEK_SET)
         pvBuffer = bytearray(self.fp.read(4096))
 
         pOleHeader['uFileType'] = pvBuffer[0x00:0x08]

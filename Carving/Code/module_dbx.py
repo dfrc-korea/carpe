@@ -45,7 +45,7 @@ class ModuleDBX(ModuleComponentInterface):
     def carve(self):
         self.fp = open(self.get_attrib(ModuleConstant.FILE_ATTRIBUTE), 'rb')
 
-        self.fp.seek(0)
+        self.fp.seek(self.get_attrib(ModuleConstant.IMAGE_BASE), os.SEEK_SET)
         temp = self.fp.read(512)
         fileSize = struct.unpack('<I', temp[0x7C:0x7C + 4])[0]
 

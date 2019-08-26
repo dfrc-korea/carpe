@@ -43,7 +43,7 @@ class ModuleZIP(ModuleComponentInterface):
 
     def carve(self):
         self.fp = open(self.get_attrib(ModuleConstant.FILE_ATTRIBUTE), 'rb')
-        i = 0
+        i = self.fp.seek(self.get_attrib(ModuleConstant.IMAGE_BASE),os.SEEK_SET)
         totalfilesize = 0
 
         while( i <= self.get_attrib(ModuleConstant.IMAGE_LAST) - self.get_attrib(ModuleConstant.IMAGE_BASE)) :   # 100MB
@@ -63,7 +63,7 @@ class ModuleZIP(ModuleComponentInterface):
 
                 filesize = 0x1E + zipheader_namelength + zipheader_extralength + zipheader_comsize    # 0x1D is header size
                 totalfilesize += filesize
-                i = totalfilesize
+                i += filesize
                 continue
             #중심 디렉토리인 경우
             elif (temp[0:2] == b'\x50\x4B' and temp[2:4] == b'\x01\x02'):
@@ -74,7 +74,7 @@ class ModuleZIP(ModuleComponentInterface):
 
                 filesize = 0x2E + zipcentral_namelength + zipcentral_extralength + zipcentral_commentlength  # 0x2E is header size
                 totalfilesize += filesize
-                i = totalfilesize
+                i += filesize
                 continue
             #Digital signature인 경우
             elif (temp[0:2] == b'\x50\x4B' and temp[2:4] == b'\x05\x05'):
@@ -83,7 +83,7 @@ class ModuleZIP(ModuleComponentInterface):
 
                 filesize = 0x06 + zipdigitalsignature_datasize
                 totalfilesize += filesize
-                i = totalfilesize
+                i += filesize
                 continue
             #Zip64 end of Central directory record인 경우0x06064b50
             elif (temp[0:2] == b'\x50\x4B' and temp[2:4] == b'\x06\x06'):
@@ -92,19 +92,19 @@ class ModuleZIP(ModuleComponentInterface):
 
                 filesize = 0x38 + zip64cdr_sizezip64
                 totalfilesize += filesize
-                i = totalfilesize
+                i += filesize
                 continue
             #Zip64 end of Central directory locator인 경우0x07064b50
             elif (temp[0:2] == b'\x50\x4B' and temp[2:4] == b'\x06\x07'):
                 filesize = 0x14                 # 0x14 is header size
                 totalfilesize += filesize
-                i = totalfilesize
+                i += filesize
                 continue
             # End of central directory record인 경우 0x06054b50
             elif (temp[0:2] == b'\x50\x4B' and temp[2:4] == b'\x05\x06'):
                 filesize = 0x16
                 totalfilesize += filesize
-                i = totalfilesize
+                i += filesize
                 print(totalfilesize, hex(totalfilesize))
                 self.offset = (True, self.attrib.get(ModuleConstant.IMAGE_BASE), totalfilesize, ModuleConstant.FILE_ONESHOT)        # Success
                 return True
@@ -116,6 +116,8 @@ class ModuleZIP(ModuleComponentInterface):
             self.offset = (False, 0, -1, ModuleConstant.INVALID)        # Fail
             return False
 
+        self.offset = (False, 0, -1, ModuleConstant.INVALID)  # Fail
+        return False
 
 
 
