@@ -43,7 +43,7 @@ class ModuleWAV(ModuleComponentInterface):
 
     def carve(self):
         self.fp = open(self.get_attrib(ModuleConstant.FILE_ATTRIBUTE), 'rb')
-        self.fp.seek(0)
+        self.fp.seek(self.get_attrib(ModuleConstant.IMAGE_BASE), os.SEEK_SET)
         riff = self.fp.read(0x0C)
         riff_filesize = struct.unpack('<I', riff[4:8])[0]  # 전체 사이즈를 확인하기 위한 헤더
         uFileSize = riff_filesize + 0x08  # RIFF 헤더를 포함한 전체 크기
