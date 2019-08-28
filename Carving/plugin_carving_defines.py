@@ -17,38 +17,45 @@ import binascii
 # 동적인 설정은 ModuleConfiguration을 이용하여 config.txt에 기록!
 # --> module_config.py
 class C_defy(object):
-    # System Environment
-    LIB_DEFAULT_PATH = "/usr/local/lib/"
-    DEFINE_PATH      = os.path.abspath(os.path.dirname(__file__))+os.sep
 
-    # Module Attribute
-    NAME             = "name"
-    AUTHOR           = "author"
-    VERSION          = "ver"
-    ID               = "id"
-    PARAMETER        = "param"
-    ENCODE           = "encode"
-    FILE_ATTRIBUTE   = "file"
-    IMAGE_BASE       = "base"
-    EXCLUSIVE        = "excl"
-
-    # Confiugration Operations
-    CONFIG_FILE      = "config.txt"
-    INIT             = 0
-    READ             = 1
-    WRITE            = 2
-    CREATE           = 3
-    DELETE           = 4
-    SAVE             = 5
+    COLUMNS =["EXTENSION","START","LAST","SIZE"]
 
     # Error
     class Return(object):
         SUCCESS          = 0   # 성공
         EFAIL_DB         = -1  # Fail to connect DB
+        EIOCTL           = -99 # Unsupport command
 
-    # Dependency List (Static)
-    class Dependency(object):
-        pecarve          = "pecarve"
+    #
+    """
+    BIT FILED
+    0 : Clear
+    1 : Set
+    2 : Export
+    3 : Many
+    4 : One
+    5 : Work
+    6 : Database
+    7 : Attributes   
+    """
+    class WorkLoad(object):
+        LOAD_MODULE         = 0b00000000
+
+        PARAMETER           = 0b01000001
+        POLICY              = 0b01000101
+        
+        CONNECT_DB          = 0b01000010
+        DISCONNECT_DB       = 0b10000010
+
+        EXEC                = 0b00000110
+        REPLAY              = 0b00010110
+        SELECT_ONE          = 0b00001100
+        SELECT_LIST         = 0b00010100
+
+        EXPORT_CACHE        = 0b00101000
+        EXPORT_CACHE_TO_CSV = 0b00101100
+        REMOVE_CACHE        = 0b10100000
+        FILTER_LIST         = 0b00111000
 
     class Signature(object) :
         Sig = {
