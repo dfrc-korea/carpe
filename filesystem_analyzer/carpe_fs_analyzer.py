@@ -94,24 +94,21 @@ class Carpe_FS_Analyze(object):
     alloc_info = carpe_fs_alloc_info.Carpe_FS_Alloc_Info()
     skip = 0
     start = 0
-    for n in range(0, self._fs_info_2._block_count):
-      if(self._fs_info.blockstat(n)):
-        print(n)
-      else:
-        print("unallock_blocks")
-        print(n)
-    '''
+
     for n in range(0, self._fs_info_2._block_count):  
       if (skip == 0):
         if(self._fs_info.blockstat(n) == 0):
           start = n
-          skip = 1          
-      else:    
+          skip = 1
+      else:
         if(self._fs_info.blockstat(n) == 1):
           alloc_info._unallock_blocks.append((start, n-1))
           skip = 0
-    '''
+
+      if(n == self._fs_info_2._block_count -1 and self._fs_info.blockstat(n) == 0):
+        alloc_info._unallock_blocks.append((start, n))
     return alloc_info
+
 
 
   def list_directory(self, directory, stack=None, path=None, conn=None):
@@ -420,4 +417,3 @@ if __name__ == '__main__':
     sys.exit(1)
   else:
     sys.exit(0)
-
