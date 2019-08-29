@@ -72,6 +72,8 @@ class CARPE_AM:
 	def ParseFilesystem(self):
 		fs = carpe_fs_analyzer.Carpe_FS_Analyze()
 
+
+
 		db = carpe_db.Mariadb()
 		db.open()
 		query = "SELECT sub_type FROM evidence_info WHERE evd_id='" + self.evd_id + "';"
@@ -88,6 +90,15 @@ class CARPE_AM:
 			start_sector = int(str(par[2]))
 			fs.open_file_system((sector_size * start_sector))
 			fs.fs_info(par_id)
+
+			#unalloc 
+			fs_alloc_info = fs.block_alloc_status()
+			fs_alloc_info._p_id = par_id
+			for i in fs_alloc_info._unallock_blocks:
+				query = db.insert_query_builder("carpe_block_info")
+				query = (query + "\n values " + "%s" % (i, ))
+				data=db.execute_query(query)
+			db.commit()
 
 			directory = fs.open_directory(None)
 			db_connector = carpe_db.Mariadb()
