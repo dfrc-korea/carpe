@@ -1,12 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os, subprocess
+import os, sys, subprocess
 import uuid
 
 from utility import carpe_db
 from image_analyzer import split_disk
 from image_analyzer import scan_disk
 from filesystem_analyzer import carpe_fs_analyzer
+from artifact_analyzer import artifact_analyzer
+
+from Carving.plugin_carving import CarvingManager
+from moduleInterface.interface import ModuleComponentInterface
+
+#sys.path.append(os.path.join(os.path.dirname(os.path.abspath(os.path.dirname('__file__')), 'READ')))
+#from READ import P3_Manager
 
 # Debuggin Module
 import pdb
@@ -18,6 +25,14 @@ class CARPE_AM:
 		self.path = None
 		self.tmp_path = None
 
+		self.manage = None
+		self.db_credentials = {
+			"ip":'218.145.27.66',
+			"port":23306,
+			"id":'root',
+			"password":'dfrc4738',
+			"category":'carpe_3'}
+
 	def SetModule(self, _case_id, _evd_id):
 		self.case_id = _case_id
 		self.evd_id = _evd_id
@@ -25,6 +40,8 @@ class CARPE_AM:
 		db = carpe_db.Mariadb()
 		db.open()
 		query = "SELECT evd_path FROM evidence_info WHERE case_id='" + _case_id + "' AND evd_id='" + _evd_id + "';"
+		#self.path = "/data/share/" + db.execute_query(query)[0]
+		#self.tmp_path = "/data/share/temp/" + self.case_id + "/" + self.evd_id + "/"
 		self.path = "/mnt/hgfs/carpe/share/" + db.execute_query(query)[0]
 		self.tmp_path = "/mnt/hgfs/carpe/share/temp/" + self.case_id + "/" + self.evd_id + "/"
 		db.close()
@@ -72,8 +89,6 @@ class CARPE_AM:
 	def ParseFilesystem(self):
 		fs = carpe_fs_analyzer.Carpe_FS_Analyze()
 
-
-
 		db = carpe_db.Mariadb()
 		db.open()
 		query = "SELECT sub_type FROM evidence_info WHERE evd_id='" + self.evd_id + "';"
@@ -95,7 +110,7 @@ class CARPE_AM:
 			fs_alloc_info = fs.block_alloc_status()
 			fs_alloc_info._p_id = par_id
 			for i in fs_alloc_info._unallock_blocks:
-				query = db.insert_query_builder("carpe_block_info")
+				query = db.insert_query_builder("block_info")
 				query = (query + "\n values " + "%s" % (i, ))
 				data=db.execute_query(query)
 			db.commit()
@@ -110,7 +125,7 @@ class CARPE_AM:
 
 		return True
 
-	def SysLogAndUserData_Analysis(self, options):
+	def SysLogAndUserData_Analysis(self):
 		# Conenct Carpe Database
 		db = carpe_db.Mariadb()
 		db.open()
@@ -125,6 +140,50 @@ class CARPE_AM:
 			p_id = str(par_info[0])
 			p_name = str(par_info[1])
 			storage_path = self.tmp_path + p_id + ".plaso"
-			subprocess.call(['python', '/mnt/hgfs/carpe/plaso_tool/carpe_l2t.py', '--hashers', 'None',  storage_path, self.path, p_name])
-			subprocess.call(['python', '/mnt/hgfs/carpe/plaso_tool/carpe_psort.py', '-o', '4n6time_maria', '--server', '218.145.27.66', '--port', '23306', '--user', 'root', '--password', 'dfrc4738',
-				'--db_name', 'carpe2', '--case_id', str(self.case_id), '--evd_id', str(self.evd_id), '--par_id', p_id, storage_path])
+			#subprocess.call(['python3.6', '/data/carpe/plaso_tool/carpe_l2t.py', '--hashers', 'None',  storage_path, self.path, p_name])
+			#subprocess.call(['python3.6', '/data/carpe/plaso_tool/carpe_psort.py', '-o', '4n6time_maria', '--server', '218.145.27.66', '--port', '23306', '--user', 'root', '--password', 'dfrc4738',
+			#	'--db_name', 'carpe', '--case_id', str(self.case_id), '--evd_id', str(self.evd_id), '--par_id', p_id, storage_path])
+			subprocess.call(['python3.6', '/mnt/hgfs/carpe/plaso_tool/carpe_l2t.py', '--hashers', 'None',  storage_path, self.path, p_name])
+			subprocess.call(['python3.6', '/mnt/hgfs/carpe/plaso_tool/carpe_psort.py', '-o', '4n6time_maria', '--server', '218.145.27.66', '--port', '23306', '--user', 'root', '--password', 'dfrc4738',
+				'--db_name', 'carpe', '--case_id', str(self.case_id), '--evd_id', str(self.evd_id), '--par_id', p_id, storage_path])
+	
+	def Analyze_Artifacts(self, options):
+		analyzer = artifact_analyzer.ArtifactAnalyzer()
+		analyzer.Init_Module(self.case_id, self.evd_id, options['Artifacts'])
+		analyzer.Analyze()
+
+	def Analyze_Documents(self):
+		db = carpe_db.Mariadb()
+		db.open()
+		
+		query = "SELECT name, file_id FROM file_info WHERE type IN('pdf, doc, docx, xls, xlsx, ppt, pptx, hwp') ORDER BY file_id " 
+		document_files = db.execute_query_mul(query)
+		db.close()
+		
+		p3_filePath = "/data/samples/"
+		"""
+		doc = P3_Manager.IITP3()
+		doc.run_daemon()
+		fileExpoter = carpe_file_extractor.Carpe_File_Extractor()
+		fileExpoter.setConfig(self.path, document_files)
+		fileExpoter.extract()
+		"""
+
+	def Carving(self, option):
+		if(type(option)==list and len(option)==2):pass
+		else:return None
+			
+		if(self.manage==None and option[0]==0):
+			self.manage = CarvingManager(debug=False,out="carving.log")
+			res = self.manage.execute(self.manage.Instruction.LOAD_MODULE)
+			if(res==False):
+				return self.manage.Return.EIOCTL
+			res = self.manage.execute(self.manage.Instruction.CONNECT_DB,self.db_credentials)
+			if(res==self.manage.Return.EFAIL_DB):
+				return self.manage.Return.EFAIL_DB
+			return self.manage.Return.SUCCESS
+		
+		if(self.manage==None):
+			return None
+		
+		return self.manage.execute(option[0],option[1])

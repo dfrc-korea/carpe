@@ -27,4 +27,7 @@ Table:
       - [TEXT, NOT NULL]
       - [TEXT, NOT NULL]
 Artifacts:
-  - [REG_KEY, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion]
+  - Name: WindowsInstallation
+    Desc: Windows Operating System Installation Information
+    values:
+      - [REG_KEY, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion]

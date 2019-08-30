@@ -17,11 +17,13 @@ def Init_Dummy_Case():
 case_id = sys.argv[1]
 evd_id = sys.argv[2]
 
-# VSS Option
-vss_option = sys.argv[3]
+options = {
+  'Artifacts' : 'Default',
+  'vss' : 'False'
+}
 
 # log2timeline filter option
-filter_option = sys.argv[4]
+#filter_option = sys.argv[4]
 
 # Analysis Request
 carpe_am = carpe_am_module.CARPE_AM()
@@ -30,8 +32,17 @@ carpe_am = carpe_am_module.CARPE_AM()
 carpe_am.SetModule(case_id, evd_id)
 
 # Analyze
-carpe_am.ParseImage(vss_option)
+carpe_am.ParseImage(options)
 carpe_am.ParseFilesystem()
-carpe_am.SysLogAndUserData_Analysis(filter_option)
+carpe_am.SysLogAndUserData_Analysis()
 
-Init_Dummy_Case()
+#Init_Dummy_Case()
+carpe_am.Analyze_Artifacts(options)
+
+"""
+  c16011ffad0b3a44e78aed17b366023f9c
+  e1c1004619edb24ffcb5ca1e48ec3c73cf
+  Windows10x64.E01
+  
+  python3.6 carpe_tester.py 'c16011ffad0b3a44e78aed17b366023f9c' 'e1c1004619edb24ffcb5ca1e48ec3c73cf'
+"""

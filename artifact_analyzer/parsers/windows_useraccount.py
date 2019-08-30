@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import os, sys
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname('__file__'))))
+sys.path.append(os.path.join(os.path.join(os.path.abspath(os.path.dirname('__file__')), "artifact_analyzer"), "parsers"))
 
-from parsers import parser_interface
+import parser_interface
 from utility import carpe_db
 
 class WindowsUserAccount(parser_interface.ParserInterface):

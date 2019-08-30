@@ -5,6 +5,7 @@ import pdb
 class Carpe_File(object):
 	def __init__(self):
 		super(Carpe_File, self).__init__()
+		self._id = 0
 		self._p_id = ""
 		#self._attr_type = 0
 		#self._attr_id = 0

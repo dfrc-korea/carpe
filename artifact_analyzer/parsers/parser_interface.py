@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 #from plaso.lib import errors
 from abc import *
 import os, sys
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname('__file__'))))
+sys.path.append(os.path.join(os.path.join(os.path.abspath(os.path.dirname('__file__')), "artifact_analyzer"), "parsers"))
 from utility import carpe_db
 import yaml
 
