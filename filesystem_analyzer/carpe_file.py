@@ -1,7 +1,7 @@
 from __future__ import print_function
 import sys
 import re
-
+import pdb
 class Carpe_File(object):
 	def __init__(self):
 		super(Carpe_File, self).__init__()
@@ -36,20 +36,21 @@ class Carpe_File(object):
 		self._mode = 0
 		self._uid = 0
 		self._gid = 0
-		self._hash = ""
+		self._md5 = ""
+		self._sha1 = ""
+		self._sha3 = ""
 		self._parent_path = ""
 		self._parent_id = 0
 		self._extension = ""
+		self._bookmark = False
 
 	def toTuple(self):
 		var_list = sorted([x for x in dir(self) if (re.match(r'(^[_][a-z])', x))])
 		temp = self.__dict__
 		ret = []
 		for i in var_list:
-			if(type(temp[i]) is long):
+			if(type(temp[i]) is int):
 				ret.append(int(str(temp[i]).rstrip("L")))
-			elif(type(temp[i]) is unicode):
-				ret.append(temp[i].encode("utf-8"))
 			else :
 				ret.append(temp[i])
 		return tuple(ret)
