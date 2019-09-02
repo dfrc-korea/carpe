@@ -26,19 +26,36 @@ class C_defy(object):
         EFAIL_DB         = -1  # Fail to connect DB
         EIOCTL           = -99 # Unsupport command
 
+    #
+    """
+    BIT FILED
+    0 : Clear
+    1 : Set
+    2 : Export
+    3 : Many
+    4 : One
+    5 : Work
+    6 : Database
+    7 : Attributes   
+    """
     class WorkLoad(object):
-        LOAD_MODULE         = 0b0000000000
-        PARAMETER           = 0b0000000001
-        CONNECT_DB          = 0b0000000010
-        DISCONNECT_DB       = 0b0000000100
-        EXEC                = 0b0000001000
-        REPLAY              = 0b0000010000
-        SELECT_ONE          = 0b0000100000
-        SELECT_LIST         = 0b0001000000
-        POLICY              = 0b0010000000
-        EXPORT_CACHE        = 0b0100000000
-        EXPORT_CACHE_TO_CSV = 0b1000000000
-        REMOVE_CACHE        = 0b1100000000
+        LOAD_MODULE         = 0b00000000
+
+        PARAMETER           = 0b01000001
+        POLICY              = 0b01000101
+        
+        CONNECT_DB          = 0b01000010
+        DISCONNECT_DB       = 0b10000010
+
+        EXEC                = 0b00000110
+        REPLAY              = 0b00010110
+        SELECT_ONE          = 0b00001100
+        SELECT_LIST         = 0b00010100
+
+        EXPORT_CACHE        = 0b00101000
+        EXPORT_CACHE_TO_CSV = 0b00101100
+        REMOVE_CACHE        = 0b10100000
+        FILTER_LIST         = 0b00111000
 
     class Signature(object) :
         Sig = {

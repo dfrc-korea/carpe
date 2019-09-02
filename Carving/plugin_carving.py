@@ -653,10 +653,8 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                     return ModuleConstant.Return.SUCCESS
                 except:
                     return ModuleConstant.Return.EINVAL_FILE
-
         else:
             return C_defy.Return.EIOCTL
-
 
 if __name__ == '__main__':
 
