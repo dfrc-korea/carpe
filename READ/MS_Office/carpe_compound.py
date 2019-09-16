@@ -46,7 +46,7 @@ class Compound:
                 self.fp = CompoundFileReader(filePath)
                 self.is_damaged = self.CONST_DOCUMENT_NORMAL
                 temp1 = bytearray(self.fp.open('\x05SummaryInformation').read())         # read test
-                temp1 = bytearray(self.fp.open('Root Entry').read())                     # read test
+                #temp1 = bytearray(self.fp.open('Root Entry').read())                     # read test
                 temp1 = bytearray(self.fp.open('\x05DocumentSummaryInformation').read())                     # read test
                 #print("Normal File exist!!")
             except errors.CompoundFileInvalidBomError:
