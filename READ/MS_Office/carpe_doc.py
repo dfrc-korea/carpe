@@ -511,6 +511,27 @@ class DOC:
         filteredLen = dictionary['length']
         #self.compound.content = filteredText.decode("utf-16")
 
+        ###### DOC 추가
+
+        if len(filteredText) != 0:
+            nPos = filteredLen
+            usTmp1 = 0
+            usTmp2 = 0
+
+            if nPos >= 4:
+                usTmp1 = struct.unpack('<H', filteredText[0 + nPos - 4 : 0 + nPos - 4 + 2])[0]
+            usTmp2 = struct.unpack('<H', filteredText[0 + nPos - 2: 0 + nPos - 2 + 2])[0]
+
+            if usTmp1 == uNewline:
+                if usTmp2 != uNewline:
+                    filteredText += b'\x0A\x00\x00\x00'
+            else:
+                if usTmp2 == uNewline:
+                    filteredText += b'\x0A\x00\x00\x00'
+                else:
+                    filteredText += b'\x0A\x00\x0A\x00\x00\x00'
+
+        #######
         for i in range(0, len(filteredText), 2):
             try:
                 self.compound.content += filteredText[i:i+2].decode('utf-16')
