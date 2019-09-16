@@ -234,7 +234,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                         flag = 1
                 break
         
-        return (offset,keys,flag)
+        return (offset,keys,flag,C_defy.Signature.Sig.get(keys,(0,0,0,None)[3]))
 
     def __carving(self,data,enable):
         dataIndex  = 0
@@ -252,10 +252,12 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 dataIndex+=1
                 continue
 
+
             while(internalIndex<internalLength):
                 self.__extractor(internalList[internalIndex][1],   # extensions
                                  internalList[internalIndex][0],   # start offset to carve
                                  internalList[internalIndex+1][0], # last offset to carve
+                                 internalList[internalIndex][3],   # category
                                  enable)
                 internalIndex+=1
 
@@ -271,6 +273,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__extractor(internalList[internalLength][1],      # extensions
                              internalList[internalLength][0],      # start offset to carve
                              lastPtr,                              # last offset to carve
+                             internalList[internalIndex][3],       # category
                              enable)
             dataIndex+=1
 
@@ -283,6 +286,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 self.__extractor(internalList[internalIndex][1],   # extensions
                                  internalList[internalIndex][0],   # start offset to carve
                                  internalList[internalIndex+1][0], # last offset to carve
+                                 internalList[internalIndex][3],   # category
                                  enable)
                 internalIndex+=1
 
@@ -290,11 +294,11 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__extractor(internalList[internalLength][1],      # extensions
                              internalList[internalLength][0],      # start offset to carve
                              lastPtr,                              # last offset to carve
+                             internalList[internalIndex][3],       # category
                              enable)
             
     # Extract file(s) from image.
-    def __extractor(self,ext,start,last,enable=True):
-
+    def __extractor(self,ext,start,last,cat,enable=True):
         value   = self.__hit.get(ext,None)
         if(value==None):
             self.__hit.update({ext:[1,0]})
@@ -313,8 +317,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         fd     = None
         wrtn   = 0
         length = len(result)
-
-        path   = self.__dest_path+os.sep+ext+os.sep
+        path   = self.__dest_path+os.sep+cat[3]+os.sep
         fname  = path+str(hex(start))+"."+ext
         if(result[0][0]==False or result[0][1]==0):
             return (fname,wrtn)
@@ -326,7 +329,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
 
         if(enable==False):
             self.__hit.update({ext:[value[0],value[1]+1]})
-            self.__data.update({str(hex(start)):(ext,start,last,abs(last-start))})
+            self.__data.update({str(hex(start)):(ext,start,last,abs(last-start),cat[3])})
             self.__log_write("DBG_","Calculated::type:{0} name:{1} copied:{2} bytes details:{3}".format(ext,fname,hex(wrtn),result[0]))
             return (fname,wrtn)
 
@@ -337,16 +340,16 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             return ModuleConstant.Return.EINVAL_NONE
     
         self.__hit.update({ext:[value[0],value[1]+1]})
-        self.__data.update({str(hex(start)):(ext,start,last,abs(last-start))})
+        self.__data.update({str(hex(start)):(ext,start,last,abs(last-start),cat[3])})
 
         if(length==1):
-            byte2copy = abs(last-start)
+            byte2copy = result[0][1]
             self.__parser.bgoto(start,os.SEEK_SET)
 
             while(byte2copy>0):
                 if(byte2copy<self.__sectorsize):
                     data = self.__parser.bread_raw(0,byte2copy)
-                    wrtn +=fd.write(data)
+                    wrtn +=fd.write(data) 
                     byte2copy-=byte2copy
                     break
                 data = self.__parser.bread_raw(0,self.__sectorsize)
@@ -361,16 +364,16 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 while(byte2copy>0):
                     if(byte2copy<self.__sectorsize):
                         data     = self.__parser.bread_raw(0,byte2copy)
-                        zerofill = bytearray(self.__sectorsize-byte2copy)
                         wrtn +=fd.write(data)
-                        wrtn +=fd.write(zerofill)
+                        #zerofill = bytearray(self.__sectorsize-byte2copy)
+                        #wrtn +=fd.write(zerofill)
                         byte2copy-=byte2copy
                     else:
                         data = self.__parser.bread_raw(0,self.__sectorsize)
                         wrtn +=fd.write(data)
                         byte2copy-=self.__sectorsize
                 i+=1
-            
+
         fd.close()
         self.__log_write("DBG_","Extract::type:{0} name:{1} copied:{2} bytes details:{3}".format(ext,fname,hex(wrtn),result[0]))
         return (fname,wrtn) 
@@ -512,6 +515,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__parser.cleanup()
             self.__log_write("INFO","Carving::result:{0}".format(self.__hit),always=True)
             del data
+            # update to mariadb
             return self.__hit.copy()
 
         elif(cmd==C_defy.WorkLoad.REPLAY):
