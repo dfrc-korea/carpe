@@ -1,16 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#           OH MY GIRL License
-#   To create a program using this source code,
-#   Follow the link below to listen to the OH MY GIRL's song at least once.
-#   LINK (1): https://youtu.be/RrvdjyIL0fA
-#   LINK (2): https://youtu.be/QIN5_tJRiyY
-#   LINK (3): https://youtu.be/udGwca1HBM4
-
 """
 @author:    Seonho Lee
-@license:   OH_MY_GIRL License
 @contact:   horensic@gmail.com
 """
 
@@ -29,6 +21,35 @@ from pdfminer.converter import TextConverter
 
 
 carpe_pdf_log = logger.CarpeLog("PDF", level=logger.LOG_INFO)
+
+
+class WrapperPDFPage(PDFPage):
+
+    @classmethod
+    def get_pages(klass, fp, parser=None, doc=None,
+                  pagenos=None, maxpages=0, password='',
+                  caching=True, check_extractable=True):
+
+        if not parser:
+            parser = PDFParser(fp)
+        else:
+            parser = parser
+
+        if not doc:
+            doc = PDFDocument(parser, password=password, caching=caching)
+        else:
+            doc = doc
+
+        if check_extractable and not doc.is_extractable:
+            raise PDFTextExtractionNotAllowed('Text extraction is not allowed: %r' % fp)
+
+        for (pageno, page) in enumerate(klass.create_pages(doc)):
+            if pagenos and (pageno not in pagenos):
+                continue
+            yield page
+            if maxpages and maxpages <= pageno+1:
+                break
+        return
 
 
 class PDF:
@@ -127,7 +148,7 @@ class PDF:
             device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
             interpreter = PDFPageInterpreter(rsrcmgr, device)
 
-            for page in PDFPage.get_pages(self.pdf):
+            for page in WrapperPDFPage.get_pages(self.pdf, parser=self.parser, doc=self.document):
                 interpreter.process_page(page)
 
             self.content = retstr.getvalue()
@@ -163,11 +184,13 @@ class PDF:
             # damaged pdf
             self.metadata = self.restore_metadata()
 
-        if 'CreationDate' in self.metadata[0]:
-            self.metadata[0]['CreationDate'] = timestamp(self.metadata[0]['CreationDate']).encode('ascii')
+        if len(self.metadata) != 0:
 
-        if 'ModDate' in self.metadata[0]:
-            self.metadata[0]['ModDate'] = timestamp(self.metadata[0]['ModDate']).encode('ascii')
+            if 'CreationDate' in self.metadata[0]:
+                self.metadata[0]['CreationDate'] = timestamp(self.metadata[0]['CreationDate']).encode('ascii')
+
+            if 'ModDate' in self.metadata[0]:
+                self.metadata[0]['ModDate'] = timestamp(self.metadata[0]['ModDate']).encode('ascii')
 
     def restore_content(self):
         carpe_pdf_log.debug("Called restore_content()")
