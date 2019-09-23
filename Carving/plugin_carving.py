@@ -6,12 +6,12 @@ import pickle
 import shutil
 import pandas as pd
 
-from multiprocessing import Process, Lock
+from multiprocessing           import Process, Lock
 
 from moduleInterface.defines   import ModuleConstant
 from moduleInterface.interface import ModuleComponentInterface
 from moduleInterface.actuator  import Actuator
-from structureReader import structureReader as sr
+from structureReader           import structureReader as sr
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}include".format(os.sep)))
 sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}Code".format(os.sep)))        # For carving module
@@ -19,18 +19,6 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}Code".format(os.se
 from plugin_carving_defines import C_defy
 from Include.carpe_db       import Mariadb
 
-
-"""
-    Key      :Value
-    "name"   :"CarvingManager",      # 모듈 이름
-    "author" :"",                    # 모듈 작성자
-    "ver"    :"0.1",                 # 모듈 버전
-    "id"     :0,                     # onload 시 고유 ID (int 형)
-    "param"  :"이미지 경로", "CASE명" # 모듈 파라미터
-    "encode" :"utf-8",               # 인코딩 방식
-    "base"   :0,                     # Base 주소(오프셋)
-    "excl"   :False                  # 모듈의 유니크(배타적) 속성
-"""
 
 # CarvingManager : DB 수정권한 없음 (For safety)
 class CarvingManager(ModuleComponentInterface,C_defy):
@@ -119,7 +107,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__fd = None
 
 
-
     def __load_config(self):
         self.__log_write("INFO","Loader::Start to module load...",always=True)
         if(self.__actuator.loadModuleClassAs("module_config","ModuleConfiguration","config")==False):
@@ -188,6 +175,15 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             return self.__cursor.fetchall()
         except:
             return C_defy.Return.EFAIL_DB
+
+    def __excl_put_result_to_db_for_view(self):
+        #check existence
+        #self.__data
+        try:
+            #self.__cursor.exceute()
+            return
+        except:
+            return
         
     def __scan_signature(self,data):
         dataIndex    = 0
@@ -234,7 +230,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                         flag = 1
                 break
         
-        return (offset,keys,flag)
+        return (offset,keys,flag,C_defy.Signature.Sig.get(keys,(0,0,0,None)[3]))
 
     def __carving(self,data,enable):
         dataIndex  = 0
@@ -243,6 +239,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.__data  = dict()
         self.__parser.bgoto(0,os.SEEK_SET)
 
+        print(data)
         while(dataIndex<dataLength):
             internalIndex  = 0
             internalList   = data[dataIndex][1]
@@ -252,10 +249,12 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 dataIndex+=1
                 continue
 
+
             while(internalIndex<internalLength):
                 self.__extractor(internalList[internalIndex][1],   # extensions
                                  internalList[internalIndex][0],   # start offset to carve
                                  internalList[internalIndex+1][0], # last offset to carve
+                                 internalList[internalIndex][3],   # category
                                  enable)
                 internalIndex+=1
 
@@ -271,6 +270,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__extractor(internalList[internalLength][1],      # extensions
                              internalList[internalLength][0],      # start offset to carve
                              lastPtr,                              # last offset to carve
+                             internalList[internalIndex][3],       # category
                              enable)
             dataIndex+=1
 
@@ -283,6 +283,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 self.__extractor(internalList[internalIndex][1],   # extensions
                                  internalList[internalIndex][0],   # start offset to carve
                                  internalList[internalIndex+1][0], # last offset to carve
+                                 internalList[internalIndex][3],   # category
                                  enable)
                 internalIndex+=1
 
@@ -290,11 +291,11 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__extractor(internalList[internalLength][1],      # extensions
                              internalList[internalLength][0],      # start offset to carve
                              lastPtr,                              # last offset to carve
+                             internalList[internalIndex][3],       # category
                              enable)
             
     # Extract file(s) from image.
-    def __extractor(self,ext,start,last,enable=True):
-
+    def __extractor(self,ext,start,last,cat,enable=True):
         value   = self.__hit.get(ext,None)
         if(value==None):
             self.__hit.update({ext:[1,0]})
@@ -313,8 +314,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         fd     = None
         wrtn   = 0
         length = len(result)
-
-        path   = self.__dest_path+os.sep+ext+os.sep
+        path   = self.__dest_path+os.sep+cat[3]+os.sep
         fname  = path+str(hex(start))+"."+ext
         if(result[0][0]==False or result[0][1]==0):
             return (fname,wrtn)
@@ -326,7 +326,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
 
         if(enable==False):
             self.__hit.update({ext:[value[0],value[1]+1]})
-            self.__data.update({str(hex(start)):(ext,start,last,abs(last-start))})
+            self.__data.update({str(hex(start)):(ext,start,last,abs(last-start),cat[3])})
             self.__log_write("DBG_","Calculated::type:{0} name:{1} copied:{2} bytes details:{3}".format(ext,fname,hex(wrtn),result[0]))
             return (fname,wrtn)
 
@@ -337,16 +337,16 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             return ModuleConstant.Return.EINVAL_NONE
     
         self.__hit.update({ext:[value[0],value[1]+1]})
-        self.__data.update({str(hex(start)):(ext,start,last,abs(last-start))})
+        self.__data.update({str(hex(start)):(ext,start,last,abs(last-start),cat[3])})
 
         if(length==1):
-            byte2copy = abs(last-start)
+            byte2copy = result[0][1]
             self.__parser.bgoto(start,os.SEEK_SET)
 
             while(byte2copy>0):
                 if(byte2copy<self.__sectorsize):
                     data = self.__parser.bread_raw(0,byte2copy)
-                    wrtn +=fd.write(data)
+                    wrtn +=fd.write(data) 
                     byte2copy-=byte2copy
                     break
                 data = self.__parser.bread_raw(0,self.__sectorsize)
@@ -361,16 +361,16 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 while(byte2copy>0):
                     if(byte2copy<self.__sectorsize):
                         data     = self.__parser.bread_raw(0,byte2copy)
-                        zerofill = bytearray(self.__sectorsize-byte2copy)
                         wrtn +=fd.write(data)
-                        wrtn +=fd.write(zerofill)
+                        #zerofill = bytearray(self.__sectorsize-byte2copy)
+                        #wrtn +=fd.write(zerofill)
                         byte2copy-=byte2copy
                     else:
                         data = self.__parser.bread_raw(0,self.__sectorsize)
                         wrtn +=fd.write(data)
                         byte2copy-=self.__sectorsize
                 i+=1
-            
+
         fd.close()
         self.__log_write("DBG_","Extract::type:{0} name:{1} copied:{2} bytes details:{3}".format(ext,fname,hex(wrtn),result[0]))
         return (fname,wrtn) 
@@ -432,14 +432,17 @@ class CarvingManager(ModuleComponentInterface,C_defy):
     def __get_cache_master(self):
         return self.__cache+self.__part_id+os.sep+os.path.basename(self.__i_path)+os.sep
 
-    def get_bin_file(self):
-        return self.__get_cache_master()+os.path.basename(self.__i_path)+".bin"
+    def get_bin_file(self,path=None):
+        if(path==None):path = self.__i_path
+        return self.__get_cache_master()+os.path.basename(path)+".bin"
 
-    def get_cbin_file(self):
-        return self.__get_cache_master()+os.path.basename(self.__i_path)+".cbin"
+    def get_cbin_file(self,path=None):
+        if(path==None):path = self.__i_path
+        return self.__get_cache_master()+os.path.basename(path)+".cbin"
 
-    def get_csv_file(self):
-        return self.__get_cache_master()+os.path.basename(self.__i_path)+".csv"
+    def get_csv_file(self,path=None):
+        if(path==None):path = self.__i_path
+        return self.__get_cache_master()+os.path.basename(path)+".csv"
 
     # @ Module Interface
 
@@ -512,6 +515,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__parser.cleanup()
             self.__log_write("INFO","Carving::result:{0}".format(self.__hit),always=True)
             del data
+            # update to mariadb
             return self.__hit.copy()
 
         elif(cmd==C_defy.WorkLoad.REPLAY):
@@ -608,19 +612,25 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             return ModuleConstant.Return.SUCCESS
 
         elif(cmd==C_defy.WorkLoad.EXPORT_CACHE):
-            self.__log_write("INFO","Main::Export cache data as object:{0}".format(self.__i_path),always=True)
-            return self.__import_result(option.get("path",self.get_cbin_file()))
+            if(type(option)==dict):
+                path = option.get("path",self.__i_path)
+            else:path = self.__i_path
+            self.__log_write("INFO","Main::Export cache data as object:{0}".format(path),always=True)
+            return self.__import_result(self.get_cbin_file(path))
 
         elif(cmd==C_defy.WorkLoad.EXPORT_CACHE_TO_CSV):
-            data = self.__import_result(self.get_cbin_file())
+            if(option!=None):
+                path = option.get("path",self.__i_path)
+            else:path = None
+            data = self.__import_result(self.get_cbin_file(path))
             if(type(data)!=dict):
                 return ModuleConstant.Return.EINVAL_TYPE
             
             df   = pd.DataFrame.from_dict(data,columns=C_defy.COLUMNS,orient='index')
-            df.to_csv(self.get_csv_file(),mode='w')
+            df.to_csv(self.get_csv_file(path),mode='w')
             del data
-            self.__log_write("INFO","Main::Export cache data to csv:{0}.".format(self.get_csv_file()),always=True)
-            return self.get_csv_file()
+            self.__log_write("INFO","Main::Export cache data to csv:{0}.".format(self.get_csv_file(path)),always=True)
+            return self.get_csv_file(path)
 
         elif(cmd==C_defy.WorkLoad.REMOVE_CACHE):
             # 현재 이미지에 대한 캐시를 삭제
@@ -703,7 +713,7 @@ if __name__ == '__main__':
     """
     Carving Opcode:
         # manage.Instruction.Opcode
-        Opcode                Param      Return     Description
+        Opcode                Param        Return   Description
         -----------------------------------------------------------------------------------------------------------------
         LOAD_MODULE           None         Int      # 카빙에 사용되는 모듈 등록
         PARAMETER             Dict         Int      # 작업 파라미터 설정
