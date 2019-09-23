@@ -23,10 +23,12 @@ class ModuleLNK(ModuleComponentInterface):
         self.offset     = list()
         self.missing    = 0
         self.parser     = sr.StructureReader()
+        self.flag       = None
 
         self.set_attrib(ModuleConstant.NAME,"lnk")
         self.set_attrib(ModuleConstant.VERSION,"0.1")
         self.set_attrib(ModuleConstant.AUTHOR,"HK")
+        self.set_attrib("detailed_type",True)
 
     def __reinit__(self):
         self.fileSize   = 0
@@ -194,13 +196,18 @@ class ModuleLNK(ModuleComponentInterface):
         return self.attrib.get(key)
 
     def execute(self,cmd=None,option=None): # 모듈 호출자가 모듈을 실행하는 method
-        ret = self.__evaluate()
-        if(ret!=ModuleConstant.Return.SUCCESS):
-            return [(False,ret,ModuleConstant.INVALID)]
-        self.carve()
-        if(self.offset==[]):
-            return [(False,0,ModuleConstant.INVALID)]
-        return self.offset                  # return <= 0 means error while collecting information
+        if(cmd=='inspect'):
+            return self.flag
+        else:
+            self.flag = None
+            ret = self.__evaluate()
+            if(ret!=ModuleConstant.Return.SUCCESS):
+                return [(False,ret,ModuleConstant.INVALID)]
+            self.carve()
+            if(self.offset==[]):
+                return [(False,0,ModuleConstant.INVALID)]
+            self.flag = "lnk"
+            return self.offset                  # return <= 0 means error while collecting information
 
 
 if __name__ == '__main__':
