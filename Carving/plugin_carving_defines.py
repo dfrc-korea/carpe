@@ -81,7 +81,7 @@ class C_defy(object):
             'mp4'      : (b'66747970',3,7,"video"),
             'MFT'      : (b'46494c45',0,4,"windows{0}mft".format(os.sep)),
             'pdf'      : (b'25504446',0,4,"document{0}pdf".format(os.sep)),
-            'pkzip'    : (b'504b0304',0,4,"archive"),
+            'zip'      : (b'504b0304',0,4,"archive"),
             'png'      : (b'89504e47',0,4,"picture"),
             'wmv'      : (b'3026b2758e66cf11',0,8,"music"),
             'h264'     : (b'00000001',0,4,"video"),
