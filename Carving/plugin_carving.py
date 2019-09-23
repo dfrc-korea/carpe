@@ -381,7 +381,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         return (fname,wrtn) 
 
     def __save_result(self,data):
-        print(self.__get_cache_master())
         if(not os.path.exists(self.__get_cache_master())):
             os.makedirs(self.__get_cache_master())
 
