@@ -1,8 +1,8 @@
 #-*- coding: utf-8 -*-
 import os, sys, struct
 
-from defines import ModuleConstant
-from interface       import ModuleComponentInterface
+from moduleInterface.defines   import ModuleConstant
+from moduleInterface.interface import ModuleComponentInterface
 
 
 class ModuleCOMPOUND(ModuleComponentInterface):

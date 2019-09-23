@@ -1,8 +1,8 @@
 #-*- coding: utf-8 -*-
 import os, sys, struct
 
-from defines import ModuleConstant
-from interface       import ModuleComponentInterface
+from moduleInterface.defines   import ModuleConstant
+from moduleInterface.interface import ModuleComponentInterface
 
 
 class ModulePST(ModuleComponentInterface):
@@ -45,7 +45,7 @@ class ModulePST(ModuleComponentInterface):
     def carve(self):
         self.fp = open(self.get_attrib(ModuleConstant.FILE_ATTRIBUTE), 'rb')
 
-        self.fp.seek(0)
+        self.fp.seek(self.get_attrib(ModuleConstant.IMAGE_BASE),os.SEEK_SET)
         temp = self.fp.read(512)
         fileSize = struct.unpack('<Q', temp[0xB8:0xB8 + 8])[0]
 

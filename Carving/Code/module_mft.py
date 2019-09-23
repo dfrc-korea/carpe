@@ -56,14 +56,14 @@ class ModuleMFTEntry(ModuleComponentInterface):
         return ModuleConstant.Return.SUCCESS
 
     def __read(self,offset):
-        header = sr._MFTEntryHeader()
-        result = self.parser.bexecute(header.MFTEntryHeader,'int',offset,os.SEEK_SET,'little')
+        header  = sr._MFTEntryHeader()
+        result  = self.parser.bexecute(header.MFTEntryHeader,'int',offset,os.SEEK_SET,'little')
         if(result==False):
             return (False,0,-1,ModuleConstant.INVALID)
         
         if(self.parser.get_value("signature")!=ModuleMFTEntry.MFT_SIGNATURE_LE):
             return (False,0,-1,ModuleConstant.INVALID)
-
+        size     = self.parser.get_value("used_size")
         fixup    = self.parser.bread_raw(offset+int(self.parser.get_value("off_fixup")), \
                                         int(self.parser.get_value("num_fixup"))*2,      \
                                         os.SEEK_SET)
@@ -81,6 +81,11 @@ class ModuleMFTEntry(ModuleComponentInterface):
 
         if(fixup_val!=fixup_pg):
             return (True,offset,ModuleMFTEntry.MFT_ENTRY_PAGE_SIZE,ModuleConstant.FILE_RECORD) 
+
+        lastSig    = self.parser.bread_raw(offset+size-8,8,os.SEEK_SET)
+        
+        if(b'\xFF\xFF' not in lastSig):
+            return (False,offset,ModuleMFTEntry.MFT_ENTRY_SIZE,ModuleConstant.FILE_RECORD)
 
         return (True,offset,ModuleMFTEntry.MFT_ENTRY_SIZE,ModuleConstant.FILE_RECORD)
 
