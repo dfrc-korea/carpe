@@ -4,6 +4,11 @@ import os, sys, struct
 from moduleInterface.defines   import ModuleConstant
 from moduleInterface.interface import ModuleComponentInterface
 
+doc     = b'\x57\x00\x6F\x00\x72\x00\x64\x00\x44\x00\x6F\x00\x63\x00\x75\x00\x6D\x00\x65\x00\x6E\x00\x74\x00'
+ppt     = b'\x50\x00\x6F\x00\x77\x00\x65\x00\x72\x00\x50\x00\x6F\x00\x69\x00\x6E\x00\x74\x00\x20\x00\x44\x00\x6F\x00\x63\x00\x75\x00\x6D\x00\x65\x00\x6E\x00\x74\x00'
+xls     = b'\x57\x00\x6F\x00\x72\x00\x6B\x00\x62\x00\x6F\x00\x6F\x00\x6B\x00'
+
+compound = {'doc':doc,'ppt':ppt,'xls':xls}
 
 class ModuleCOMPOUND(ModuleComponentInterface):
     CONST_KILOBYTE = 1024
@@ -21,13 +26,14 @@ class ModuleCOMPOUND(ModuleComponentInterface):
         super().__init__()                  # Initialize Module Interface
         self.fileSize   = 0
         self.offset     = list()
+        self.flag     = None
 
         self.set_attrib(ModuleConstant.NAME,"COMPOUND")
         self.set_attrib(ModuleConstant.VERSION,"0.1")
         self.set_attrib(ModuleConstant.AUTHOR,"JH")
+        self.set_attrib("detailed_type",True)
 
         self.fp = None
-
 
     """ Module Methods """
 
@@ -192,8 +198,6 @@ class ModuleCOMPOUND(ModuleComponentInterface):
         return True
 
 
-
-
     """ Interfaces """
 
     def module_open(self,id):               # Reserved method for multiprocessing
@@ -209,13 +213,46 @@ class ModuleCOMPOUND(ModuleComponentInterface):
         return self.attrib.get(key)
 
     def execute(self,cmd=None,option=None): # 모듈 호출자가 모듈을 실행하는 method
-        ret = self.__evaluate()
-        if(ret!=ModuleConstant.Return.SUCCESS):
-            return [(False,ret,ModuleConstant.INVALID)]
-        self.carve()
-        if(self.offset==[]):
-            return [(False,0,ModuleConstant.INVALID)]
-        return self.offset                  # return <= 0 means error while collecting information
+        if(cmd=='inspect'):
+            return self.flag
+        else:
+            self.flag = None
+            ret = self.__evaluate()
+            if(ret!=ModuleConstant.Return.SUCCESS):
+                return [(False,ret,ModuleConstant.INVALID)]
+
+            self.carve()
+
+            if(self.offset==[]):
+                self.fp.close()
+                return [(False,0,ModuleConstant.INVALID)]
+
+            lastPtr = self.offset[2]
+
+            if (lastPtr<=0):
+                self.fp.close()
+                return [(False, 0, ModuleConstant.INVALID)]
+          
+            self.fp.seek(self.get_attrib(ModuleConstant.IMAGE_BASE), os.SEEK_SET)
+            bcursor = 0
+            flag    = False
+                        
+            while(bcursor<lastPtr):
+                buffer = self.fp.read(1024)
+                if(buffer==None or buffer==b''):
+                    break
+                for k,v in compound.items():
+                    if v in buffer:
+                        self.flag = k
+                        flag = True
+                        break
+                if(flag):break
+                bcursor+=1024
+            if(flag==False):
+                self.flag = "hwp"
+
+            self.fp.close()
+            return self.offset                  # return <= 0 means error while collecting information
 
 
 if __name__ == '__main__':
