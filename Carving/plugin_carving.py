@@ -313,6 +313,11 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 ftype = ext
         else:ftype = ext
 
+        if(ftype in C_defy.CATEGORY.document):
+            _cat = list(cat)
+            _cat[3] = "document"+os.sep+"document"
+            cat  = tuple(_cat)
+
         if(type(result[0])!=tuple):
             result[0].pop(0)
 

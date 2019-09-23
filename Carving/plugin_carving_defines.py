@@ -62,6 +62,9 @@ class C_defy(object):
         REMOVE_CACHE        = 0b10100000
         FILTER_LIST         = 0b00111000
 
+    class CATEGORY(object):
+        document  = {'docx','pptx','xlsx','doc','ppt','xls','hwp'}
+    
     class Signature(object) :
         Sig = {
             # 추가 검증 알고리즘이 존재하는 파일 포맷
