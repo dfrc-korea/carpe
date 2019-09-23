@@ -69,10 +69,12 @@ class ModulePEParser(ModuleComponentInterface):
     def __init__(self):
         super().__init__()                  # Initialize Module Interface
         self.data  = None
+        self.flag  = None
 
         self.set_attrib(ModuleConstant.NAME,"pe")
         self.set_attrib(ModuleConstant.VERSION,"0.1")
         self.set_attrib(ModuleConstant.AUTHOR,"HK")
+        self.set_attrib("detailed_type",True)
 
     def __del__(self):
         self.cleanup()
@@ -138,11 +140,16 @@ class ModulePEParser(ModuleComponentInterface):
         return self.attrib.get(key)
 
     def execute(self,cmd=None,option=None): # 모듈 호출자가 모듈을 실행하는 method
-        ret = self.__evaluate()
-        if(ret!=ModuleConstant.Return.SUCCESS):
-            return [(False,ret,ModuleConstant.INVALID)]
-        self.carve()
-        return [(self.attrib.get(ModuleConstant.IMAGE_BASE),self.data.fileSize,ModuleConstant.FILE_ONESHOT)] 
+        if(cmd=='inspect'):
+            return self.flag
+        else:
+            self.flag = None
+            ret = self.__evaluate()
+            if(ret!=ModuleConstant.Return.SUCCESS):
+                return [(False,ret,ModuleConstant.INVALID)]
+            self.carve()
+            self.flag = "exe"
+            return [(self.attrib.get(ModuleConstant.IMAGE_BASE),self.data.fileSize,ModuleConstant.FILE_ONESHOT)] 
         # return <= 0 means error while collecting information
 
 # Usage Example :

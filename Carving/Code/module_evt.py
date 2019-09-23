@@ -29,10 +29,12 @@ class ModuleEvt(ModuleComponentInterface):
         self.offset     = list()
         self.missing    = 0
         self.parser     = sr.StructureReader()
+        self.flag       = None
 
         self.set_attrib(ModuleConstant.NAME,"evt")
         self.set_attrib(ModuleConstant.VERSION,"0.1")
         self.set_attrib(ModuleConstant.AUTHOR,"HK")
+        self.set_attrib("detailed_type",True)
     
     def __reinit__(self):
         self.fileSize   = 0
@@ -62,6 +64,7 @@ class ModuleEvt(ModuleComponentInterface):
         
         # For evt
         if(self.parser.get_value("signature")==ModuleEvt.EVT_SIG):
+            self.flag = "evt"
             size = 0
             while(self.parser.get_value("signature")==ModuleEvt.EVT_SIG):
                 _tmp = int.from_bytes(self.parser.get_value('size'),'little')
@@ -80,6 +83,7 @@ class ModuleEvt(ModuleComponentInterface):
 
         _type  = self.parser.get_value("signature")
         if(_type==ModuleEvt.EVTX_HEADER):
+            self.flag = "evtx"
             self.parser.bgoto(-self.parser.get_size())
             self.parser.bexecute(header.evtxFileHeader,'byte',0,os.SEEK_CUR,'little')
             _crc = binascii.crc32(self.parser.stream[0:self.parser.get_field_offset("flags")])
@@ -150,13 +154,17 @@ class ModuleEvt(ModuleComponentInterface):
         return self.attrib.get(key)
 
     def execute(self,cmd=None,option=None): # 모듈 호출자가 모듈을 실행하는 method
-        ret = self.__evaluate()
-        if(ret!=ModuleConstant.Return.SUCCESS):
-            return [(False,ret,ModuleConstant.INVALID)]
-        self.carve()
-        if(self.offset==[]):
-            return [(False,0,ModuleConstant.INVALID)]
-        return self.offset                  # return <= 0 means error while collecting information
+        if(cmd=='inspect'):
+            return self.flag
+        else:
+            self.flag = None
+            ret = self.__evaluate()
+            if(ret!=ModuleConstant.Return.SUCCESS):
+                return [(False,ret,ModuleConstant.INVALID)]
+            self.carve()
+            if(self.offset==[]):
+                return [(False,0,ModuleConstant.INVALID)]
+            return self.offset                  # return <= 0 means error while collecting information
 
 
 if __name__ == '__main__':
