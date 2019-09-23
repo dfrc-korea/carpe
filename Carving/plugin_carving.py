@@ -150,7 +150,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         return self.__actuator.call(_request,None,None)
 
 
-
     def __connect_master(self,cred):
         db = Mariadb()
         try:
@@ -239,7 +238,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.__data  = dict()
         self.__parser.bgoto(0,os.SEEK_SET)
 
-        print(data)
         while(dataIndex<dataLength):
             internalIndex  = 0
             internalList   = data[dataIndex][1]
@@ -308,14 +306,21 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         if(type(result)==tuple):
             result = [list(result)]
 
-        if(len(result[0])==4):
+        ftype = self.__actuator.get(ext,"detailed_type")
+        if(ftype==True):
+            ftype = self.__actuator.call(ext,"inspect",None)
+            if(ftype==None):
+                ftype = ext
+        else:ftype = ext
+
+        if(type(result[0])!=tuple):
             result[0].pop(0)
 
         fd     = None
         wrtn   = 0
         length = len(result)
         path   = self.__dest_path+os.sep+cat[3]+os.sep
-        fname  = path+str(hex(start))+"."+ext
+        fname  = path+str(hex(start))+"."+ftype
         if(result[0][0]==False or result[0][1]==0):
             return (fname,wrtn)
 
