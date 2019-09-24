@@ -77,7 +77,7 @@ class C_defy(object):
             'fax'      : (b'49492a00',0,4,"document{0}etc".format(os.sep)),
             'flv'      : (b'464c5601',0,4,"music"),
             'gif_1'    : (b'4946383761',0,5,"picture"),
-            'gif_2'    : (b'4946383961',0,5,"picture"),
+            'gif_2'    : (b'4749463839',0,5,"picture"),
             'exif'     : (b'ffd8ffe1',0,4,"picture"),
             'jfif'     : (b'ffd8ffe0',0,4,"picture"),
             'mp3'      : (b'49443303',0,4,"music"),

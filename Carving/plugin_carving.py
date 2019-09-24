@@ -247,7 +247,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 dataIndex+=1
                 continue
 
-
             while(internalIndex<internalLength):
                 self.__extractor(internalList[internalIndex][1],   # extensions
                                  internalList[internalIndex][0],   # start offset to carve
@@ -294,6 +293,9 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             
     # Extract file(s) from image.
     def __extractor(self,ext,start,last,cat,enable=True):
+        if('_' in ext):
+            ext = ext.split('_',1)[0]
+
         value   = self.__hit.get(ext,None)
         if(value==None):
             self.__hit.update({ext:[1,0]})
