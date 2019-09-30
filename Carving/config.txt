@@ -2,6 +2,7 @@ Carving Module List
 alz:     module_alz,ModuleALZ,alz
 avi:     module_avi,ModuleAVI,avi
 bmp:     module_bmp,ModuleBMP,bmp
+rar:     module_rar,ModuleRAR,rar
 compound:module_compound,ModuleCOMPOUND,compound
 dbx:     module_dbx,ModuleDBX,dbx
 eml:     module_eml,ModuleEML,eml
