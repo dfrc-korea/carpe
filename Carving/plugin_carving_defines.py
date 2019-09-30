@@ -105,5 +105,6 @@ class C_defy(object):
             'pst'      : (b'2142444e',0,4,"mail"),
             'wav'      : (b'52494646',0,4,"music"),
             'reg'      : (b'66676572',0,4,"windows{0}registry".format(os.sep)),
+            'rar'      : (b'52617221',0,4,"archive"),
             #'idx'
         }
