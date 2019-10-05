@@ -17,39 +17,52 @@
 
 import bisect
 import sys
+ 
+#import pyqcow
 
-import pyqcow
-
-import ewf
+import pyewf
 import pytsk3
 
 
-class EWFImgInfo(pytsk3.Img_Info):
+
+class Carpe_Image(pytsk3.Img_Info):
+  def __init__(self, img_hanle):
+    super(Carpe_Image, self).__init__()
+    self._partition_table = pytsk3.Volume_Info(img_hanle)
+    #self._attr_type = 0
+
+
+
+class ewf_img_info(pytsk3.Img_Info):
   """An image info class which uses ewf as a backing reader.
 
   All we really need to do to provide TSK with the ability to read image formats
   is override the methods below.
   """
-
-  def __init__(self, *paths_to_ewf_files):
-    self.fd = ewf.ewffile(*paths_to_ewf_files)
-    # Make sure to call the original base constructor.
-    pytsk3.Img_Info.__init__(self, "")
-
-  def get_size(self):
-    """This should return the size of the image."""
-    return self.fd.size
-
-  def read(self, off, length):
-    """This method simply returns data from a particular offset."""
-    self.fd.seek(off)
-    return self.fd.read(length)
-
+  def __init__(self, ewf_handle):
+    # stores ewf_handle in class as new variable
+    self._ewf_handle = ewf_handle
+    super(ewf_img_info, self).__init__(
+      url="", type=pytsk3.TSK_IMG_TYPE_EXTERNAL)
+  
+  # The following methods override pytsk3's Img_Info methods which would not know how to handle the e01 image
+  # close Closes a ewf object
   def close(self):
-    """Dispose of the underlying file like object."""
-    self.fd.close()
+    self._ewf_handle.close()
+  # end of close -----------------------------------
+  
+  # read allows an e01 file to be opened/read by specifying where the file system info is on the image
+  def read(self, offset, size):
+    self._ewf_handle.seek(offset)
+    return self._ewf_handle.read(size)
+  # end of read ------------------------------------------------
+  
+  # get_size gets the size of the image
+  def get_size(self):
+    return self._ewf_handle.get_media_size()
 
 
+"""
 class QcowImgInfo(pytsk3.Img_Info):
   def __init__(self, filename):
     self._qcow_file = pyqcow.file()
@@ -66,7 +79,7 @@ class QcowImgInfo(pytsk3.Img_Info):
 
   def get_size(self):
     return self._qcow_file.get_media_size()
-
+"""
 
 class SplitImage(pytsk3.Img_Info):
   """Virtualize access to split images.
@@ -136,16 +149,19 @@ class SplitImage(pytsk3.Img_Info):
 
 def SelectImage(img_type, files):
   if img_type == "raw":
-    # For a single file this is faster.
-    return pytsk3.Img_Info(files)
-    '''
+    if len(files) == 1:
+      # For a single file this is faster.
+      return pytsk3.Img_Info(files[0])
     else:
       return SplitImage(*files)
-    '''
 
   elif img_type == "ewf":
     # Instantiate our special image object
-    return EWFImgInfo(*files)
+    filename = pyewf.glob(*files)
+    ewf_handle = pyewf.handle()
+    ewf_handle.open(filename)
+    return ewf_img_info(ewf_handle)
+
 
   elif img_type == "qcow":
     return QcowImgInfo(files[0])

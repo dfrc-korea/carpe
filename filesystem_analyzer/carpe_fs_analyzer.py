@@ -32,7 +32,7 @@ import carpe_fs_alloc_info
 
 
 def vdir(obj):
-    return [x for x in dir(obj) if not x.startswith('__')]
+  return [x for x in dir(obj) if not x.startswith('__')]
 
 
 
@@ -137,13 +137,14 @@ class Carpe_FS_Analyze(object):
       
       files_tuple = map(lambda i: i.toTuple(), self.directory_entry_info(directory_entry, parent_id=stack[-1], path=path))
       
-      for i in files_tuple:
-        if i is not None:
+      if files_tuple is not None:
+        for i in files_tuple:
           query = conn.insert_query_builder("file_info")
           query = (query + "\n values " + "%s" % (i, ))
           data=conn.execute_query(query)
-      conn.commit()
-    
+        conn.commit()
+      
+
       if self._recursive:
         try:
           sub_directory = directory_entry.as_directory()
@@ -182,8 +183,12 @@ class Carpe_FS_Analyze(object):
     self._fs_block = pytsk3.FS_Block(self._fs_info, a_addr=offset)
 
   def open_image(self, image_type, filenames):
-    # List the actual files (any of these can raise for any reason).
     self._img_info = images.SelectImage(image_type, filenames)
+  '''
+  def open_volume():
+
+  def split_partition():
+  '''  
 
   def parse_options(self, options):
     self._recursive = True
@@ -331,7 +336,7 @@ class Carpe_FS_Analyze(object):
           temp._extension = ""
           temp._type = 7
           temp._name = new_file._name + u"-slack" 
-          files.append(temp)      
+          files.append(temp)
       return files
 
 def Main():
@@ -373,6 +378,10 @@ def Main():
       "-p", "--partition_id", dest="partition_id", action="store",
       default=0, help="Partition ID.")
 
+  args_parser.add_argument(
+      "-i", "--imagetype", dest="image_type", action="store",
+      default="raw", help="Imgae Type.")
+
   options = args_parser.parse_args()
 
   if not options.images:
@@ -389,22 +398,34 @@ def Main():
   #fs_alloc_info = carpe_fs_alloc_info.Carpe_FS_Alloc_Info()
 
   fs.parse_options(options)
-
-  fs.open_image("raw", options.images)
+  print(options.images)
+  fs.open_image(options.image_type, options.images)
  
-  fs.open_file_system(0)
-
-  fs.fs_info(options.partition_id)
-  '''
-  fs_alloc_info = fs.block_alloc_status()
-
-  fs_alloc_info._p_id = options.partition_id
-  '''
-  directory = fs.open_directory(options.inode)
+  # To Do : Volume -> partition?
+  # EWF 면 partition
 
   db_connector = carpe_db.Mariadb()
 
   db_connector.open()
+
+  partition_table = pytsk3.Volume_Info(fs._img_info)
+
+  for partition in partition_table:
+    print(partition.addr, partition.desc, "%s sector (%s)" % (partition.start, partition.start * 512), partition.len)
+    if 'NTFS' in str(partition.desc):
+      fs.open_file_system(partition.start*512)
+      fs.fs_info(options.partition_id)
+      '''
+      fs_alloc_info = fs.block_alloc_status()
+      fs_alloc_info._p_id = options.partition_id
+      '''
+      directory = fs.open_directory(options.inode)
+      fs.list_directory(directory, [], [], db_connector)
+
+
+
+
+
   '''
   for i in fs_alloc_info._unallock_blocks:
     query = db_connector.insert_query_builder("carpe_block_info")
@@ -421,10 +442,8 @@ def Main():
   # struct - you can further dereference this struct into a TSK_FS_NAME
   # and TSK_FS_META structs.
   #asdf= db_connector.insert_query_builder("file_info")
-  #print(asdf)
-  
-  fs.list_directory(directory, [], [], db_connector)
 
+  
   return True
 
 if __name__ == '__main__':
