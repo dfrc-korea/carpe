@@ -328,7 +328,8 @@ class HWP:
             name = record.split('/')
             ext = name[1][-4:].lower()
             name = name[1]
-            path = './'+name
+            #global path로 변경하면 된다.
+            path = './output/'+name
 
 
             if ext == '.jpg' or ext == '.png' or ext == '.gif':

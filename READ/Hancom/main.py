@@ -7,7 +7,7 @@ def main(DirectoryPath):
             hwp_test = HWP(DirectoryPath)
             hwp_test.parse()
 
-            """
+            
             print("파일명 : " + hwp_test.fileName)
             print("파일크기 : ", hwp_test.fileSize, "Bytes")
             print("파일타입 : " + hwp_test.fileType)
@@ -54,6 +54,6 @@ def main(DirectoryPath):
             else:
                 print("본문 데이터 없음")
                 os.system('Pause')
-            """
+            
 if __name__ == "__main__":
     main(sys.argv[1])
