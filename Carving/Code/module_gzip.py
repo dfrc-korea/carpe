@@ -158,13 +158,20 @@ class ModuleGZIP(ModuleComponentInterface):
 
         fname  = "temp_gz"+str(time.time())
         current = self.parser.btell()
+        
+        # Attach Header
+        with open(fname,"a+b") as _temp:
+            _temp.write(self.parser.bread_raw(offset,current,os.SEEK_SET))
+            _temp.flush()
+
+        # Collect Compressed Data
+        self.parser.bgoto(current,os.SEEK_SET)
+
         while(current<last):
             current+=rbyte
             try:
-                with open(fname,"wb") as _temp:
-                    buffer = self.parser.bread_raw(offset,current,os.SEEK_SET)
-                    _temp.write(buffer)
-                
+                with open(fname,"a+b") as _temp:
+                    _temp.write(self.parser.bread_raw(0,rbyte,os.SEEK_CUR))
                 with gzip.open(fname,"rb") as _temp:
                     _temp.read()
                 flag = True
