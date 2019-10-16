@@ -13,8 +13,11 @@ from moduleInterface.interface import ModuleComponentInterface
 from moduleInterface.actuator  import Actuator
 from structureReader           import structureReader as sr
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}include".format(os.sep)))
-sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}Code".format(os.sep)))        # For carving module
+sys.path.append(os.path.abspath(os.path.dirname(__file__))+os.sep+"Code")
+sys.path.append(os.path.abspath(os.path.dirname(__file__))+os.sep+"Include")        # For carving module
+
+#sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}include".format(os.sep)))
+#sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}Code".format(os.sep)))        # For carving module
 
 from plugin_carving_defines import C_defy
 from Include.carpe_db       import Mariadb
@@ -25,7 +28,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
     def __init__(self,debug=False,out=None,logBuffer=0x409600):
         super().__init__()
         self.__cursor      = None
-        self.__cache       = os.path.dirname(__file__)+os.sep+".cache"+os.sep
+        self.__cache       = os.path.abspath(os.path.dirname(__file__))+os.sep+".cache"+os.sep
         self.__db          = None
         self.__dest_path   = ".{0}result".format(os.sep)
         self.__fd          = None
@@ -40,7 +43,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
 
         """ Module Manager """
         self.__actuator    = Actuator()
-        self.defaultModuleLoaderFile = str(__file__).split(os.sep)[0]+os.sep+"config.txt"
+        self.defaultModuleLoaderFile = os.path.abspath(os.path.dirname(__file__))+os.sep+"config.txt"
         self.moduleLoaderFile        = self.defaultModuleLoaderFile
 
         """ Logger """
@@ -50,7 +53,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.__out         = out
 
         if(type(self.__out)==str):
-            self.__stdout      = str(__file__).split(os.sep)[0]+os.sep+str(self.__out)
+            self.__stdout      = os.path.abspath(os.path.dirname(__file__))+os.sep+self.__out
             self.__stdout_old  = self.__stdout+".old"
             self.__out         = True
         else:
@@ -743,7 +746,6 @@ if __name__ == '__main__':
         # Return Dict Format :
             {"Format":[찾은 시그니처 파일 수,검증 통과한 파일 수],}
     """
-
     manage = CarvingManager(debug=False,out="carving.log")
 
     res = manage.execute(C_defy.WorkLoad.LOAD_MODULE)
