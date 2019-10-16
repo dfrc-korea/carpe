@@ -55,6 +55,7 @@ class ModuleGZIP(ModuleComponentInterface):
         self.parser          = sr.StructureReader()
         self.structure       = GZIPStructure()
         self.decomp          = None
+        
         self.set_attrib(ModuleConstant.NAME,"GZIP")
         self.set_attrib(ModuleConstant.VERSION,"0.1")
         self.set_attrib(ModuleConstant.AUTHOR,"HK")
@@ -81,23 +82,47 @@ class ModuleGZIP(ModuleComponentInterface):
         except:return ModuleConstant.Return.EINVAL_FILE
         return ModuleConstant.Return.SUCCESS
 
-    def carve(self):
+    def carve(self,cmd,option):
         self.__reinit__()
         self.parser.get_file_handle(
             self.get_attrib(ModuleConstant.FILE_ATTRIBUTE),
             self.get_attrib(ModuleConstant.IMAGE_BASE),1
         )
+
         opflag  = False
         offset  = self.get_attrib(ModuleConstant.IMAGE_BASE)
         last    = self.get_attrib(ModuleConstant.IMAGE_LAST)
         flag    = False
 
+        if(option!=None and type(option)==int):
+            rbyte = int(option)
+        else:
+            rbyte = 1
         if(last==0):
             last= self.parser.bgoto(0,os.SEEK_END)
-        self.parser.bgoto(offset,os.SEEK_SET)
 
+        
+        fname  = "temp_gz"+str(time.time())
+        try:
+            with open(fname,"wb") as _temp:
+                buffer = self.parser.bread_raw(offset,last,os.SEEK_SET)
+                _temp.write(buffer)
+                
+            with gzip.open(fname,"rb") as _temp:
+                _temp.read()
+            flag = True
+        except:
+            pass
+        
+        if(flag):
+            if(os.path.exists(fname)):
+                os.remove(fname)
+            self.offset.append((self.get_attrib(ModuleConstant.IMAGE_BASE),last,ModuleConstant.FILE_ONESHOT))
+            self.parser.cleanup()
+            return
+        
+        self.parser.bgoto(offset,os.SEEK_SET)
         self.parser.bexecute(self.structure.Header,'byte',offset,os.SEEK_SET)
-        self.parser.print()
         if(self.parser.get_value("signature")!=self.structure.Signature):
             self.parser.cleanup()
             return
@@ -131,17 +156,14 @@ class ModuleGZIP(ModuleComponentInterface):
                 flag-=self.structure.FHCRC
                 self.parser.bread_raw(0,2)
 
-
         fname  = "temp_gz"+str(time.time())
-        content = ''
         current = self.parser.btell()
         while(current<last):
-            current+=1
+            current+=rbyte
             try:
                 with open(fname,"wb") as _temp:
                     buffer = self.parser.bread_raw(offset,current,os.SEEK_SET)
                     _temp.write(buffer)
-                    _temp.flush()
                 
                 with gzip.open(fname,"rb") as _temp:
                     _temp.read()
@@ -176,7 +198,7 @@ class ModuleGZIP(ModuleComponentInterface):
         ret = self.__evaluate()
         if(ret!=ModuleConstant.Return.SUCCESS):
             return [(False,ret,ModuleConstant.INVALID)]
-        self.carve()
+        self.carve(cmd,option)
         if(self.offset==[]):
             return [(False,0,ModuleConstant.INVALID)]
         return self.offset                  # return <= 0 means error while collecting information
@@ -192,7 +214,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     GZIP.set_attrib(ModuleConstant.IMAGE_BASE,0)  # Set offset of the file base
-    cret = GZIP.execute()
+    cret = GZIP.execute(None,1)
     print(cret)
     print(len(cret))
     sys.exit(0)
