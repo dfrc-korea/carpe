@@ -151,7 +151,7 @@ class ModuleTAR(ModuleComponentInterface):
 
         offset  = self.get_attrib(ModuleConstant.IMAGE_BASE)
         last    = self.get_attrib(ModuleConstant.IMAGE_LAST)
-        sector  = self.get_attrib("sector")
+        sector  = self.get_attrib(ModuleConstant.SECTOR_SIZE)
         if(last==0):
             last= self.parser.bgoto(0,os.SEEK_END)       
 
@@ -164,7 +164,7 @@ class ModuleTAR(ModuleComponentInterface):
         self.structure.Headers.data = self.parser.bread_raw(0,self.structure.Headers.max)
 
         # First Header
-        if(self.structure.Headers.get("star").get("magic")[2]!=TARStructure.SIGNATURE):
+        if(self.structure.Headers.get_field("star","magic")!=TARStructure.SIGNATURE):
             self.parser.cleanup()
             return
         
@@ -176,9 +176,9 @@ class ModuleTAR(ModuleComponentInterface):
         while(_current<last):
             oldHeader.Headers.data      = self.structure.Headers.data
             self.structure.Headers.data = self.parser.bread_raw(0,self.structure.Headers.max)
-            if(self.structure.Headers.get("star").get("magic")[2]!=TARStructure.SIGNATURE):
+            if(self.structure.Headers.get_field("star","magic")!=TARStructure.SIGNATURE):
                 try:
-                    jump  = oldHeader.ascii2int(oldHeader.Headers.get("star").get("size")[2])
+                    jump  = oldHeader.ascii2int(oldHeader.Headers.get_field("star","size"))
                     jump += self.parser.align(jump,sector)
                     if(jump<1):
                         break
