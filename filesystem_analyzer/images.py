@@ -21,6 +21,9 @@ import sys
 #import pyqcow
 
 import pyewf
+import pyvmdk
+import pyvhdi
+import pyaff
 import pytsk3
 
 
@@ -32,6 +35,38 @@ class Carpe_Image(pytsk3.Img_Info):
     #self._attr_type = 0
 
 
+
+class vhdi_img_info(pytsk3.Img_Info):
+  def __init__(self, vhdi_file):
+    self._vhdi_file = vhdi_file
+    super(vhdi_img_info, self).__init__(
+        url="", type=pytsk3.TSK_IMG_TYPE_EXTERNAL)
+
+  def close(self):
+    self._vhdi_file.close()
+
+  def read(self, offset, size):
+    self._vhdi_file.seek(offset)
+    return self._vhdi_file.read(size)
+
+  def get_size(self):
+    return self._vhdi_file.get_media_size()
+
+class vmdk_img_info(pytsk3.Img_Info):
+  def __init__(self, vmdk_handle):
+    self._vmdk_handle = vmdk_handle
+    super(vmdk_img_info, self).__init__(
+        url="", type=pytsk3.TSK_IMG_TYPE_EXTERNAL)
+
+  def close(self):
+    self._vmdk_handle.close()
+
+  def read(self, offset, size):
+    self._vmdk_handle.seek(offset)
+    return self._vmdk_handle.read(size)
+
+  def get_size(self):
+    return self._vmdk_handle.get_media_size()
 
 class ewf_img_info(pytsk3.Img_Info):
   """An image info class which uses ewf as a backing reader.
@@ -161,7 +196,21 @@ def SelectImage(img_type, files):
     ewf_handle = pyewf.handle()
     ewf_handle.open(filename)
     return ewf_img_info(ewf_handle)
+  
+  elif img_type == "vmdk":
+    vmdk_handle = pyvmdk.handle()
+    vmdk_handle.open(files)
+    return vmdk_img_info(vmdk_handle)
 
-
+  elif img_type == "vhdi":
+    vhdi_handle = pyvhdi.file()
+    vhdi_handle.open(files)
+    return vhdi_img_info(vhdi_handle)
+    
+''' 
+  elif img_type == "aff":
+    aff_handle = pyaff.handle()
+  
   elif img_type == "qcow":
     return QcowImgInfo(files[0])
+'''
