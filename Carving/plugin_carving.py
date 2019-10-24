@@ -144,13 +144,13 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             return False
         return self.___load_module()
 
-    def __call_sub_module(self,_request,start,end,cluster,etype='euc-kr'):
+    def __call_sub_module(self,_request,start,end,cluster,cmd=None,option=None,etype='euc-kr'):
         self.__actuator.set(_request,ModuleConstant.FILE_ATTRIBUTE,self.__i_path)  # File to carve
         self.__actuator.set(_request,ModuleConstant.IMAGE_BASE,start)  # Set offset of the file base
         self.__actuator.set(_request,ModuleConstant.IMAGE_LAST,end)
         self.__actuator.set(_request,ModuleConstant.CLUSTER_SIZE,cluster)
         self.__actuator.set(_request,ModuleConstant.ENCODE,etype)
-        return self.__actuator.call(_request,None,None)
+        return self.__actuator.call(_request,cmd,option)
 
 
     def __connect_master(self,cred):
@@ -295,7 +295,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                              enable)
             
     # Extract file(s) from image.
-    def __extractor(self,ext,start,last,cat,enable=True):
+    def __extractor(self,ext,start,last,cat,enable=True,cmd=None,option=None,encode='euc-kr'):
         if('_' in ext):
             ext = ext.split('_',1)[0]
 
@@ -307,7 +307,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__hit.update({ext:[value[0]+1,value[1]]})
             value   = self.__hit.get(ext)
 
-        result = self.__call_sub_module(ext,start,last,self.__blocksize)
+        result = self.__call_sub_module(ext,start,last,self.__blocksize,cmd,option,encode)
         if(type(result)==tuple):
             result = [list(result)]
 
