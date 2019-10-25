@@ -487,15 +487,18 @@ class CarvingManager(ModuleComponentInterface,C_defy):
 
         elif(cmd==C_defy.WorkLoad.CONNECT_DB):
             if(type(option)!=dict):
-                option = {
-                        "ip":'218.145.27.66',
-                        "port":23306,
-                        "id":'root',
-                        "password":'dfrc4738',
-                        "category":'carpe_3'
-                }
-            self.__log_write("INFO","Main::Request to connect to master database.",always=True)  
-            return self.__connect_master(option)
+                db = Mariadb()
+                try:
+                    db.open()
+                    self.__cursor = db._conn
+                    self.__db = db
+                    return C_defy.Return.SUCCESS
+                except:
+                    db.close()
+                    return C_defy.Return.EFAIL_DB
+            else:
+                self.__log_write("INFO","Main::Request to connect to master database.",always=True)  
+                return self.__connect_master(option)
 
         elif(cmd==C_defy.WorkLoad.DISCONNECT_DB):
             self.__log_write("INFO","Main::Request to clean up. It would be disconnected with the master database.",always=True) 
@@ -759,6 +762,7 @@ if __name__ == '__main__':
     if(res==False):
         sys.exit(0)
 
+    """
     res = manage.execute(C_defy.WorkLoad.CONNECT_DB,
                     {
                         "ip":'218.145.27.66',
@@ -768,6 +772,7 @@ if __name__ == '__main__':
                         "category":'carpe_3'
                     }
     )
+    """
 
     if(res==C_defy.Return.EFAIL_DB):
         sys.exit(0)
