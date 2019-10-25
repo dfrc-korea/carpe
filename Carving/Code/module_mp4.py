@@ -20,8 +20,8 @@ class MP4Structure(object):
         })
         self.Chunk      = OrderedDict({
             "size"       : [ 0, 4,None],
-            "type"       : [ 8, 4,None],
-            "chunk_size" : [12, 4,None],
+            "flag"       : [ 8, 4,None],
+            "type"       : [12, 4,None],
         })
 
         self.Types      = (
@@ -30,8 +30,27 @@ class MP4Structure(object):
             "skip","jP2 ","wide","load",
             "ctab","imap","matt","kmat",
             "clip","crgn","sync","chap",
-            "tmcd","scpt","ssrc","PICT"
+            "tmcd","scpt","ssrc","PICT",
+            "mvhd"
         )
+
+        self.hxedTypes = self.__convert(self.Types)
+        self.hxedTypes.append(0x605ffff)
+
+    def __convert(self,list):
+        temp = []
+        for i in list:
+            temp.append(MP4Structure.str2ascii(i))
+        return temp
+
+    @staticmethod
+    def str2ascii(string):
+        code   = 0
+        length = len(string)-1
+        for i,v in enumerate(string):
+            code+=ord(v)
+            if(i<length):code<<=8
+        return code
 
 class ModuleMP4(ModuleComponentInterface):
 
@@ -92,6 +111,10 @@ class ModuleMP4(ModuleComponentInterface):
             self.parser.bexecute(self.structure.Chunk,'int',0,os.SEEK_CUR)
             if(self.parser.get_value("size")==0):
                 break
+
+            if(self.parser.get_value("type") not in self.structure.hxedTypes):
+                break
+            
             self.parser.bgoto(-self.parser.get_size()+self.parser.get_value("size"))
             current = self.parser.btell()
         
