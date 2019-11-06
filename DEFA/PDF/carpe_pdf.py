@@ -3,6 +3,7 @@
 
 """
 @author:    Seonho Lee
+@license:   OH_MY_GIRL License
 @contact:   horensic@gmail.com
 """
 
@@ -14,6 +15,7 @@ try:
 except ModuleNotFoundError:
     sys.path.append(os.path.dirname(__file__))
     from restore_pdf import *
+from extract_pdf import *
 from error import *
 import logger
 from pdfminer.layout import LAParams
@@ -191,6 +193,13 @@ class PDF:
 
             if 'ModDate' in self.metadata[0]:
                 self.metadata[0]['ModDate'] = timestamp(self.metadata[0]['ModDate']).encode('ascii')
+
+    def extract_multimedia(self):
+
+        if self.parse():
+            # normal pdf
+            for mm in PDFMultimedia.get_multimedia(document=self.document):
+                pass
 
     def restore_content(self):
         carpe_pdf_log.debug("Called restore_content()")
