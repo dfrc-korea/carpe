@@ -14,7 +14,6 @@ from pdfminer.pdftypes import resolve1
 from pdfminer.pdftypes import list_value
 from pdfminer.pdftypes import dict_value
 
-
 LITERAL_PAGE = LIT('Page')
 LITERAL_PAGES = LIT('Pages')
 
@@ -55,14 +54,12 @@ class PDFMultimedia:
                 pageid = objid
                 attrs = dict_value(tree)
                 resources = resolve1(attrs.get('Resources', dict()))
-                print(pageid, attrs, resources)
 
                 if 'XObject' in resources:  # Image
                     for (im_ref, xobj) in resources['XObject'].items():
-                        print(im_ref, xobj)
+                        # print(im_ref, xobj)
                         image_stream = xobj.resolve()
-                        with open('Temp', 'wb') as image_file:
-                            image_file.write(image_stream.get_data())
+                        yield ('', image_stream)
 
                 if 'Annots' in attrs:   # Multimedia (Video, Audio, SWF)
                     annots = resolve1(attrs.get('Annots', dict()))
@@ -81,10 +78,7 @@ class PDFMultimedia:
 
                                     if 'EF' in media_data_obj:
                                         for media_ref, media_obj in media_data_obj['EF'].items():
-                                            print(media_ref, media_obj)
+                                            # print(media_ref, media_obj)
                                             filename = media_data_obj[media_ref].decode('ascii')
                                             media_stream = media_obj.resolve()
-                                            with open(filename, 'wb') as multimedia_file:
-                                                multimedia_file.write(media_stream.get_data())
-
-                yield True
+                                            yield (filename, media_stream)
