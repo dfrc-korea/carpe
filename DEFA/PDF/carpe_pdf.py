@@ -60,6 +60,7 @@ class PDF:
         self._damaged = False
         self._recovered = False
 
+        self.path = path
         self.pdf = None
         self.document = None
         self.content = str()
@@ -68,6 +69,8 @@ class PDF:
         self.is_damaged = False
         self.has_content = False
         self.has_metadata = False
+        self.has_ole = False
+        self.ole_path = []
 
         # Open PDF file
         try:
@@ -198,8 +201,20 @@ class PDF:
 
         if self.parse():
             # normal pdf
-            for mm in PDFMultimedia.get_multimedia(document=self.document):
-                pass
+            count = 0
+            pdf_path, pdf_name = os.path.split(self.path)
+            for name, stream in PDFMultimedia.get_multimedia(document=self.document):
+                extract = os.path.join(pdf_path, f"{pdf_name}_extracted")
+                if not os.path.exists(extract):
+                    os.mkdir(extract)
+                if name == '':
+                    name = f"{pdf_name}_image({count})"
+                    count += 1
+                dst = os.path.join(extract, name)
+                with open(dst, 'wb') as multimedia_file:
+                    multimedia_file.write(stream.get_data())
+                    self.has_ole = True
+                    self.ole_path.append(dst)
 
     def restore_content(self):
         carpe_pdf_log.debug("Called restore_content()")
