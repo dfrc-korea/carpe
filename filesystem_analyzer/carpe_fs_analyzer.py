@@ -85,6 +85,7 @@ class Carpe_FS_Analyze(object):
     self._img_info = None
     self._recursive = False
     self._carpe_files = []
+    self._sig_file_path =""
 
   def fs_info(self,p_id=0):
     fs_info = carpe_fs_info.Carpe_FS_Info()
@@ -116,6 +117,17 @@ class Carpe_FS_Analyze(object):
         alloc_info._unallock_blocks.append((start, n))
     return alloc_info
 
+  def sig_check(self, sig_file_path, target_signature):
+    sig_file = open(sig_file_path, "r")    
+    ret="Not Detected"
+    while True:
+      line = sig_file.read_line()
+      if line.split(" ")[0] is in target_signature:
+        ret = line.split(" ")[2]
+      if not line: break
+    sig_file.close()
+    return ret
+
   def my_join(tpl):
     return ', '.join(x if isinstance(x, str) else my_join(x) for x in tpl)  
 
@@ -136,14 +148,14 @@ class Carpe_FS_Analyze(object):
       #self.directory_entry_info(directory_entry, parent_id=stack[-1], path=path)  
       
       files_tuple = map(lambda i: i.toTuple(), self.directory_entry_info(directory_entry, parent_id=stack[-1], path=path))
-      
+      '''
       if files_tuple is not None:
         for i in files_tuple:
           query = conn.insert_query_builder("file_info")
           query = (query + "\n values " + "%s" % (i, ))
           data=conn.execute_query(query)
         conn.commit()
-      
+      '''
 
       if self._recursive:
         try:
@@ -184,6 +196,7 @@ class Carpe_FS_Analyze(object):
 
   def open_image(self, image_type, filenames):
     self._img_info = images.SelectImage(image_type, filenames)
+
   '''
   def open_volume():
 
@@ -224,7 +237,6 @@ class Carpe_FS_Analyze(object):
         new_file._parent_path += i + u"/"
       for attribute in directory_entry:
         #print("=== Attribute Start ===")
-        
         if int(attribute.info.type) in self.ATTRIBUTE_TYPES_TO_ANALYZE:
           #need to check value
           #$StandardInformation 
@@ -337,6 +349,12 @@ class Carpe_FS_Analyze(object):
           temp._type = 7
           temp._name = new_file._name + u"-slack" 
           files.append(temp)
+        if signature_check:
+          if(new_file._size>56):
+            tmp_file_object = self._fs_info.open_meta(inode=new_file._file_id)          
+            self.sig_check(self._sig_file_path, tmp_file_object.read_random(0,56,1))
+            
+            input("")
       return files
 
 def Main():
@@ -356,15 +374,6 @@ def Main():
       type=str, default=None, help=(
           "The inode or path to list. If [inode] is not given, the root "
           "directory is used"))
-  # TODO: not implemented.
-  # args_parser.add_argument(
-  #     "-f", "--fstype", metavar="TYPE", dest="file_system_type",
-  #     action="store", type=str, default=None, help=(
-  #         "The file system type (use \"-f list\" for supported types)"))
-  # TODO: not implemented.
-  # args_parser.add_argument(
-  #     "-l", dest="long_listing", action="store_true", default=False,
-  #     help="Display long version (like ls -l)")
 
   args_parser.add_argument(
       "-o", "--offset", metavar="OFFSET", dest="offset", action="store",
