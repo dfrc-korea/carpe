@@ -43,16 +43,18 @@ class C_defy(object):
     6 : Database
     7 : Attributes   
     """
+
     class WorkLoad(object):
-        LOAD_MODULE         = 0b00000000
+        LOAD_MODULE         = 0b00000000    # 모듈 로드 및 생성자
 
-        PARAMETER           = 0b01000001
-        POLICY              = 0b01000101
+        PARAMETER           = 0b01000001    # 운영 파라미터 설정
+        POLICY              = 0b01000101    # 정책 설정
         
-        CONNECT_DB          = 0b01000010
-        DISCONNECT_DB       = 0b10000010
+        CONNECT_DB          = 0b01000010    # DB 연결
+        DISCONNECT_DB       = 0b10000010    # DB 연결 종료
 
-        EXEC                = 0b00000110
+        EXEC                = 0b00000110    # 카빙 작업 실행
+        REGISTER_QUEUE      = 0b01000110    # Queue 등록
         REPLAY              = 0b00010110
         SELECT_ONE          = 0b00001100
         SELECT_LIST         = 0b00010100

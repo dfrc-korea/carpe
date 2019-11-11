@@ -22,7 +22,6 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__))+os.sep+"Include")    
 from plugin_carving_defines import C_defy
 from Include.carpe_db       import Mariadb
 
-
 # CarvingManager : DB 수정권한 없음 (For safety)
 class CarvingManager(ModuleComponentInterface,C_defy):
     def __init__(self,debug=False,out=None,logBuffer=0x409600):
@@ -30,7 +29,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.__cursor      = None
         self.__cache       = os.path.abspath(os.path.dirname(__file__))+os.sep+".cache"+os.sep
         self.__db          = None
-        self.__dest_path   = ".{0}result".format(os.sep)
         self.__fd          = None
         self.__hit         = {}
         self.__parser      = sr.StructureReader()
@@ -40,6 +38,13 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.lock          = Lock()
         self.__Return      = C_defy.Return
         self.__Instruction = C_defy.WorkLoad
+
+        self.__part_id         = None
+        self.__blocksize       = 4096
+        self.__sectorsize      = 512
+        self.__par_startoffset = 0
+        self.__i_path          = None
+        self.__dest_path   = ".{0}result".format(os.sep)
 
         """ Module Manager """
         self.__actuator    = Actuator()
@@ -151,7 +156,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.__actuator.set(_request,ModuleConstant.CLUSTER_SIZE,cluster)
         self.__actuator.set(_request,ModuleConstant.ENCODE,etype)
         return self.__actuator.call(_request,cmd,option)
-
 
     def __connect_master(self,cred):
         db = Mariadb()
@@ -326,6 +330,11 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         if(type(result[0])!=tuple):
             result[0].pop(0)
 
+        if(ftype=='jfif'):
+            ftype = 'jpg'
+        elif(ftype=='exif'):
+            ftype = 'jpg'
+
         fd     = None
         wrtn   = 0
         length = len(result)
@@ -473,12 +482,12 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         if(cmd==C_defy.WorkLoad.PARAMETER):
             if(type(option)!=dict):
                 return ModuleConstant.Return.EINVAL_TYPE
-            self.__part_id         = option.get("p_id",None)
-            self.__blocksize       = option.get("block",4096)
-            self.__sectorsize      = option.get("sector",512)
-            self.__par_startoffset = option.get("start",0)
-            self.__i_path          = option.get("path",None)
-            self.__dest_path       = option.get("dest",".{0}result".format(os.sep))
+            self.__part_id         = option.get("p_id",self.__part_id)
+            self.__blocksize       = option.get("block",self.__blocksize)
+            self.__sectorsize      = option.get("sector",self.__sectorsize)
+            self.__par_startoffset = option.get("start",self.__par_startoffset)
+            self.__i_path          = option.get("path",self.__i_path)
+            self.__dest_path       = option.get("dest",".{0}result".format(os.sep),self.__dest_path)
             self.__log_write("INFO","Main::Request to set parameters.",always=True)
 
         elif(cmd==C_defy.WorkLoad.LOAD_MODULE):
@@ -685,12 +694,12 @@ if __name__ == '__main__':
     # PARAMETER :
     """
     {
-        "case":"TEST_2",
-        "block":4096,               # Block size
+        "case"  :"TEST_2",
+        "block" :4096,              # Block size
         "sector":512,               # Sector size
-        "start":0x10000,            # Start offset (par-offset)
-        "path":"D:\\iitp_carv\\[NTFS]_Carving_Test_Image1.001", # Image to carve
-        #"dest":".{0}result".format(os.sep), # Output directory
+        "start" :0x10000,           # Start offset (par-offset)
+        "path"  :"D:\\iitp_carv\\[NTFS]_Carving_Test_Image1.001", # Image to carve
+        "dest"  :".{0}result".format(os.sep), # Output directory
     }
     """
     # CONNECT_DB :
