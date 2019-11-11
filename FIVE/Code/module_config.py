@@ -45,7 +45,7 @@ class ModuleConfiguration(ModuleComponentInterface):
     def __read__(self):
         with open(self.path,"r+") as file:
             line = file.readline()
-            if(line==['']):pass
+            if(line==['']):return
             while line:
                 try:
                     line = file.readline().split(':',1)

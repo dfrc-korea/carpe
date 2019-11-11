@@ -5,7 +5,7 @@ from moduleInterface.defines   import *
 from moduleInterface.interface import ModuleComponentInterface
 
 
-class ModulePNG(ModuleComponentInterface):
+class ModuleGIF(ModuleComponentInterface):
     CONST_KILOBYTE = 1024
     CONST_MEGABYTE = 1048576
     CONST_GIGABYTE = 1073741824
@@ -21,8 +21,9 @@ class ModulePNG(ModuleComponentInterface):
         super().__init__()                  # Initialize Module Interface
         self.fileSize   = 0
         self.offset     = list()
+        self.flag       = None
 
-        self.set_attrib(ModuleConstant.NAME,"JFIF")
+        self.set_attrib(ModuleConstant.NAME,"GIF")
         self.set_attrib(ModuleConstant.VERSION,"0.1")
         self.set_attrib(ModuleConstant.AUTHOR,"JH")
 
@@ -42,35 +43,29 @@ class ModulePNG(ModuleComponentInterface):
         return ModuleConstant.Return.SUCCESS
 
     def signature(self, current_offset, sig_FOOTER):
-        search_range = int((self.get_attrib(ModuleConstant.IMAGE_LAST) - self.get_attrib(ModuleConstant.IMAGE_BASE)) / (self.uClusterSize * 1))  # 1 => sizeof(UCHAR)
+        init = self.get_attrib(ModuleConstant.IMAGE_BASE)
+        last = self.get_attrib(ModuleConstant.IMAGE_LAST)
+        search_range = int((last-init)/(self.uClusterSize*1)) # 1 => sizeof(UCHAR)
 
         for i in range(0, search_range):
-            self.fp.seek(current_offset + i * self.uClusterSize)
+            self.fp.seek(current_offset+i*self.uClusterSize,os.SEEK_SET)
             temp = self.fp.read(self.uClusterSize)
-
             sOffset = temp.find(sig_FOOTER)
-
             if sOffset > 0:
                 qwDataSize = i * self.uClusterSize + sOffset + len(sig_FOOTER)
                 return (True, current_offset, qwDataSize, ModuleConstant.FILE_ONESHOT)
-
-        if sOffset == -1 :
-            return (False, 0, -1, ModuleConstant.INVALID)
-
+        #if sOffset == -1 :
+        return (False, 0, -1, ModuleConstant.INVALID)
 
     def carve(self):
-        sigPNG_FOOTER = b'\x49\x45\x4E\x44\xAE\x42\x60\x82'
-
+        sigGIF_FOOTER = b'\x00\x3B'
         self.fp = open(self.get_attrib(ModuleConstant.FILE_ATTRIBUTE), 'rb')
-
-        self.offset = self.signature(self.get_attrib(ModuleConstant.IMAGE_BASE), sigPNG_FOOTER)
-
-        if self.offset != () :
-            print("Find!!", self.offset)  # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
-        else:
-            print("not Found")  # 현재 offset에서 next_offset까지.
-
-
+        self.fp.seek(self.get_attrib(ModuleConstant.IMAGE_BASE),os.SEEK_SET)
+        self.offset = self.signature(self.get_attrib(ModuleConstant.IMAGE_BASE), sigGIF_FOOTER)
+        self.fp.close()
+        return self.offset[0]
+        # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
+        # 현재 offset에서 next_offset까지.
 
 
     """ Interfaces """
@@ -88,18 +83,20 @@ class ModulePNG(ModuleComponentInterface):
         return self.attrib.get(key)
 
     def execute(self,cmd=None,option=None): # 모듈 호출자가 모듈을 실행하는 method
-        ret = self.__evaluate()
-        if(ret!=ModuleConstant.Return.SUCCESS):
-            return [(False,ret,ModuleConstant.INVALID)]
-        self.carve()
-        if(self.offset==[]):
-            return [(False,0,ModuleConstant.INVALID)]
-        return self.offset                  # return <= 0 means error while collecting information
-
+        if(cmd=='inspect'):
+            return self.flag
+        else:
+            ret = self.__evaluate()
+            if(ret!=ModuleConstant.Return.SUCCESS):
+                return [(False,ret,ModuleConstant.INVALID)]
+            self.carve()
+            if(self.offset[0]==False):
+                return [(False,0,ModuleConstant.INVALID)]
+            return self.offset                  # return <= 0 means error while collecting information
 
 if __name__ == '__main__':
 
-    file = ModulePNG()
+    file = ModuleGIF()
     try:
         file.set_attrib(ModuleConstant.FILE_ATTRIBUTE,sys.argv[1])   # Insert File
     except:
@@ -107,7 +104,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     file.set_attrib(ModuleConstant.IMAGE_BASE,0)  # Set offset of the file base
-    file.set_attrib(ModuleConstant.IMAGE_LAST, ModulePNG.CONST_SEARCH_SIZE)  # Set offset of the file Last
+    file.set_attrib(ModuleConstant.IMAGE_LAST, ModuleGIF.CONST_SEARCH_SIZE)  # Set offset of the file Last
     cret = file.execute()
     print(cret)
 

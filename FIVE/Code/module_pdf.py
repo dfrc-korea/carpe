@@ -1,8 +1,8 @@
 #-*- coding: utf-8 -*-
 import os, sys
 
-from defines import ModuleConstant
-from interface       import ModuleComponentInterface
+from moduleInterface.defines   import *
+from moduleInterface.interface import ModuleComponentInterface
 
 
 class ModulePDF(ModuleComponentInterface):

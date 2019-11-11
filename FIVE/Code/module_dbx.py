@@ -1,8 +1,8 @@
 #-*- coding: utf-8 -*-
 import os, sys, struct
 
-from defines import ModuleConstant
-from interface       import ModuleComponentInterface
+from moduleInterface.defines   import *
+from moduleInterface.interface import ModuleComponentInterface
 
 
 class ModuleDBX(ModuleComponentInterface):
@@ -45,7 +45,7 @@ class ModuleDBX(ModuleComponentInterface):
     def carve(self):
         self.fp = open(self.get_attrib(ModuleConstant.FILE_ATTRIBUTE), 'rb')
 
-        self.fp.seek(self.get_attrib(ModuleConstant.IMAGE_BASE), os.SEEK_SET)
+        self.fp.seek(0)
         temp = self.fp.read(512)
         fileSize = struct.unpack('<I', temp[0x7C:0x7C + 4])[0]
 

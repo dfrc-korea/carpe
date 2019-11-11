@@ -121,8 +121,8 @@ class ModuleRAR(ModuleComponentInterface):
             return [(False,ret,ModuleConstant.INVALID)]
         
         self.carve()
-        #if(self.offset==[]):
-        #    return [(False,0,ModuleConstant.INVALID)]
+        if(self.offset==[]):
+            return [(False,0,ModuleConstant.INVALID)]
         return self.offset                  # return <= 0 means error while collecting information
 
 

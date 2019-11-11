@@ -99,15 +99,6 @@ class TARStructure(object):
             "star":self.StarHeader,
         })
 
-    @staticmethod
-    def ascii2int(ascii,base=8):
-        _str = ''
-        for i in ascii:
-            if(int(i)==0):
-                break
-            _str+=chr(i)
-        return int(_str,base)
-
 class ModuleTAR(ModuleComponentInterface):
 
     def __init__(self):
@@ -178,7 +169,7 @@ class ModuleTAR(ModuleComponentInterface):
             self.structure.Headers.data = self.parser.bread_raw(0,self.structure.Headers.max)
             if(self.structure.Headers.get_field("star","magic")!=TARStructure.SIGNATURE):
                 try:
-                    jump  = oldHeader.ascii2int(oldHeader.Headers.get_field("star","size"))
+                    jump  = self.parser.ascii2int(oldHeader.Headers.get_field("star","size"),8)
                     jump += self.parser.align(jump,sector)
                     if(jump<1):
                         break
