@@ -16,9 +16,6 @@ from structureReader           import structureReader as sr
 sys.path.append(os.path.abspath(os.path.dirname(__file__))+os.sep+"Code")
 sys.path.append(os.path.abspath(os.path.dirname(__file__))+os.sep+"Include")        # For carving module
 
-#sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}include".format(os.sep)))
-#sys.path.append(os.path.abspath(os.path.dirname(__file__)+"{0}Code".format(os.sep)))        # For carving module
-
 from plugin_carving_defines import C_defy
 from Include.carpe_db       import Mariadb
 
@@ -30,7 +27,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.__cursor      = None
         self.__cache       = os.path.abspath(os.path.dirname(__file__))+os.sep+".cache"+os.sep
         self.__db          = None
-        self.__dest_path   = ".{0}result".format(os.sep)
         self.__fd          = None
         self.__hit         = {}
         self.__parser      = sr.StructureReader()
@@ -40,6 +36,13 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.lock          = Lock()
         self.__Return      = C_defy.Return
         self.__Instruction = C_defy.WorkLoad
+
+        self.__part_id         = None
+        self.__blocksize       = 4096
+        self.__sectorsize      = 512
+        self.__par_startoffset = 0
+        self.__i_path          = None
+        self.__dest_path   = ".{0}result".format(os.sep)
 
         """ Module Manager """
         self.__actuator    = Actuator()
@@ -152,11 +155,10 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.__actuator.set(_request,ModuleConstant.ENCODE,etype)
         return self.__actuator.call(_request,cmd,option)
 
-
-    def __connect_master(self,cred):
+    def __connect_master(self):
         db = Mariadb()
         try:
-            self.__cursor = db.i_open(cred.get('ip'),cred.get('port'),cred.get('id'),cred.get('password'),cred.get('category'))
+            self.__cursor = db.open()
             self.__db = db
             return C_defy.Return.SUCCESS
         except:
@@ -177,16 +179,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             return self.__cursor.fetchall()
         except:
             return C_defy.Return.EFAIL_DB
-
-    def __excl_put_result_to_db_for_view(self):
-        #check existence
-        #self.__data
-        try:
-            #self.__cursor.exceute()
-            return
-        except:
-            return
-        
+       
     def __scan_signature(self,data):
         dataIndex    = 0
         dataLength   = len(data)
@@ -326,6 +319,11 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         if(type(result[0])!=tuple):
             result[0].pop(0)
 
+        if(ftype=='jfif'):
+            ftype = 'jpg'
+        elif(ftype=='exif'):
+            ftype = 'jpg'
+
         fd     = None
         wrtn   = 0
         length = len(result)
@@ -377,8 +375,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                     if(byte2copy<self.__sectorsize):
                         data     = self.__parser.bread_raw(0,byte2copy)
                         wrtn +=fd.write(data)
-                        #zerofill = bytearray(self.__sectorsize-byte2copy)
-                        #wrtn +=fd.write(zerofill)
                         byte2copy-=byte2copy
                     else:
                         data = self.__parser.bread_raw(0,self.__sectorsize)
@@ -473,32 +469,19 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         if(cmd==C_defy.WorkLoad.PARAMETER):
             if(type(option)!=dict):
                 return ModuleConstant.Return.EINVAL_TYPE
-            self.__part_id         = option.get("p_id",None)
-            self.__blocksize       = option.get("block",4096)
-            self.__sectorsize      = option.get("sector",512)
-            self.__par_startoffset = option.get("start",0)
-            self.__i_path          = option.get("path",None)
-            self.__dest_path       = option.get("dest",".{0}result".format(os.sep))
+            self.__part_id         = option.get("p_id",self.__part_id)
+            self.__blocksize       = option.get("block",self.__blocksize)
+            self.__sectorsize      = option.get("sector",self.__sectorsize)
+            self.__par_startoffset = option.get("start",self.__par_startoffset)
+            self.__i_path          = option.get("path",self.__i_path)
+            self.__dest_path       = option.get("dest",".{0}result".format(os.sep),self.__dest_path)
             self.__log_write("INFO","Main::Request to set parameters.",always=True)
+            
 
         elif(cmd==C_defy.WorkLoad.LOAD_MODULE):
             self.__log_write("INFO","Main::Request to load module(s).",always=True)
+            self.__connect_master()
             return self.__load_module()
-
-        elif(cmd==C_defy.WorkLoad.CONNECT_DB):
-            if(type(option)!=dict):
-                db = Mariadb()
-                try:
-                    db.open()
-                    self.__cursor = db._conn
-                    self.__db = db
-                    return C_defy.Return.SUCCESS
-                except:
-                    db.close()
-                    return C_defy.Return.EFAIL_DB
-            else:
-                self.__log_write("INFO","Main::Request to connect to master database.",always=True)  
-                return self.__connect_master(option)
 
         elif(cmd==C_defy.WorkLoad.DISCONNECT_DB):
             self.__log_write("INFO","Main::Request to clean up. It would be disconnected with the master database.",always=True) 
@@ -538,7 +521,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__parser.cleanup()
             self.__log_write("INFO","Carving::result:{0}".format(self.__hit),always=True)
             del data
-            # update to mariadb
             return self.__hit.copy()
 
         elif(cmd==C_defy.WorkLoad.REPLAY):
@@ -694,22 +676,12 @@ if __name__ == '__main__':
     # PARAMETER :
     """
     {
-        "case":"TEST_2",
-        "block":4096,               # Block size
+        "case"  :"TEST_2",
+        "block" :4096,              # Block size
         "sector":512,               # Sector size
-        "start":0x10000,            # Start offset (par-offset)
-        "path":"D:\\iitp_carv\\[NTFS]_Carving_Test_Image1.001", # Image to carve
-        #"dest":".{0}result".format(os.sep), # Output directory
-    }
-    """
-    # CONNECT_DB :
-    """
-    {
-        "ip":'218.145.27.66',       # 2세부 addr
-        "port":23306,               # 2세부 port
-        "id":'root',                # 2세부 ID
-        "password":'dfrc4738',      # 2세부 P/W
-        "category":'carpe_3'        # 2새부 Database
+        "start" :0x10000,           # Start offset (par-offset)
+        "path"  :"D:\\iitp_carv\\[NTFS]_Carving_Test_Image1.001", # Image to carve
+        "dest"  :".{0}result".format(os.sep), # Output directory
     }
     """
     # POLICY :
@@ -740,8 +712,6 @@ if __name__ == '__main__':
         -----------------------------------------------------------------------------------------------------------------
         LOAD_MODULE           None         Int      # 카빙에 사용되는 모듈 등록
         PARAMETER             Dict         Int      # 작업 파라미터 설정
-        CONNECT_DB            Dict         Int      # Master DB에 연결
-        DISCONNECT_DB         None         Int      # Master DB와의 세션 종료
         EXEC                  None         Dict     # (enable=True일 때) 카빙 작업 실행 및 (save=True일 때) 캐시 데이터 생성
         REPLAY                None         Dict     # (eanble과 관계없음) 캐시 데이터를 이용해 현재 이미지에 대한 카빙 작업
         SELECT_ONE            Dict         Dict     # 캐시 데이터를 이용해 한 파일만 추출
@@ -762,7 +732,6 @@ if __name__ == '__main__':
     if(res==False):
         sys.exit(0)
 
-    """
     res = manage.execute(C_defy.WorkLoad.CONNECT_DB,
                     {
                         "ip":'218.145.27.66',
@@ -772,7 +741,6 @@ if __name__ == '__main__':
                         "category":'carpe_3'
                     }
     )
-    """
 
     if(res==C_defy.Return.EFAIL_DB):
         sys.exit(0)
