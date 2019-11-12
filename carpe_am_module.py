@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import os, sys, subprocess
 import uuid
+
 
 from utility import carpe_db
 from image_analyzer import split_disk
@@ -55,7 +57,8 @@ class CARPE_AM:
 		for disk in disk_info:
 			par_id = 'p1' + str(uuid.uuid4()).replace('-', '')
 			par_name = str(disk['vol_name'])
-			par_type = str(disk['type_indicator'])
+
+		    par_type = str(disk['type_indicator'])
 			sector_size = str(disk['bytes_per_sector'])
 			par_size = str(disk['length'])
 			start_sector = str(disk['start_sector'])
@@ -72,13 +75,13 @@ class CARPE_AM:
 		if options['vss'] == 'True':
 			output_writer = split_disk.FileOutputWriter(self.path)
 			disk_spliter = split_disk.DiskSpliter(disk_info)
-			disk_spliter.SplitDisk(output_writer)
-
+		disk_spliter.SplitDisk(output_writer)
 		print('[#] Image Analysis Finish!')
 
 	def VSSAnalysis(self):
 		print('Analyze Volume Shadow Copy!')
-	
+
+
 	def ParseFilesystem(self):
 		fs = carpe_fs_analyzer.Carpe_FS_Analyze()
 
@@ -88,7 +91,8 @@ class CARPE_AM:
 		image_format = str(db.execute_query(query)[0]).lower()
 		fs.open_image(image_format, self.path)
 
-		query = "SELECT par_id, sector_size, start_sector FROM partition_info WHERE evd_id='" + self.evd_id + "';"
+
+    	query = "SELECT par_id, sector_size, start_sector FROM partition_info WHERE evd_id='" + self.evd_id + "';"
 		par_info = db.execute_query_mul(query)
 		db.close()
 		
@@ -155,15 +159,18 @@ class CARPE_AM:
 		
 		p3_filePath = "/data/samples/"
 		"""
-		doc = P3_Manager.IITP3()
+    	doc = P3_Manager.IITP3()
 		doc.run_daemon()
 		fileExpoter = carpe_file_extractor.Carpe_File_Extractor()
 		fileExpoter.setConfig(self.path, document_files)
 		fileExpoter.extract()
 		"""
 
+
+
 	def Carving(self, option):
-                db = carpe_db.Mariadb()
+
+        db = carpe_db.Mariadb()
 		db.open()
 
 		# Get image file list
@@ -171,23 +178,38 @@ class CARPE_AM:
 		par_infos = db.execute_query_mul(query)
 		db.close()
 
-                if(self.manage==None and option[0]==0):
-                        self.manage = CarvingManager(debug=False,out="carving.log")
-                        res = self.manage.execute(self.manage.Instruction.LOAD_MODULE)
-                        if(res==False):
-                                return self.manage.Return.EIOCTL
-                        res = self.manage.execute(self.manage.Instruction.CONNECT_DB,self.db_credentials)
-                        if(res==self.manage.Return.EFAIL_DB):
-                                return self.manage.Return.EFAIL_DB
-                        return self.manage.Return.SUCCESS
+        if(self.manage==None and option[0]==0):
+            self.manage = CarvingManager(debug=False,out="carving.log")
+            res = self.manage.execute(self.manage.Instruction.LOAD_MODULE)
+            if(res==False):
+                return self.manage.Return.EIOCTL
+            
+            """ For Regular Version """
+            #res = self.manage.execute(self.manage.Instruction.CONNECT_DB,self.db_credentials)
+            #if(res==self.manage.Return.EFAIL_DB):
+            #    return self.manage.Return.EFAIL_DB
+            
+            self.manage.execute(self.manage.Instruction.POLICY,
+                {
+                    "enable":True,      # 카빙 추출 기능 활성화
+                    "save":False        # 카빙 캐시 정보 저장 안함
+                }
+            )
+            return self.manage.Return.SUCCESS
 
-                if(self.manage==None):
-                        return None
-                
+        if(self.manage==None):
+            return None
+
 		for par_info in par_infos:
-                        desti = self.path + "/" + self.case_id + "/" + self.evd_id + "/" + par_info[0] + "/"
-                        
-                        if(type(option)==list and len(option)==2):pass
-                        else:return None
-                                
-                        return self.manage.execute(option[0],option[1])
+            desti = self.path + "/" + self.case_id + "/" + self.evd_id + "/" + par_info[0] + "/"       
+            self.manage.execute(self.manage.Instruction.PARAMETER,
+                {
+                        "p_id"  :self.case_id,
+                        "block" :0x1000,
+                        "sector":0x200,
+                        "start" :0x0,
+                        "path"  :desti,
+                        "dest"  :desti+"{0}result".format(os.sep)
+                }
+            )
+            self.manage.execute(self.manage.Instruction.EXEC,None)
