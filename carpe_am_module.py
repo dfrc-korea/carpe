@@ -171,12 +171,12 @@ class CARPE_AM:
 	def Carving(self, option):
 
         db = carpe_db.Mariadb()
-		db.open()
+        db.open()
 
-		# Get image file list
-		query = "SELECT par_id FROM partition_info WHERE evd_id='" + self.evd_id + "' ORDER BY start_sector;"
-		par_infos = db.execute_query_mul(query)
-		db.close()
+        # Get image file list
+        query = "SELECT par_id FROM partition_info WHERE evd_id='" + self.evd_id + "' ORDER BY start_sector;"
+        par_infos = db.execute_query_mul(query)
+        db.close()
 
         if(self.manage==None and option[0]==0):
             self.manage = CarvingManager(debug=False,out="carving.log")
