@@ -168,7 +168,7 @@ class CARPE_AM:
 
 
 
-	def Carving(self, option):
+    def Carving(self, option):
 
         db = carpe_db.Mariadb()
         db.open()
@@ -200,7 +200,7 @@ class CARPE_AM:
         if(self.manage==None):
             return None
 
-		for par_info in par_infos:
+        for par_info in par_infos:
             desti = self.path + "/" + self.case_id + "/" + self.evd_id + "/" + par_info[0] + "/"       
             self.manage.execute(self.manage.Instruction.PARAMETER,
                 {
