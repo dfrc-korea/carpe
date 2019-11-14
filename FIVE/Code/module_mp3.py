@@ -43,7 +43,8 @@ class MP3Structure(object):
 
     frameIdentifier   = [
         b'TRCK',b'TENC',b'WXXX',b'TCOP',b'TOPE',b'TCOM',
-        b'TCON',b'COMM',b'TYER',b'TALB',b'TPE1',b'TIT2'
+        b'TCON',b'COMM',b'TYER',b'TALB',b'TPE1',b'TIT2',
+        b'TPOS',b'TXXX',b'TSSE',b'APIC',b'PRIV',b'USLT'
     ]
 
     def __init__(self):
@@ -157,10 +158,6 @@ class ModuleMP3(ModuleComponentInterface):
         except:return ModuleConstant.Return.EINVAL_FILE
         return ModuleConstant.Return.SUCCESS
 
-    #def __read(self,offset):
-    #    
-    #    return (True,offset,ModuleMFTEntry.MFT_ENTRY_SIZE,ModuleConstant.FILE_RECORD)
-
     def carve(self):
         self.__reinit__()
         self.parser.get_file_handle(
@@ -171,57 +168,74 @@ class ModuleMP3(ModuleComponentInterface):
         offset  = self.get_attrib(ModuleConstant.IMAGE_BASE)
         last    = self.get_attrib(ModuleConstant.IMAGE_LAST)
         if(last==0):
-            last= self.parser.bgoto(0,os.SEEK_END)       
-        self.parser.bgoto(offset,os.SEEK_SET)
-
-        self.parser.bexecute(self.structure.TagV2,'byte',offset,os.SEEK_SET)
+            last= self.parser.bgoto(0,os.SEEK_END)
+        self.fileSize = 0
         
+        self.parser.bgoto(offset,os.SEEK_SET)
+        self.parser.bexecute(self.structure.TagV2,'byte',offset,os.SEEK_SET)
+
         if(self.parser.get_value("signature")==self.structure.TAG2):
-            #flag   = self.parser.get_value("flag")
-            tagLen = self.parser.byte2int(self.parser.get_value("tag_size"),order='big')
-            s      = self.structure.findMSB(tagLen)
-            tok    = False
-            if(s<257):pass
-            else:tagLen = tagLen-s+int(s/2)  # TagLen = TagLen-MSB+(MSB/2)
+            if(self.parser.byte2int(self.parser.get_value("major"))>3):
+                tagLen = self.parser.byte2int(self.parser.get_value("tag_size"),order='big')
+                s      = self.structure.findMSB(tagLen)
+                tok    = False
+                if(s<257):pass
+                else:tagLen = tagLen-s+int(s/2)  # TagLen = TagLen-MSB+(MSB/2)
 
-            _current = self.parser.btell()
-            
-            if(tagLen>last):
-                tok = True
-            else:
-                self.parser.bgoto(tagLen)
-                checkTagLast = self.parser.bread_raw(0,1)
-                # Check audio frame header which has the first synchro Byte FF)
-                if(checkTagLast!=b'\xFF'):
+                _current = self.parser.btell()
+                
+                if(tagLen>last):
                     tok = True
-                self.parser.bgoto(_current,os.SEEK_SET)
+                else:
+                    self.parser.bgoto(tagLen)
+                    checkTagLast = self.parser.bread_raw(0,1)
+                    # Check audio frame header which has the first synchro Byte FF)
+                    if(checkTagLast!=b'\xFF'):
+                        tok = True
+                    self.parser.bgoto(_current,os.SEEK_SET)
 
-            if(tok):
-                while(_current<last):
-                    self.parser.bexecute(self.structure.TagFrames,'byte',0,os.SEEK_CUR)
-                    jmp = self.parser.byte2int(self.parser.get_value('size'),order='big')
-                    if(jmp==0):
-                        break
-                    if(jmp>last-_current):
-                        return False
-                    self.parser.bgoto(jmp)
-                    _current = self.parser.btell()
-                while(1):
-                    buff = self.parser.bread_raw(1,os.SEEK_CUR)
-                    if(buff==b'\xFF'):
-                        self.parser.bgoto(-1)
-                        break
-                    if(self.parser.btell()>=last):
-                        return False
-                opflag  = True
-
-            else:
-                self.parser.bgoto(tagLen)
-                checkTagLast = self.parser.bread_raw(0,1)
-                # Check audio frame header which has the first synchro Byte FF)
-                if(checkTagLast==b'\xFF'):
-                    self.parser.bgoto(-1)
+                if(tok):
+                    while(_current<last):
+                        self.parser.bexecute(self.structure.TagFrames,'byte',0,os.SEEK_CUR)
+                        jmp = self.parser.byte2int(self.parser.get_value('size'),order='big')
+                        if(jmp==0):
+                            break
+                        if(jmp>last-_current):
+                            return False
+                        self.parser.bgoto(jmp)
+                        _current = self.parser.btell()
+                    while(1):
+                        buff = self.parser.bread_raw(1,os.SEEK_CUR)
+                        if(buff==b'\xFF'):
+                            self.parser.bgoto(-1)
+                            break
+                        if(self.parser.btell()>=last):
+                            return False
                     opflag  = True
+
+                else:
+                    self.parser.bgoto(tagLen)
+                    checkTagLast = self.parser.bread_raw(0,1)
+                    # Check audio frame header which has the first synchro Byte FF)
+                    if(checkTagLast==b'\xFF'):
+                        self.parser.bgoto(-1)
+                        opflag  = True
+            else:
+                while(1):
+                    self.parser.bexecute(self.structure.TagFrames,'byte',0,os.SEEK_CUR)
+                    if(self.parser.get_value('id') not in MP3Structure.frameIdentifier):
+                        self.parser.bgoto(-self.parser.get_size())
+                        break   
+                    self.parser.bgoto(self.parser.byte2int(self.parser.get_value('size'),'big'))
+                
+                while(1):
+                        buff = self.parser.bread_raw(1,os.SEEK_CUR)
+                        if(buff==b'\xFF'):
+                            self.parser.bgoto(-1)
+                            break
+                        if(self.parser.btell()>=last):
+                            return False # TAG ONLY
+                opflag  = True
 
         elif(self.parser.get_value("signature")==self.structure.TAG1):
             self.parser.bexecute(self.structure.TagV1,'byte',offset,os.SEEK_SET)
@@ -235,7 +249,7 @@ class ModuleMP3(ModuleComponentInterface):
             self.parser.cleanup()
             return False
 
-        self.fileSize = self.parser.btell()-offset
+        self.fileSize += self.parser.btell()-offset
         offset= self.parser.btell()
         const = self.parser.byte2int(self.parser.bread_raw(0,2),order='big')
         self.parser.bgoto(-2)
@@ -253,8 +267,15 @@ class ModuleMP3(ModuleComponentInterface):
             self.fileSize+=frame
             offset+=frame
             self.parser.bgoto(frame-4)
-        self.offset.append((self.get_attrib(ModuleConstant.IMAGE_BASE),self.fileSize,ModuleConstant.FILE_RECORD))
+
+        self.parser.bgoto(-4)
+        res   = self.parser.bread_raw(0,3)
+        if(res!=False and res==b'TAG'):
+            self.offset.append((self.get_attrib(ModuleConstant.IMAGE_BASE),self.fileSize,ModuleConstant.FILE_RECORD|8))
+        else:
+            self.offset.append((self.get_attrib(ModuleConstant.IMAGE_BASE),self.fileSize,ModuleConstant.FILE_RECORD))
         self.parser.cleanup()
+
 
     """ Interfaces """
 
