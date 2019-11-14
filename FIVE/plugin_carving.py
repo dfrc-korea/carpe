@@ -224,10 +224,10 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 keys = key
                 # 특정 파일포맷에 대한 추가 검증 알고리즘
                 if key=='aac_1' or key=='aac_2' :
-                    if binascii.b2a_hex(buffer[7:8])==b'21':
-                        flag = 1
-                break
-        
+                    if binascii.b2a_hex(buffer[7:8])!=b'21':
+                        return (None,None,None,None)
+                    else:break
+
         return (offset,keys,flag,C_defy.Signature.Sig.get(keys,(0,0,0,None)[3]))
 
     def __carving(self,data,enable):
@@ -303,7 +303,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             value   = self.__hit.get(ext)
 
         result = self.__call_sub_module(ext,start,last,self.__blocksize,cmd,option,encode)
-        self.__log_write("DBG_","Extract::block parameter is {0},{1}. The result is: {2}".format(start,last,result))
+        self.__log_write("DBG_","Extract::{3} block parameter is {0},{1}. The result is: {2}".format(start,last,result,ext))
         if(result==None):
             return (0,0)
         
@@ -750,7 +750,7 @@ if __name__ == '__main__':
         # Return Dict Format :
             {"Format":[찾은 시그니처 파일 수,검증 통과한 파일 수],}
     """
-    manage = CarvingManager(debug=False,out="carving.log")
+    manage = CarvingManager(debug=True,out="carving.log")
 
     res = manage.execute(C_defy.WorkLoad.LOAD_MODULE)
 
@@ -759,11 +759,11 @@ if __name__ == '__main__':
 
     res = manage.execute(C_defy.WorkLoad.CONNECT_DB,
                     {
-                        "ip":'163.152.127.123',
-                        "port":3306,
-                        "id":'carpe',
-                        "password":'dfrc4738',
-                        "category":'carving'
+                        "ip":'218.145.27.66',       # 2세부 addr
+                        "port":23306,               # 2세부 port
+                        "id":'root',                # 2세부 ID
+                        "password":'dfrc4738',      # 2세부 P/W
+                        "category":'carpe_3'        # 2새부 Database
                     }
     )
 
@@ -790,7 +790,7 @@ if __name__ == '__main__':
     manage.execute(C_defy.WorkLoad.EXPORT_CACHE_TO_CSV)
 
     #print(manage.execute(C_defy.WorkLoad.SELECT_LIST,{"name":["0x1c2c000","0x2aaa000"]}))
-    manage.execute(C_defy.WorkLoad.REPLAY,manage.get_bin_file())
+    #manage.execute(C_defy.WorkLoad.REPLAY,manage.get_bin_file())
     #manage.execute(C_defy.WorkLoad.REMOVE_CACHE)
 
     sys.exit(0)
