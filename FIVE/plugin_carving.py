@@ -22,6 +22,7 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__))+os.sep+"Include")    
 from plugin_carving_defines import C_defy
 from Include.carpe_db       import Mariadb
 
+
 # CarvingManager : DB 수정권한 없음 (For safety)
 class CarvingManager(ModuleComponentInterface,C_defy):
     def __init__(self,debug=False,out=None,logBuffer=0x409600):
@@ -181,15 +182,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             return self.__cursor.fetchall()
         except:
             return C_defy.Return.EFAIL_DB
-
-    def __excl_put_result_to_db_for_view(self):
-        #check existence
-        #self.__data
-        try:
-            #self.__cursor.exceute()
-            return
-        except:
-            return
         
     def __scan_signature(self,data):
         dataIndex    = 0
@@ -245,6 +237,8 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.__data  = dict()
         self.__parser.bgoto(0,os.SEEK_SET)
 
+        lastPtr = os.path.getsize(self.__i_path)
+
         while(dataIndex<dataLength):
             internalIndex  = 0
             internalList   = data[dataIndex][1]
@@ -267,7 +261,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             
             # 블록에 있는 마지막 데이터 처리
             if(dataIndex>=dataLength):
-                lastPtr = os.path.getsize(self.__i_path)
                 isDone  = True
             else:
                 lastPtr = data[dataIndex+1][0][2] * self.__blocksize
@@ -290,8 +283,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                                  internalList[internalIndex][3],   # category
                                  enable)
                 internalIndex+=1
-
-            lastPtr = os.path.getsize(self.__i_path)
             self.__extractor(internalList[internalLength][1],      # extensions
                              internalList[internalLength][0],      # start offset to carve
                              lastPtr,                              # last offset to carve
@@ -312,6 +303,10 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             value   = self.__hit.get(ext)
 
         result = self.__call_sub_module(ext,start,last,self.__blocksize,cmd,option,encode)
+        self.__log_write("DBG_","Extract::block parameter is {0},{1}. The result is: {2}".format(start,last,result))
+        if(result==None):
+            return (0,0)
+        
         if(type(result)==tuple):
             result = [list(result)]
 
@@ -487,7 +482,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__sectorsize      = option.get("sector",self.__sectorsize)
             self.__par_startoffset = option.get("start",self.__par_startoffset)
             self.__i_path          = option.get("path",self.__i_path)
-            self.__dest_path       = option.get("dest",".{0}result".format(os.sep),self.__dest_path)
+            self.__dest_path       = option.get("dest",self.__dest_path)
             self.__log_write("INFO","Main::Request to set parameters.",always=True)
 
         elif(cmd==C_defy.WorkLoad.LOAD_MODULE):
@@ -764,11 +759,11 @@ if __name__ == '__main__':
 
     res = manage.execute(C_defy.WorkLoad.CONNECT_DB,
                     {
-                        "ip":'218.145.27.66',
-                        "port":23306,
-                        "id":'root',
+                        "ip":'163.152.127.123',
+                        "port":3306,
+                        "id":'carpe',
                         "password":'dfrc4738',
-                        "category":'carpe_3'
+                        "category":'carving'
                     }
     )
 
@@ -780,11 +775,11 @@ if __name__ == '__main__':
 
     manage.execute(C_defy.WorkLoad.PARAMETER,
                     {
-                        "p_id":"TEST_2",
-                        "block":4096,
+                        "p_id":"CFReDS1_1",
+                        "block":512,
                         "sector":512,
-                        "start":0x10000,
-                        "path":"D:\\iitp_carv\\[NTFS]_Carving_Test_Image1.001",
+                        "start":0x0,
+                        "path":"D:\\iitp_carv\\L1_Graphic.dd",
                     }
     )
 
