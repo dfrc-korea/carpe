@@ -2,11 +2,9 @@ from __future__ import print_function
 import sys
 import re
 
-
-
-class Carpe_fs_info(object):
+class Carpe_FS_Info(object):
 	def __init__(self):
-		super(Carpe_fs_info, self).__init__()
+		super(Carpe_FS_Info, self).__init__()
 		self._fs_id = None
 		self._p_id = None
 		self._block_size = None

@@ -1,42 +1,41 @@
 import pymysql
-import carpe_file
+from filesystem_analyzer import carpe_file
 
 class Mariadb(object):
 	#To Do
 	# Tune the columns
 	TABLE_INFO = {
-
-		"carpe_block_info":{"p_id":"varchar", "block_start":"BIGINT", "block_end":"BIGINT"},
-		"carpe_case_info":{"case_id":"BIGINT PRIMARY KEY", "case_no":"TEXT", "case_name":"TEXT", "administrator":"TEXT", "create_date":"DATETIME", "description":"TEXT"},
+		"case_info":{"case_id":"VARCHAR PRIMARY KEY", "case_name":"TEXT", "administrator":"TEXT", "create_date":"DATETIME", "description":"TEXT"},
 		"investigator":{"id":"TEXT PRIMARY KEY", "name":"TEXT", "password":"TEXT", "acl":"TEXT"},
-		"carpe_evidence_info":{"evd_id":"BIGINT PRIMARY KEY", "evd_no":"TEXT", "c_id":"BIGINT", "type1":"TEXT", "type2":"TEXT", "added_date":"DATETIME", "md5":"TEXT", "sha1":"TEXT", "sha256":"TEXT", "path":"TEXT", "time_zone":"TEXT"},
-		"carpe_partition_info":{"par_id":"BIGINT PRIMARY KEY", "par_name":"TEXT", "par_path":"TEXT", "e_id":"BIGINT", "type":"INTEGER", "sector_size":"INTEGER", "size":"INTEGER", "sha1":"TEXT", "sha256":"TEXT", "time_zone":"TEXT"},
-		"carpe_fs_info":{"p_id":"varchar(20)", "block_size":"BIGINT", "block_count":"BIGINT", "root_inum":"BIGINT", "first_inum":"BIGINT", "last_inum":"BIGINT"},
-		"file_info":{"par_id":"BIGINT", "file_id":"BIGINT", "inode":"TEXT", "name":"TEXT", "meta_seq":"BIGINT", "type":"INTEGER", "dir_type":"INTEGER", "meta_type":"INTEGER", "meta_flags":"INTEGER", "size":"BIGINT",
+		"evidence_info":{"evd_id":"VARCHAR PRIMARY KEY", "evd_name":"TEXT", "evd_path":"TEXT", "tmp_path":"TEXT", "case_id":"VARCHAR", "main_type":"TEXT", "sub_type":"TEXT", "timezone":"TEXT", "acquired_date":"DATETIME", "md5":"TEXT", "sha1":"TEXT", "sha3":"TEXT", "process_state":"INTEGER"},
+		"partition_info":{"par_id":"VARCHAR PRIMARY KEY", "par_name":"TEXT", "par_id":"VARCHAR", "par_type":"TEXT", "sector_size":"INTEGER", "par_size":"BIGINT", "md5":"TEXT", "sha1":"TEXT", "sha3":"TEXT", "start_sector":"BIGINT"},
+		"fs_info":{"fs_id":"VARCHAR", "par_id":"VARCHAR PRIMARY KEY", "block_size":"INTEGER", "block_count":"BIGINT", "root_inum":"INTEGER", "first_inum":"INTEGER", "last_inum":"INTEGER"},
+		"file_info":{"id":"BIGINT PRIMARY KEY", "file_id":"BIGINT", "par_id":"VARCHAR", "inode":"TEXT", "name":"TEXT", "meta_seq":"BIGINT", "type":"INTEGER", "dir_type":"INTEGER", "meta_type":"INTEGER", "meta_flags":"INTEGER", "size":"BIGINT",
 					"mtime":"BIGINT", "atime":"BIGINT", "ctime":"BIGINT", "etime":"BIGINT", "mtime_nano":"BIGINT", "atime_nano":"BIGINT", "ctime_nano":"BIGINT", "etime_nano":"BIGINT",
 					"additional_mtime":"BIGINT", "additional_atime":"BIGINT", "additional_ctime":"BIGINT", "additional_etime":"BIGINT", "additional_mtime_nano":"BIGINT", "additional_atime_nano":"BIGINT", "additional_ctime_nano":"BIGINT", "additional_etime_nano":"BIGINT",
-					"mode":"INTEGER", "uid":"INTEGER", "gid":"INTEGER", "md5":"TEXT", "parent_path":"TEXT", "extension":"TEXT", "parent_id":"BIGINT"},
+					"mode":"INTEGER", "uid":"INTEGER", "gid":"INTEGER", "md5":"TEXT", "sha1":"TEXT", "sha3":"TEXT", "parent_path":"TEXT", "extension":"TEXT", "parent_id":"BIGINT", "bookmark":"BOOLEAN"},
+		"block_info":{"par_id":"VARCHAR", "start":"BIGINT", "end":"BIGINT"}
 	}
 	#To Do
 	#Fill all the values
 	INSERT_HELPER = {
-		"carpe_case_info":"%s, %s, %s, %s, %s, %s",
+		"case_info":"%s, %s, %s, %s, %s",
 		"investigator":"%s, %s, %s, %s",
-		"carpe_evidence_info":"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s",
-		"carpe_partition_info":"%s, %s, %s, %s, %d, %d, %s, %d, %d, %d",
-		"carpe_fs_info":"%s, %s, %s, %s, %s, %s, %s",
-		#"carpe_file":"%s, %s, %s, %s, %s, %d, %d, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %d, %d, %s, %s, %s, %s"
-		#"carpe_file":"%d, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %s, %d, %s, %d, %d, %d, %d, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d"
-		"carpe_file":"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s"
+		"evidence_info":"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
+		"partition_info":"%s, %s, %s, %s, %d, %s, %s, %s, %s, %s",
+		"fs_info":"%s, %s, %d, %s, %d, %d, %d",
+		"file_info":"%s, %s, %s, %s, %s, %s, %d, %d, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %d, %d, %s, %s, %s, %s, %s, %s, %d",
+		"block_info":"%s, %s, %s"
 	}
 
 	CREATE_HELPER = {
-		"carpe_case_info":"CREATE TABLE carpe_case_info (case_id BIGINT NOT NULL AUTO_INCREMENT, case_no TEXT NOT NULL, case_name TEXT NOT NULL, administrator TEXT NOT NULL, create_date DATETIME NOT NULL, description TEXT NULL, PRIMARY KEY(case_id));",
+		"case_info":"CREATE TABLE case_info (case_id VARCHAR(100) NOT NULL, case_name TEXT NOT NULL, administrator TEXT NOT NULL, create_date DATETIME NOT NULL, description TEXT, PRIMARY KEY(case_id));",
 		"investigator":"CREATE TABLE investigator (id varchar(255) NOT NULL, name varchar(100) NOT NULL, password varchar(100) NOT NULL, acl TEXT NULL, PRIMARY KEY(id));",
-		"carpe_evidence_info":"CREATE TABLE carpe_evidence_info (evd_id BIGINT NOT NULL AUTO_INCREMENT, evd_no TEXT NOT NULL, c_id BIGINT NOT NULL, type1 TEXT NOT NULL, type2 TEXT NOT NULL, added_date DATETIME NULL, md5 TEXT NULL, sha1 TEXT NULL, sha256 TEXT NULL, path TEXT NULL, time_zone TEXT NULL, PRIMARY KEY(evd_id), FOREIGN KEY(c_id) REFERENCES carpe_case_info(case_id));",
-		"carpe_partition_info":"CREATE TABLE carpe_partition_info (par_id BIGINT NOT NULL AUTO_INCREMENT, par_name TEXT NOT NULL, par_path TEXT NOT NULL, e_id BIGINT NOT NULL, type INTEGER, sector_size INTEGER, size BIGINT, sha1 TEXT, sha256 TEXT, time_zone TEXT, PRIMARY KEY(par_id), FOREIGN KEY(e_id) REFERENCES carpe_evidence_info(evd_id));",
-		"carpe_fs_info":"CREATE TABLE carpe_fs_info (fs_id BIGINT NOT NULL AUTO_INCREMENT, p_id BIGINT NOT NULL, block_size BIGINT NOT NULL, block_count BIGINT NOT NULL, root_inum BIGINT NOT NULL, first_inum BIGINT NOT NULL, last_inum BIGINT NOT NULL, PRIMARY KEY(fs_id), FOREIGN KEY(p_id) REFERENCES carpe_partition_info(par_id));",
-		"carpe_file":"CREATE TABLE carpe_file (id BIGINT NOT NULL AUTO_INCREMENT, par_id BIGINT NOT NULL, inode TEXT, name TEXT NOT NULL, meta_seq BIGINT, type INTEGER, dir_type INTEGER, meta_type INTEGER, meta_flags INTEGER, size BIGINT, mtime BIGINT, atime BIGINT, ctime BIGINT, etime BIGINT, mtime_nano BIGINT, atime_nano BIGINT, ctime_nano BIGINT, etime_nano BIGINT, additional_mtime BIGINT, additional_atime BIGINT, additional_ctime BIGINT, additional_etime BIGINT, additional_mtime_nano BIGINT, additional_atime_nano BIGINT, additional_ctime_nano BIGINT, additional_etime_nano BIGINT, mode INTEGER, uid INTEGER, gid INTEGER, hash TEXT, hash_type TEXT, parent_path TEXT, extension TEXT, PRIMARY KEY(id), FOREIGN KEY(par_id) REFERENCES carpe_partition_info(par_id));"
+		"evidence_info":"CREATE TABLE evidence_info (evd_id VARCHAR(100) NOT NULL, evd_name TEXT NOT NULL, evd_path TEXT NOT NULL, tmp_path TEXT NOT NULL, case_id VARCHAR(100) NOT NULL, main_type TEXT NOT NULL, sub_type TEXT NOT NULL, timezone TEXT NOT NULL, acquired_date DATETIME, md5 TEXT, sha1 TEXT, sha3 TEXT, process_state INT(11) DEFAULT 0, PRIMARY KEY(evd_id), FOREIGN KEY(case_id) REFERENCES case_info(case_id));",
+		"partition_info":"CREATE TABLE partition_info (par_id VARCHAR(100) NOT NULL, par_name TEXT NOT NULL, evd_id VARCHAR(100) NOT NULL, par_type TEXT NOT NULL, sector_size INT(11) NOT NULL DEFAULT 0, par_size BIGINT NOT NULL DEFAULT 0, md5 TEXT, sha1 TEXT, sha3 TEXT, start_sector BIGINT NOT NULL, PRIMARY KEY(par_id), FOREIGN KEY(evd_id) REFERENCES evidence_info(evd_id));",
+		"fs_info":"CREATE TABLE fs_info (fs_id VARCHAR(100) NOT NULL, par_id VARCHAR(100) NOT NULL, block_size INT(11), block_count BIGINT, root_inum INT(11), first_inum INT(11), last_inum BIGINT, PRIMARY KEY(fs_id), FOREIGN KEY(par_id) REFERENCES partition_info(par_id));",
+		"file_info":"CREATE TABLE file_info (id BIGINT NOT NULL AUTO_INCREMENT, file_id BIGINT NOT NULL, par_id VARCHAR(100) NOT NULL, inode TEXT, name TEXT NOT NULL, meta_seq BIGINT, type INTEGER, dir_type INTEGER, meta_type INTEGER, meta_flags INTEGER, size BIGINT, mtime BIGINT, atime BIGINT, ctime BIGINT, etime BIGINT, mtime_nano BIGINT, atime_nano BIGINT, ctime_nano BIGINT, etime_nano BIGINT, additional_mtime BIGINT, additional_atime BIGINT, additional_ctime BIGINT, additional_etime BIGINT, additional_mtime_nano BIGINT, additional_atime_nano BIGINT, additional_ctime_nano BIGINT, additional_etime_nano BIGINT, mode INTEGER, uid INTEGER, gid INTEGER, md5 TEXT, sha1 TEXT, sha3 TEXT, parent_path TEXT, extension TEXT, parent_id BIGINT, bookmark BOOLEAN, PRIMARY KEY(id), FOREIGN KEY(par_id) REFERENCES partition_info(par_id));",
+		"block_info":"CREATE TABLE block_info (par_id VARCHAR(100) NOT NULL, start BIGINT, end BIGINT);"
 	}
 
 	# To Do 
@@ -49,7 +48,7 @@ class Mariadb(object):
 
 	def open(self):
 		try:
-			self._conn = pymysql.connect(host='218.145.27.66', port=23306, user='root', passwd='dfrc4738', db='carpe_3',charset='utf8',autocommit=True)
+			self._conn = pymysql.connect(host='218.145.27.66', port=23306, user='root', passwd='dfrc4738', db='carpe',charset='utf8',autocommit=True)
 		except Exception:
 			self._conn=None
 			print("db connection error")
@@ -77,7 +76,7 @@ class Mariadb(object):
 				return False
 		else:
 			self.open()
-			return self.check_table_exist(tables)
+			return self.check_table_exist(table_name)
 
 	def initialize(self):
 		self.open()
@@ -93,12 +92,16 @@ class Mariadb(object):
 	def bulk_execute(self, query, values):
 		try:
 			cursor = self._conn.cursor()
+		except Exception:
+			print("db cursor error")
+			return -1
+		try:
 			cursor.executemany(query, values)
-			data = cursor.fetchall()
+			#cursor.executemany
+			data = cursor.fetchone()
 			cursor.close()
 			return data			
 		except Exception:
-			print(query)
 			print("db execution error")
 			return -1
 
@@ -106,28 +109,29 @@ class Mariadb(object):
 		if table_name in self.TABLE_INFO.keys():
 			query = "INSERT INTO {0} (".format(table_name)
 			query += "".join([lambda:column +") ", lambda:column+", "][column!=sorted(self.TABLE_INFO[table_name].keys())[-1]]() for column in (sorted(self.TABLE_INFO[table_name].keys())))
-			#query += "\nVALUES({})".format(self.INSERT_HELPER[table_name])
-		return query	
+			#query += "VALUES ({})".format(self.INSERT_HELPER[table_name])
+		return query
 
 	def execute_query(self, query):
 		cursor = self._conn.cursor()
 		try:
 			cursor.execute(query)
+			#cursor.executemany
+			data = cursor.fetchone()
+			cursor.close()
+			return data
+		except Exception:
+			print("db execution error")
+			return -1
+
+	def execute_query_mul(self ,query):
+		cursor = self._conn.cursor()
+		try:
+			cursor.execute(query)
+			#cursor.executemany
 			data = cursor.fetchall()
 			cursor.close()
 			return data
 		except Exception:
-			print(query)
 			print("db execution error")
 			return -1
-   def execute_query_mul(self ,query):
-      cursor = self._conn.cursor()
-      try:
-         cursor.execute(query)
-         #cursor.executemany
-         data = cursor.fetchall()
-         cursor.close()
-         return data
-      except Exception:
-         print("db execution error")
-         return -1
