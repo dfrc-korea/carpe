@@ -62,6 +62,8 @@ class Compound:
 
             self.has_content = False
             self.has_metadata = False
+            self.has_ole = False
+            self.ole_path = []
             self.content = ""
             self.metadata = {}
             self.metadata['author'] = b''

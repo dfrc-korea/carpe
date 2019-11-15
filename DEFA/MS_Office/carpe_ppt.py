@@ -1,5 +1,10 @@
 # carpe_ppt.py
 import struct
+import zipfile
+import zlib
+import os
+import shutil
+from compoundfiles import *
 
 class PPT :
     RT_CurrentUserAtom = b'\xF6\x0F'
@@ -635,13 +640,512 @@ class PPT :
                 self.compound.content += self.filteredText[i:i+2].decode('utf-16')
             except UnicodeDecodeError:
                 continue
-        """
+       """
         for i in range(0, len(self.filteredText), 2):
             try:
                 self.compound.content += self.filteredText[i:i+2].decode('utf-16')
             except UnicodeDecodeError:
                 continue
         #self.compound.content = self.filteredText.decode('utf-16')
+
+
+
+
+        #### Drawing
+        try:
+            drawing_data = bytearray(self.compound.fp.open('Pictures').read())
+        except Exception:
+            # not exist pictures
+            return False
+
+        drawing_offset = 0
+        img_num = 0
+
+        while drawing_offset < len(drawing_data):
+            embedded_blip_rh_ver_instance = struct.unpack('<H', drawing_data[drawing_offset: drawing_offset + 2])[0]
+            embedded_blip_rh_Type = struct.unpack('<H', drawing_data[drawing_offset + 2: drawing_offset + 4])[0]
+            embedded_blip_rh_recLen = struct.unpack('<I', drawing_data[drawing_offset + 4: drawing_offset + 8])[0]
+            drawing_offset += 0x08
+            embedded_size = embedded_blip_rh_recLen
+
+
+            embedded_blip_rgbUid1 = drawing_data[drawing_offset : drawing_offset + 0x10]
+            drawing_offset += 0x10
+            embedded_size -= 0x10
+            embedded_blip_rgbUid2 = None
+            if int(embedded_blip_rh_ver_instance / 0x10) == 0x46B or int(embedded_blip_rh_ver_instance / 0x10) == 0x6E3:
+                embedded_blip_rgbUid2 = drawing_data[drawing_offset: drawing_offset + 0x10]
+                drawing_offset += 0x10
+                embedded_size -= 0x10
+
+            extension = ""
+            if embedded_blip_rh_Type == 0xF01A:
+                extension = ".emf"
+                embedded_blip_metafileheader = drawing_data[drawing_offset: drawing_offset + 0x22]
+                drawing_offset += 0x22
+                embedded_size -= 0x22
+            elif embedded_blip_rh_Type == 0xF01B:
+                extension = ".wmf"
+                embedded_blip_metafileheader = drawing_data[drawing_offset: drawing_offset + 0x22]
+                drawing_offset += 0x22
+                embedded_size -= 0x22
+            elif embedded_blip_rh_Type == 0xF01C:
+                extension = ".pict"
+                embedded_blip_metafileheader = drawing_data[drawing_offset: drawing_offset + 0x22]
+                drawing_offset += 0x22
+                embedded_size -= 0x22
+            elif embedded_blip_rh_Type == 0xF01D:
+                extension = ".jpg"
+                embedded_blip_tag = drawing_data[drawing_offset: drawing_offset + 0x01]
+                drawing_offset += 0x01
+                embedded_size -= 0x01
+            elif embedded_blip_rh_Type == 0xF01E:
+                extension = ".png"
+                embedded_blip_tag = drawing_data[drawing_offset: drawing_offset + 0x01]
+                drawing_offset += 0x01
+                embedded_size -= 0x01
+            elif embedded_blip_rh_Type == 0xF01F:
+                extension = ".dib"
+                embedded_blip_tag = drawing_data[drawing_offset: drawing_offset + 0x01]
+                drawing_offset += 0x01
+                embedded_size -= 0x01
+            elif embedded_blip_rh_Type == 0xF029:
+                extension = ".tiff"
+                embedded_blip_tag = drawing_data[drawing_offset: drawing_offset + 0x01]
+                drawing_offset += 0x01
+                embedded_size -= 0x01
+
+            embedded_data = drawing_data[drawing_offset : drawing_offset + embedded_size]
+            drawing_offset += embedded_size
+
+            if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+            self.compound.ole_path.append(
+                self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension)
+
+            embedded_fp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
+            img_num += 1
+            embedded_fp.write(embedded_data)
+            embedded_fp.close()
+
+        ##### OLE Object
+        counter = 0
+        self.current_offset = 0
+        file_list = []
+        while(self.current_offset < len(self.powerpoint_document)):
+            rh_ver_instance = struct.unpack('<H', self.powerpoint_document[self.current_offset: self.current_offset + 2])[0]
+            rh_Type = struct.unpack('<H', self.powerpoint_document[self.current_offset + 2: self.current_offset + 4])[0]
+            rh_recLen = struct.unpack('<I', self.powerpoint_document[self.current_offset + 4: self.current_offset + 8])[0]
+            self.current_offset += 8
+
+            if rh_Type == 0x1011:
+                if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                    os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                self.compound.ole_path.append(
+                    self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                        img_num) + extension)
+                path = self.compound.filePath + "_extracted\\OLE_Object" + str(counter) + ".bin"
+                outfile = open(path, "wb")
+                counter += 1
+
+                bindata: bytearray = bytearray(self.powerpoint_document[self.current_offset + 6 : self.current_offset + rh_recLen - 8])
+                decompress = zlib.decompressobj(-zlib.MAX_WBITS)
+                stream = bytearray()
+
+                try:
+                    stream = decompress.decompress(bindata)
+                    stream += decompress.flush()
+                except Exception:
+                    pass
+                file_list.append(path)
+                outfile.write(stream)
+                outfile.close()
+
+            self.current_offset += (rh_recLen)  # - Header Size
+
+        self.__getOLEFile__(file_list)
+
+    def __getOLEFile__(self, files):
+        for file in files:
+            #try:
+            ole = CompoundFileReader(file)
+            ole_filename = file[file.rfind('\\') + 1:]
+            for entry in ole.root:
+                if entry.name == 'Package':  # ooxml
+                    bindata: bytearray = bytearray(ole.open('Package').read())
+                    f = open(ole_filename + '.zip', mode='wb')
+                    f.write(bindata)
+                    f.close()
+                    with zipfile.ZipFile(ole_filename + '.zip') as z:
+                        for filename in z.namelist():
+                            if filename == 'word/document.xml':
+                                savefilename = ole_filename + '.docx'
+                            elif filename == 'ppt/presentation.xml':
+                                savefilename = ole_filename + '.pptx'
+                            elif filename == 'xl/workbook.xml':
+                                savefilename = ole_filename + '.xlsx'
+
+                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+                    self.compound.ole_path.append(
+                        self.compound.filePath + "_extracted\\" + savefilename)
+                    f = open(self.compound.filePath + "_extracted\\" + savefilename, mode='wb')
+                    f.write(bindata)
+                    f.close()
+                    os.remove(file + '.zip')
+
+                elif entry.name == 'WordDocument':
+                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+                    self.compound.ole_path.append(file + '.doc')
+
+                    shutil.copy(file, file + '.doc')
+                elif entry.name == 'PowerPoint Document':
+                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+                    self.compound.ole_path.append(file + '.ppt')
+
+                    shutil.copy(file, file + '.ppt')
+                elif entry.name == 'Workbook':
+                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+                    self.compound.ole_path.append(file + '.xls')
+
+                    shutil.copy(file, file + '.xls')
+                elif entry.name == 'CONTENTS':
+                    bindata: bytearray = bytearray(ole.open('CONTENTS').read())
+                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+                    self.compound.ole_path.append(
+                        self.compound.filePath + "_extracted\\" + ole_filename + '.pdf')
+
+                    f = open(self.compound.filePath + "_extracted\\" + ole_filename + '.pdf', mode='wb')
+                    f.write(bindata)
+                    f.close()
+                elif entry.name == 'Ole10Native':
+                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+                    bindata: bytearray = bytearray(ole.open('Ole10Native').read())
+                    name_len = 6
+                    for i in bindata[name_len:]:
+                        if i == 0:
+                            break
+                        name_len += 1
+                    cnt = 0
+                    while cnt < 1000:
+                        if bindata[cnt:cnt + 4] == b'RIFF' and bindata[cnt + 8: cnt + 16] == b'AVI\x20LIST':
+                            self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + file + '.avi')
+                            f = open(self.compound.filePath + "_extracted\\" + ole_filename + '.avi', mode='wb')
+                            f.write(bindata[cnt:])
+                            f.close()
+                            break
+                        if bindata[cnt:cnt + 4] == b'RIFF' and bindata[cnt + 8 : cnt + 16] == b'WAVEfmt\x20':
+                            self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + file + '.wav')
+                            f = open(self.compound.filePath + "_extracted\\" + ole_filename + '.wav', mode='wb')
+                            f.write(bindata[cnt:])
+                            f.close()
+                            break
+                        if bindata[cnt:cnt + 2] == b'\x00\x00' and bindata[cnt + 4: cnt + 8] == b'ftyp':
+                            self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + file + '.mp4')
+                            f = open(self.compound.filePath + "_extracted\\" + ole_filename + '.mp4', mode='wb')
+                            f.write(bindata[cnt:])
+                            f.close()
+                            break
+                        cnt += 1
+                elif entry.name == 'BodyText':
+                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+                    self.compound.ole_path.append(file + '.hwp')
+
+                    shutil.copy(file, file + '.hwp')
+
+                else:
+                    continue
+            #except:
+            #    return False
+
+
+    def __parse_ppt_normal_for_ole__(self, powerpoint_document, current_user):
+        # ppt 97????????????????
+
+        self.powerpoint_document = powerpoint_document
+        self.current_user = current_user
+
+        # Get User Edit Offset
+        self.current_offset = struct.unpack('<I', self.current_user[16 : 20])[0]
+
+        # Set Chain
+        # Set User Edit Chain
+        tmpHeader = {}
+        tmpHeader['option'] = struct.unpack('<H', self.powerpoint_document[self.current_offset: self.current_offset + 2])[0]
+        tmpHeader['type'] = self.powerpoint_document[self.current_offset + 2 : self.current_offset + 4]
+        tmpHeader['length'] = struct.unpack('<I', self.powerpoint_document[self.current_offset + 4: self.current_offset + 8])[0]
+
+        editblock = {}
+        editblock['last_user_edit_atom_offset'] = 0
+        editblock['persist_ptr_incremental_block_offset'] = 0
+
+        if tmpHeader['type'] == self.RT_UserEditAtom:
+            self.current_offset += 8
+            self.current_offset += 8
+
+            editblock['last_user_edit_atom_offset'] = struct.unpack('<I', self.powerpoint_document[self.current_offset : self.current_offset + 4])[0]
+            self.current_offset += 4
+            editblock['persist_ptr_incremental_block_offset']  = struct.unpack('<I', self.powerpoint_document[self.current_offset : self.current_offset + 4])[0]
+            self.current_offset += 4
+            self.arr_user_edit_block.append(editblock)
+
+        while editblock['last_user_edit_atom_offset'] != 0:
+            self.current_offset = editblock['last_user_edit_atom_offset']
+
+            tmpHeader.fromkeys(tmpHeader.keys(), 0)
+            editblock.fromkeys(editblock.keys(), 0)
+
+            tmpHeader['option'] = struct.unpack('<H', self.powerpoint_document[self.current_offset: self.current_offset + 2])[0]
+            tmpHeader['type'] = self.powerpoint_document[self.current_offset + 2: self.current_offset + 4]
+            tmpHeader['length'] = struct.unpack('<I', self.powerpoint_document[self.current_offset + 4: self.current_offset + 8])[0]
+
+            if tmpHeader['type'] == self.RT_UserEditAtom:
+                self.current_offset += 8
+                self.current_offset += 8
+
+                editblock['last_user_edit_atom_offset'] = struct.unpack('<I', self.powerpoint_document[self.current_offset : self.current_offset + 4])[0]
+                self.current_offset += 4
+                editblock['persist_ptr_incremental_block_offset'] = struct.unpack('<I', self.powerpoint_document[self.current_offset : self.current_offset + 4])[0]
+                self.current_offset += 4
+                self.arr_user_edit_block.append(editblock)
+
+
+
+
+        # SetPersistPtrIncrementalBlockChain
+        tmpSheet = 0
+        tmpLength = 0
+        ppl_block = []
+
+        for i in range(0, len(self.arr_user_edit_block)):
+            self.current_offset = self.arr_user_edit_block[i]['persist_ptr_incremental_block_offset']
+
+            tmpHeader.fromkeys(tmpHeader.keys(), 0)
+            ppl_block.clear()
+
+
+            tmpLength = 0
+
+            tmpHeader['option'] = struct.unpack('<H', self.powerpoint_document[self.current_offset: self.current_offset + 2])[0]
+            tmpHeader['type'] = self.powerpoint_document[self.current_offset + 2: self.current_offset + 4]
+            tmpHeader['length'] = struct.unpack('<I', self.powerpoint_document[self.current_offset + 4: self.current_offset + 8])[0]
+
+            if tmpHeader['type'] == self.RT_PersistPtrIncrementalAtom:
+                self.current_offset += 8
+
+                while True:
+                    sheet_offset = {}
+                    sheet_offset['count'] = 0
+                    sheet_offset['startnum'] = 0
+                    sheet_offset['object'] = b''
+                    sheet_offset['slidenum'] = []
+                    sheet_offset['slideid'] = []
+
+                    sheet_offset.fromkeys(sheet_offset.keys(), 0)
+                    tmpSheet = 0
+
+                    tmpSheet = struct.unpack('<I', self.powerpoint_document[self.current_offset : self.current_offset + 4])[0]
+                    self.current_offset += 4
+
+                    sheet_offset['count'] = tmpSheet >> 20
+                    sheet_offset['startnum'] = tmpSheet & 0x000FFFFF
+                    sheet_offset['object'] = self.powerpoint_document[self.current_offset : self.current_offset + sheet_offset['count'] * 4]
+                    self.current_offset += sheet_offset['count'] * 4
+
+                    ppl_block.append(sheet_offset)
+
+                    tmpLength += (sheet_offset['count'] + 1) * 4
+                    if tmpHeader['length'] == tmpLength:
+                        break
+
+                self.arr_persist_ptr_incremental_block.append(ppl_block)
+
+        ### Extract Body Text
+        # arrSlideText에 각 slide의 text 저장
+        arrSlideText = []
+        for i in range(0, len(self.arr_persist_ptr_incremental_block)):
+            self.current_offset = struct.unpack('<I', self.arr_persist_ptr_incremental_block[i][0]['object'][0:4])[0]
+
+            tmpHeader.fromkeys(tmpHeader.keys(), 0)
+            tmpHeader['option'] = struct.unpack('<H', self.powerpoint_document[self.current_offset: self.current_offset + 2])[0]
+            tmpHeader['type'] = self.powerpoint_document[self.current_offset + 2: self.current_offset + 4]
+            tmpHeader['length'] = struct.unpack('<I', self.powerpoint_document[self.current_offset + 4: self.current_offset + 8])[0]
+            self.current_offset += 8
+
+            if tmpHeader['type'] != self.RT_Document:
+                #print("Not RT_Document.")
+                return
+
+            tmpHeader.fromkeys(tmpHeader.keys(), 0)
+            tmpHeader['option'] = struct.unpack('<H', self.powerpoint_document[self.current_offset: self.current_offset + 2])[0]
+            tmpHeader['type'] = self.powerpoint_document[self.current_offset + 2: self.current_offset + 4]
+            tmpHeader['length'] = struct.unpack('<I', self.powerpoint_document[self.current_offset + 4: self.current_offset + 8])[0]
+            self.current_offset += 8
+
+            if tmpHeader['type'] != self.RT_SlideListWithText:
+                while True:
+                    self.current_offset += tmpHeader['length']
+
+                    if self.current_offset > len(self.powerpoint_document):
+                        #print("Error!")
+                        return
+
+                    tmpHeader.fromkeys(tmpHeader.keys(), 0)
+                    tmpHeader['option'] = struct.unpack('<H', self.powerpoint_document[self.current_offset: self.current_offset + 2])[0]
+                    tmpHeader['type'] = self.powerpoint_document[self.current_offset + 2: self.current_offset + 4]
+                    tmpHeader['length'] = struct.unpack('<I', self.powerpoint_document[self.current_offset + 4: self.current_offset + 8])[0]
+                    self.current_offset += 8
+
+                    if tmpHeader['type'] == self.RT_SlideListWithText:
+                        break
+
+            slide_text = ""
+            in_text = False
+            sheet_number = 0
+            slide_id = 0
+            current_offset_backup = 0
+            presize = 0
+            editblock_text = []
+
+            while tmpHeader['type'] != self.RT_EndDocument:
+                if len(self.powerpoint_document) < self.current_offset + 8:
+                    if len(self.text) > 0 :
+                        editblock_text.append(self.text)
+                        self.text = b''
+                    else :
+                        slide_text = ""
+                    break
+
+                tmpHeader.fromkeys(tmpHeader.keys(), 0)
+                tmpHeader['option'] = struct.unpack('<H', self.powerpoint_document[self.current_offset: self.current_offset + 2])[0]
+                tmpHeader['type'] = self.powerpoint_document[self.current_offset + 2: self.current_offset + 4]
+                tmpHeader['length'] = struct.unpack('<I', self.powerpoint_document[self.current_offset + 4: self.current_offset + 8])[0]
+                self.current_offset += 8
+
+                if tmpHeader['type'] == self.RT_SlideListWithText:
+                    pass
+                elif tmpHeader['type'] == self.RT_SlidePersistAtom:
+                    if in_text == True:
+                        editblock_text.append(self.text)
+                        self.text = b''
+
+                        in_text = False
+
+                        if len(self.powerpoint_document) >= self.current_offset + 16 :
+                            sheet_number = struct.unpack('<I', self.powerpoint_document[self.current_offset : self.current_offset + 4])[0]
+                            slide_id = struct.unpack('<I', self.powerpoint_document[self.current_offset + 12: self.current_offset + 16])[0]
+                            current_offset_backup = self.current_offset
+                            self.__extract_text_in_slide__(i, sheet_number, slide_id)
+                            self.current_offset = current_offset_backup
+                        if self.text == None :
+                            pass
+                        elif len(self.text) > 0:
+                            in_text = True
+
+                    else :
+                        # 각 슬라이드 text 추출
+                        if len(self.powerpoint_document) >= self.current_offset + 16 :
+                            sheet_number = struct.unpack('<I', self.powerpoint_document[self.current_offset : self.current_offset + 4])[0]
+                            slide_id = struct.unpack('<I', self.powerpoint_document[self.current_offset + 12: self.current_offset + 16])[0]
+                            current_offset_backup = self.current_offset
+                            self.__extract_text_in_slide__(i, sheet_number, slide_id)
+                            self.current_offset = current_offset_backup
+                        if self.text == None :
+                            pass
+                        elif len(self.text) > 0:
+                            in_text = True
+
+                    self.current_offset += tmpHeader['length']
+
+                elif tmpHeader['type'] == self.RT_TextHeader:
+                    self.current_offset += tmpHeader['length']
+
+                elif tmpHeader['type'] == self.RT_TextBytesAtom:
+                    self.text_bytes = b''
+                    self.text_chars = b''
+                    self.text_bytes = self.powerpoint_document[self.current_offset: self.current_offset + tmpHeader['length']]
+                    for i in range(0, len(self.text_bytes)):
+                        self.text_chars += bytes([self.text_bytes[i]])
+                        self.text_chars += b'\x00'
+
+                    if self.text == None:
+                        self.text = b''
+
+                    presize = len(self.text)
+                    self.text += self.text_chars
+                    self.text += b'\x0A\x00'
+
+                    self.current_offset += tmpHeader['length']
+                    in_text = True
+
+                elif tmpHeader['type'] == self.RT_TextCharsAtom:
+                    self.text_chars = b''
+                    self.text_chars = self.powerpoint_document[self.current_offset : self.current_offset + tmpHeader['length']]
+
+                    if self.text == None:
+                        self.text = b''
+
+                    self.text += self.text_chars
+                    self.text += b'\x0A\x00'
+
+                    self.current_offset += tmpHeader['length']
+                    in_text = True
+
+                elif tmpHeader['type'] == self.RT_EndDocument:
+                    if in_text == True:
+                        editblock_text.append(self.text)
+                        in_text = False
+                else :
+                    self.current_offset += tmpHeader['length']
+
+            if len(editblock_text) > 0:
+                self.arr_edit_block_text.append(editblock_text)
+
+        j = 0
+        uFilteredTextLen = 0
+
+        for i in range(0, 1):
+            if len(self.arr_edit_block_text) > 0:
+                for j in range(0, len(self.arr_edit_block_text[i])):
+                    uTempLen = int(len(self.arr_edit_block_text[i][j]) / 2)
+                    self.filteredText += self.arr_edit_block_text[i][j]
+                    uFilteredTextLen += uTempLen
+
+        uFilteredTextLen = self.__ppt_extra_filter__(uFilteredTextLen)
+        """
+        for i in range(0, len(self.filteredText), 2):
+            try:
+                self.compound.content += self.filteredText[i:i+2].decode('utf-16')
+            except UnicodeDecodeError:
+                continue
+        """
+        result = ""
+        for i in range(0, len(self.filteredText), 2):
+            try:
+                result += self.filteredText[i:i+2].decode('utf-16')
+            except UnicodeDecodeError:
+                continue
+        #self.compound.content = self.filteredText.decode('utf-16')
+
+        return result
+
+
+
+
 
     def __parse_ppt_damaged__(self):
         file = bytearray(self.compound.fp.read())
