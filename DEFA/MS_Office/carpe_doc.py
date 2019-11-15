@@ -741,8 +741,21 @@ class DOC:
                             ole_fp.seek((ole.direntries[i].kids[j].isectStart + 1) * 0x200)
                             powerpoint_document = ole_fp.read(ole.direntries[i].kids[j].size)
                         elif ole.direntries[i].kids[j].name == "Current User":
-                            ole_fp.seek(((ole.fat[ole.root.isectStart] + 1) * 0x200 + 2048) + (64 * (ole.direntries[i].kids[j].isectStart - 8)))
-                            current_user = ole_fp.read(ole.direntries[i].kids[j].size)
+                            idx = ole.root.isectStart
+                            chain = [idx]
+                            while True:
+                                idx = ole.fat[idx]
+                                if idx == 4294967294:
+                                    break
+                                chain.append(idx)
+                            out = bytearray(b'')
+
+                            for idx in chain:
+                                pos = (idx + 1) * 512
+                                ole_fp.seek(pos)
+                                d = ole_fp.read(512)
+                                out += d
+                            current_user = out[64 * (ole.direntries[i].kids[j].isectStart):64 * (ole.direntries[i].kids[j].isectStart) + ole.direntries[i].kids[j].size]
                         elif ole.direntries[i].kids[j].name == "Workbook":
                             ole_fp.seek((ole.direntries[i].kids[j].isectStart + 1) * 0x200)
                             workbook = ole_fp.read(ole.direntries[i].kids[j].size)
@@ -761,11 +774,9 @@ class DOC:
 
 
                     # DOC
-                    from carpe_doc import DOC
                     result = None
                     if word_document != None and table != None:
-                        temp_doc = DOC(Compound(self.compound.filePath))
-                        result = temp_doc.__parse_doc_normal_for_ole__(word_document, table)
+                        result = self.__parse_doc_normal_for_ole__(word_document, table)
                     if result != None:
                         if not (os.path.isdir(self.compound.filePath + "_extracted")):
                             os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
@@ -776,9 +787,13 @@ class DOC:
                         img_num += 1
 
                     # XLS
+                    from carpe_xls import XLS
+                    from carpe_compound import Compound
                     result = None
                     if workbook != None:
-                        result = self.__parse_xls_normal_for_ole__(workbook)
+                        temp_xls = XLS(Compound(self.compound.filePath))
+                        result = temp_xls.__parse_xls_normal_for_ole__(workbook)
+
                     if result != None:
                         if not (os.path.isdir(self.compound.filePath + "_extracted")):
                             os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
