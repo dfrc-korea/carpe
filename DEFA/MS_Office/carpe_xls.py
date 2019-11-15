@@ -608,8 +608,22 @@ class XLS :
                             ole_fp.seek((ole.direntries[i].kids[j].isectStart + 1) * 0x200)
                             powerpoint_document = ole_fp.read(ole.direntries[i].kids[j].size)
                         elif ole.direntries[i].kids[j].name == "Current User":
-                            ole_fp.seek(((ole.fat[ole.root.isectStart] + 1) * 0x200 + 2048) + (64 * (ole.direntries[i].kids[j].isectStart - 8)))
-                            current_user = ole_fp.read(ole.direntries[i].kids[j].size)
+                            idx = ole.root.isectStart
+                            chain = [idx]
+                            while True:
+                                idx = ole.fat[idx]
+                                if idx == 4294967294:
+                                    break
+                                chain.append(idx)
+                            out = bytearray(b'')
+
+                            for idx in chain:
+                                pos = (idx + 1) * 512
+                                ole_fp.seek(pos)
+                                d = ole_fp.read(512)
+                                out += d
+                            current_user = out[64 * (ole.direntries[i].kids[j].isectStart):64 * (
+                                ole.direntries[i].kids[j].isectStart) + ole.direntries[i].kids[j].size]
                         elif ole.direntries[i].kids[j].name == "Workbook":
                             ole_fp.seek((ole.direntries[i].kids[j].isectStart + 1) * 0x200)
                             workbook = ole_fp.read(ole.direntries[i].kids[j].size)
