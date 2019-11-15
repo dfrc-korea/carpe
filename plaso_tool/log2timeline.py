@@ -1,29 +1,43 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """The log2timeline command line tool."""
 
+from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
 import multiprocessing
+import os
 import sys
 
 from plaso import dependencies
 from plaso.cli import log2timeline_tool
 from plaso.lib import errors
 
+import pdb
 
 def Main():
   """The main function."""
-  multiprocessing.freeze_support()
-
   tool = log2timeline_tool.Log2TimelineTool()
 
-  if not tool.ParseArguments():
+  if not tool.ParseArguments(sys.argv[1:]):
     return False
-
+  
   if tool.show_info:
     tool.ShowInfo()
+    return True
+
+  if tool.show_troubleshooting:
+    print('Using Python version {0!s}'.format(sys.version))
+    print()
+    print('Path: {0:s}'.format(os.path.abspath(__file__)))
+    print()
+    print(tool.GetVersionInformation())
+    print()
+    dependencies.CheckDependencies(verbose_output=True)
+
+    print('Also see: https://plaso.readthedocs.io/en/latest/sources/user/'
+          'Troubleshooting.html')
     return True
 
   have_list_option = False
@@ -51,6 +65,7 @@ def Main():
     return False
 
   try:
+    pdb.set_trace()
     tool.ExtractEventsFromSources()
 
   except (KeyboardInterrupt, errors.UserAbort):
@@ -65,6 +80,10 @@ def Main():
 
 
 if __name__ == '__main__':
+  # For PyInstaller sake we need to define this directly after "__main__".
+  # https://github.com/pyinstaller/pyinstaller/wiki/Recipe-Multiprocessing
+  multiprocessing.freeze_support()
+
   if not Main():
     sys.exit(1)
   else:

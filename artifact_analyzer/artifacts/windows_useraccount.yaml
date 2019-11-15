@@ -1,0 +1,30 @@
+Name: WindowsUserACcount
+Desc: Windows User Account Information
+Table:
+  - TableName: UserAccount
+    Columns:
+      - account_id
+      - par_id
+      - evd_id
+      - case_id
+      - evd_id
+      - os_type
+      - user_name
+      - login_count
+      - create_time
+      - last_login_time
+      - description
+    Types:
+      - [VARCHAR(100), NOT NULL PRIMARY KEY]
+      - [VARCHAR(100), NOT NULL PRIMARY KEY]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [INTEGER, NOT NULL]
+      - [DATETIME, NOT NULL]
+      - [DATETIME, NOT NULL]
+      - [TEXT, NOT NULL]
+Artifacts:
+  - [REG_KEY, HKEY_LOCAL_MACHINE\SAM\SAM\Domains\Account\Users]
