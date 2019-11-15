@@ -165,9 +165,11 @@ class OOXML:
                             damaged_count = damaged_count + 1
                     if damaged_count is not 4:
                         isDamagedFlag = True
+                        self.is_damaged = True
                     return isDamagedFlag
                 else:
                     isDamagedFlag = True
+                    self.is_damaged = True
                     return isDamagedFlag
                 return isDamagedFlag
 
@@ -189,14 +191,17 @@ class OOXML:
                             damaged_count = damaged_count + 1
                     if damaged_count is not 4:
                         isDamagedFlag = True
+                        self.is_damaged = True
                     return isDamagedFlag
                 else:
                     isDamagedFlag = True
+                    self.is_damaged = True
                     return isDamagedFlag
                 return isDamagedFlag
 
         except BadZipFile:
             isDamagedFlag = True
+            self.is_damaged = True
             return isDamagedFlag
 
     def isRecoverable_content(self, filetype):
@@ -1566,60 +1571,67 @@ class OOXML:
                         break
 
                 # embedding file extraction
-                filelists = os.listdir('./test/ppt/embeddings')
-                if not (os.path.isdir(filename + '_extracted')):
-                    os.mkdir(filename + '_extracted')
+                for a in fantasy_zip.filelist:
+                    if 'embeddings' in a.filename:
+                        filelists = os.listdir('./test/ppt/embeddings')
+                        if not (os.path.isdir(filename + '_extracted')):
+                            os.mkdir(filename + '_extracted')
 
-                for a in filelists:
-                    full_filename = os.path.join('./test/ppt/embeddings/', a)
-                    copyfile(full_filename, filename + '_extracted' + "/" + a)
-                    if a[0] == 'o':
-                        self.has_ole = True
-                        ole = olefile.OleFileIO(full_filename)
-                        for temp_list in ole.listdir():
-                            if temp_list[0] == 'Package':
-                                stream = ole.openstream('Package')
-                                data = stream.read()
-                                if 'word' in str(data):
-                                    fembedd2 = open(filename + '_extracted' + '/' + a + '.docx', 'wb')
-                                    os.remove(filename + '_extracted' + '/' + a)
-                                    fembedd2.write(data)
-                                    fembedd2.close()
-                                elif 'ppt' in str(data):
-                                    fembedd2 = open(filename + '_extracted' + '/' + a + '.pptx', 'wb')
-                                    os.remove(filename + '_extracted' + '/' + a)
-                                    fembedd2.write(data)
-                                    fembedd2.close()
-                                elif 'workbook' in str(data):
-                                    fembedd2 = open(filename + '_extracted' + '/' + a + '.xlsx', 'wb')
-                                    os.remove(filename + '_extracted' + '/' + a)
-                                    fembedd2.write(data)
-                                    fembedd2.close()
+                        for a in filelists:
+                            full_filename = os.path.join('./test/ppt/embeddings/', a)
+                            copyfile(full_filename, filename + '_extracted' + "/" + a)
+                            if a[0] == 'o':
+                                self.has_ole = True
+                                ole = olefile.OleFileIO(full_filename)
+                                for temp_list in ole.listdir():
+                                    if temp_list[0] == 'Package':
+                                        stream = ole.openstream('Package')
+                                        data = stream.read()
+                                        if 'word' in str(data):
+                                            fembedd2 = open(filename + '_extracted' + '/' + a + '.docx', 'wb')
+                                            os.remove(filename + '_extracted' + '/' + a)
+                                            fembedd2.write(data)
+                                            fembedd2.close()
+                                        elif 'ppt' in str(data):
+                                            fembedd2 = open(filename + '_extracted' + '/' + a + '.pptx', 'wb')
+                                            os.remove(filename + '_extracted' + '/' + a)
+                                            fembedd2.write(data)
+                                            fembedd2.close()
+                                        elif 'workbook' in str(data):
+                                            fembedd2 = open(filename + '_extracted' + '/' + a + '.xlsx', 'wb')
+                                            os.remove(filename + '_extracted' + '/' + a)
+                                            fembedd2.write(data)
+                                            fembedd2.close()
 
-                            elif 'Hwp' in temp_list[0]:
-                                filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
-                                os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.hwp')
+                                    elif 'Hwp' in temp_list[0]:
+                                        filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
+                                        os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.hwp')
+                                        break
 
-                            elif '1Table' in temp_list[0]:
-                                filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
-                                os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.doc')
+                                    elif '1Table' in temp_list[0]:
+                                        filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
+                                        os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.doc')
+                                        break
 
-                            elif 'Workbook' in temp_list[0]:
-                                filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
-                                os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.xls')
+                                    elif 'Workbook' in temp_list[0]:
+                                        filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
+                                        os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.xls')
+                                        break
 
-                            elif 'Pictures' in temp_list[0]:
-                                filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
-                                os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.ppt')
+                                    elif 'Pictures' in temp_list[0]:
+                                        filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
+                                        os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.ppt')
+                                        break
 
-                            elif temp_list[0] == 'CONTENTS':
-                                stream = ole.openstream('CONTENTS')
-                                data = stream.read()
-                                fembedd2 = open(filename + '_extracted' + '/' + a + '.pdf', 'wb')
-                                fembedd2.write(data)
-                                os.remove(filename + '_extracted' + '/' + a)
-                                fembedd2.close()
-                ole.close()
+                                    elif temp_list[0] == 'CONTENTS':
+                                        stream = ole.openstream('CONTENTS')
+                                        data = stream.read()
+                                        fembedd2 = open(filename + '_extracted' + '/' + a + '.pdf', 'wb')
+                                        fembedd2.write(data)
+                                        os.remove(filename + '_extracted' + '/' + a)
+                                        fembedd2.close()
+                        ole.close()
+                        break
                 for (path, dir, files) in os.walk(filename+'_extracted/'):
                     for fname in files:
                         self.ole_path.append(os.path.join(path, fname))
@@ -1650,18 +1662,8 @@ class OOXML:
                                 new_file.write(comps)
                             new_file.flush()
                     except:
-                        for _ in range(1000):
-                            ch = f.read(16384)
-                            notEnd = len(ch) == 16384
-                            f.seek(-16384, 1)
-                            t = ch.find(b'PK\x03\x04')
-                            if t >= 0:
-                                f.seek(t, 1)
-                                break
-                            f.seek(16380, 1)
-                        else:
-                            continue
-            new_file.close()
+                        break
+
 
             for (path, dir, files) in os.walk(filename + '_extracted/'):
                 for fname in files:
