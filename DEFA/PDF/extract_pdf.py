@@ -3,7 +3,6 @@
 
 """
 @author:    Seonho Lee
-@license:   OH_MY_GIRL License
 @contact:   horensic@gmail.com
 """
 
@@ -57,9 +56,10 @@ class PDFMultimedia:
 
                 if 'XObject' in resources:  # Image
                     for (im_ref, xobj) in resources['XObject'].items():
-                        # print(im_ref, xobj)
                         image_stream = xobj.resolve()
-                        yield ('', image_stream)
+                        if 'Filter' in image_stream:
+                            if image_stream['Filter'].name == 'DCTDecode':
+                                yield ('', image_stream)
 
                 if 'Annots' in attrs:   # Multimedia (Video, Audio, SWF)
                     annots = resolve1(attrs.get('Annots', dict()))
