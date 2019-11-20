@@ -197,9 +197,13 @@ class PDF:
             print(self.metadata[0])
 
             if 'CreationDate' in self.metadata[0]:
+                if isinstance(self.metadata[0]['CreationDate'], PDFObjRef):
+                    self.metadata[0]['CreationDate'] = self.metadata[0]['CreationDate'].resolve()
                 self.metadata[0]['CreationDate'] = timestamp(self.metadata[0]['CreationDate']).encode('ascii')
 
             if 'ModDate' in self.metadata[0]:
+                if isinstance(self.metadata[0]['ModDate'], PDFObjRef):
+                    self.metadata[0]['ModDate'] = self.metadata[0]['ModDate'].resolve()
                 self.metadata[0]['ModDate'] = timestamp(self.metadata[0]['ModDate']).encode('ascii')
 
     def extract_multimedia(self):
