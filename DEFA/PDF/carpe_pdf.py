@@ -3,7 +3,6 @@
 
 """
 @author:    Seonho Lee
-@license:   OH_MY_GIRL License
 @contact:   horensic@gmail.com
 """
 
@@ -143,17 +142,18 @@ class PDF:
 
     def parse_content(self):
 
-        if self.parse():
+        if self.document or self.parse():
+            caching = True
             # normal pdf
-            rsrcmgr = PDFResourceManager()
+            rsrcmgr = PDFResourceManager(caching=caching)
             retstr = io.StringIO()
-            codec = 'utf-8'
+            # codec = 'utf-8'
             laparams = LAParams()
 
-            device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
+            device = TextConverter(rsrcmgr, retstr, laparams=laparams)
             interpreter = PDFPageInterpreter(rsrcmgr, device)
 
-            for page in WrapperPDFPage.get_pages(self.pdf, parser=self.parser, doc=self.document):
+            for page in WrapperPDFPage.get_pages(self.pdf, parser=self.parser, doc=self.document, caching=caching):
                 interpreter.process_page(page)
 
             self.content = retstr.getvalue()
@@ -171,12 +171,16 @@ class PDF:
             :param ts: (bytes) document.info['CreationDate']
             :return: (str) timestamp // UTC+0
             """
+
             raw_ts = ts.decode('ascii')[2:]
             if "'" in raw_ts:
                 raw_ts = raw_ts.replace("'", "")
-            elif "Z" in raw_ts:
-                raw_ts = raw_ts.replace("Z", "")
-                raw_ts += '+0000'
+            if "Z" in raw_ts:
+                if raw_ts[raw_ts.find('Z')+1].isdigit():
+                    raw_ts = raw_ts.replace("Z", "+")
+                else:
+                    raw_ts = raw_ts.replace("Z", "")
+                    raw_ts += '+0000'
             dt = datetime.strptime(raw_ts, "%Y%m%d%H%M%S%z")
             utc_dt= dt.astimezone(timezone.utc)
 
@@ -190,6 +194,7 @@ class PDF:
             self.metadata = self.restore_metadata()
 
         if len(self.metadata) != 0:
+            print(self.metadata[0])
 
             if 'CreationDate' in self.metadata[0]:
                 self.metadata[0]['CreationDate'] = timestamp(self.metadata[0]['CreationDate']).encode('ascii')
@@ -199,7 +204,7 @@ class PDF:
 
     def extract_multimedia(self):
 
-        if self.parse():
+        if self.document or self.parse():
             # normal pdf
             count = 0
             pdf_path, pdf_name = os.path.split(self.path)
@@ -208,7 +213,22 @@ class PDF:
                 if not os.path.exists(extract):
                     os.mkdir(extract)
                 if name == '':
-                    name = f"{pdf_name}_image({count})"
+                    name = f"{pdf_name}_image({count}).jpg"
+                    count += 1
+                dst = os.path.join(extract, name)
+                with open(dst, 'wb') as multimedia_file:
+                    multimedia_file.write(stream.get_data())
+                    self.has_ole = True
+                    self.ole_path.append(dst)
+        else:
+            count = 0
+            pdf_path, pdf_name = os.path.split(self.path)
+            for name, stream in self.restore_multimedia():
+                extract = os.path.join(pdf_path, f"{pdf_name}_extracted")
+                if not os.path.exists(extract):
+                    os.mkdir(extract)
+                if name == '':
+                    name = f"{pdf_name}_image({count}).jpg"
                     count += 1
                 dst = os.path.join(extract, name)
                 with open(dst, 'wb') as multimedia_file:
@@ -287,6 +307,34 @@ class PDF:
                         break
 
         self.metadata.append(dict_value(scan_metadata(restored_xref)))
+
+    def restore_multimedia(self):
+        carpe_pdf_log.debug("Called restore_multimedia()")
+        self.is_damaged = True
+
+        restored_xref = None
+        if not self._recovered:
+            self._recovered = True
+
+            if self.parser.doc is not None:
+                xrefs = self.parser.doc.xrefs  # this case don't need to restore Xref
+                for xref in xrefs:
+                    if isinstance(xref, PDFXRefFallback):
+                        restored_xref = xref
+                        break
+
+        damaged_pdf = PDFRestore(self.parser)
+
+        if restored_xref is not None:
+            damaged_pdf.xref = restored_xref
+        else:
+            carpe_pdf_log.info("Restore Xref")
+            damaged_pdf.restore_xref()
+            carpe_pdf_log.info("Xref restoration complete")
+
+        for name, stream in damaged_pdf.find_multimedia():
+            if stream is not None:
+                yield name, stream
 
     def print_content(self):
         if self.content:

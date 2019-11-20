@@ -14,7 +14,7 @@
 ### Prerequisites
 
 * Python 3.6 or later
-* [pdfminer.six](https://github.com/pdfminer/pdfminer.six)
+* [pdfminer](https://github.com/euske/pdfminer)
 
 ### Usage
 
