@@ -71,7 +71,6 @@ class Module7Z(ModuleComponentInterface):
         if(self.parser.get_value('signature')!=Structure7Z.SIGNATURE):
             self.parser.cleanup()
             return
-        self.parser.print()
 
         next_hdr_off  = self.parser.byte2int(self.parser.get_value("next_hdr_off"))
         next_hdr_size = self.parser.byte2int(self.parser.get_value("next_hdr_size"))
