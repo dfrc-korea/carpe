@@ -172,8 +172,8 @@ class XLS :
         while tempOffset < len(f):
             dic = {}
             dic['offset'] = tempOffset
-            dic['type'] = struct.unpack('<h', f[tempOffset: tempOffset + 0x02])[0]
-            dic['length'] = struct.unpack('<h', f[tempOffset + 0x02: tempOffset + 0x04])[0]
+            dic['type'] = struct.unpack('<H', f[tempOffset: tempOffset + 0x02])[0]
+            dic['length'] = struct.unpack('<H', f[tempOffset + 0x02: tempOffset + 0x04])[0]
             dic['data'] = f[tempOffset + RECORD_HEADER_SIZE: tempOffset + RECORD_HEADER_SIZE + dic['length']]
             tempOffset = tempOffset + RECORD_HEADER_SIZE + dic['length']
             records.append(dic)
@@ -223,8 +223,8 @@ class XLS :
         content += "\n"
 
         cntStream = sstOffset + 4
-        cstTotal = struct.unpack('<i', f[cntStream : cntStream + 4])[0]
-        cstUnique = struct.unpack('<i', f[cntStream + 4: cntStream + 8])[0]
+        cstTotal = struct.unpack('<I', f[cntStream : cntStream + 4])[0]
+        cstUnique = struct.unpack('<I', f[cntStream + 4: cntStream + 8])[0]
         cntStream += 8
 
         for i in range(0, cstUnique):
@@ -354,9 +354,6 @@ class XLS :
                     cntStream += 1
 
         if b_drawing == True:
-            if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
-
             # Drawing
             #print(drawing_data)
             drawing_offset = 0
@@ -424,6 +421,8 @@ class XLS :
                     blip_nameData = drawing_data[drawing_offset: drawing_offset + blip_cbName]
                     drawing_offset += blip_cbName
 
+                if drawing_offset + 8 > len(drawing_data):
+                    break
 
                 embedded_blip_rh_ver_instance = struct.unpack('<H', drawing_data[drawing_offset: drawing_offset + 2])[0]
                 embedded_blip_rh_Type = struct.unpack('<H', drawing_data[drawing_offset + 2: drawing_offset + 4])[0]
@@ -436,10 +435,17 @@ class XLS :
                 drawing_offset += 0x10
                 embedded_size -= 0x10
                 embedded_blip_rgbUid2 = None
+
                 if int(embedded_blip_rh_ver_instance / 0x10) == 0x46B or int(embedded_blip_rh_ver_instance / 0x10) == 0x6E3:
                     embedded_blip_rgbUid2 = drawing_data[drawing_offset: drawing_offset + 0x10]
                     drawing_offset += 0x10
                     embedded_size -= 0x10
+
+
+                if embedded_blip_rh_Type != 0xF01A and embedded_blip_rh_Type != 0xF01B and embedded_blip_rh_Type != 0xF01C and \
+                        embedded_blip_rh_Type != 0xF01D and embedded_blip_rh_Type != 0xF01E and embedded_blip_rh_Type != 0xF01F and \
+                        embedded_blip_rh_Type != 0xF029:
+                    break
 
 
                 extension = ""
@@ -481,6 +487,9 @@ class XLS :
 
                 if extension == "":
                     break
+
+                if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                    os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
 
                 embedded_data = drawing_data[drawing_offset : drawing_offset + embedded_size]
                 drawing_offset += embedded_size
@@ -541,9 +550,7 @@ class XLS :
                     if not (os.path.isdir(self.compound.filePath + "_extracted")):
                         os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
 
-                    self.compound.ole_path.append(
-                        self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
-                            img_num) + extension)
+                    self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + data_name)
                     temp = open(self.compound.filePath + "_extracted\\" + data_name, 'wb')
                     temp.write(data)
                     temp.close()
@@ -579,9 +586,7 @@ class XLS :
                     if not (os.path.isdir(self.compound.filePath + "_extracted")):
                         os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
 
-                    self.compound.ole_path.append(
-                        self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
-                            img_num) + extension)
+                    self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".pdf")
                     temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".pdf", 'wb')
                     temp.write(ole_data)
                     temp.close()
@@ -664,7 +669,7 @@ class XLS :
                         if not (os.path.isdir(self.compound.filePath + "_extracted")):
                             os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
                         self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
-                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w')
+                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
                         img_num += 1
@@ -716,8 +721,8 @@ class XLS :
         while tempOffset < len(f):
             dic = {}
             dic['offset'] = tempOffset
-            dic['type'] = struct.unpack('<h', f[tempOffset: tempOffset + 0x02])[0]
-            dic['length'] = struct.unpack('<h', f[tempOffset + 0x02: tempOffset + 0x04])[0]
+            dic['type'] = struct.unpack('<H', f[tempOffset: tempOffset + 0x02])[0]
+            dic['length'] = struct.unpack('<H', f[tempOffset + 0x02: tempOffset + 0x04])[0]
             dic['data'] = f[tempOffset + RECORD_HEADER_SIZE: tempOffset + RECORD_HEADER_SIZE + dic['length']]
             tempOffset = tempOffset + RECORD_HEADER_SIZE + dic['length']
             records.append(dic)
@@ -758,16 +763,13 @@ class XLS :
                 # reserved 1 is single-byte characters
                 if reserved == b'\x01':
                     content += record['data'][tempOffset: tempOffset + cch * 2].decode("utf-16")
-            if record['type'] == 0xEB:
-                b_drawing = True
-                drawing_data += record['data']
 
         # SST
         content += "\n"
 
         cntStream = sstOffset + 4
-        cstTotal = struct.unpack('<i', f[cntStream: cntStream + 4])[0]
-        cstUnique = struct.unpack('<i', f[cntStream + 4: cntStream + 8])[0]
+        cstTotal = struct.unpack('<I', f[cntStream: cntStream + 4])[0]
+        cstUnique = struct.unpack('<I', f[cntStream + 4: cntStream + 8])[0]
         cntStream += 8
 
         for i in range(0, cstUnique):
@@ -1020,10 +1022,10 @@ class XLS :
         while tempOffset < len(f):
             dic = {}
             dic['offset'] = tempOffset
-            dic['type'] = struct.unpack('<h', f[tempOffset: tempOffset + 0x02])[0]
+            dic['type'] = struct.unpack('<H', f[tempOffset: tempOffset + 0x02])[0]
             if dic['type'] >= 4200 or dic['type'] <= 6:
                 break
-            dic['length'] = struct.unpack('<h', f[tempOffset + 0x02: tempOffset + 0x04])[0]
+            dic['length'] = struct.unpack('<H', f[tempOffset + 0x02: tempOffset + 0x04])[0]
             if dic['length'] >= 8225 or dic['length'] < 0:
                 break
             dic['data'] = f[tempOffset + RECORD_HEADER_SIZE: tempOffset + RECORD_HEADER_SIZE + dic['length']]
@@ -1044,8 +1046,8 @@ class XLS :
 
 
         cntStream = sstOffset + 4
-        cstTotal = struct.unpack('<i', f[cntStream : cntStream + 4])[0]
-        cstUnique = struct.unpack('<i', f[cntStream + 4: cntStream + 8])[0]
+        cstTotal = struct.unpack('<I', f[cntStream : cntStream + 4])[0]
+        cstUnique = struct.unpack('<I', f[cntStream + 4: cntStream + 8])[0]
         cntStream += 8
 
 

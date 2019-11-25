@@ -592,6 +592,11 @@ class DOC:
                     drawing_offset += 0x10
                     embedded_size -= 0x10
 
+                if embedded_blip_rh_Type != 0xF01A and embedded_blip_rh_Type != 0xF01B and embedded_blip_rh_Type != 0xF01C and \
+                        embedded_blip_rh_Type != 0xF01D and embedded_blip_rh_Type != 0xF01E and embedded_blip_rh_Type != 0xF01F and \
+                        embedded_blip_rh_Type != 0xF029:
+                    break
+
                 extension = ""
                 if embedded_blip_rh_Type == 0xF01A:
                     extension = ".emf"
@@ -674,9 +679,7 @@ class DOC:
                     if not (os.path.isdir(self.compound.filePath + "_extracted")):
                         os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
 
-                    self.compound.ole_path.append(
-                        self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
-                            img_num) + extension)
+                    self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + data_name)
                     temp = open(self.compound.filePath + "_extracted\\" + data_name, 'wb')
                     temp.write(data)
                     temp.close()
@@ -712,9 +715,7 @@ class DOC:
                     if not (os.path.isdir(self.compound.filePath + "_extracted")):
                         os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
 
-                    self.compound.ole_path.append(
-                        self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
-                            img_num) + extension)
+                    self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".pdf")
                     temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".pdf", 'wb')
                     temp.write(ole_data)
                     temp.close()
@@ -798,7 +799,7 @@ class DOC:
                         if not (os.path.isdir(self.compound.filePath + "_extracted")):
                             os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
                         self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
-                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w')
+                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
                         img_num += 1

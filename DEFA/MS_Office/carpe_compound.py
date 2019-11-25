@@ -65,11 +65,9 @@ class Compound:
             self.has_ole = False
             self.ole_path = []
             self.content = ""
-            self.metadata = {}
-            self.metadata['author'] = b''
-            self.metadata['title'] = b''
-            self.metadata['create_time'] = ""
-            self.metadata['modified_time'] = ""
+            self.metadata = {'title': "", 'subject': "", 'author': "", 'keyword': "", 'explanation': "",
+                             'last_saved_by': "",
+                             'version': "", 'last_printed_time': "", 'create_time': "", 'modified_time': "", 'date': ""}
 
 
 
@@ -124,133 +122,220 @@ class Compound:
         records = []
         if self.is_damaged == self.CONST_DOCUMENT_NORMAL:
             # Open SummaryInformation Stream
-            f = self.fp.open('\x05SummaryInformation').read()
+            fpSummary = self.fp.open('\x05SummaryInformation').read()
         elif self.is_damaged == self.CONST_DOCUMENT_DAMAGED:
             self.fp.seek(0)
             s = bytearray(self.fp.read(self.fileSize))
             summary_offset = s.find(b'\xFE\xFF\x00\x00\x06\x01\x02\x00')
-            if summary_offset == -1:    # not found
+            if summary_offset == -1:  # not found
                 return False
-            f = s[summary_offset:summary_offset+512]
+            fpSummary = s[summary_offset:summary_offset + 512]
 
-        startOffset = struct.unpack('<i', f[0x2C: 0x30])[0]
+        metaNum = 0
+        startOffset = struct.unpack('<I', fpSummary[0x2C: 0x30])[0]
         tempOffset = startOffset
-
-        # Store Records
-        length = struct.unpack('<i', f[tempOffset: tempOffset + 0x04])[0]
-        recordCount = struct.unpack('<i', f[tempOffset + 0x04: tempOffset + 0x08])[0]
+        recordCount = struct.unpack('<I', fpSummary[tempOffset + 0x04: tempOffset + 0x08])[0]
         tempOffset += 0x08
+
         for i in range(0, recordCount):
-            dict = {}
-            dict['type'] = struct.unpack('<i', f[tempOffset: tempOffset + 0x04])[0]
-            dict['offset'] = struct.unpack('<i', f[tempOffset + 0x04: tempOffset + 0x08])[0]
-            records.append(dict)
+            recordType = struct.unpack('<I', fpSummary[tempOffset: tempOffset + 0x04])[0]
+            recordOffset = struct.unpack('<I', fpSummary[tempOffset + 0x04: tempOffset + 0x08])[0]
+            records.append({'type': recordType, 'offset': recordOffset})
             tempOffset += 0x08
 
-        # Print Records
+        # Parse Records
         for record in records:
+            # 1. Title
+            if record['type'] is 0x02:
+                recordStartOffset = startOffset + record['offset']
+                entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
+                entryLength = struct.unpack('<I', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
+                if entryLength > 1:
+                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                    try:
+                        if entryType == 0x1E:
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metadata['title'] = tempData
+                        metaNum += 1
+                    except:
+                        self.metadata['title'] = ''
 
-            # Title
-            if record['type'] == 0x02:
-                entryType = struct.unpack('<I', f[record['offset'] : record['offset'] + 4])[0]
-                if entryType == 0x1E:
-                    entryLength = struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
-                elif entryType == 0x1F:
-                    entryLength = struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0] * 2
-                else:
-                    return False
+            # 2. Subject
+            elif record['type'] is 0x03:
+                recordStartOffset = startOffset + record['offset']
+                entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
+                entryLength = struct.unpack('<I', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
+                if entryLength > 1:
+                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                    try:
+                        if entryType == 0x1E:
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metadata['subject'] = tempData
+                        metaNum += 1
+                    except:
+                        self.metadata['subject'] = ''
 
-                entryData = bytearray(f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength])
-                if entryType == 0x1E:
-                    self.metadata['title'] = entryData.decode('euc-kr')
-                    print(entryData.decode('euc-kr'))
-                elif entryType == 0x1F:
-                    self.metadata['title'] = entryData.decode('utf-16')
-                    print(entryData.decode('utf-16'))
-                #self.metadata['title'] = entryData
+            # 3. Author
+            elif record['type'] is 0x04:
+                recordStartOffset = startOffset + record['offset']
+                entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
+                entryLength = struct.unpack('<I', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
+                if entryLength > 1:
+                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                    try:
+                        if entryType == 0x1E:
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metadata['author'] = tempData
+                        metaNum += 1
+                    except:
+                        self.metadata['author'] = ''
 
+            # 4. Keyword
+            elif record['type'] is 0x05:
+                recordStartOffset = startOffset + record['offset']
+                entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
+                entryLength = struct.unpack('<I', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
+                if entryLength > 1:
+                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                    try:
+                        if entryType == 0x1E:
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metadata['keyword'] = tempData
+                        metaNum += 1
+                    except:
+                        self.metadata['keyword'] = ''
 
+            # 5. explanation
+            elif record['type'] is 0x06:
+                recordStartOffset = startOffset + record['offset']
+                entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
+                entryLength = struct.unpack('<I', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
+                if entryLength > 1:
+                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                    try:
+                        if entryType == 0x1E:
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metadata['explanation'] = tempData
+                        metaNum += 1
+                    except:
+                        self.metadata['explanation'] = ''
 
-            # Subject
-            elif record['type'] == 0x03:
-                pass
-                """
-                entryType = struct.unpack('<I', f[record['offset']: record['offset'] + 4])[0]
-                if entryType == 0x1E:
-                    entryLength = \
-                    struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
-                elif entryType == 0x1F:
-                    entryLength = \
-                    struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[
-                        0] * 2
-                else:
-                    return False
+            # 6. LastSaveBy
+            elif record['type'] is 0x08:
+                recordStartOffset = startOffset + record['offset']
+                entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
+                entryLength = struct.unpack('<I', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
+                if entryLength > 1:
+                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                    try:
+                        if entryType == 0x1E:
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metadata['last_saved_by'] = tempData
+                        metaNum += 1
+                    except:
+                        self.metadata['last_saved_by'] = ''
 
-                entryData = bytearray(
-                    f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength])
-                if entryType == 0x1E:
-                    self.metadata['title'] = entryData.decode('euc-kr')
-                    print(entryData.decode('euc-kr'))
-                elif entryType == 0x1F:
-                    self.metadata['title'] = entryData.decode('utf-16')
-                    print(entryData.decode('utf-16'))
-                """
+            # 7. Version
+            elif record['type'] is 0x09:
+                recordStartOffset = startOffset + record['offset']
+                entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
+                entryLength = struct.unpack('<I', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
+                if entryLength > 1:
+                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                    try:
+                        if entryType == 0x1E:
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metadata['version'] = tempData
+                        metaNum += 1
+                    except:
+                        self.metadata['version'] = ''
 
+            # 8. Date
+            elif record['type'] is 0x14:
+                recordStartOffset = startOffset + record['offset']
+                entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
+                entryLength = struct.unpack('<I', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
+                if entryLength > 1:
+                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                    try:
+                        if entryType == 0x1E:
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metadata['date'] = tempData
+                        metaNum += 1
+                    except:
+                        self.metadata['date'] = ''
 
-            # Author
-            elif record['type'] == 0x04:
+            # 9. LastPrintedTime
+            elif record['type'] is 0x0B:
+                recordStartOffset = startOffset + record['offset']
+                entryTimeData = struct.unpack('<q', fpSummary[recordStartOffset + 4: recordStartOffset + 12])[0]
+                if entryTimeData > 0.0:
+                    try:
+                        tempTime = datetime.datetime.utcfromtimestamp(
+                            (entryTimeData - 116444736000000000) / 10000000) + datetime.timedelta(hours=9)
+                        self.metadata['last_printed_time'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
+                        metaNum += 1
+                    except:
+                        self.metadata['last_printed_time'] = ''
 
-                entryType = struct.unpack('<I', f[record['offset']: record['offset'] + 4])[0]
-                if entryType == 0x1E:
-                    entryLength = \
-                        struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[
-                            0]
-                elif entryType == 0x1F:
-                    entryLength = \
-                        struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[
-                            0] * 2
-                else:
-                    return False
+            # 10. CreateTime
+            elif record['type'] is 0x0C:
+                recordStartOffset = startOffset + record['offset']
+                entryTimeData = struct.unpack('<q', fpSummary[recordStartOffset + 4: recordStartOffset + 12])[0]
+                if entryTimeData > 0.0:
+                    try:
+                        tempTime = datetime.datetime.utcfromtimestamp(
+                            (entryTimeData - 116444736000000000) / 10000000) + datetime.timedelta(hours=9)
+                        self.metadata['create_time'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
+                        metaNum += 1
+                    except:
+                        self.metadata['create_time'] = ''
 
-                entryData = bytearray(f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength])
-                if entryType == 0x1E:
-                    self.metadata['author'] = entryData.decode('euc-kr')
-                    print(entryData.decode('euc-kr'))
-                elif entryType == 0x1F:
-                    self.metadata['author'] = entryData.decode('utf-16')
-                    print(entryData.decode('utf-16'))
+            # 11. LastSaveTime
+            elif record['type'] is 0x0D:
+                recordStartOffset = startOffset + record['offset']
+                entryTimeData = struct.unpack('<q', fpSummary[recordStartOffset + 4: recordStartOffset + 12])[0]
+                if entryTimeData > 0.0:
+                    try:
+                        tempTime = datetime.datetime.utcfromtimestamp(
+                            (entryTimeData - 116444736000000000) / 10000000) + datetime.timedelta(hours=9)
+                        self.metadata['modified_time'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
+                        metaNum += 1
+                    except:
+                        self.metadata['modified_time'] = ''
 
-
-
-            # LastAuthor
-            elif record['type'] == 0x08:
-                entryLength = struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
-                entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
-                #print(entryData.decode('euc-kr'))
-
-
-            # AppName
-            elif record['type'] == 0x12:
-                entryLength = struct.unpack('<i', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 8])[0]
-                entryData = f[record['offset'] + startOffset + 8: record['offset'] + startOffset + 8 + entryLength]
-                #print(entryData.decode('euc-kr'))
-
-            # LastPrintedtime
-            elif record['type'] == 0x0B:
-                # entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
-                # print(datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S.%f'))
-                pass
-
-
-            # Createtime
-            elif record['type'] == 0x0C:
-                entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
-                self.metadata['create_time'] = datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S')
-                #self.metadata['create_time'] = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0]
-
-
-            # LastSavetime
-            elif record['type'] == 0x0D:
-                entryTimeData = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0] / 1e8
-                self.metadata['modified_time'] = datetime.datetime.fromtimestamp(entryTimeData).strftime('%Y-%m-%d %H:%M:%S')
-                #self.metadata['modified_time'] = struct.unpack('<q', f[record['offset'] + startOffset + 4: record['offset'] + startOffset + 12])[0]
+        if metaNum > 0:
+            self.has_metadata = True
+            return True
