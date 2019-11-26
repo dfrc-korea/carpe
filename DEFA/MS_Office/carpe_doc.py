@@ -1281,9 +1281,13 @@ class DOC:
         file = bytearray(self.compound.fp.read())
         m_word = b''
         m_table = b''
+        m_data = b''
         wordFlag = False
         tableFlag = False
+        dataFlag = True
         word_document = b''
+        drawing_data = b''
+        data = b''
         one_table = b''
         zero_table = b''
     
@@ -1294,6 +1298,7 @@ class DOC:
         CONST_TABLE1_WORD = b'\x57\x00\x6F\x00\x72\x00\x64\x00\x44\x00\x6F\x00'
         CONST_TABLE2_1TABLE = b'\x31\x00\x54\x00\x61\x00\x62\x00\x6C\x00\x65\x00'
         CONST_DATA_SIGNATURE = b'\xEC\xA5'
+        CONST_DATA = b'\x44\x00\x61\x00\x74\x00\x61\x00'
         nCurPos = 0
     
         while(nCurPos < len(file)):
@@ -1304,8 +1309,12 @@ class DOC:
             if (file[nCurPos: nCurPos + 12] == CONST_TABLE2_1TABLE):
                 m_table = file[nCurPos: nCurPos + 0x80]
                 tableFlag = True
-    
-            if (tableFlag == True and wordFlag == True):
+
+            if (file[nCurPos: nCurPos + 8] == CONST_DATA):
+                m_data = file[nCurPos: nCurPos + 0x80]
+                dataFlag = True
+
+            if (tableFlag == True and wordFlag == True and dataFlag == True):
                 break
     
             nCurPos += 0x80
@@ -1331,42 +1340,48 @@ class DOC:
             tableStartIndex = struct.unpack('<I', m_table[0x74:0x78])[0]
             tableSize = struct.unpack('<I', m_table[0x78:0x7C])[0]
             byteTable = file[(tableStartIndex + 1) * 0x200 : (tableStartIndex + 1) * 0x200 + tableSize]
-    
+
+        #data
+        if dataFlag == True:
+            dataStartIndex = struct.unpack('<I', m_data[0x74:0x78])[0]
+            dataSize = struct.unpack('<I', m_data[0x78:0x7C])[0]
+            drawing_data = file[(dataStartIndex + 1) * 0x200 : (dataStartIndex + 1) * 0x200 + dataSize]
+
         if len(word_document) <= 0x200:     ### No Data
             return False
 
         # Get cppText in FibRgLw
         ccpText = word_document[0x4C:0x50]
         ccpTextSize = struct.unpack('<I', ccpText)[0]
-    
+
         if (ccpTextSize == 0):
             return self.compound.CONST_ERROR
-    
+
         # Get fcClx in FibRgFcLcbBlob
         fcClx = word_document[0x1A2:0x1A6]
         fcClxSize = struct.unpack('<I', fcClx)[0]
-    
+
         if (fcClxSize == 0):
             return self.compound.CONST_ERROR
-    
+
         # Get lcbClx in FibRgFcLcbBlob
         lcbClx = word_document[0x1A6:0x1AA]
         lcbClxSize = struct.unpack('<I', lcbClx)[0]
-    
+
         if (lcbClxSize == 0):
             return self.compound.CONST_ERROR
-    
+
         # Get Clx
         Clx = byteTable[fcClxSize: fcClxSize + lcbClxSize]
-    
+
         if Clx[0] == 0x01:
             cbGrpprl = struct.unpack("<H", Clx[1:3])[0]
             Clx = byteTable[fcClxSize + cbGrpprl + 3: (fcClxSize + cbGrpprl + 3) + lcbClxSize - cbGrpprl + 3]
         if Clx[0] != 0x02:
             return self.compound.CONST_ERROR
-    
+
         ClxSize = struct.unpack('<I', Clx[1:5])[0]
-    
+
         ClxIndex = 5
         PcdCount = 0
         aCPSize = []
@@ -1374,18 +1389,18 @@ class DOC:
         fcIndex = 0
         fcSize = 0
         encodingFlag = False
-    
+
         PcdCount = int(((ClxSize / 4) / 3)) + 1
-    
+
         for i in range(0, PcdCount):
             aCp = Clx[ClxIndex:ClxIndex + 4]
             aCPSize.append(struct.unpack('<I', aCp[0:4])[0])
             ClxIndex += 4
-    
+
         PcdCount -= 1
-    
+
         ### Filtering
-    
+
         uBlank = b'\x20\x00'  # ASCII Blank
         uBlank2 = b'\xA0\x00'  # Unicode Blank
         uNewline = b'\x0A\x00'  # Line Feed
@@ -1422,32 +1437,32 @@ class DOC:
         uStyleref = b'\x53\x00\x54\x00\x59\x00\x4C\x00\x45\x00\x52\x00\x45\x00\x46\x00'
         uTitle = b'\x54\x00\x49\x00\x54\x00\x4C\x00\x45\x00'
         uDate = b'\x49\x00\x46\x00\x20\x00\x44\x00\x41\x00\x54\x00\x45\x00'
-    
+
         ### Filtering targets: 0x0001 ~ 0x0017(0x000A Line Feed skipped)
         uTab = b'\x09\x00'  # Horizontal Tab
         uSpecial = b'\xF0'
         bFullScanA = False
         bFullScanU = False  # if the size info is invalid, then the entire range will be scanned.
         tempPlus = 0
-    
+
         for i in range(0, PcdCount):
             aPcd = Clx[ClxIndex:ClxIndex + 8]
             fcCompressed = aPcd[2:6]
-    
+
             fcFlag = struct.unpack('<I', fcCompressed[0:4])[0]
-    
+
             if CONST_FCFLAG == (fcFlag & CONST_FCFLAG):
                 encodingFlag = True  # 8-bit ANSI
             else:
                 encodingFlag = False  # 16-bit Unicode
-    
+
             fcIndex = fcFlag & CONST_FCINDEXFLAG
-    
+
             k = 0
             if encodingFlag == True:  # 8-bit ANSI
                 fcIndex = int(fcIndex / 2)
                 fcSize = aCPSize[i + 1] - aCPSize[i]
-    
+
                 if len(word_document) < fcIndex + fcSize + 1:
                     if bFullScanA == False and len(word_document) > fcIndex:
                         fcSize = len(word_document) - fcIndex - 1
@@ -1455,72 +1470,91 @@ class DOC:
                     else:
                         ClxIndex += 8
                         continue
-    
+
                 ASCIIText = word_document[fcIndex:fcIndex + fcSize]
                 UNICODEText = b''
-    
+
                 for i in range(0, len(ASCIIText)):
                     UNICODEText += bytes([ASCIIText[i]])
                     UNICODEText += b'\x00'
-    
+
                 while k < len(UNICODEText):
-    
-                    if (UNICODEText[k: k + 2] == uSection2 or UNICODEText[k: k + 2] == uSection3 or UNICODEText[: k + 2] == uSection4 or
-                            UNICODEText[k: k + 2] == uSection5 or UNICODEText[k: k + 2] == uSection7 or UNICODEText[k: k + 2] == uSection8 or
+
+                    if (UNICODEText[k: k + 2] == uSection2 or UNICODEText[k: k + 2] == uSection3 or UNICODEText[
+                                                                                                    k: k + 2] == uSection4 or
+                            UNICODEText[k: k + 2] == uSection5 or UNICODEText[k: k + 2] == uSection7 or UNICODEText[
+                                                                                                        k: k + 2] == uSection8 or
                             UNICODEText[k + 1] == uSpecial or UNICODEText[k: k + 2] == uTrash):
                         k += 2  ### while
                         continue
-    
-                    if (UNICODEText[k: k + 2] == uNewline or UNICODEText[k: k + 2] == uNewline2 or UNICODEText[k: k + 2] == uNewline3 or UNICODEText[k: k + 2] == uNewline4):
+
+                    if (UNICODEText[k: k + 2] == uNewline or UNICODEText[k: k + 2] == uNewline2 or UNICODEText[
+                                                                                                   k: k + 2] == uNewline3 or UNICODEText[
+                                                                                                                             k: k + 2] == uNewline4):
                         string += bytes([UNICODEText[k]])
                         string += bytes([UNICODEText[k + 1]])
-    
+
                         j = k + 2
                         while j < len(UNICODEText):
-                            if (UNICODEText[j:j + 2] == uSection2 or UNICODEText[j:j + 2] == uSection3 or UNICODEText[j:j + 2] == uSection4 or
-                                    UNICODEText[j:j + 2] == uSection5 or UNICODEText[j:j + 2] == uSection7 or UNICODEText[j:j + 2] == uSection8 or
-                                    UNICODEText[j:j + 2] == uBlank or UNICODEText[j:j + 2] == uBlank2 or UNICODEText[j:j + 2] == uNewline or
-                                    UNICODEText[j:j + 2] == uNewline2 or UNICODEText[j:j + 2] == uNewline3 or UNICODEText[j:j + 2] == uNewline4 or
+                            if (UNICODEText[j:j + 2] == uSection2 or UNICODEText[
+                                                                     j:j + 2] == uSection3 or UNICODEText[
+                                                                                              j:j + 2] == uSection4 or
+                                    UNICODEText[j:j + 2] == uSection5 or UNICODEText[
+                                                                         j:j + 2] == uSection7 or UNICODEText[
+                                                                                                  j:j + 2] == uSection8 or
+                                    UNICODEText[j:j + 2] == uBlank or UNICODEText[
+                                                                      j:j + 2] == uBlank2 or UNICODEText[
+                                                                                             j:j + 2] == uNewline or
+                                    UNICODEText[j:j + 2] == uNewline2 or UNICODEText[
+                                                                         j:j + 2] == uNewline3 or UNICODEText[
+                                                                                                  j:j + 2] == uNewline4 or
                                     UNICODEText[j:j + 2] == uTab or UNICODEText[j + 1] == uSpecial):
                                 j += 2
                                 continue
                             else:
                                 k = j
                                 break
-    
+
                         if j >= len(UNICODEText):
                             break
-    
-                    elif (UNICODEText[k:k + 2] == uBlank or UNICODEText[k:k + 2] == uBlank2 or UNICODEText[k:k + 2] == uTab):
-    
+
+                    elif (UNICODEText[k:k + 2] == uBlank or UNICODEText[k:k + 2] == uBlank2 or UNICODEText[
+                                                                                               k:k + 2] == uTab):
+
                         string += bytes([UNICODEText[k]])
                         string += bytes([UNICODEText[k + 1]])
-    
+
                         j = k + 2
                         while j < len(UNICODEText):
-                            if (UNICODEText[j:j + 2] == uSection2 or UNICODEText[j:j + 2] == uSection3 or UNICODEText[j:j + 2] == uSection4 or
-                                    UNICODEText[j:j + 2] == uSection5 or UNICODEText[j:j + 2] == uSection7 or UNICODEText[j:j + 2] == uSection8 or
-                                    UNICODEText[j:j + 2] == uBlank or UNICODEText[j:j + 2] == uBlank2 or UNICODEText[j:j + 2] == uTab or
+                            if (UNICODEText[j:j + 2] == uSection2 or UNICODEText[
+                                                                     j:j + 2] == uSection3 or UNICODEText[
+                                                                                              j:j + 2] == uSection4 or
+                                    UNICODEText[j:j + 2] == uSection5 or UNICODEText[
+                                                                         j:j + 2] == uSection7 or UNICODEText[
+                                                                                                  j:j + 2] == uSection8 or
+                                    UNICODEText[j:j + 2] == uBlank or UNICODEText[
+                                                                      j:j + 2] == uBlank2 or UNICODEText[
+                                                                                             j:j + 2] == uTab or
                                     UNICODEText[j + 1] == uSpecial):
                                 j += 2
                                 continue
                             else:
                                 k = j
                                 break
-    
+
                         if (j >= len(UNICODEText)):
                             break
-    
+
                     string += bytes([UNICODEText[k]])
                     string += bytes([UNICODEText[k + 1]])
                     k += 2
-    
-    
-    
-    
+
+
+
+
             elif encodingFlag == False:  ### 16-bit Unicode
                 fcSize = 2 * (aCPSize[i + 1] - aCPSize[i])
-    
+
                 if (len(
                         word_document) < fcIndex + fcSize + 1):  # Invalid structure - size info is invalid (large) => scan from fcIndex to last
                     if (bFullScanU == False and len(word_document) > fcIndex):
@@ -1529,116 +1563,421 @@ class DOC:
                     else:
                         ClxIndex = ClxIndex + 8
                         continue
-    
+
                 while k < fcSize:
-                    if (word_document[fcIndex + k: fcIndex + k + 2] == uSection2 or word_document[fcIndex + k: fcIndex + k + 2] == uSection3 or
-                            word_document[fcIndex + k: fcIndex + k + 2] == uSection4 or word_document[fcIndex + k: fcIndex + k + 2] == uSection5 or
-                            word_document[fcIndex + k: fcIndex + k + 2] == uSection7 or word_document[fcIndex + k: fcIndex + k + 2] == uSection8 or
-                            word_document[fcIndex + k + 1] == uSpecial or word_document[fcIndex + k: fcIndex + k + 2] == uTrash):
+                    if (word_document[fcIndex + k: fcIndex + k + 2] == uSection2 or word_document[
+                                                                                    fcIndex + k: fcIndex + k + 2] == uSection3 or
+                            word_document[fcIndex + k: fcIndex + k + 2] == uSection4 or word_document[
+                                                                                        fcIndex + k: fcIndex + k + 2] == uSection5 or
+                            word_document[fcIndex + k: fcIndex + k + 2] == uSection7 or word_document[
+                                                                                        fcIndex + k: fcIndex + k + 2] == uSection8 or
+                            word_document[fcIndex + k + 1] == uSpecial or word_document[
+                                                                          fcIndex + k: fcIndex + k + 2] == uTrash):
                         k += 2
                         continue
-    
-                    if (word_document[fcIndex + k: fcIndex + k + 2] == uNewline or word_document[fcIndex + k: fcIndex + k + 2] == uNewline2 or
-                            word_document[fcIndex + k: fcIndex + k + 2] == uNewline3 or word_document[fcIndex + k: fcIndex + k + 2] == uNewline4):
-    
+
+                    if (word_document[fcIndex + k: fcIndex + k + 2] == uNewline or word_document[
+                                                                                   fcIndex + k: fcIndex + k + 2] == uNewline2 or
+                            word_document[fcIndex + k: fcIndex + k + 2] == uNewline3 or word_document[
+                                                                                        fcIndex + k: fcIndex + k + 2] == uNewline4):
+
                         if (word_document[fcIndex + k] == 0x0d):
                             string += b'\x0a'
                             string += bytes([word_document[fcIndex + k + 1]])
                         else:
                             string += bytes([word_document[fcIndex + k]])
                             string += bytes([word_document[fcIndex + k + 1]])
-    
+
                         j = k + 2
                         while j < fcSize:
-                            if (word_document[fcIndex + j: fcIndex + j + 2] == uSection2 or word_document[fcIndex + j: fcIndex + j + 2] == uSection3 or word_document[fcIndex + j: fcIndex + j + 2] == uSection4 or
-                                    word_document[fcIndex + j: fcIndex + j + 2] == uSection5 or word_document[fcIndex + j: fcIndex + j + 2] == uSection7 or word_document[fcIndex + j: fcIndex + j + 2] == uSection8 or
-                                    word_document[fcIndex + j: fcIndex + j + 2] == uBlank or word_document[fcIndex + j: fcIndex + j + 2] == uBlank2 or word_document[fcIndex + j: fcIndex + j + 2] == uNewline or
-                                    word_document[fcIndex + j: fcIndex + j + 2] == uNewline2 or word_document[fcIndex + j: fcIndex + j + 2] == uNewline3 or word_document[fcIndex + j: fcIndex + j + 2] == uNewline4 or
-                                    word_document[fcIndex + j: fcIndex + j + 2] == uTab or word_document[fcIndex + j + 1] == uSpecial):
+                            if (word_document[fcIndex + j: fcIndex + j + 2] == uSection2 or word_document[
+                                                                                            fcIndex + j: fcIndex + j + 2] == uSection3 or word_document[
+                                                                                                                                          fcIndex + j: fcIndex + j + 2] == uSection4 or
+                                    word_document[fcIndex + j: fcIndex + j + 2] == uSection5 or word_document[
+                                                                                                fcIndex + j: fcIndex + j + 2] == uSection7 or word_document[
+                                                                                                                                              fcIndex + j: fcIndex + j + 2] == uSection8 or
+                                    word_document[fcIndex + j: fcIndex + j + 2] == uBlank or word_document[
+                                                                                             fcIndex + j: fcIndex + j + 2] == uBlank2 or word_document[
+                                                                                                                                         fcIndex + j: fcIndex + j + 2] == uNewline or word_document[
+                                                                                                                                                                                      fcIndex + j: fcIndex + j + 2] == uNewline2 or
+                                    word_document[fcIndex + j: fcIndex + j + 2] == uNewline3 or word_document[
+                                                                                                fcIndex + j: fcIndex + j + 2] == uNewline4 or word_document[
+                                                                                                                                              fcIndex + j: fcIndex + j + 2] == uTab or
+                                    word_document[
+                                        fcIndex + j + 1] == uSpecial):
                                 j += 2
                                 continue
                             else:
                                 k = j
                                 break
-    
+
                         if j >= fcSize:
                             break
-    
-                    elif word_document[fcIndex + k: fcIndex + k + 2] == uBlank or word_document[fcIndex + k: fcIndex + k + 2] == uBlank2 or word_document[fcIndex + k: fcIndex + k + 2] == uTab:
+
+                    elif word_document[fcIndex + k: fcIndex + k + 2] == uBlank or word_document[
+                                                                                  fcIndex + k: fcIndex + k + 2] == uBlank2 or word_document[
+                                                                                                                              fcIndex + k: fcIndex + k + 2] == uTab:
                         string += bytes([word_document[fcIndex + k]])
                         string += bytes([word_document[fcIndex + k + 1]])
-    
+
                         j = k + 2
                         while j < fcSize:
-                            if (word_document[fcIndex + j: fcIndex + j + 2] == uSection2 or word_document[fcIndex + j: fcIndex + j + 2] == uSection3 or word_document[fcIndex + j: fcIndex + j + 2] == uSection4 or
-                                    word_document[fcIndex + j: fcIndex + j + 2] == uSection5 or word_document[fcIndex + j: fcIndex + j + 2] == uSection7 or word_document[fcIndex + j: fcIndex + j + 2] == uSection8 or
-                                    word_document[fcIndex + j: fcIndex + j + 2] == uBlank or word_document[fcIndex + j: fcIndex + j + 2] == uBlank2 or word_document[fcIndex + j: fcIndex + j + 2] == uTab or
+                            if (word_document[fcIndex + j: fcIndex + j + 2] == uSection2 or word_document[
+                                                                                            fcIndex + j: fcIndex + j + 2] == uSection3 or word_document[
+                                                                                                                                          fcIndex + j: fcIndex + j + 2] == uSection4 or
+                                    word_document[fcIndex + j: fcIndex + j + 2] == uSection5 or word_document[
+                                                                                                fcIndex + j: fcIndex + j + 2] == uSection7 or word_document[
+                                                                                                                                              fcIndex + j: fcIndex + j + 2] == uSection8 or
+                                    word_document[fcIndex + j: fcIndex + j + 2] == uBlank or word_document[
+                                                                                             fcIndex + j: fcIndex + j + 2] == uBlank2 or word_document[
+                                                                                                                                         fcIndex + j: fcIndex + j + 2] == uTab or
                                     word_document[fcIndex + j + 1] == uSpecial):
                                 j += 2
                                 continue
                             else:
                                 k = j
                                 break
-    
+
                         if j >= fcSize:
                             break
-    
+
                     string += bytes([word_document[fcIndex + k]])
                     string += bytes([word_document[fcIndex + k + 1]])
                     k += 2
-    
+
             ClxIndex += 8
-    
+
         dictionary = self.__doc_extra_filter__(string, len(string))
-    
+
         filteredText = dictionary['string']
         filteredLen = dictionary['length']
+        # self.compound.content = filteredText.decode("utf-16")
 
-        #self.compound.content = filteredText.decode("utf-16")
+        ###### DOC 추가
+
+        if len(filteredText) != 0:
+            nPos = filteredLen
+            usTmp1 = 0
+            usTmp2 = 0
+
+            if nPos >= 4:
+                usTmp1 = struct.unpack('<H', filteredText[0 + nPos - 4: 0 + nPos - 4 + 2])[0]
+            usTmp2 = struct.unpack('<H', filteredText[0 + nPos - 2: 0 + nPos - 2 + 2])[0]
+
+            if usTmp1 == uNewline:
+                if usTmp2 != uNewline:
+                    filteredText += b'\x0A\x00\x00\x00'
+            else:
+                if usTmp2 == uNewline:
+                    filteredText += b'\x0A\x00\x00\x00'
+                else:
+                    filteredText += b'\x0A\x00\x0A\x00\x00\x00'
+
+        #######
         for i in range(0, len(filteredText), 2):
             try:
-                self.compound.content += filteredText[i:i+2].decode('utf-16')
+                self.compound.content += filteredText[i:i + 2].decode('utf-16')
             except UnicodeDecodeError:
                 continue
 
+        ##### Image #####
+        try:
 
+            drawing_offset = 0
+            img_num = 0
 
-    """
-    def __parse_doc_damaged__(self):
-        pass
-        
-        file = bytearray(self.fp.read())
-        offset = 0
-        wordStartOffset = 0
-        bWord = False
-        while len(file) > offset:
-            if file[offset:offset + 2] == b'\xEC\xA5':
-                wordStartOffset = offset
-                bWord = True
-                break
-            offset += 0x80
-    
-        bFinish = False
-        string = ""
-        offset = wordStartOffset + 0x200
-        while len(file) > offset:
-            if file[offset : offset + 2] == b'\x00\x00' or file[offset + 2: offset + 4] == b'\x00\x00':
-                offset += 0x200
-                continue
-    
-    
-            encoding = chardet.detect(file[offset : offset + 0x100])
-            if encoding['encoding'] != None :
-                if encoding['encoding'] == 'ascii' or encoding['encoding'] == 'Windows-1252':
-                    string += file[offset: offset + 0x200].decode('windows-1252')
+            while drawing_offset < len(drawing_data):
+                if drawing_data.find(b'\xA0\x46\x1D\xF0', drawing_offset) > 0:
+                    # extension = ".jpg"
+                    drawing_offset = drawing_data.find(b'\xA0\x46\x1D\xF0', drawing_offset)
+                    # drawing_offset = drawing_data.find(b'\x1D\xF0', drawing_offset)
+                elif drawing_data.find(b'\x00\x6E\x1E\xF0', drawing_offset) > 0:
+                    # extension = ".png"
+                    drawing_offset = drawing_data.find(b'\x00\x6E\x1E\xF0', drawing_offset)
+                    # drawing_offset = drawing_data.find(b'\x1E\xF0', drawing_offset)
                 else:
-                    for i in range(0, 0x200, 2):
-                        string += file[offset + i : offset + i + 2].decode('utf-16')
-    
-    
-            offset += 0x200
-    
-        test = open('/home/horensic/Desktop/extract.txt', 'w')
-        test.write(string)
-        test.close()
-    """
+                    break
+
+                embedded_blip_rh_ver_instance = \
+                struct.unpack('<H', drawing_data[drawing_offset: drawing_offset + 2])[0]
+                embedded_blip_rh_Type = struct.unpack('<H', drawing_data[drawing_offset + 2: drawing_offset + 4])[0]
+                embedded_blip_rh_recLen = struct.unpack('<I', drawing_data[drawing_offset + 4: drawing_offset + 8])[
+                    0]
+                drawing_offset += 0x08
+                embedded_size = embedded_blip_rh_recLen
+
+                embedded_blip_rgbUid1 = drawing_data[drawing_offset: drawing_offset + 0x10]
+                drawing_offset += 0x10
+                embedded_size -= 0x10
+                embedded_blip_rgbUid2 = None
+                if int(embedded_blip_rh_ver_instance / 0x10) == 0x46B or int(
+                        embedded_blip_rh_ver_instance / 0x10) == 0x6E3:
+                    embedded_blip_rgbUid2 = drawing_data[drawing_offset: drawing_offset + 0x10]
+                    drawing_offset += 0x10
+                    embedded_size -= 0x10
+
+                if embedded_blip_rh_Type != 0xF01A and embedded_blip_rh_Type != 0xF01B and embedded_blip_rh_Type != 0xF01C and \
+                        embedded_blip_rh_Type != 0xF01D and embedded_blip_rh_Type != 0xF01E and embedded_blip_rh_Type != 0xF01F and \
+                        embedded_blip_rh_Type != 0xF029:
+                    break
+
+                extension = ""
+                if embedded_blip_rh_Type == 0xF01A:
+                    extension = ".emf"
+                    embedded_blip_metafileheader = drawing_data[drawing_offset: drawing_offset + 0x22]
+                    drawing_offset += 0x22
+                    embedded_size -= 0x22
+                elif embedded_blip_rh_Type == 0xF01B:
+                    extension = ".wmf"
+                    embedded_blip_metafileheader = drawing_data[drawing_offset: drawing_offset + 0x22]
+                    drawing_offset += 0x22
+                    embedded_size -= 0x22
+                elif embedded_blip_rh_Type == 0xF01C:
+                    extension = ".pict"
+                    embedded_blip_metafileheader = drawing_data[drawing_offset: drawing_offset + 0x22]
+                    drawing_offset += 0x22
+                    embedded_size -= 0x22
+                elif embedded_blip_rh_Type == 0xF01D:
+                    extension = ".jpg"
+                    embedded_blip_tag = drawing_data[drawing_offset: drawing_offset + 0x01]
+                    drawing_offset += 0x01
+                    embedded_size -= 0x01
+                elif embedded_blip_rh_Type == 0xF01E:
+                    extension = ".png"
+                    embedded_blip_tag = drawing_data[drawing_offset: drawing_offset + 0x01]
+                    drawing_offset += 0x01
+                    embedded_size -= 0x01
+                elif embedded_blip_rh_Type == 0xF01F:
+                    extension = ".dib"
+                    embedded_blip_tag = drawing_data[drawing_offset: drawing_offset + 0x01]
+                    drawing_offset += 0x01
+                    embedded_size -= 0x01
+                elif embedded_blip_rh_Type == 0xF029:
+                    extension = ".tiff"
+                    embedded_blip_tag = drawing_data[drawing_offset: drawing_offset + 0x01]
+                    drawing_offset += 0x01
+                    embedded_size -= 0x01
+
+                if extension == "":
+                    break
+
+                embedded_data = drawing_data[drawing_offset: drawing_offset + embedded_size]
+                drawing_offset += embedded_size
+
+                if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                    os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+                self.compound.ole_path.append(
+                    self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                        img_num) + extension)
+                embedded_fp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                    img_num) + extension, 'wb')
+                img_num += 1
+                embedded_fp.write(embedded_data)
+                embedded_fp.close()
+
+        except Exception:
+            pass  # No Image
+
+        ### OLE
+        ole = olefile.OleFileIO(self.compound.filePath)
+        ole_fp = open(self.compound.filePath, 'rb')
+        img_num = 0
+        for i in range(0, len(ole.direntries)):
+            try:
+                if ole.direntries[i].name == '\x01Ole10Native':  # Multimedia
+                    self.compound.has_ole = True
+                    ole_fp.seek((ole.direntries[i].isectStart + 1) * 0x200)
+                    ole_data = ole_fp.read(ole.direntries[i].size)
+
+                    ole_data_offset = 6  # Header
+                    ole_data_offset = ole_data.find(b'\x00', ole_data_offset + 1)  # Label
+                    data_name = ole_data[6: ole_data_offset].decode('ASCII')
+                    ole_data_offset = ole_data.find(b'\x00', ole_data_offset + 1)  # OrgPath
+                    ole_data_offset += 8  # UType
+                    ole_data_offset = ole_data.find(b'\x00', ole_data_offset + 1)  # DataPath
+                    ole_data_offset += 1
+                    data_size = struct.unpack('<I', ole_data[ole_data_offset: ole_data_offset + 4])[0]
+                    ole_data_offset += 4
+                    data = ole_data[ole_data_offset: ole_data_offset + data_size]
+
+                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+                    self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + data_name)
+                    temp = open(self.compound.filePath + "_extracted\\" + data_name, 'wb')
+                    temp.write(data)
+                    temp.close()
+
+                elif ole.direntries[i].name == 'Package':  # OOXML 처리
+                    self.compound.has_ole = True
+                    ole_fp.seek((ole.direntries[i].isectStart + 1) * 0x200)
+                    ole_data = ole_fp.read(ole.direntries[i].size)
+                    if ole_data.find(b'\x78\x6C\x2F\x77\x6F\x72\x6B\x62\x6F\x6F\x6B\x2E\x78\x6D\x6C') > 0:  # XLSX
+                        extension = ".xlsx"
+                    elif ole_data.find(
+                            b'\x77\x6F\x72\x64\x2F\x64\x6F\x63\x75\x6D\x65\x6E\x74\x2E\x78\x6D\x6C') > 0:  # DOCX
+                        extension = ".docx"
+                    elif ole_data.find(
+                            b'\x70\x70\x74\x2F\x70\x72\x65\x73\x65\x6E\x74\x61\x74\x69\x6F\x6E\x2E\x78\x6D\x6C') > 0:  # PPTX
+                        extension = ".pptx"
+                    else:
+                        extension = ".zip"
+
+                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+                    self.compound.ole_path.append(
+                        self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                            img_num) + extension)
+                    temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                        img_num) + extension, 'wb')
+                    temp.write(ole_data)
+                    temp.close()
+                    img_num += 1
+                elif ole.direntries[i].name == 'CONTENTS':  # PDF
+                    self.compound.has_ole = True
+                    ole_fp.seek((ole.direntries[i].isectStart + 1) * 0x200)
+                    ole_data = ole_fp.read(ole.direntries[i].size)
+
+                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+
+                    self.compound.ole_path.append(
+                        self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                            img_num) + ".pdf")
+                    temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                        img_num) + ".pdf", 'wb')
+                    temp.write(ole_data)
+                    temp.close()
+                    img_num += 1
+                elif ole.direntries[i].name[0:1] == '_' and len(ole.direntries[i].name) == 11:
+                    self.compound.has_ole = True
+                    word_document = None
+                    table = None
+                    powerpoint_document = None
+                    current_user = None
+                    workbook = None
+                    section_data = ""
+                    for j in range(0, len(ole.direntries[i].kids)):
+                        if ole.direntries[i].kids[j].name == "WordDocument":
+                            ole_fp.seek((ole.direntries[i].kids[j].isectStart + 1) * 0x200)
+                            word_document = ole_fp.read(ole.direntries[i].kids[j].size)
+                        elif ole.direntries[i].kids[j].name == "1Table":
+                            ole_fp.seek((ole.direntries[i].kids[j].isectStart + 1) * 0x200)
+                            table = ole_fp.read(ole.direntries[i].kids[j].size)
+                        elif ole.direntries[i].kids[j].name == "0Table":
+                            ole_fp.seek((ole.direntries[i].kids[j].isectStart + 1) * 0x200)
+                            table = ole_fp.read(ole.direntries[i].kids[j].size)
+                        elif ole.direntries[i].kids[j].name == "PowerPoint Document":
+                            ole_fp.seek((ole.direntries[i].kids[j].isectStart + 1) * 0x200)
+                            powerpoint_document = ole_fp.read(ole.direntries[i].kids[j].size)
+                        elif ole.direntries[i].kids[j].name == "Current User":
+                            idx = ole.root.isectStart
+                            chain = [idx]
+                            while True:
+                                idx = ole.fat[idx]
+                                if idx == 4294967294:
+                                    break
+                                chain.append(idx)
+                            out = bytearray(b'')
+
+                            for idx in chain:
+                                pos = (idx + 1) * 512
+                                ole_fp.seek(pos)
+                                d = ole_fp.read(512)
+                                out += d
+                            current_user = out[64 * (ole.direntries[i].kids[j].isectStart):64 * (
+                                ole.direntries[i].kids[j].isectStart) + ole.direntries[i].kids[j].size]
+                        elif ole.direntries[i].kids[j].name == "Workbook":
+                            ole_fp.seek((ole.direntries[i].kids[j].isectStart + 1) * 0x200)
+                            workbook = ole_fp.read(ole.direntries[i].kids[j].size)
+                        elif ole.direntries[i].kids[j].name == "BodyText":
+                            section_data = ""
+                            for k in range(0, len(ole.direntries[i].kids[j].kids)):
+                                ole_fp.seek((ole.direntries[i].kids[j].kids[k].isectStart + 1) * 0x200)
+                                temp_section_data = ole_fp.read(ole.direntries[i].kids[j].kids[k].size)
+                                if temp_section_data[0:2] == b'\x42\x00':
+                                    is_compressed = False
+                                else:
+                                    is_compressed = True
+                                msg = self.inflateBodytext(temp_section_data, is_compressed)
+                                if msg is not False:
+                                    section_data += msg
+
+                    # DOC
+                    result = None
+                    if word_document != None and table != None:
+                        result = self.__parse_doc_normal_for_ole__(word_document, table)
+                    if result != None:
+                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        self.compound.ole_path.append(
+                            self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                                img_num) + ".txt")
+                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                            img_num) + ".txt", 'w', encoding='utf-16')
+                        temp.write(result)
+                        temp.close()
+                        img_num += 1
+
+                    # XLS
+                    from carpe_xls import XLS
+                    from carpe_compound import Compound
+                    result = None
+                    if workbook != None:
+                        temp_xls = XLS(Compound(self.compound.filePath))
+                        result = temp_xls.__parse_xls_normal_for_ole__(workbook)
+
+                    if result != None:
+                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        self.compound.ole_path.append(
+                            self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                                img_num) + ".txt")
+                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                            img_num) + ".txt", 'w', encoding='utf-16')
+                        temp.write(result)
+                        temp.close()
+                        img_num += 1
+
+                    # PPT
+                    from carpe_ppt import PPT
+                    from carpe_compound import Compound
+                    result = None
+                    if powerpoint_document != None and current_user != None:
+                        temp_ppt = PPT(Compound(self.compound.filePath))
+                        result = temp_ppt.__parse_ppt_normal_for_ole__(powerpoint_document, current_user)
+                    if result != None:
+                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        self.compound.ole_path.append(
+                            self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                                img_num) + ".txt")
+                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                            img_num) + ".txt", 'w', encoding='utf-16')
+                        temp.write(result)
+                        temp.close()
+                        img_num += 1
+
+                    # HWP
+                    if section_data != "":
+                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        self.compound.ole_path.append(
+                            self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                                img_num) + ".txt")
+                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                            img_num) + ".txt", 'w', encoding='utf-16')
+                        temp.write(section_data)
+                        temp.close()
+                        img_num += 1
+
+
+            except Exception:
+                continue
+
+        data = len(ole.direntries)
+        # print(data)
+
+        ole_fp.close()
