@@ -23,3 +23,6 @@ pe:      module_pe,ModulePEParser,pe
 pf:      module_pf,ModulePrefetch,pf
 reg:     module_reg,ModuleRegEntry,reg
 sql:     module_sql,ModuleSql,sql
+egg:     module_egg,ModuleEGG,egg
+tar:     module_tar,ModuleTAR,tar
+mp3:     module_mp3,ModuleMP3,mp3

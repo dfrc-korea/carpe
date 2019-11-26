@@ -46,14 +46,28 @@ class ModuleGIF(ModuleComponentInterface):
         init = self.get_attrib(ModuleConstant.IMAGE_BASE)
         last = self.get_attrib(ModuleConstant.IMAGE_LAST)
         search_range = int((last-init)/(self.uClusterSize*1)) # 1 => sizeof(UCHAR)
-
-        for i in range(0, search_range):
-            self.fp.seek(current_offset+i*self.uClusterSize,os.SEEK_SET)
+        
+        for i in range(0, search_range+1):
+            self.fp.seek(current_offset + i * self.uClusterSize)
             temp = self.fp.read(self.uClusterSize)
             sOffset = temp.find(sig_FOOTER)
             if sOffset > 0:
-                qwDataSize = i * self.uClusterSize + sOffset + len(sig_FOOTER)
-                return (True, current_offset, qwDataSize, ModuleConstant.FILE_ONESHOT)
+                # Ramslack Check Routine
+                ramslack = 0x200 - (sOffset % 0x200) - len(sig_FOOTER) -1
+                if ramslack == 0:
+                    if temp[sOffset+ramslack+len(sig_FOOTER)] != 0 :
+                        continue
+                    qwDataSize = i * self.uClusterSize + sOffset + len(sig_FOOTER)
+                    return (True, current_offset, qwDataSize, ModuleConstant.FILE_ONESHOT)
+                else :
+                    # 1 byte of Next to the Footer Signature is Felexible byte
+                    while ramslack > 0:
+                        if temp[sOffset+ramslack+len(sig_FOOTER)] != 0 :
+                            break
+                        ramslack -= 1
+                    if ramslack == 0 :
+                        qwDataSize = i * self.uClusterSize + sOffset + len(sig_FOOTER)
+                        return (True, current_offset, qwDataSize, ModuleConstant.FILE_ONESHOT)
         #if sOffset == -1 :
         return (False, 0, -1, ModuleConstant.INVALID)
 

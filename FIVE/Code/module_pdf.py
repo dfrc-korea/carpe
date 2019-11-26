@@ -1,5 +1,6 @@
 #-*- coding: utf-8 -*-
 import os, sys
+import hexdump
 
 from moduleInterface.defines   import *
 from moduleInterface.interface import ModuleComponentInterface
@@ -44,19 +45,33 @@ class ModulePDF(ModuleComponentInterface):
     def signature(self, current_offset, sig_FOOTER):
         search_range = int((self.get_attrib(ModuleConstant.IMAGE_LAST) - self.get_attrib(ModuleConstant.IMAGE_BASE)) / (self.uClusterSize * 1))  # 1 => sizeof(UCHAR)
 
-        for i in range(0, search_range):
+        for i in range(0, search_range+1):
             self.fp.seek(current_offset + i * self.uClusterSize)
             temp = self.fp.read(self.uClusterSize)
-
             sOffset = temp.find(sig_FOOTER)
-
             if sOffset > 0:
-                qwDataSize = i * self.uClusterSize + sOffset + len(sig_FOOTER)
-                return (True, current_offset, qwDataSize, ModuleConstant.FILE_ONESHOT)
-
-        if sOffset == -1 :
-            return (False, 0, -1, ModuleConstant.INVALID)
-
+                # Ramslack Check Routine
+                ramslack = 0x200 - (sOffset % 0x200) - len(sig_FOOTER) -1
+                if ramslack == 0:
+                    if temp[sOffset+ramslack+len(sig_FOOTER)] != 0 :
+                        continue
+                    qwDataSize = i * self.uClusterSize + sOffset + len(sig_FOOTER)
+                    return (True, current_offset, qwDataSize, ModuleConstant.FILE_ONESHOT)
+                else :
+                    # 2 byte of Next to the Footer Signature is Felexible byte
+                    while ramslack > 1:
+                        if temp[sOffset+ramslack+len(sig_FOOTER)] != 0 :
+                            break
+                        ramslack -= 1
+                    if ramslack == 1 :
+                        qwDataSize = i * self.uClusterSize + sOffset + len(sig_FOOTER)
+                        if temp[sOffset+len(sig_FOOTER)] != 0:
+                            qwDataSize += 1
+                            if temp[sOffset+len(sig_FOOTER)+1] != 0:
+                                qwDataSize += 1
+                        return (True, current_offset, qwDataSize, ModuleConstant.FILE_ONESHOT)
+        #if sOffset == -1 :
+        return (False, 0, -1, ModuleConstant.INVALID)
 
     def carve(self):
         sigPDF_FOOTER = b'\x25\x25\x45\x4F\x46'
@@ -64,11 +79,6 @@ class ModulePDF(ModuleComponentInterface):
         self.fp = open(self.get_attrib(ModuleConstant.FILE_ATTRIBUTE), 'rb')
 
         self.offset = self.signature(self.get_attrib(ModuleConstant.IMAGE_BASE), sigPDF_FOOTER)
-
-        if self.offset != () :
-            print("Find!!", self.offset)  # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
-        else:
-            print("not Found")  # 현재 offset에서 next_offset까지.
 
 
 

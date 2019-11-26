@@ -5,6 +5,7 @@ import os,sys,time,binascii
 import pickle
 import shutil
 import pandas as pd
+import hexdump
 
 from multiprocessing           import Process, Lock
 
@@ -21,7 +22,6 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__))+os.sep+"Include")    
 
 from plugin_carving_defines import C_defy
 from Include.carpe_db       import Mariadb
-
 
 # CarvingManager : DB 수정권한 없음 (For safety)
 class CarvingManager(ModuleComponentInterface,C_defy):
@@ -178,10 +178,19 @@ class CarvingManager(ModuleComponentInterface,C_defy):
     # This job have to work exclusively
     def __excl_get_master_data(self):
         try:
-            self.__cursor.execute('select * from carpe_block_info where p_id = %s',self.__part_id)
+            self.__cursor.execute('select * from block_info where p_id = %s',self.__part_id)
             return self.__cursor.fetchall()
         except:
             return C_defy.Return.EFAIL_DB
+
+    def __excl_put_result_to_db_for_view(self):
+        #check existence
+        #self.__data
+        try:
+            #self.__cursor.exceute()
+            return
+        except:
+            return
         
     def __scan_signature(self,data):
         dataIndex    = 0
@@ -217,7 +226,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         buffer = self.__parser.bread_raw(offset,self.__blocksize,os.SEEK_SET)
         if(buffer==None):
             return (offset,keys,flag)
-        
+
         for key in C_defy.Signature.Sig:
             temp = C_defy.Signature.Sig[key]
             if binascii.b2a_hex(buffer[temp[1]:temp[2]])==temp[0]:
@@ -225,9 +234,15 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 # 특정 파일포맷에 대한 추가 검증 알고리즘
                 if key=='aac_1' or key=='aac_2' :
                     if binascii.b2a_hex(buffer[7:8])!=b'21':
-                        return (None,None,None,None)
-                    else:break
-
+                        keys = None
+                        continue
+                elif key == 'avi' :
+                    if binascii.b2a_hex(buffer[8:16]) == b'415649204c495354' :
+                        keys = 'avi'
+                        break
+                    if binascii.b2a_hex(buffer[8:16]) == b'57415645666d7420' :
+                        keys = 'wav'
+                        break 
         return (offset,keys,flag,C_defy.Signature.Sig.get(keys,(0,0,0,None)[3]))
 
     def __carving(self,data,enable):
@@ -236,8 +251,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         isDone     = False
         self.__data  = dict()
         self.__parser.bgoto(0,os.SEEK_SET)
-
-        lastPtr = os.path.getsize(self.__i_path)
 
         while(dataIndex<dataLength):
             internalIndex  = 0
@@ -261,6 +274,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             
             # 블록에 있는 마지막 데이터 처리
             if(dataIndex>=dataLength):
+                lastPtr = os.path.getsize(self.__i_path)
                 isDone  = True
             else:
                 lastPtr = data[dataIndex+1][0][2] * self.__blocksize
@@ -283,6 +297,8 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                                  internalList[internalIndex][3],   # category
                                  enable)
                 internalIndex+=1
+
+            lastPtr = os.path.getsize(self.__i_path)
             self.__extractor(internalList[internalLength][1],      # extensions
                              internalList[internalLength][0],      # start offset to carve
                              lastPtr,                              # last offset to carve
@@ -303,10 +319,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             value   = self.__hit.get(ext)
 
         result = self.__call_sub_module(ext,start,last,self.__blocksize,cmd,option,encode)
-        self.__log_write("DBG_","Extract::{3} block parameter is {0},{1}. The result is: {2}".format(start,last,result,ext))
-        if(result==None):
-            return (0,0)
-        
+
         if(type(result)==tuple):
             result = [list(result)]
 
@@ -482,7 +495,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__sectorsize      = option.get("sector",self.__sectorsize)
             self.__par_startoffset = option.get("start",self.__par_startoffset)
             self.__i_path          = option.get("path",self.__i_path)
-            self.__dest_path       = option.get("dest",self.__dest_path)
+            self.__dest_path       = option.get("dest",".{0}result".format(os.sep))
             self.__log_write("INFO","Main::Request to set parameters.",always=True)
 
         elif(cmd==C_defy.WorkLoad.LOAD_MODULE):
@@ -580,7 +593,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 return ModuleConstant.Return.EINVAL_TYPE
             
             self.__parser.get_file_handle(self.__i_path,0,1)
-            try:self.__extractor(target[0],target[1],target[2])
+            try:pass#self.__extractor(target[0],target[1],target[2])
             except:self.__log_write("DBG_","Carving::Cannot carving some specific object:{0}.".format(target[1]),always=True)
             self.__parser.cleanup()
             self.__data = dict()
@@ -613,7 +626,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                 return ModuleConstant.Return.EINVAL_NONE
             self.__parser.get_file_handle(self.__i_path,0,1)
             for i in target:
-                try:self.__extractor(i[0],i[1],i[2])
+                try:pass#self.__extractor(i[0],i[1],i[2])
                 except:self.__log_write("DBG_","Carving::Cannot carving some specific object:{0}.".format(target[1]),always=True)
             self.__parser.cleanup()
             self.__data = dict()
@@ -750,7 +763,7 @@ if __name__ == '__main__':
         # Return Dict Format :
             {"Format":[찾은 시그니처 파일 수,검증 통과한 파일 수],}
     """
-    manage = CarvingManager(debug=True,out="carving.log")
+    manage = CarvingManager(debug=False,out="carving.log")
 
     res = manage.execute(C_defy.WorkLoad.LOAD_MODULE)
 
@@ -759,27 +772,27 @@ if __name__ == '__main__':
 
     res = manage.execute(C_defy.WorkLoad.CONNECT_DB,
                     {
-                        "ip":'218.145.27.66',       # 2세부 addr
-                        "port":23306,               # 2세부 port
-                        "id":'root',                # 2세부 ID
-                        "password":'dfrc4738',      # 2세부 P/W
-                        "category":'carpe_3'        # 2새부 Database
+                        "ip":'localhost',
+                        "port":3306,
+                        "id":'carpe',
+                        "password":'dfrc4738',
+                        "category":'unalloc'
                     }
     )
 
     if(res==C_defy.Return.EFAIL_DB):
         sys.exit(0)
 
-    manage.enable   = False
+    manage.enable   = True
     manage.save     = True
 
     manage.execute(C_defy.WorkLoad.PARAMETER,
                     {
-                        "p_id":"CFReDS1_1",
+                        "p_id":"CFReDS3_1",
                         "block":512,
                         "sector":512,
                         "start":0x0,
-                        "path":"D:\\iitp_carv\\L1_Graphic.dd",
+                        "path":"/home/carpe/iitp/Test/L1_Archive.dd",
                     }
     )
 
