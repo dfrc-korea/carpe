@@ -173,14 +173,21 @@ class PDF:
             """
 
             raw_ts = ts.decode('ascii')[2:]
+
             if "'" in raw_ts:
                 raw_ts = raw_ts.replace("'", "")
             if "Z" in raw_ts:
-                if raw_ts[raw_ts.find('Z')+1].isdigit():
-                    raw_ts = raw_ts.replace("Z", "+")
-                else:
+                try:
+                    raw_ts[raw_ts.find('Z')+1].isdigit()
+                except IndexError:
                     raw_ts = raw_ts.replace("Z", "")
                     raw_ts += '+0000'
+                else:
+                    raw_ts = raw_ts.replace("Z", "+")
+
+            if len(raw_ts) == len('YYYYMMDDhhmmss'):
+                raw_ts += '+0000'
+
             dt = datetime.strptime(raw_ts, "%Y%m%d%H%M%S%z")
             utc_dt= dt.astimezone(timezone.utc)
 
@@ -194,16 +201,15 @@ class PDF:
             self.metadata = self.restore_metadata()
 
         if len(self.metadata) != 0:
-            print(self.metadata[0])
+
+            for k, v in self.metadata[0].items():
+                if isinstance(v, PDFObjRef):
+                    self.metadata[0][k] = v.resolve()
 
             if 'CreationDate' in self.metadata[0]:
-                if isinstance(self.metadata[0]['CreationDate'], PDFObjRef):
-                    self.metadata[0]['CreationDate'] = self.metadata[0]['CreationDate'].resolve()
                 self.metadata[0]['CreationDate'] = timestamp(self.metadata[0]['CreationDate']).encode('ascii')
 
             if 'ModDate' in self.metadata[0]:
-                if isinstance(self.metadata[0]['ModDate'], PDFObjRef):
-                    self.metadata[0]['ModDate'] = self.metadata[0]['ModDate'].resolve()
                 self.metadata[0]['ModDate'] = timestamp(self.metadata[0]['ModDate']).encode('ascii')
 
     def extract_multimedia(self):
