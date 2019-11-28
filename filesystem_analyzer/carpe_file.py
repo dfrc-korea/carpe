@@ -40,6 +40,7 @@ class Carpe_File(object):
 		self._parent_path = ""
 		self._parent_id = 0
 		self._extension = ""
+		self._ads= 0
 
 	def toTuple(self):
 		if self._file_id==0:

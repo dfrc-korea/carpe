@@ -30,6 +30,13 @@ import carpe_fs_info
 import carpe_db
 import carpe_fs_alloc_info
 
+HOST_IP = "218.145.27.66"
+PORT = 23306
+USER = "root"
+PW = "dfrc4738"
+CARPE_DB_NAME = "carpe_3"
+RDS_DB_NAME = "carpe_rds"
+
 
 def vdir(obj):
   return [x for x in dir(obj) if not x.startswith('__')]
@@ -122,7 +129,7 @@ class Carpe_FS_Analyze(object):
     ret="Not Detected"
     while True:
       line = sig_file.read_line()
-      if line.split(" ")[0] is in target_signature:
+      if (line.split(" ")[0]) in target_signature:
         ret = line.split(" ")[2]
       if not line: break
     sig_file.close()
@@ -207,10 +214,12 @@ class Carpe_FS_Analyze(object):
     self._recursive = True
 
   def directory_entry_info(self, directory_entry, parent_id="", path=None):
-      #print("=== Entry Start ===")
+      print("=== Entry Start ===")
+      print(vdir(directory_entry))
 
       meta = directory_entry.info.meta
       name = directory_entry.info.name
+      num_of_data_attribute=0
 
       #print(meta.addr)
       #print(name.meta_addr)
@@ -236,10 +245,21 @@ class Carpe_FS_Analyze(object):
       for i in path:
         new_file._parent_path += i + u"/"
       for attribute in directory_entry:
-        #print("=== Attribute Start ===")
+        print("=== Attribute Lists ===")
+        print(vdir(directory_entry))
+        
+        print("=== Current Attribute Type ===")
+        print(attribute.info.type)
+
         if int(attribute.info.type) in self.ATTRIBUTE_TYPES_TO_ANALYZE:
+          #check num of data attr
+          if int(attribute.info.type) is pytsk3.TSK_FS_ATTR_TYPE_NTFS_DATA:
+            #print("Data Attribute Detected !")
+            num_of_data_attribute +=1
+          
+
           #need to check value
-          #$StandardInformation 
+          #$SI, $FN 
           if attribute.info.type in self.ATTRIBUTE_TYPES_TO_ANALYZE_TIME:
 
             new_file._mtime = [lambda:0, lambda:directory_entry.info.meta.mtime][directory_entry.info.meta.mtime is not None]()  
@@ -353,8 +373,7 @@ class Carpe_FS_Analyze(object):
           if(new_file._size>56):
             tmp_file_object = self._fs_info.open_meta(inode=new_file._file_id)          
             self.sig_check(self._sig_file_path, tmp_file_object.read_random(0,56,1))
-            
-            input("")
+        new_file._ads = num_of_data_attribute        
       return files
 
 def Main():
@@ -410,12 +429,25 @@ def Main():
   print(options.images)
   fs.open_image(options.image_type, options.images)
  
-  # To Do : Volume -> partition?
-  # EWF 면 partition
 
-  db_connector = carpe_db.Mariadb()
+  carpe_db_connector = carpe_db.Mariadb()
+  carpe_db_connector._host_ip = HOST_IP
+  carpe_db_connector._port = PORT
+  carpe_db_connector._user = USER
+  carpe_db_connector._pw = PW
+  carpe_db_connector._db_name = CARPE_DB_NAME
 
-  db_connector.open()
+
+  rds_db_connector = carpe_db.Mariadb()
+  rds_db_connector._host_ip = HOST_IP
+  rds_db_connector._port = PORT
+  rds_db_connector._user = USER
+  rds_db_connector._pw = PW
+  rds_db_connector._db_name = RDS_DB_NAME
+
+
+  carpe_db_connector.open()
+  rds_db_connector.open()
 
   partition_table = pytsk3.Volume_Info(fs._img_info)
 
@@ -429,7 +461,7 @@ def Main():
       fs_alloc_info._p_id = options.partition_id
       '''
       directory = fs.open_directory(options.inode)
-      fs.list_directory(directory, [], [], db_connector)
+      fs.list_directory(directory, [], [], carpe_db_connector)
 
 
 
