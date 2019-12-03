@@ -22,7 +22,7 @@ from Include.carpe_db       import Mariadb
 # CarvingManager : DB 수정권한 없음 (For safety)
 
 class CarvingManager(ModuleComponentInterface,C_defy):
-    def __init__(self,debug=False,out=None,logBuffer=0x409600):
+    def __init__(self,debug=False,out=None,logBuffer=0x409600,table=None):
         super().__init__()
         self.__cursor      = None
         self.__cache       = os.path.abspath(os.path.dirname(__file__))+os.sep+".cache"+os.sep
@@ -36,6 +36,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.lock          = Lock()
         self.__Return      = C_defy.Return
         self.__Instruction = C_defy.WorkLoad
+        self.__table         = table
 
         self.__part_id         = None
         self.__blocksize       = 4096
@@ -343,7 +344,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
 
         if(enable==False):
             self.__hit.update({ext:[value[0],value[1]+1]})
-            self.__data.update({str(hex(start)):(ext,start,last,abs(last-start),cat[3])})
+            self.__data.update({str(hex(start)):(ext,start,last,result[0][1],cat[3],self.create_ownerstring())})
             self.__log_write("DBG_","Calculated::type:{0} name:{1} copied:{2} bytes details:{3}".format(ext,fname,hex(wrtn),result[0]))
             return (fname,wrtn)
 
@@ -354,7 +355,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             return ModuleConstant.Return.EINVAL_NONE
     
         self.__hit.update({ext:[value[0],value[1]+1]})
-        self.__data.update({str(hex(start)):(ext,start,last,abs(last-start),cat[3])})
+        self.__data.update({str(hex(start)):(ext,start,last,result[0][1],cat[3],self.create_ownerstring())})
 
         if(length==1):
             byte2copy = result[0][1]
@@ -460,6 +461,9 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         if(path==None):path = self.__i_path
         return self.__get_cache_master()+os.path.basename(path)+".csv"
 
+    def create_ownerstring(self):
+        return self.__part_id+":"+self.__i_path
+
     # @ Module Interface
     def module_open(self,id=1):             # Reserved method for multiprocessing
         pass
@@ -479,6 +483,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__par_startoffset = option.get("start",self.__par_startoffset)
             self.__i_path          = option.get("path",self.__i_path)
             self.__dest_path       = option.get("dest",".{0}result".format(os.sep))
+            self.__table           = option.get("table",str(self.table))
             self.__log_write("INFO","Main::Request to set parameters.",always=True)
 
         elif(cmd==C_defy.WorkLoad.LOAD_MODULE):
@@ -648,6 +653,20 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__log_write("INFO","Main::Export cache data to csv:{0}.".format(self.get_csv_file(path)),always=True)
             return self.get_csv_file(path)
 
+        elif(cmd==C_defy.WorkLoad.EXPORT_CACHE_TO_DB):
+            if(option!=None):
+                path = option.get("path",self.__i_path)
+            else:path = None
+            data = self.__import_result(self.get_cbin_file(path))
+            if(type(data)!=dict):
+                return ModuleConstant.Return.EINVAL_TYPE
+            
+            df   = pd.DataFrame.from_dict(data,columns=C_defy.COLUMNS,orient='index')
+            df.to_sql(name=self.table,con=self.__conn,if_exists='fail')
+            del data
+            self.__log_write("INFO","Main::Export cache data to maraiadb.",always=True)
+            return True
+
         elif(cmd==C_defy.WorkLoad.REMOVE_CACHE):
             # 현재 이미지에 대한 캐시를 삭제
             if(option==None):
@@ -681,6 +700,17 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                     return ModuleConstant.Return.EINVAL_FILE
         else:
             return C_defy.Return.EIOCTL
+
+    """ Carpe Module """
+
+    def carpe_connect_master(self,maria_db,db_cursor):
+        try:
+            self.__cursor = db_cursor
+            self.__db = maria_db
+            return C_defy.Return.SUCCESS
+        except:
+            return C_defy.Return.EFAIL_DB
+
 
 if __name__ == '__main__':
     # PARAMETER :
@@ -749,7 +779,7 @@ if __name__ == '__main__':
             {"Format":[찾은 시그니처 파일 수,검증 통과한 파일 수],}
     """
 
-    manage = CarvingManager(debug=False,out="carving.log")
+    manage = CarvingManager(debug=False,out="carving.log",table="none")
     res = manage.execute(C_defy.WorkLoad.LOAD_MODULE)
     if(res==False):
         sys.exit(0)
@@ -783,6 +813,8 @@ if __name__ == '__main__':
     manage.execute(C_defy.WorkLoad.EXEC)
     manage.execute(C_defy.WorkLoad.DISCONNECT_DB)
     manage.execute(C_defy.WorkLoad.EXPORT_CACHE_TO_CSV)
+
+    #manage.execute(C_defy.WorkLoad.EXPORT_CACHE_TO_DB)
     #print(manage.execute(C_defy.WorkLoad.SELECT_LIST,{"name":["0x1c2c000","0x2aaa000"]}))
     #manage.execute(C_defy.WorkLoad.REPLAY,manage.get_bin_file())
     #manage.execute(C_defy.WorkLoad.REMOVE_CACHE)

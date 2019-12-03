@@ -23,7 +23,7 @@ import binascii
 
 class C_defy(object):
 
-    COLUMNS =["EXTENSION","START","LAST","SIZE","CATEGORY"]
+    COLUMNS =["EXTENSION","START","LAST","SIZE","CATEGORY","OWNER"]
 
     # Error
     class Return(object):
