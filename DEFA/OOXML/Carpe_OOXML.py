@@ -1253,26 +1253,59 @@ class OOXML:
                     xmlroot = ET.fromstring(form)
                     self.metadata["title"] = "None"
                     self.metadata["creator"] = "None"
+                    self.metadata["lastModifiedBy"] = "None"
                     self.metadata["created"] = "None"
                     self.metadata["modified"] = "None"
+                    self.metadata["subject"] = "None"
+                    self.metadata["keywords"] = "None"
+                    self.metadata["description"] = "None"
+                    self.metadata["revision"] = "None"
+                    self.metadata["lastPrinted"] = "None"
+                    self.metadata["category"] = "None"
                     for content in xmlroot:
                         location = content.tag.find('}')
                         metadata_type = content.tag[location + 1:]
+                        if metadata_type == 'title' or metadata_type == 'creator' or metadata_type == 'lastModifiedBy' or metadata_type == 'created' or metadata_type == 'modified' or metadata_type == 'subject' or metadata_type == 'keywords' or metadata_type == 'description' or metadata_type == 'revision' or metadata_type == 'lastPrinted'  or metadata_type == 'category':
+                            if (content.text == None):
+                                metadata_value.append(metadata_type + " : None")
+                                self.metadata[metadata_type] = content.text
+                            else:
+                                metadata_value.append(metadata_type + " : " + content.text)
+                                self.metadata[metadata_type] = content.text
 
-                        if (content.text == None):
-                            metadata_value.append(metadata_type + " : None")
-                            self.metadata[metadata_type] = content.text
-                        else:
-                            metadata_value.append(metadata_type + " : " + content.text)
-                            self.metadata[metadata_type] = content.text
-                    return metadata_value
+                elif 'docProps/app.xml' in a.filename:
+                    form = zfile.read(a)
+                    xmlroot = ET.fromstring(form)
+                    self.metadata["Manager"] = "None"
+                    self.metadata["Company"] = "None"
+                    self.metadata["Application"] = "None"
+                    self.metadata["TotalTime"] = "None"
+                    self.metadata["AppVersion"] = "None"
+                    for content in xmlroot:
+                        location = content.tag.find('}')
+                        metadata_type = content.tag[location + 1:]
+                        if metadata_type == 'Manager' or metadata_type == 'Company' or metadata_type == 'Application' or metadata_type == 'TotalTime' or metadata_type == 'AppVersion':
+                            if (content.text == None):
+                                metadata_value.append(metadata_type + " : None")
+                                self.metadata[metadata_type] = content.text
+                            else:
+                                metadata_value.append(metadata_type + " : " + content.text)
+                                self.metadata[metadata_type] = content.text
+            return metadata_value
 
         else:
             # 손상 시
             self.metadata["title"] = "None"
             self.metadata["creator"] = "None"
+            self.metadata["lastModifiedBy"] = "None"
             self.metadata["created"] = "None"
             self.metadata["modified"] = "None"
+            self.metadata["subject"] = "None"
+            self.metadata["keywords"] = "None"
+            self.metadata["description"] = "None"
+            self.metadata["revision"] = "None"
+            self.metadata["lastPrinted"] = "None"
+            self.metadata["category"] = "None"
             f = open(self.filename, "rb")
             cal_recovable_count = 0
             f.seek(0, 0)
@@ -1315,6 +1348,18 @@ class OOXML:
                             f3.close()
 
                             i = 0
+                            self.metadata["title"] = "None"
+                            self.metadata["creator"] = "None"
+                            self.metadata["lastModifiedBy"] = "None"
+                            self.metadata["created"] = "None"
+                            self.metadata["modified"] = "None"
+                            self.metadata["subject"] = "None"
+                            self.metadata["keywords"] = "None"
+                            self.metadata["description"] = "None"
+                            self.metadata["revision"] = "None"
+                            self.metadata["lastPrinted"] = "None"
+                            self.metadata["category"] = "None"
+
                             title = "<dc:title>"
                             subject = "<dc:subject>"
                             creator = "<dc:creator>"
@@ -1324,12 +1369,22 @@ class OOXML:
                             revision = "<cp:revision>"
                             c_time = "<dcterms:created"
                             m_time = "<dcterms:modified"
+                            category = "<cp:category>"
+                            lastprinted = "<cp:lastPrinted>"
 
-                            t_pos = a1.find(title)+1
-                            c_pos = a1.find(creator)+1
-                            c_time_pos = a1.find(c_time)+1
-                            m_time_pos = a1.find(m_time)+1
-                            #print('*******메타데이터파싱*******')
+                            t_pos = a1.find(title) + 1
+                            c_pos = a1.find(creator) + 1
+                            c_time_pos = a1.find(c_time) + 1
+                            m_time_pos = a1.find(m_time) + 1
+                            s_pos = a1.find(subject) + 1
+                            k_pos = a1.find(keywords) + 1
+                            d_pos = a1.find(description) + 1
+                            l_pos = a1.find(lastmodifiedBy) + 1
+                            r_pos = a1.find(revision) + 1
+                            ca_pos = a1.find(category) + 1
+                            la_pos = a1.find(lastprinted) + 1
+
+                            # print('*******메타데이터파싱*******')
                             metadata_count = 0
                             if t_pos is not 0:
                                 metadata_value.append("")
@@ -1337,13 +1392,13 @@ class OOXML:
                                     if a1[c_pos + i + 9] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
-                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[c_pos+i+9]
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[c_pos + i + 9]
                                     self.metadata['title'] = metadata_value[metadata_count]
                                     i = i + 1
-                                    if a1[c_pos+i+9] == '<':
+                                    if a1[c_pos + i + 9] == '<':
                                         break
                                 metadata_count = metadata_count + 1
-                                i=0
+                                i = 0
 
                             if c_pos is not 0:
                                 metadata_value.append("")
@@ -1351,13 +1406,13 @@ class OOXML:
                                     if a1[c_pos + i + 11] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
-                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[c_pos+i+11]
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[c_pos + i + 11]
                                     self.metadata['creator'] = metadata_value[metadata_count]
                                     i = i + 1
-                                    if a1[c_pos+i+11] == '<':
+                                    if a1[c_pos + i + 11] == '<':
                                         break
                                 metadata_count = metadata_count + 1
-                                i=0
+                                i = 0
 
                             if c_time_pos is not 0:
                                 metadata_value.append("")
@@ -1365,14 +1420,15 @@ class OOXML:
                                     if a1[c_time_pos + i + 42] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
-                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[c_time_pos+i+42]
-                                    #self.metadata['created'] = metadata_value[1]
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
+                                        c_time_pos + i + 42]
+                                    # self.metadata['created'] = metadata_value[1]
                                     self.metadata['created'] = metadata_value[metadata_count]
                                     i = i + 1
-                                    if a1[c_time_pos+i+42] == '<':
+                                    if a1[c_time_pos + i + 42] == '<':
                                         break
                                 metadata_count = metadata_count + 1
-                                i=0
+                                i = 0
 
                             if m_time_pos is not 0:
                                 metadata_value.append("")
@@ -1380,10 +1436,203 @@ class OOXML:
                                     if a1[m_time_pos + i + 43] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
-                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[m_time_pos+i+43]
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
+                                        m_time_pos + i + 43]
                                     self.metadata['modified'] = metadata_value[metadata_count]
                                     i = i + 1
-                                    if a1[m_time_pos+i+43] == '<':
+                                    if a1[m_time_pos + i + 43] == '<':
+                                        break
+
+                            if s_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[s_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[s_pos + i + 43]
+                                    self.metadata['subject'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[s_pos + i + 43] == '<':
+                                        break
+                            if k_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[s_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[k_pos + i + 43]
+                                    self.metadata['keywords'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[k_pos + i + 43] == '<':
+                                        break
+                            if d_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[d_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[d_pos + i + 43]
+                                    self.metadata['description'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[d_pos + i + 43] == '<':
+                                        break
+                            if l_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[l_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[l_pos + i + 43]
+                                    self.metadata['lastModifiedBy'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[l_pos + i + 43] == '<':
+                                        break
+                            if r_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[r_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[r_pos + i + 43]
+                                    self.metadata['revision'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[r_pos + i + 43] == '<':
+                                        break
+                            if ca_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[ca_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[ca_pos + i + 43]
+                                    self.metadata['category'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[ca_pos + i + 43] == '<':
+                                        break
+                            if la_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[la_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[la_pos + i + 43]
+                                    self.metadata['lastPrinted'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[la_pos + i + 43] == '<':
+                                        break
+                            return metadata_value
+
+                        elif data_name == "docProps/app.xml":
+                            content_saved = f.read(data_length)
+
+                            f1 = open("./outputtest.zip", 'wb')
+                            f1.write(b'\x78\x9C')
+                            f1.write(content_saved)
+                            f1.close()
+
+                            fz = open("./outputtest.zip", 'rb')
+                            d = fz.read()
+                            fz.close()
+
+                            zobj = zlib.decompressobj()
+                            real_data = zobj.decompress(d)
+
+                            f2 = open("./test.xml", 'wb')
+                            f2.write(real_data)
+                            f2.close()
+
+                            f3 = open("./test.xml", 'r', encoding='utf-8')
+                            a1 = f3.read()
+                            f3.close()
+
+                            i = 0
+                            self.metadata["Manager"] = "None"
+                            self.metadata["Company"] = "None"
+                            self.metadata["Application"] = "None"
+                            self.metadata["TotalTime"] = "None"
+                            self.metadata["AppVersion"] = "None"
+
+                            manager = "<Manager>"
+                            company = "<Company>"
+                            application = "<Application>"
+                            totaltime = "<TotalTime>"
+                            appversion = "<AppVersion>"
+
+                            m_pos = a1.find(manager) + 1
+                            c_pos = a1.find(company) + 1
+                            a_pos = a1.find(application) + 1
+                            t_pos = a1.find(totaltime) + 1
+                            ap_pos = a1.find(appversion) + 1
+
+                            # print('*******메타데이터파싱*******')
+                            metadata_count = 0
+                            if m_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[m_pos + i + 9] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[m_pos + i + 9]
+                                    self.metadata['manager'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[m_pos + i + 9] == '<':
+                                        break
+                                metadata_count = metadata_count + 1
+                                i = 0
+
+                            if c_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[c_pos + i + 11] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[c_pos + i + 11]
+                                    self.metadata['company'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[c_pos + i + 11] == '<':
+                                        break
+                                metadata_count = metadata_count + 1
+                                i = 0
+
+                            if a_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[a_pos + i + 42] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
+                                        a_pos + i + 42]
+                                    # self.metadata['created'] = metadata_value[1]
+                                    self.metadata['application'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[a_pos + i + 42] == '<':
+                                        break
+                                metadata_count = metadata_count + 1
+                                i = 0
+
+                            if t_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[t_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
+                                        t_pos + i + 43]
+                                    self.metadata['totaltime'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[t_pos + i + 43] == '<':
+                                        break
+
+                            if ap_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[ap_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[ap_pos + i + 43]
+                                    self.metadata['appversion'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[ap_pos + i + 43] == '<':
                                         break
 
                             return metadata_value
@@ -1711,8 +1960,20 @@ class OOXML:
             if metadata_recoverable_flag == False:
                 self.metadata["title"] = "None"
                 self.metadata["creator"] = "None"
+                self.metadata["lastModifiedBy"] = "None"
                 self.metadata["created"] = "None"
                 self.metadata["modified"] = "None"
+                self.metadata["subject"] = "None"
+                self.metadata["keywords"] = "None"
+                self.metadata["description"] = "None"
+                self.metadata["revision"] = "None"
+                self.metadata["lastPrinted"] = "None"
+                self.metadata["category"] = "None"
+                self.metadata["Manager"] = "None"
+                self.metadata["Company"] = "None"
+                self.metadata["Application"] = "None"
+                self.metadata["TotalTime"] = "None"
+                self.metadata["AppVersion"] = "None"
         # 복구 불가
         else:
             # 메타데이터 복구 가능 여부 확인
