@@ -206,11 +206,21 @@ class PDF:
                 if isinstance(v, PDFObjRef):
                     self.metadata[0][k] = v.resolve()
 
+            if 'Keywords' in self.metadata[0]:
+                self.metadata[0]['Tags'] = self.metadata[0].pop('Keywords')
+
             if 'CreationDate' in self.metadata[0]:
-                self.metadata[0]['CreationDate'] = timestamp(self.metadata[0]['CreationDate']).encode('ascii')
+                # self.metadata[0]['CreationDate'] = timestamp(self.metadata[0]['CreationDate']).encode('ascii')
+                self.metadata[0]['CreatedTime'] = timestamp(self.metadata[0]['CreationDate']).encode('ascii')
+                del(self.metadata[0]['CreationDate'])
 
             if 'ModDate' in self.metadata[0]:
-                self.metadata[0]['ModDate'] = timestamp(self.metadata[0]['ModDate']).encode('ascii')
+                # self.metadata[0]['ModDate'] = timestamp(self.metadata[0]['ModDate']).encode('ascii')
+                self.metadata[0]['LastSavedTime'] = timestamp(self.metadata[0]['ModDate']).encode('ascii')
+                del(self.metadata[0]['ModDate'])
+
+            if 'Producer' in self.metadata[0]:
+                self.metadata[0]['ProgramName'] = self.metadata[0].pop('Producer')
 
     def extract_multimedia(self):
 
