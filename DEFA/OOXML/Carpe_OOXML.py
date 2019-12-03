@@ -1251,25 +1251,69 @@ class OOXML:
                 if 'docProps/core.xml' in a.filename:
                     form = zfile.read(a)
                     xmlroot = ET.fromstring(form)
-                    self.metadata["title"] = "None"
-                    self.metadata["creator"] = "None"
-                    self.metadata["lastModifiedBy"] = "None"
-                    self.metadata["created"] = "None"
-                    self.metadata["modified"] = "None"
-                    self.metadata["subject"] = "None"
-                    self.metadata["keywords"] = "None"
-                    self.metadata["description"] = "None"
-                    self.metadata["revision"] = "None"
-                    self.metadata["lastPrinted"] = "None"
-                    self.metadata["category"] = "None"
+                    self.metadata["Title"] = "None"
+                    self.metadata["Author"] = "None"
+                    self.metadata["LastSavedBy"] = "None"
+                    self.metadata["CreatedTime"] = "None"
+                    self.metadata["LastSavedTime"] = "None"
+                    self.metadata["Subject"] = "None"
+                    self.metadata["Tags"] = "None"
+                    self.metadata["Comment"] = "None"
+                    self.metadata["RevisionNumber"] = "None"
+                    self.metadata["LastPrintedTime"] = "None"
+                    self.metadata["Category"] = "None"
                     for content in xmlroot:
                         location = content.tag.find('}')
                         metadata_type = content.tag[location + 1:]
                         if metadata_type == 'title' or metadata_type == 'creator' or metadata_type == 'lastModifiedBy' or metadata_type == 'created' or metadata_type == 'modified' or metadata_type == 'subject' or metadata_type == 'keywords' or metadata_type == 'description' or metadata_type == 'revision' or metadata_type == 'lastPrinted'  or metadata_type == 'category':
                             if (content.text == None):
+                                if metadata_type == "title":
+                                    metadata_type = 'Title'
+                                elif metadata_type == 'creator':
+                                    metadata_type = 'Author'
+                                elif metadata_type == 'lastModifiedBy':
+                                    metadata_type = 'LastSavedBy'
+                                elif metadata_type == 'created':
+                                    metadata_type = 'CreatedTime'
+                                elif metadata_type == 'modified':
+                                    metadata_type = 'LastSavedTime'
+                                elif metadata_type == 'subject':
+                                    metadata_type = 'Subject'
+                                elif metadata_type == 'keywords':
+                                    metadata_type == 'Tags'
+                                elif metadata_type == 'description':
+                                    metadata_type = 'Comment'
+                                elif metadata_type == 'revision':
+                                    metadata_type = 'RevisionNumber'
+                                elif metadata_type == 'lastPrinted':
+                                    metadata_type = 'LastPrintedTime'
+                                elif metadata_type == 'category':
+                                    metadata_type = 'Category'
                                 metadata_value.append(metadata_type + " : None")
                                 self.metadata[metadata_type] = content.text
                             else:
+                                if metadata_type == "title":
+                                    metadata_type = 'Title'
+                                elif metadata_type == 'creator':
+                                    metadata_type = 'Author'
+                                elif metadata_type == 'lastModifiedBy':
+                                    metadata_type = 'LastSavedBy'
+                                elif metadata_type == 'created':
+                                    metadata_type = 'CreatedTime'
+                                elif metadata_type == 'modified':
+                                    metadata_type = 'LastSavedTime'
+                                elif metadata_type == 'subject':
+                                    metadata_type = 'Subject'
+                                elif metadata_type == 'keywords':
+                                    metadata_type == 'Tags'
+                                elif metadata_type == 'description':
+                                    metadata_type = 'Comment'
+                                elif metadata_type == 'revision':
+                                    metadata_type = 'RevisionNumber'
+                                elif metadata_type == 'lastPrinted':
+                                    metadata_type = 'LastPrintedTime'
+                                elif metadata_type == 'category':
+                                    metadata_type = 'Category'
                                 metadata_value.append(metadata_type + " : " + content.text)
                                 self.metadata[metadata_type] = content.text
 
@@ -1278,17 +1322,25 @@ class OOXML:
                     xmlroot = ET.fromstring(form)
                     self.metadata["Manager"] = "None"
                     self.metadata["Company"] = "None"
-                    self.metadata["Application"] = "None"
+                    self.metadata["ProgramName"] = "None"
                     self.metadata["TotalTime"] = "None"
-                    self.metadata["AppVersion"] = "None"
+                    self.metadata["Version"] = "None"
                     for content in xmlroot:
                         location = content.tag.find('}')
                         metadata_type = content.tag[location + 1:]
                         if metadata_type == 'Manager' or metadata_type == 'Company' or metadata_type == 'Application' or metadata_type == 'TotalTime' or metadata_type == 'AppVersion':
                             if (content.text == None):
+                                if metadata_type == 'Application':
+                                    metadata_type = 'ProgramName'
+                                elif metadata_type == 'AppVersion':
+                                    metadata_type = 'Version'
                                 metadata_value.append(metadata_type + " : None")
                                 self.metadata[metadata_type] = content.text
                             else:
+                                if metadata_type == 'Application':
+                                    metadata_type = 'ProgramName'
+                                elif metadata_type == 'AppVersion':
+                                    metadata_type = 'Version'
                                 metadata_value.append(metadata_type + " : " + content.text)
                                 self.metadata[metadata_type] = content.text
             return metadata_value
@@ -1393,7 +1445,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[c_pos + i + 9]
-                                    self.metadata['title'] = metadata_value[metadata_count]
+                                    self.metadata['Title'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[c_pos + i + 9] == '<':
                                         break
@@ -1407,7 +1459,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[c_pos + i + 11]
-                                    self.metadata['creator'] = metadata_value[metadata_count]
+                                    self.metadata['Author'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[c_pos + i + 11] == '<':
                                         break
@@ -1423,7 +1475,7 @@ class OOXML:
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
                                         c_time_pos + i + 42]
                                     # self.metadata['created'] = metadata_value[1]
-                                    self.metadata['created'] = metadata_value[metadata_count]
+                                    self.metadata['CreatedTime'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[c_time_pos + i + 42] == '<':
                                         break
@@ -1438,7 +1490,7 @@ class OOXML:
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
                                         m_time_pos + i + 43]
-                                    self.metadata['modified'] = metadata_value[metadata_count]
+                                    self.metadata['LastSavedTime'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[m_time_pos + i + 43] == '<':
                                         break
@@ -1450,7 +1502,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[s_pos + i + 43]
-                                    self.metadata['subject'] = metadata_value[metadata_count]
+                                    self.metadata['Subject'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[s_pos + i + 43] == '<':
                                         break
@@ -1461,7 +1513,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[k_pos + i + 43]
-                                    self.metadata['keywords'] = metadata_value[metadata_count]
+                                    self.metadata['Tags'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[k_pos + i + 43] == '<':
                                         break
@@ -1472,7 +1524,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[d_pos + i + 43]
-                                    self.metadata['description'] = metadata_value[metadata_count]
+                                    self.metadata['Comment'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[d_pos + i + 43] == '<':
                                         break
@@ -1483,7 +1535,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[l_pos + i + 43]
-                                    self.metadata['lastModifiedBy'] = metadata_value[metadata_count]
+                                    self.metadata['LastSavedBy'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[l_pos + i + 43] == '<':
                                         break
@@ -1494,7 +1546,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[r_pos + i + 43]
-                                    self.metadata['revision'] = metadata_value[metadata_count]
+                                    self.metadata['RevisionNumber'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[r_pos + i + 43] == '<':
                                         break
@@ -1505,7 +1557,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[ca_pos + i + 43]
-                                    self.metadata['category'] = metadata_value[metadata_count]
+                                    self.metadata['Category'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[ca_pos + i + 43] == '<':
                                         break
@@ -1516,7 +1568,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[la_pos + i + 43]
-                                    self.metadata['lastPrinted'] = metadata_value[metadata_count]
+                                    self.metadata['LastPrintedTime'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[la_pos + i + 43] == '<':
                                         break
@@ -1573,7 +1625,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[m_pos + i + 9]
-                                    self.metadata['manager'] = metadata_value[metadata_count]
+                                    self.metadata['Manager'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[m_pos + i + 9] == '<':
                                         break
@@ -1587,7 +1639,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[c_pos + i + 11]
-                                    self.metadata['company'] = metadata_value[metadata_count]
+                                    self.metadata['Company'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[c_pos + i + 11] == '<':
                                         break
@@ -1603,7 +1655,7 @@ class OOXML:
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
                                         a_pos + i + 42]
                                     # self.metadata['created'] = metadata_value[1]
-                                    self.metadata['application'] = metadata_value[metadata_count]
+                                    self.metadata['ProgramName'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[a_pos + i + 42] == '<':
                                         break
@@ -1618,7 +1670,7 @@ class OOXML:
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
                                         t_pos + i + 43]
-                                    self.metadata['totaltime'] = metadata_value[metadata_count]
+                                    self.metadata['TotalTime'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[t_pos + i + 43] == '<':
                                         break
@@ -1630,7 +1682,7 @@ class OOXML:
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
                                     metadata_value[metadata_count] = metadata_value[metadata_count] + a1[ap_pos + i + 43]
-                                    self.metadata['appversion'] = metadata_value[metadata_count]
+                                    self.metadata['Version'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[ap_pos + i + 43] == '<':
                                         break
