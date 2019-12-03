@@ -61,6 +61,7 @@ class C_defy(object):
 
         EXPORT_CACHE        = 0b00101000
         EXPORT_CACHE_TO_CSV = 0b00101100
+        EXPORT_CACHE_TO_DB  = 0b01101110
         REMOVE_CACHE        = 0b10100000
         FILTER_LIST         = 0b00111000
 
