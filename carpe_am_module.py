@@ -27,6 +27,8 @@ class CARPE_AM:
 		self.path = None
 		self.tmp_path = None
 		self.manage = None
+		self.db = None
+		self.cursor = None
 
 	def SetModule(self, _case_id, _evd_id):
 		self.case_id = _case_id
@@ -170,38 +172,34 @@ class CARPE_AM:
 
     def Carving(self, option):
 
-        db = carpe_db.Mariadb()
-        db.open()
-
-        # Get image file list
-        query = "SELECT par_id FROM partition_info WHERE evd_id='" + self.evd_id + "' ORDER BY start_sector;"
-        par_infos = db.execute_query_mul(query)
-        db.close()
-
         if(self.manage==None and option[0]==0):
             self.manage = CarvingManager(debug=False,out="carving.log")
             res = self.manage.execute(self.manage.Instruction.LOAD_MODULE)
             if(res==False):
                 return self.manage.Return.EIOCTL
-            
-            """ For Regular Version """
-            #res = self.manage.execute(self.manage.Instruction.CONNECT_DB,self.db_credentials)
-            #if(res==self.manage.Return.EFAIL_DB):
-            #    return self.manage.Return.EFAIL_DB
-            
+                       
             self.manage.execute(self.manage.Instruction.POLICY,
                 {
                     "enable":True,      # 카빙 추출 기능 활성화
                     "save":False        # 카빙 캐시 정보 저장 안함
                 }
             )
+
+			self.db     = carpe_db.Mariadb()
+	        self.cursor = db.open()
+
+			self.manage.carpe_connect_master(self.db,self.cursor)
             return self.manage.Return.SUCCESS
 
         if(self.manage==None):
             return None
 
+		# Get image file list
+        query = "SELECT par_id FROM partition_info WHERE evd_id='" + self.evd_id + "' ORDER BY start_sector;"
+        par_infos = self.db.execute_query_mul(query)
+
         for par_info in par_infos:
-            desti = self.path + "/" + self.case_id + "/" + self.evd_id + "/" + par_info[0] + "/"       
+            desti = self.path + os.sep + self.case_id + os.sep + self.evd_id + os.sep + par_info[0] + os.sep       
             self.manage.execute(self.manage.Instruction.PARAMETER,
                 {
                         "p_id"  :self.case_id,
@@ -209,7 +207,8 @@ class CARPE_AM:
                         "sector":0x200,
                         "start" :0x0,
                         "path"  :desti,
-                        "dest"  :desti+"{0}result".format(os.sep)
+                        "dest"  :desti+"{0}data_carving".format(os.sep)
                 }
             )
-            self.manage.execute(self.manage.Instruction.EXEC,None)
+            self.execute(C_defy.Instruction.EXEC)
+        	self.execute(C_defy.Instruction.EXPORT_CACHE_TO_DB)
