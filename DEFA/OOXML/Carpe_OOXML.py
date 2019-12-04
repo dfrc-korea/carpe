@@ -530,7 +530,7 @@ class OOXML:
                                                     normal_content_data = normal_content_data + d.text
                                                     self.content = self.content + d.text
 
-                self.parse_media(filename, filetype, isDamaged, tmp_path)
+                self.parse_media(os.path.split(filename)[1], filetype, isDamaged, tmp_path)
 
                 return normal_content_data
 
@@ -618,7 +618,7 @@ class OOXML:
                                                     else:
                                                         break
                             i = i+1
-                        self.parse_media(filename, filetype, isDamaged, tmp_path)
+                        self.parse_media(os.path.split(filename)[1], filetype, isDamaged, tmp_path)
                         return only_data
                     else:
                         f1 = open("./outputtest.zip", 'wb')
@@ -667,7 +667,7 @@ class OOXML:
                                                         break
                             i = i + 1
 
-                        self.parse_media(filename, filetype, isDamaged, tmp_path)
+                        self.parse_media(os.path.split(filename)[1], filetype, isDamaged, tmp_path)
                         return only_data
                 except Exception as ex:
                         print(ex)
@@ -689,7 +689,7 @@ class OOXML:
                                 normal_content_data = normal_content_data + str(xlsx_normal_content_data[i][j][k])
 
                 self.content = normal_content_data
-                self.parse_media(filename, filetype, isDamaged, tmp_path)
+                self.parse_media(os.path.split(filename)[1], filetype, isDamaged, tmp_path)
                 return normal_content_data
 
             else:
@@ -878,7 +878,7 @@ class OOXML:
                             temp1 = endingpoint - temp1
 
                 self.content = final_word
-                self.parse_media(filename, filetype, isDamaged, tmp_path)
+                self.parse_media(os.path.split(filename)[1], filetype, isDamaged, tmp_path)
                 return final_word
 
                 if "docProps" not in data_name:
@@ -955,7 +955,7 @@ class OOXML:
                                         normal_content_data = normal_content_data + c.text
                                         self.content = self.content + c.text
 
-                self.parse_media(filename, filetype, isDamaged, tmp_path)
+                self.parse_media(os.path.split(filename)[1], filetype, isDamaged, tmp_path)
 
                 return normal_content_data
            else:
@@ -1102,7 +1102,7 @@ class OOXML:
                                                break
                                    endingpoint = f.tell() - 1
                                    temp1 = endingpoint - temp1
-                   self.parse_media(filename, filetype, isDamaged, tmp_path)
+                   self.parse_media(os.path.split(filename)[1], filetype, isDamaged, tmp_path)
                    return only_data
                else:
                    # 손상일때
@@ -1236,10 +1236,10 @@ class OOXML:
                                                    else:
                                                        break
                            i = i + 1
-                       self.parse_media(filename, filetype, isDamaged, tmp_path)
+                       self.parse_media(os.path.split(filename)[1], filetype, isDamaged, tmp_path)
                        return only_data
                    else:
-                       self.parse_media(filename, filetype, isDamaged, tmp_path)
+                       self.parse_media(os.path.split(filename)[1], filetype, isDamaged, tmp_path)
                        return only_data
 
     def parse_metadata(self, filename, isDamaged):
@@ -1696,21 +1696,21 @@ class OOXML:
         if isDamaged == False:
             if filetype == 'docx':
                 #media file extraction
-                fantasy_zip = zipfile.ZipFile(filename)
+                fantasy_zip = zipfile.ZipFile(tmp_path+filename)
                 fantasy_zip.extractall("./test/")
                 fantasy_zip.close()
                 for a in fantasy_zip.filelist:
                     if 'media' in a.filename:
                         self.has_ole = True
                         filelists = os.listdir('./test/word/media')
-                        if (os.path.isdir(tmp_path+'/'+filename + '_extracted')):
-                            shutil.rmtree(tmp_path+'/'+filename + '_extracted')
-                            os.mkdir(tmp_path+'/'+filename + '_extracted')
+                        if (os.path.isdir(tmp_path+filename + '_extracted')):
+                            shutil.rmtree(tmp_path+filename + '_extracted')
+                            os.mkdir(tmp_path+filename + '_extracted')
                         else:
-                            os.mkdir(tmp_path+'/'+filename + '_extracted')
+                            os.mkdir(tmp_path+filename + '_extracted')
                         for a in filelists:
                             full_filename = os.path.join('./test/word/media/', a)
-                            copyfile(full_filename, tmp_path+'/'+filename + '_extracted'+"/"+a)
+                            copyfile(full_filename, tmp_path+filename + '_extracted'+"/"+a)
                         break
 
                 #embedding file extraction
@@ -1718,12 +1718,12 @@ class OOXML:
                     if 'embeddings' in a.filename:
                         self.has_ole = True
                         filelists = os.listdir('./test/word/embeddings')
-                        if not (os.path.isdir(tmp_path+'/'+filename + '_extracted')):
-                            os.mkdir(tmp_path+'/'+filename + '_extracted')
+                        if not (os.path.isdir(tmp_path+filename + '_extracted')):
+                            os.mkdir(tmp_path+filename + '_extracted')
 
                         for a in filelists:
                             full_filename = os.path.join('./test/word/embeddings/', a)
-                            copyfile(full_filename, tmp_path+'/'+filename + '_extracted'+"/"+a)
+                            copyfile(full_filename, tmp_path+filename + '_extracted'+"/"+a)
 
                             # 엑셀인 경우에 hidden 없애줘야한다
 
@@ -1751,54 +1751,54 @@ class OOXML:
                                                         aaa = fembedd.read()
                                                         fembedd.close()
                                                         break
-                                        fembedd2 = open(tmp_path+'/'+filename + '_extracted' + '/' + data[6:count_data_name].decode(), 'wb')
+                                        fembedd2 = open(tmp_path+filename + '_extracted' + '/' + data[6:count_data_name].decode(), 'wb')
                                         fembedd2.write(aaa)
-                                        os.remove(tmp_path+'/'+filename + '_extracted' + '/' + a)
+                                        os.remove(tmp_path+filename + '_extracted' + '/' + a)
                                         fembedd2.close()
                                     elif 'Hwp' in ole_list[0]:
-                                        filename_hwp = os.path.splitext(tmp_path+'/'+filename + '_extracted'+"/"+a)
-                                        os.rename(tmp_path+'/'+filename + '_extracted'+"/"+a, filename_hwp[0] + '.hwp')
+                                        filename_hwp = os.path.splitext(tmp_path+filename + '_extracted'+"/"+a)
+                                        os.rename(tmp_path+filename + '_extracted'+"/"+a, filename_hwp[0] + '.hwp')
                                     elif ole_list[0] == 'CONTENTS':
                                         stream = ole.openstream('CONTENTS')
                                         data = stream.read()
-                                        fembedd2 = open(tmp_path+'/'+filename + '_extracted' + '/' + a + '.pdf', 'wb')
+                                        fembedd2 = open(tmp_path+filename + '_extracted' + '/' + a + '.pdf', 'wb')
                                         fembedd2.write(data)
-                                        os.remove(tmp_path+'/'+filename + '_extracted' + '/' + a)
+                                        os.remove(tmp_path+filename + '_extracted' + '/' + a)
                                         fembedd2.close()
                         break
 
-                for (path, dir, files) in os.walk(tmp_path+'/'+filename+'_extracted/'):
+                for (path, dir, files) in os.walk(tmp_path+filename+'_extracted/'):
                     for fname in files:
                         self.ole_path.append(os.path.join(path, fname))
 
             if filetype == 'xlsx':
                 # media file extraction
-                fantasy_zip = zipfile.ZipFile(tmp_path+'/'+filename)
+                fantasy_zip = zipfile.ZipFile(tmp_path+filename)
                 fantasy_zip.extractall("./test/")
                 fantasy_zip.close()
                 for a in fantasy_zip.filelist:
                     if 'media' in a.filename:
                         self.has_ole = True
                         filelists = os.listdir('./test/xl/media')
-                        if (os.path.isdir(tmp_path+'/'+filename + '_extracted')):
-                            shutil.rmtree(tmp_path+'/'+filename + '_extracted')
-                            os.mkdir(tmp_path+'/'+filename + '_extracted')
+                        if (os.path.isdir(tmp_path+filename + '_extracted')):
+                            shutil.rmtree(tmp_path+filename + '_extracted')
+                            os.mkdir(tmp_path+filename + '_extracted')
                         else:
-                            os.mkdir(tmp_path+'/'+filename + '_extracted')
+                            os.mkdir(tmp_path+filename + '_extracted')
                         for a in filelists:
                             full_filename = os.path.join('./test/xl/media/', a)
-                            copyfile(full_filename, tmp_path+'/'+filename + '_extracted'+"/"+a)
+                            copyfile(full_filename, tmp_path+filename + '_extracted'+"/"+a)
                         break
                 #embedding file extraction
                 for a in fantasy_zip.filelist:
                     if 'embeddings' in a.filename:
                         self.has_ole = True
                         filelists = os.listdir('./test/xl/embeddings')
-                        if not (os.path.isdir(tmp_path+'/'+filename + '_extracted')):
-                            os.mkdir(tmp_path+'/'+filename + '_extracted')
+                        if not (os.path.isdir(tmp_path+filename + '_extracted')):
+                            os.mkdir(tmp_path+filename + '_extracted')
                         for a in filelists:
                             full_filename = os.path.join('./test/xl/embeddings/', a)
-                            copyfile(full_filename, tmp_path+'/'+filename + '_extracted'+"/"+a)
+                            copyfile(full_filename, tmp_path+filename + '_extracted'+"/"+a)
                             if a[0] == 'o':
                                 ole = olefile.OleFileIO(full_filename)
                                 for ole_list in ole.listdir():
@@ -1832,28 +1832,28 @@ class OOXML:
                                                         aaa = fembedd.read()
                                                         fembedd.close()
                                                         break
-                                        fembedd2 = open(tmp_path+'/'+filename + '_extracted' + '/' + data[6:count_data_name].decode(), 'wb')
+                                        fembedd2 = open(tmp_path+filename + '_extracted' + '/' + data[6:count_data_name].decode(), 'wb')
                                         fembedd2.write(aaa)
-                                        os.remove(tmp_path+'/'+filename + '_extracted' + '/' + a)
+                                        os.remove(tmp_path+filename + '_extracted' + '/' + a)
                                         fembedd2.close()
                                     elif 'Hwp' in ole_list[0]:
-                                        filename_hwp = os.path.splitext(tmp_path+'/'+filename + '_extracted' + "/" + a)
-                                        os.rename(tmp_path+'/'+filename + '_extracted' + "/" + a, filename_hwp[0] + '.hwp')
+                                        filename_hwp = os.path.splitext(tmp_path+filename + '_extracted' + "/" + a)
+                                        os.rename(tmp_path+filename + '_extracted' + "/" + a, filename_hwp[0] + '.hwp')
                                     elif ole_list[0] == 'CONTENTS':
                                         stream = ole.openstream('CONTENTS')
                                         data = stream.read()
-                                        fembedd2 = open(tmp_path+'/'+filename + '_extracted' + '/' + a + '.pdf', 'wb')
+                                        fembedd2 = open(tmp_path+filename + '_extracted' + '/' + a + '.pdf', 'wb')
                                         fembedd2.write(data)
-                                        os.remove(tmp_path+'/'+filename + '_extracted' + '/' + a)
+                                        os.remove(tmp_path+filename + '_extracted' + '/' + a)
                                         fembedd2.close()
                         break
-                for (path, dir, files) in os.walk(tmp_path+'/'+filename+'_extracted/'):
+                for (path, dir, files) in os.walk(tmp_path+filename+'_extracted/'):
                     for fname in files:
                         self.ole_path.append(os.path.join(path, fname))
 
             if filetype == 'pptx':
                 # media file extraction
-                fantasy_zip = zipfile.ZipFile(filename)
+                fantasy_zip = zipfile.ZipFile(tmp_path+filename)
                 fantasy_zip.extractall("./test/")
                 fantasy_zip.close()
 
@@ -1861,26 +1861,26 @@ class OOXML:
                     if 'media' in a.filename:
                         self.has_ole = True
                         filelists = os.listdir('./test/ppt/media')
-                        if (os.path.isdir(tmp_path+'/'+filename + '_extracted')):
-                            shutil.rmtree(tmp_path+'/'+filename + '_extracted')
-                            os.mkdir(tmp_path+'/'+filename + '_extracted')
+                        if (os.path.isdir(tmp_path+filename + '_extracted')):
+                            shutil.rmtree(tmp_path+filename + '_extracted')
+                            os.mkdir(tmp_path+filename + '_extracted')
                         else:
-                            os.mkdir(tmp_path+'/'+filename + '_extracted')
+                            os.mkdir(tmp_path+filename + '_extracted')
                         for a in filelists:
                             full_filename = os.path.join('./test/ppt/media/', a)
-                            copyfile(full_filename, tmp_path+'/'+filename + '_extracted'+"/"+a)
+                            copyfile(full_filename, tmp_path+filename + '_extracted'+"/"+a)
                         break
 
                 # embedding file extraction
                 for a in fantasy_zip.filelist:
                     if 'embeddings' in a.filename:
                         filelists = os.listdir('./test/ppt/embeddings')
-                        if not (os.path.isdir(tmp_path+'/'+filename + '_extracted')):
-                            os.mkdir(tmp_path+'/'+filename + '_extracted')
+                        if not (os.path.isdir(tmp_path+filename + '_extracted')):
+                            os.mkdir(tmp_path+filename + '_extracted')
 
                         for a in filelists:
                             full_filename = os.path.join('./test/ppt/embeddings/', a)
-                            copyfile(full_filename, tmp_path+'/'+filename + '_extracted' + "/" + a)
+                            copyfile(full_filename, tmp_path+filename + '_extracted' + "/" + a)
                             if a[0] == 'o':
                                 self.has_ole = True
                                 ole = olefile.OleFileIO(full_filename)
@@ -1889,62 +1889,62 @@ class OOXML:
                                         stream = ole.openstream('Package')
                                         data = stream.read()
                                         if 'word' in str(data):
-                                            fembedd2 = open(tmp_path+'/'+filename + '_extracted' + '/' + a + '.docx', 'wb')
-                                            os.remove(tmp_path+'/'+filename + '_extracted' + '/' + a)
+                                            fembedd2 = open(tmp_path+filename + '_extracted' + '/' + a + '.docx', 'wb')
+                                            os.remove(tmp_path+filename + '_extracted' + '/' + a)
                                             fembedd2.write(data)
                                             fembedd2.close()
                                         elif 'ppt' in str(data):
-                                            fembedd2 = open(tmp_path+'/'+filename + '_extracted' + '/' + a + '.pptx', 'wb')
-                                            os.remove(tmp_path+'/'+filename + '_extracted' + '/' + a)
+                                            fembedd2 = open(tmp_path+filename + '_extracted' + '/' + a + '.pptx', 'wb')
+                                            os.remove(tmp_path+filename + '_extracted' + '/' + a)
                                             fembedd2.write(data)
                                             fembedd2.close()
                                         elif 'workbook' in str(data):
-                                            fembedd2 = open(tmp_path+'/'+filename + '_extracted' + '/' + a + '.xlsx', 'wb')
-                                            os.remove(tmp_path+'/'+filename + '_extracted' + '/' + a)
+                                            fembedd2 = open(tmp_path+filename + '_extracted' + '/' + a + '.xlsx', 'wb')
+                                            os.remove(tmp_path+filename + '_extracted' + '/' + a)
                                             fembedd2.write(data)
                                             fembedd2.close()
 
                                     elif 'Hwp' in temp_list[0]:
-                                        filename_hwp = os.path.splitext(tmp_path+'/'+filename + '_extracted' + "/" + a)
-                                        os.rename(tmp_path+'/'+filename + '_extracted' + "/" + a, filename_hwp[0] + '.hwp')
+                                        filename_hwp = os.path.splitext(tmp_path+filename + '_extracted' + "/" + a)
+                                        os.rename(tmp_path+filename + '_extracted' + "/" + a, filename_hwp[0] + '.hwp')
                                         break
 
                                     elif '1Table' in temp_list[0]:
-                                        filename_hwp = os.path.splitext(tmp_path+'/'+filename + '_extracted' + "/" + a)
-                                        os.rename(tmp_path+'/'+filename + '_extracted' + "/" + a, filename_hwp[0] + '.doc')
+                                        filename_hwp = os.path.splitext(tmp_path+filename + '_extracted' + "/" + a)
+                                        os.rename(tmp_path+filename + '_extracted' + "/" + a, filename_hwp[0] + '.doc')
                                         break
 
                                     elif 'Workbook' in temp_list[0]:
-                                        filename_hwp = os.path.splitext(tmp_path+'/'+filename + '_extracted' + "/" + a)
-                                        os.rename(tmp_path+'/'+filename + '_extracted' + "/" + a, filename_hwp[0] + '.xls')
+                                        filename_hwp = os.path.splitext(tmp_path+filename + '_extracted' + "/" + a)
+                                        os.rename(tmp_path+filename + '_extracted' + "/" + a, filename_hwp[0] + '.xls')
                                         break
 
                                     elif 'Pictures' in temp_list[0]:
-                                        filename_hwp = os.path.splitext(tmp_path+'/'+filename + '_extracted' + "/" + a)
-                                        os.rename(tmp_path+'/'+filename + '_extracted' + "/" + a, filename_hwp[0] + '.ppt')
+                                        filename_hwp = os.path.splitext(tmp_path+filename + '_extracted' + "/" + a)
+                                        os.rename(tmp_path+filename + '_extracted' + "/" + a, filename_hwp[0] + '.ppt')
                                         break
 
                                     elif temp_list[0] == 'CONTENTS':
                                         stream = ole.openstream('CONTENTS')
                                         data = stream.read()
-                                        fembedd2 = open(tmp_path+'/'+filename + '_extracted' + '/' + a + '.pdf', 'wb')
+                                        fembedd2 = open(tmp_path+filename + '_extracted' + '/' + a + '.pdf', 'wb')
                                         fembedd2.write(data)
-                                        os.remove(tmp_path+'/'+filename + '_extracted' + '/' + a)
+                                        os.remove(tmp_path+filename + '_extracted' + '/' + a)
                                         fembedd2.close()
                         ole.close()
                         break
-                for (path, dir, files) in os.walk(tmp_path+'/'+filename+'_extracted/'):
+                for (path, dir, files) in os.walk(tmp_path+filename+'_extracted/'):
                     for fname in files:
                         self.ole_path.append(os.path.join(path, fname))
 
         #손상일때
         else:
-            if (os.path.isdir(tmp_path+'/'+filename + '_extracted')):
-                shutil.rmtree(tmp_path+'/'+filename + '_extracted')
-                os.mkdir(tmp_path+'/'+filename + '_extracted')
+            if (os.path.isdir(tmp_path+filename + '_extracted')):
+                shutil.rmtree(tmp_path+filename + '_extracted')
+                os.mkdir(tmp_path+filename + '_extracted')
             else:
-                os.mkdir(tmp_path+'/'+filename + '_extracted')
-            with open(tmp_path+'/'+filename, 'rb') as f:
+                os.mkdir(tmp_path+filename + '_extracted')
+            with open(tmp_path+filename, 'rb') as f:
                 notEnd = True
                 while notEnd:
                     try:
@@ -1955,10 +1955,10 @@ class OOXML:
                             #print(os.path.basename(hd.name.decode('utf-8')))
                             image_file = os.path.basename(hd.name.decode('utf-8'))
                             if image_file[0] != 'o':
-                                new_file = open(tmp_path+'/'+filename + '_extracted/' + image_file, 'wb')
+                                new_file = open(tmp_path+filename + '_extracted/' + image_file, 'wb')
                                 new_file.write(comps)
                             else:
-                                new_file = open(tmp_path+'/'+filename + '_extracted/' + image_file, 'wb')
+                                new_file = open(tmp_path+filename + '_extracted/' + image_file, 'wb')
                                 hd.writeHeader(new_file)
                                 new_file.write(comps)
                             new_file.flush()
@@ -1966,7 +1966,7 @@ class OOXML:
                         break
 
 
-            for (path, dir, files) in os.walk(tmp_path+'/'+filename + '_extracted/'):
+            for (path, dir, files) in os.walk(tmp_path+filename + '_extracted/'):
                 for fname in files:
                     self.ole_path.append(os.path.join(path, fname))
 
