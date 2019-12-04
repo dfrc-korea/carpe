@@ -640,12 +640,12 @@ class DOC:
                 embedded_data = drawing_data[drawing_offset: drawing_offset + embedded_size]
                 drawing_offset += embedded_size
 
-                if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                    os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                    os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                 self.compound.ole_path.append(
-                    self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension)
-                embedded_fp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
+                    self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension)
+                embedded_fp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
                 img_num += 1
                 embedded_fp.write(embedded_data)
                 embedded_fp.close()
@@ -676,11 +676,11 @@ class DOC:
                     ole_data_offset += 4
                     data = ole_data[ole_data_offset : ole_data_offset + data_size]
 
-                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                    if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
-                    self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + data_name)
-                    temp = open(self.compound.filePath + "_extracted\\" + data_name, 'wb')
+                    self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + data_name)
+                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + data_name, 'wb')
                     temp.write(data)
                     temp.close()
 
@@ -697,13 +697,13 @@ class DOC:
                     else:
                         extension = ".zip"
 
-                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                    if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                     self.compound.ole_path.append(
-                        self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                        self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                             img_num) + extension)
-                    temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
+                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
                     temp.write(ole_data)
                     temp.close()
                     img_num += 1
@@ -712,11 +712,11 @@ class DOC:
                     ole_fp.seek((ole.direntries[i].isectStart + 1) * 0x200)
                     ole_data = ole_fp.read(ole.direntries[i].size)
 
-                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                    if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
-                    self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".pdf")
-                    temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".pdf", 'wb')
+                    self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".pdf")
+                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".pdf", 'wb')
                     temp.write(ole_data)
                     temp.close()
                     img_num += 1
@@ -779,10 +779,10 @@ class DOC:
                     if word_document != None and table != None:
                         result = self.__parse_doc_normal_for_ole__(word_document, table)
                     if result != None:
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
-                        self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
-                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
+                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
                         img_num += 1
@@ -796,10 +796,10 @@ class DOC:
                         result = temp_xls.__parse_xls_normal_for_ole__(workbook)
 
                     if result != None:
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
-                        self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
-                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
+                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
                         img_num += 1
@@ -812,20 +812,20 @@ class DOC:
                         temp_ppt = PPT(Compound(self.compound.filePath))
                         result = temp_ppt.__parse_ppt_normal_for_ole__(powerpoint_document, current_user)
                     if result != None:
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
-                        self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
-                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
+                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
                         img_num += 1
 
                     # HWP
                     if section_data != "":
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
-                        self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
-                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
+                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(section_data)
                         temp.close()
                         img_num += 1
@@ -1764,13 +1764,13 @@ class DOC:
                 embedded_data = drawing_data[drawing_offset: drawing_offset + embedded_size]
                 drawing_offset += embedded_size
 
-                if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                    os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                    os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                 self.compound.ole_path.append(
-                    self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                    self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                         img_num) + extension)
-                embedded_fp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                embedded_fp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                     img_num) + extension, 'wb')
                 img_num += 1
                 embedded_fp.write(embedded_data)
@@ -1801,11 +1801,11 @@ class DOC:
                     ole_data_offset += 4
                     data = ole_data[ole_data_offset: ole_data_offset + data_size]
 
-                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                    if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
-                    self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + data_name)
-                    temp = open(self.compound.filePath + "_extracted\\" + data_name, 'wb')
+                    self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + data_name)
+                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + data_name, 'wb')
                     temp.write(data)
                     temp.close()
 
@@ -1824,13 +1824,13 @@ class DOC:
                     else:
                         extension = ".zip"
 
-                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                    if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                     self.compound.ole_path.append(
-                        self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                        self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                             img_num) + extension)
-                    temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                         img_num) + extension, 'wb')
                     temp.write(ole_data)
                     temp.close()
@@ -1840,13 +1840,13 @@ class DOC:
                     ole_fp.seek((ole.direntries[i].isectStart + 1) * 0x200)
                     ole_data = ole_fp.read(ole.direntries[i].size)
 
-                    if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                        os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                    if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                        os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                     self.compound.ole_path.append(
-                        self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                        self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                             img_num) + ".pdf")
-                    temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                         img_num) + ".pdf", 'wb')
                     temp.write(ole_data)
                     temp.close()
@@ -1910,12 +1910,12 @@ class DOC:
                     if word_document != None and table != None:
                         result = self.__parse_doc_normal_for_ole__(word_document, table)
                     if result != None:
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
                         self.compound.ole_path.append(
-                            self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt")
-                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                             img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
@@ -1930,12 +1930,12 @@ class DOC:
                         result = temp_xls.__parse_xls_normal_for_ole__(workbook)
 
                     if result != None:
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
                         self.compound.ole_path.append(
-                            self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt")
-                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                             img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
@@ -1949,12 +1949,12 @@ class DOC:
                         temp_ppt = PPT(Compound(self.compound.filePath))
                         result = temp_ppt.__parse_ppt_normal_for_ole__(powerpoint_document, current_user)
                     if result != None:
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
                         self.compound.ole_path.append(
-                            self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt")
-                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                             img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
@@ -1962,12 +1962,12 @@ class DOC:
 
                     # HWP
                     if section_data != "":
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
                         self.compound.ole_path.append(
-                            self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt")
-                        temp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                             img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(section_data)
                         temp.close()

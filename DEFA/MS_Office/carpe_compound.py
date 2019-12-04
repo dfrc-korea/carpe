@@ -65,9 +65,10 @@ class Compound:
             self.has_ole = False
             self.ole_path = []
             self.content = ""
-            self.metadata = {'title': "", 'subject': "", 'author': "", 'keyword': "", 'explanation': "",
-                             'last_saved_by': "",
-                             'version': "", 'last_printed_time': "", 'create_time': "", 'modified_time': "", 'date': ""}
+            self.metadata = {'Title': "", 'Subject': "", 'Author': "", 'Tags': "", 'Comment': "",
+                             'LastSavedBy': "",
+                             'RevisionNumber': "", 'LastPrintedTime': "", 'CreatedTime': "", 'LastSavedTime': "", 'ProgramName': ""}
+            self.tmp_path = None
 
 
 
@@ -90,7 +91,8 @@ class Compound:
         raise NotImplementedError
 
 
-    def parse(self):
+    def parse(self, tmp_path):
+        self.tmp_path = tmp_path
         if self.fileType == "xls" :
             object = XLS(self)
             object.parse_xls()
@@ -110,7 +112,7 @@ class Compound:
         if self.is_damaged == self.CONST_DOCUMENT_NORMAL:
             self.parse_summaryinfo()
 
-        if( self.metadata['author'] != None or self.metadata['title'] != None or self.metadata['create_time'] != None or self.metadata['modified_time'] != None):
+        if( self.metadata['Author'] != None or self.metadata['Title'] != None or self.metadata['CreateTime'] != None or self.metadata['LastSavedTime'] != None):
             self.has_metadata = True
             #print(self.metadata['author'])
             #print(self.metadata['title'])
@@ -151,18 +153,19 @@ class Compound:
                 entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
                 entryLength = struct.unpack('<I', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
                 if entryLength > 1:
-                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
                         if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
                             tempData = entryData.decode('euc-kr')[0:-1]
                             tempData = tempData.replace('\r\n', "")
                         elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                             tempData = entryData.decode('utf-16')[0:-1]
                             tempData = tempData.replace('\r\n', "")
-                        self.metadata['title'] = tempData
+                        self.metadata['Title'] = tempData
                         metaNum += 1
                     except:
-                        self.metadata['title'] = ''
+                        self.metadata['Title'] = ''
 
             # 2. Subject
             elif record['type'] is 0x03:
@@ -173,15 +176,17 @@ class Compound:
                     entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
                         if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
                             tempData = entryData.decode('euc-kr')[0:-1]
                             tempData = tempData.replace('\r\n', "")
                         elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                             tempData = entryData.decode('utf-16')[0:-1]
                             tempData = tempData.replace('\r\n', "")
-                        self.metadata['subject'] = tempData
+                        self.metadata['Subject'] = tempData
                         metaNum += 1
                     except:
-                        self.metadata['subject'] = ''
+                        self.metadata['Subject'] = ''
 
             # 3. Author
             elif record['type'] is 0x04:
@@ -192,17 +197,19 @@ class Compound:
                     entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
                         if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
                             tempData = entryData.decode('euc-kr')[0:-1]
                             tempData = tempData.replace('\r\n', "")
                         elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                             tempData = entryData.decode('utf-16')[0:-1]
                             tempData = tempData.replace('\r\n', "")
-                        self.metadata['author'] = tempData
+                        self.metadata['Author'] = tempData
                         metaNum += 1
                     except:
-                        self.metadata['author'] = ''
+                        self.metadata['Author'] = ''
 
-            # 4. Keyword
+            # 4. Tags
             elif record['type'] is 0x05:
                 recordStartOffset = startOffset + record['offset']
                 entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
@@ -211,17 +218,19 @@ class Compound:
                     entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
                         if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
                             tempData = entryData.decode('euc-kr')[0:-1]
                             tempData = tempData.replace('\r\n', "")
                         elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                             tempData = entryData.decode('utf-16')[0:-1]
                             tempData = tempData.replace('\r\n', "")
-                        self.metadata['keyword'] = tempData
+                        self.metadata['Tags'] = tempData
                         metaNum += 1
                     except:
-                        self.metadata['keyword'] = ''
+                        self.metadata['Tags'] = ''
 
-            # 5. explanation
+            # 5. Comment
             elif record['type'] is 0x06:
                 recordStartOffset = startOffset + record['offset']
                 entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
@@ -230,17 +239,19 @@ class Compound:
                     entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
                         if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
                             tempData = entryData.decode('euc-kr')[0:-1]
                             tempData = tempData.replace('\r\n', "")
                         elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                             tempData = entryData.decode('utf-16')[0:-1]
                             tempData = tempData.replace('\r\n', "")
-                        self.metadata['explanation'] = tempData
+                        self.metadata['Comment'] = tempData
                         metaNum += 1
                     except:
-                        self.metadata['explanation'] = ''
+                        self.metadata['Comment'] = ''
 
-            # 6. LastSaveBy
+            # 6. LastSavedBy
             elif record['type'] is 0x08:
                 recordStartOffset = startOffset + record['offset']
                 entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
@@ -249,17 +260,19 @@ class Compound:
                     entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
                         if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
                             tempData = entryData.decode('euc-kr')[0:-1]
                             tempData = tempData.replace('\r\n', "")
                         elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                             tempData = entryData.decode('utf-16')[0:-1]
                             tempData = tempData.replace('\r\n', "")
-                        self.metadata['last_saved_by'] = tempData
+                        self.metadata['LastSavedBy'] = tempData
                         metaNum += 1
                     except:
-                        self.metadata['last_saved_by'] = ''
+                        self.metadata['LastSavedBy'] = ''
 
-            # 7. Version
+            # 7. Revision Number
             elif record['type'] is 0x09:
                 recordStartOffset = startOffset + record['offset']
                 entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
@@ -268,18 +281,20 @@ class Compound:
                     entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
                         if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
                             tempData = entryData.decode('euc-kr')[0:-1]
                             tempData = tempData.replace('\r\n', "")
                         elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                             tempData = entryData.decode('utf-16')[0:-1]
                             tempData = tempData.replace('\r\n', "")
-                        self.metadata['version'] = tempData
+                        self.metadata['RevisionNumber'] = tempData
                         metaNum += 1
                     except:
-                        self.metadata['version'] = ''
+                        self.metadata['RevisionNumber'] = ''
 
-            # 8. Date
-            elif record['type'] is 0x14:
+            # 8. ProgramName
+            elif record['type'] is 0x12:
                 recordStartOffset = startOffset + record['offset']
                 entryType = struct.unpack('<I', fpSummary[recordStartOffset: recordStartOffset + 4])[0]
                 entryLength = struct.unpack('<I', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
@@ -287,15 +302,17 @@ class Compound:
                     entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
                         if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
                             tempData = entryData.decode('euc-kr')[0:-1]
                             tempData = tempData.replace('\r\n', "")
                         elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                             tempData = entryData.decode('utf-16')[0:-1]
                             tempData = tempData.replace('\r\n', "")
-                        self.metadata['date'] = tempData
+                        self.metadata['ProgramName'] = tempData
                         metaNum += 1
                     except:
-                        self.metadata['date'] = ''
+                        self.metadata['ProgramName'] = ''
 
             # 9. LastPrintedTime
             elif record['type'] is 0x0B:
@@ -305,12 +322,12 @@ class Compound:
                     try:
                         tempTime = datetime.datetime.utcfromtimestamp(
                             (entryTimeData - 116444736000000000) / 10000000) + datetime.timedelta(hours=9)
-                        self.metadata['last_printed_time'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
+                        self.metadata['LastPrintedTime'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
                         metaNum += 1
                     except:
-                        self.metadata['last_printed_time'] = ''
+                        self.metadata['LastPrintedTime'] = ''
 
-            # 10. CreateTime
+            # 10. CreatedTime
             elif record['type'] is 0x0C:
                 recordStartOffset = startOffset + record['offset']
                 entryTimeData = struct.unpack('<q', fpSummary[recordStartOffset + 4: recordStartOffset + 12])[0]
@@ -318,12 +335,12 @@ class Compound:
                     try:
                         tempTime = datetime.datetime.utcfromtimestamp(
                             (entryTimeData - 116444736000000000) / 10000000) + datetime.timedelta(hours=9)
-                        self.metadata['create_time'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
+                        self.metadata['CreatedTime'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
                         metaNum += 1
                     except:
-                        self.metadata['create_time'] = ''
+                        self.metadata['CreatedTime'] = ''
 
-            # 11. LastSaveTime
+            # 11. LastSavedTime
             elif record['type'] is 0x0D:
                 recordStartOffset = startOffset + record['offset']
                 entryTimeData = struct.unpack('<q', fpSummary[recordStartOffset + 4: recordStartOffset + 12])[0]
@@ -331,10 +348,10 @@ class Compound:
                     try:
                         tempTime = datetime.datetime.utcfromtimestamp(
                             (entryTimeData - 116444736000000000) / 10000000) + datetime.timedelta(hours=9)
-                        self.metadata['modified_time'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
+                        self.metadata['LastSavedTime'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
                         metaNum += 1
                     except:
-                        self.metadata['modified_time'] = ''
+                        self.metadata['LastSavedTime'] = ''
 
         if metaNum > 0:
             self.has_metadata = True

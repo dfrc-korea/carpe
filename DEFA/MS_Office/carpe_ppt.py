@@ -723,13 +723,13 @@ class PPT :
             embedded_data = drawing_data[drawing_offset : drawing_offset + embedded_size]
             drawing_offset += embedded_size
 
-            if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+            if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
             self.compound.ole_path.append(
-                self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension)
+                self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension)
 
-            embedded_fp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
+            embedded_fp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
             img_num += 1
             embedded_fp.write(embedded_data)
             embedded_fp.close()
@@ -745,8 +745,8 @@ class PPT :
             self.current_offset += 8
 
             if rh_Type == 0x1011:
-                if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                    os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                    os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                 path = self.compound.filePath + "_extracted\\OLE_Object" + str(counter) + ".bin"
                 self.compound.ole_path.append(path)
@@ -793,51 +793,51 @@ class PPT :
                                     savefilename = ole_filename + '.xlsx'
                                     break
 
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                         self.compound.ole_path.append(
-                            self.compound.filePath + "_extracted\\" + savefilename)
-                        f = open(self.compound.filePath + "_extracted\\" + savefilename, mode='wb')
+                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + savefilename)
+                        f = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + savefilename, mode='wb')
                         f.write(bindata)
                         f.close()
                         os.remove(ole_filename + '.zip')
 
                     elif entry.name == 'WordDocument':
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                         self.compound.ole_path.append(file + '.doc')
 
                         shutil.copy(file, file + '.doc')
                     elif entry.name == 'PowerPoint Document':
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                         self.compound.ole_path.append(file + '.ppt')
 
                         shutil.copy(file, file + '.ppt')
                     elif entry.name == 'Workbook':
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                         self.compound.ole_path.append(file + '.xls')
 
                         shutil.copy(file, file + '.xls')
                     elif entry.name == 'CONTENTS':
                         bindata: bytearray = bytearray(ole.open('CONTENTS').read())
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                         self.compound.ole_path.append(
-                            self.compound.filePath + "_extracted\\" + ole_filename + '.pdf')
+                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + ole_filename + '.pdf')
 
-                        f = open(self.compound.filePath + "_extracted\\" + ole_filename + '.pdf', mode='wb')
+                        f = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + ole_filename + '.pdf', mode='wb')
                         f.write(bindata)
                         f.close()
                     elif entry.name == 'Ole10Native':
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                         bindata: bytearray = bytearray(ole.open('Ole10Native').read())
                         name_len = 6
@@ -848,27 +848,27 @@ class PPT :
                         cnt = 0
                         while cnt < 1000:
                             if bindata[cnt:cnt + 4] == b'RIFF' and bindata[cnt + 8: cnt + 16] == b'AVI\x20LIST':
-                                self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + ole_filename + '.avi')
-                                f = open(self.compound.filePath + "_extracted\\" + ole_filename + '.avi', mode='wb')
+                                self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + ole_filename + '.avi')
+                                f = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + ole_filename + '.avi', mode='wb')
                                 f.write(bindata[cnt:])
                                 f.close()
                                 break
                             if bindata[cnt:cnt + 4] == b'RIFF' and bindata[cnt + 8 : cnt + 16] == b'WAVEfmt\x20':
-                                self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + ole_filename + '.wav')
-                                f = open(self.compound.filePath + "_extracted\\" + ole_filename + '.wav', mode='wb')
+                                self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + ole_filename + '.wav')
+                                f = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + ole_filename + '.wav', mode='wb')
                                 f.write(bindata[cnt:])
                                 f.close()
                                 break
                             if bindata[cnt:cnt + 2] == b'\x00\x00' and bindata[cnt + 4: cnt + 8] == b'ftyp':
-                                self.compound.ole_path.append(self.compound.filePath + "_extracted\\" + ole_filename + '.mp4')
-                                f = open(self.compound.filePath + "_extracted\\" + ole_filename + '.mp4', mode='wb')
+                                self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + ole_filename + '.mp4')
+                                f = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + ole_filename + '.mp4', mode='wb')
                                 f.write(bindata[cnt:])
                                 f.close()
                                 break
                             cnt += 1
                     elif entry.name == 'BodyText':
-                        if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                            os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                        if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                            os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                         self.compound.ole_path.append(file + '.hwp')
 
@@ -1533,14 +1533,14 @@ class PPT :
             embedded_data = drawing_data[drawing_offset: drawing_offset + embedded_size]
             drawing_offset += embedded_size
 
-            if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+            if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
             self.compound.ole_path.append(
-                self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+                self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                     img_num) + extension)
 
-            embedded_fp = open(self.compound.filePath + "_extracted\\" + self.compound.fileName + "_" + str(
+            embedded_fp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
                 img_num) + extension, 'wb')
             img_num += 1
             embedded_fp.write(embedded_data)
@@ -1560,8 +1560,8 @@ class PPT :
             self.current_offset += 8
 
             if rh_Type == 0x1011:
-                if not (os.path.isdir(self.compound.filePath + "_extracted")):
-                    os.makedirs(os.path.join(self.compound.filePath + "_extracted"))
+                if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
+                    os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                 path = self.compound.filePath + "_extracted\\OLE_Object" + str(counter) + ".bin"
                 self.compound.ole_path.append(path)
