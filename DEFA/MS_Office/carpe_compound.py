@@ -68,6 +68,7 @@ class Compound:
             self.metadata = {'Title': "", 'Subject': "", 'Author': "", 'Tags': "", 'Comment': "",
                              'LastSavedBy': "",
                              'RevisionNumber': "", 'LastPrintedTime': "", 'CreatedTime': "", 'LastSavedTime': "", 'ProgramName': ""}
+            self.tmp_path = None
 
 
 
@@ -90,7 +91,8 @@ class Compound:
         raise NotImplementedError
 
 
-    def parse(self):
+    def parse(self, tmp_path):
+        self.tmp_path = tmp_path
         if self.fileType == "xls" :
             object = XLS(self)
             object.parse_xls()
