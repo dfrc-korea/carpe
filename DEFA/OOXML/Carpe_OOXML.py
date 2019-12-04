@@ -96,9 +96,9 @@ class OOXML:
         if self.checktype(self.filename) == 'docx':
             filetype = 'docx'
         if self.checktype(self.filename) == 'pptx':
-            filetype = 'xlsx'
-        if self.checktype(self.filename) == 'xlsx':
             filetype = 'pptx'
+        if self.checktype(self.filename) == 'xlsx':
+            filetype = 'xlsx'
 
         self.parse_main(self.filename, filetype, tmp_path)
 
