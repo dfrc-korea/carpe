@@ -496,8 +496,8 @@ class XLS :
                 drawing_offset += embedded_size
 
                 # 제대로 다 가져와 지는지 확인하기.
-                self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension)
-                embedded_fp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
+                self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + extension)
+                embedded_fp = open(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
                 img_num += 1
                 embedded_fp.write(embedded_data)
                 embedded_fp.close()
@@ -551,8 +551,8 @@ class XLS :
                     if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                         os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
-                    self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + data_name)
-                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + data_name, 'wb')
+                    self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted/" + data_name)
+                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted/" + data_name, 'wb')
                     temp.write(data)
                     temp.close()
 
@@ -573,9 +573,9 @@ class XLS :
                         os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                     self.compound.ole_path.append(
-                        self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                        self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                             img_num) + extension)
-                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
+                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
                     temp.write(ole_data)
                     temp.close()
                     img_num += 1
@@ -587,8 +587,8 @@ class XLS :
                     if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                         os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
-                    self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".pdf")
-                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".pdf", 'wb')
+                    self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + ".pdf")
+                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + ".pdf", 'wb')
                     temp.write(ole_data)
                     temp.close()
                     img_num += 1
@@ -656,8 +656,8 @@ class XLS :
                     if result != None:
                         if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                             os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
-                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
-                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
+                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + ".txt")
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
                         img_num += 1
@@ -669,8 +669,8 @@ class XLS :
                     if result != None:
                         if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                             os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
-                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
-                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
+                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + ".txt")
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
                         img_num += 1
@@ -685,8 +685,8 @@ class XLS :
                     if result != None:
                         if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                             os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
-                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
-                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
+                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + ".txt")
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
                         img_num += 1
@@ -695,8 +695,8 @@ class XLS :
                     if section_data != "":
                         if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                             os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
-                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt")
-                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
+                        self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + ".txt")
+                        temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(section_data)
                         temp.close()
                         img_num += 1
@@ -1345,8 +1345,8 @@ class XLS :
                 drawing_offset += embedded_size
 
                 # 제대로 다 가져와 지는지 확인하기.
-                self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension)
-                embedded_fp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
+                self.compound.ole_path.append(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + extension)
+                embedded_fp = open(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(img_num) + extension, 'wb')
                 img_num += 1
                 embedded_fp.write(embedded_data)
                 embedded_fp.close()
@@ -1398,8 +1398,8 @@ class XLS :
                         os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                     self.compound.ole_path.append(
-                        self.compound.tmp_path + self.compound.fileName + "_extracted\\" + data_name)
-                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + data_name, 'wb')
+                        self.compound.tmp_path + self.compound.fileName + "_extracted/" + data_name)
+                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted/" + data_name, 'wb')
                     temp.write(data)
                     temp.close()
 
@@ -1422,9 +1422,9 @@ class XLS :
                         os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                     self.compound.ole_path.append(
-                        self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                        self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                             img_num) + extension)
-                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                    temp = open(self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                         img_num) + extension, 'wb')
                     temp.write(ole_data)
                     temp.close()
@@ -1438,10 +1438,10 @@ class XLS :
                         os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
                     self.compound.ole_path.append(
-                        self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                        self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                             img_num) + ".pdf")
                     temp = open(
-                        self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                        self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                             img_num) + ".pdf", 'wb')
                     temp.write(ole_data)
                     temp.close()
@@ -1510,10 +1510,10 @@ class XLS :
                         if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                             os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
                         self.compound.ole_path.append(
-                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt")
                         temp = open(
-                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
@@ -1527,10 +1527,10 @@ class XLS :
                         if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                             os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
                         self.compound.ole_path.append(
-                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt")
                         temp = open(
-                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
@@ -1547,10 +1547,10 @@ class XLS :
                         if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                             os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
                         self.compound.ole_path.append(
-                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt")
                         temp = open(
-                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(result)
                         temp.close()
@@ -1561,10 +1561,10 @@ class XLS :
                         if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                             os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
                         self.compound.ole_path.append(
-                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt")
                         temp = open(
-                            self.compound.tmp_path + self.compound.fileName + "_extracted\\" + self.compound.fileName + "_" + str(
+                            self.compound.tmp_path + self.compound.fileName + "_extracted/" + self.compound.fileName + "_" + str(
                                 img_num) + ".txt", 'w', encoding='utf-16')
                         temp.write(section_data)
                         temp.close()

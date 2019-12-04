@@ -748,7 +748,7 @@ class PPT :
                 if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                     os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
-                path = self.compound.filePath + "_extracted\\OLE_Object" + str(counter) + ".bin"
+                path = self.compound.tmp_path + self.compound.fileName + "_extracted\\OLE_Object" + str(counter) + ".bin"
                 self.compound.ole_path.append(path)
                 outfile = open(path, "wb")
                 counter += 1
@@ -1563,7 +1563,7 @@ class PPT :
                 if not (os.path.isdir(self.compound.tmp_path + self.compound.fileName + "_extracted")):
                     os.makedirs(os.path.join(self.compound.tmp_path + self.compound.fileName + "_extracted"))
 
-                path = self.compound.filePath + "_extracted\\OLE_Object" + str(counter) + ".bin"
+                path = self.compound.tmp_path + self.compound.fileName + "_extracted\\OLE_Object" + str(counter) + ".bin"
                 self.compound.ole_path.append(path)
                 outfile = open(path, "wb")
                 counter += 1
