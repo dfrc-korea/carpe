@@ -222,6 +222,20 @@ class PDF:
             if 'Producer' in self.metadata[0]:
                 self.metadata[0]['ProgramName'] = self.metadata[0].pop('Producer')
 
+            supported_key = ['Title', 'Subject', 'Author', 'Tags',
+                             'CreatedTime', 'LastSavedTime', 'ProgramName', 'Creator', 'Trapped']
+
+            for key in supported_key:
+                if key not in self.metadata[0]:
+                    self.metadata[0][key] = 'Unsupported'
+
+            unsupported_key = ['Explanation', 'LastSavedBy', 'Version', 'Date',
+                               'LastPrintedTime', 'Comment', 'RevisionNumber', 'Category',
+                               'Manager', 'Company', 'TotalTime']
+
+            for key in unsupported_key:
+                self.metadata[0][key] = 'Unsupported'
+
     def extract_multimedia(self, save_path=None):
 
         if self.document or self.parse():
