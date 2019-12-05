@@ -61,8 +61,9 @@ class PDFMultimedia:
                             if isinstance(image_stream['Filter'], list):
                                 for filter in image_stream['Filter']:
                                     if filter.name == 'DCTDecode':
-                                        yield ('', filter)
+                                        yield ('', image_stream)
                             else:
+                                print(type(image_stream['Filter']), image_stream)
                                 if image_stream['Filter'].name == 'DCTDecode':
                                     yield ('', image_stream)
 
