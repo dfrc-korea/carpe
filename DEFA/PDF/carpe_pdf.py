@@ -222,14 +222,17 @@ class PDF:
             if 'Producer' in self.metadata[0]:
                 self.metadata[0]['ProgramName'] = self.metadata[0].pop('Producer')
 
-    def extract_multimedia(self):
+    def extract_multimedia(self, save_path=None):
 
         if self.document or self.parse():
             # normal pdf
             count = 0
             pdf_path, pdf_name = os.path.split(self.path)
             for name, stream in PDFMultimedia.get_multimedia(document=self.document):
-                extract = os.path.join(pdf_path, f"{pdf_name}_extracted")
+                if save_path:
+                    extract = os.path.join(save_path, f"{pdf_name}_extracted")
+                else:
+                    extract = os.path.join(pdf_path, f"{pdf_name}_extracted")
                 if not os.path.exists(extract):
                     os.mkdir(extract)
                 if name == '':
@@ -244,7 +247,10 @@ class PDF:
             count = 0
             pdf_path, pdf_name = os.path.split(self.path)
             for name, stream in self.restore_multimedia():
-                extract = os.path.join(pdf_path, f"{pdf_name}_extracted")
+                if save_path:
+                    extract = os.path.join(save_path, f"{pdf_name}_extracted")
+                else:
+                    extract = os.path.join(pdf_path, f"{pdf_name}_extracted")
                 if not os.path.exists(extract):
                     os.mkdir(extract)
                 if name == '':
