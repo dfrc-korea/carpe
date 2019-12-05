@@ -1262,6 +1262,10 @@ class OOXML:
                     self.metadata["RevisionNumber"] = "None"
                     self.metadata["LastPrintedTime"] = "None"
                     self.metadata["Category"] = "None"
+                    self.metadata["Explanation"] = "Unsupported"
+                    self.metadata["Date"] = "Unsupported"
+                    self.metadata["Creator"] = "Unsupported"
+                    self.metadata["Trapped"] = "Unsupported"
                     for content in xmlroot:
                         location = content.tag.find('}')
                         metadata_type = content.tag[location + 1:]
@@ -1358,6 +1362,10 @@ class OOXML:
             self.metadata["revision"] = "None"
             self.metadata["lastPrinted"] = "None"
             self.metadata["category"] = "None"
+            self.metadata["Explanation"] = "Unsupported"
+            self.metadata["Date"] = "Unsupported"
+            self.metadata["Creator"] = "Unsupported"
+            self.metadata["Trapped"] = "Unsupported"
             f = open(self.filename, "rb")
             cal_recovable_count = 0
             f.seek(0, 0)
@@ -1411,6 +1419,10 @@ class OOXML:
                             self.metadata["revision"] = "None"
                             self.metadata["lastPrinted"] = "None"
                             self.metadata["category"] = "None"
+                            self.metadata["Explanation"] = "Unsupported"
+                            self.metadata["Date"] = "Unsupported"
+                            self.metadata["Creator"] = "Unsupported"
+                            self.metadata["Trapped"] = "Unsupported"
 
                             title = "<dc:title>"
                             subject = "<dc:subject>"
