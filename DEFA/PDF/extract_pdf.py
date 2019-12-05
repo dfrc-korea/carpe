@@ -58,8 +58,13 @@ class PDFMultimedia:
                     for (im_ref, xobj) in resources['XObject'].items():
                         image_stream = xobj.resolve()
                         if 'Filter' in image_stream:
-                            if image_stream['Filter'].name == 'DCTDecode':
-                                yield ('', image_stream)
+                            if isinstance(image_stream['Filter'], list):
+                                for filter in image_stream['Filter']:
+                                    if filter.name == 'DCTDecode':
+                                        yield ('', filter)
+                            else:
+                                if image_stream['Filter'].name == 'DCTDecode':
+                                    yield ('', image_stream)
 
                 if 'Annots' in attrs:   # Multimedia (Video, Audio, SWF)
                     annots = resolve1(attrs.get('Annots', dict()))
