@@ -170,13 +170,13 @@ class CARPE_AM:
 		#print(query)
 		data.evdnc_id = evidence[0]
 		data.evdnc_name = evidence[1]
-		evdnc_path = "/data/part3_test/" + evidence[2]
+		evdnc_path = "/home/carpe/defa_temp/" + evidence[2]
 		data.sha1_hash = evidence[11]
 		
 
 		# ole object save path
 		#work_dir = "/home/carpe/tmp/" + self.case_id + "/" + self.evd_id + "/documents"
-		data.work_dir = "/data/part3_test/" + self.case_id + "/" + self.evd_id + "/documents/"
+		data.work_dir = "/home/carpe/defa_temp/" + self.case_id + "/" + self.evd_id + "/documents/"
 		#print(work_dir)
 		# Get document FileList
 		query = "SELECT * FROM file_info WHERE extension in ('pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp') ORDER BY file_id" 
