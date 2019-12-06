@@ -177,6 +177,9 @@ class CARPE_AM:
 		# ole object save path
 		#work_dir = "/home/carpe/tmp/" + self.case_id + "/" + self.evd_id + "/documents"
 		data.work_dir = "/home/carpe/defa_temp/" + self.case_id + "/" + self.evd_id + "/documents/"
+		os.mkdir(data.work_dir)
+		data.ole_path = data.work_dir[:-1] + "_extracted/"
+		os.mkdir(data.ole_path)
 		#print(work_dir)
 		# Get document FileList
 		query = "SELECT * FROM file_info WHERE extension in ('pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp') ORDER BY file_id" 
