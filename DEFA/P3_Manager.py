@@ -41,8 +41,7 @@ class DEFA:
 
         #work_file = file[37]
         data.download_path = file[37]
-        data.ole_path = data.work_dir[:-1] + "_extracted/"
-        print(data.download_path)
+        #print(data.download_path)
         
         if data.ext.lower() in 'pdf':
             #return False
