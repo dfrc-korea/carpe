@@ -21,7 +21,7 @@ from DEFA.Hancom.carpe_hwp import HWP
 class DEFA:
     def documentFilter(self, data, file):
         es = Elasticsearch(hosts="220.73.134.142", port=9200)
-        index_name = 'defa'
+        index_name = 'read'
         type_name = 'document'
         data
         data.name = file[4] # 파일이름
