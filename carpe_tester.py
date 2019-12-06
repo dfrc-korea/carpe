@@ -38,6 +38,7 @@ carpe_am.SysLogAndUserData_Analysis()
 
 #Init_Dummy_Case()
 carpe_am.Analyze_Artifacts(options)
+carpe_am.Analyze_Documents()
 
 """
   c16011ffad0b3a44e78aed17b366023f9c

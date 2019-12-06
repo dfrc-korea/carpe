@@ -88,7 +88,7 @@ class OOXML:
         self.content = ""
         self.metadata = {}
 
-    def parse_ooxml(self):
+    def parse_ooxml(self, tmp_path):
         filetype = ''
         # 확장자 체크
         # 설명: 1: docx, 2: xlsx, 3: pptx
@@ -96,11 +96,11 @@ class OOXML:
         if self.checktype(self.filename) == 'docx':
             filetype = 'docx'
         if self.checktype(self.filename) == 'pptx':
-            filetype = 'xlsx'
-        if self.checktype(self.filename) == 'xlsx':
             filetype = 'pptx'
+        if self.checktype(self.filename) == 'xlsx':
+            filetype = 'xlsx'
 
-        self.parse_main(self.filename, filetype)
+        self.parse_main(self.filename, filetype, tmp_path)
 
     def checktype(self, filename):
         if os.path.splitext(filename)[1] == '.docx':
@@ -436,7 +436,7 @@ class OOXML:
 
         return recovableFlag
 
-    def parse_content(self, filename, filetype, isDamaged):
+    def parse_content(self, filename, filetype, isDamaged, tmp_path):
         lastpart = ""
         content_saved = ""
         signature_three = b'\x4b\x03\x04'
@@ -530,7 +530,7 @@ class OOXML:
                                                     normal_content_data = normal_content_data + d.text
                                                     self.content = self.content + d.text
 
-                self.parse_media(filename, filetype, isDamaged)
+                self.parse_media(filename, filetype, isDamaged, tmp_path)
 
                 return normal_content_data
 
@@ -618,7 +618,7 @@ class OOXML:
                                                     else:
                                                         break
                             i = i+1
-                        self.parse_media(filename, filetype, isDamaged)
+                        self.parse_media(filename, filetype, isDamaged, tmp_path)
                         return only_data
                     else:
                         f1 = open("./outputtest.zip", 'wb')
@@ -667,7 +667,7 @@ class OOXML:
                                                         break
                             i = i + 1
 
-                        self.parse_media(filename, filetype, isDamaged)
+                        self.parse_media(filename, filetype, isDamaged, tmp_path)
                         return only_data
                 except Exception as ex:
                         print(ex)
@@ -689,7 +689,7 @@ class OOXML:
                                 normal_content_data = normal_content_data + str(xlsx_normal_content_data[i][j][k])
 
                 self.content = normal_content_data
-                self.parse_media(filename, filetype, isDamaged)
+                self.parse_media(filename, filetype, isDamaged, tmp_path)
                 return normal_content_data
 
             else:
@@ -878,7 +878,7 @@ class OOXML:
                             temp1 = endingpoint - temp1
 
                 self.content = final_word
-                self.parse_media(filename, filetype, isDamaged)
+                self.parse_media(filename, filetype, isDamaged, tmp_path)
                 return final_word
 
                 if "docProps" not in data_name:
@@ -955,7 +955,7 @@ class OOXML:
                                         normal_content_data = normal_content_data + c.text
                                         self.content = self.content + c.text
 
-                self.parse_media(filename, filetype, isDamaged)
+                self.parse_media(filename, filetype, isDamaged, tmp_path)
 
                 return normal_content_data
            else:
@@ -1102,7 +1102,7 @@ class OOXML:
                                                break
                                    endingpoint = f.tell() - 1
                                    temp1 = endingpoint - temp1
-                   self.parse_media(filename, filetype, isDamaged)
+                   self.parse_media(filename, filetype, isDamaged, tmp_path)
                    return only_data
                else:
                    # 손상일때
@@ -1236,10 +1236,10 @@ class OOXML:
                                                    else:
                                                        break
                            i = i + 1
-                       self.parse_media(filename, filetype, isDamaged)
+                       self.parse_media(filename, filetype, isDamaged, tmp_path)
                        return only_data
                    else:
-                       self.parse_media(filename, filetype, isDamaged)
+                       self.parse_media(filename, filetype, isDamaged, tmp_path)
                        return only_data
 
     def parse_metadata(self, filename, isDamaged):
@@ -1251,28 +1251,121 @@ class OOXML:
                 if 'docProps/core.xml' in a.filename:
                     form = zfile.read(a)
                     xmlroot = ET.fromstring(form)
-                    self.metadata["title"] = "None"
-                    self.metadata["creator"] = "None"
-                    self.metadata["created"] = "None"
-                    self.metadata["modified"] = "None"
+                    self.metadata["Title"] = "None"
+                    self.metadata["Author"] = "None"
+                    self.metadata["LastSavedBy"] = "None"
+                    self.metadata["CreatedTime"] = "None"
+                    self.metadata["LastSavedTime"] = "None"
+                    self.metadata["Subject"] = "None"
+                    self.metadata["Tags"] = "None"
+                    self.metadata["Comment"] = "None"
+                    self.metadata["RevisionNumber"] = "None"
+                    self.metadata["LastPrintedTime"] = "None"
+                    self.metadata["Category"] = "None"
+                    self.metadata["Explanation"] = "Unsupported"
+                    self.metadata["Date"] = "Unsupported"
+                    self.metadata["Creator"] = "Unsupported"
+                    self.metadata["Trapped"] = "Unsupported"
                     for content in xmlroot:
                         location = content.tag.find('}')
                         metadata_type = content.tag[location + 1:]
+                        if metadata_type == 'title' or metadata_type == 'creator' or metadata_type == 'lastModifiedBy' or metadata_type == 'created' or metadata_type == 'modified' or metadata_type == 'subject' or metadata_type == 'keywords' or metadata_type == 'description' or metadata_type == 'revision' or metadata_type == 'lastPrinted'  or metadata_type == 'category':
+                            if (content.text == None):
+                                if metadata_type == "title":
+                                    metadata_type = 'Title'
+                                elif metadata_type == 'creator':
+                                    metadata_type = 'Author'
+                                elif metadata_type == 'lastModifiedBy':
+                                    metadata_type = 'LastSavedBy'
+                                elif metadata_type == 'created':
+                                    metadata_type = 'CreatedTime'
+                                elif metadata_type == 'modified':
+                                    metadata_type = 'LastSavedTime'
+                                elif metadata_type == 'subject':
+                                    metadata_type = 'Subject'
+                                elif metadata_type == 'keywords':
+                                    metadata_type == 'Tags'
+                                elif metadata_type == 'description':
+                                    metadata_type = 'Comment'
+                                elif metadata_type == 'revision':
+                                    metadata_type = 'RevisionNumber'
+                                elif metadata_type == 'lastPrinted':
+                                    metadata_type = 'LastPrintedTime'
+                                elif metadata_type == 'category':
+                                    metadata_type = 'Category'
+                                metadata_value.append(metadata_type + " : None")
+                                self.metadata[metadata_type] = content.text
+                            else:
+                                if metadata_type == "title":
+                                    metadata_type = 'Title'
+                                elif metadata_type == 'creator':
+                                    metadata_type = 'Author'
+                                elif metadata_type == 'lastModifiedBy':
+                                    metadata_type = 'LastSavedBy'
+                                elif metadata_type == 'created':
+                                    metadata_type = 'CreatedTime'
+                                elif metadata_type == 'modified':
+                                    metadata_type = 'LastSavedTime'
+                                elif metadata_type == 'subject':
+                                    metadata_type = 'Subject'
+                                elif metadata_type == 'keywords':
+                                    metadata_type == 'Tags'
+                                elif metadata_type == 'description':
+                                    metadata_type = 'Comment'
+                                elif metadata_type == 'revision':
+                                    metadata_type = 'RevisionNumber'
+                                elif metadata_type == 'lastPrinted':
+                                    metadata_type = 'LastPrintedTime'
+                                elif metadata_type == 'category':
+                                    metadata_type = 'Category'
+                                metadata_value.append(metadata_type + " : " + content.text)
+                                self.metadata[metadata_type] = content.text
 
-                        if (content.text == None):
-                            metadata_value.append(metadata_type + " : None")
-                            self.metadata[metadata_type] = content.text
-                        else:
-                            metadata_value.append(metadata_type + " : " + content.text)
-                            self.metadata[metadata_type] = content.text
-                    return metadata_value
+                elif 'docProps/app.xml' in a.filename:
+                    form = zfile.read(a)
+                    xmlroot = ET.fromstring(form)
+                    self.metadata["Manager"] = "None"
+                    self.metadata["Company"] = "None"
+                    self.metadata["ProgramName"] = "None"
+                    self.metadata["TotalTime"] = "None"
+                    self.metadata["Version"] = "None"
+                    for content in xmlroot:
+                        location = content.tag.find('}')
+                        metadata_type = content.tag[location + 1:]
+                        if metadata_type == 'Manager' or metadata_type == 'Company' or metadata_type == 'Application' or metadata_type == 'TotalTime' or metadata_type == 'AppVersion':
+                            if (content.text == None):
+                                if metadata_type == 'Application':
+                                    metadata_type = 'ProgramName'
+                                elif metadata_type == 'AppVersion':
+                                    metadata_type = 'Version'
+                                metadata_value.append(metadata_type + " : None")
+                                self.metadata[metadata_type] = content.text
+                            else:
+                                if metadata_type == 'Application':
+                                    metadata_type = 'ProgramName'
+                                elif metadata_type == 'AppVersion':
+                                    metadata_type = 'Version'
+                                metadata_value.append(metadata_type + " : " + content.text)
+                                self.metadata[metadata_type] = content.text
+            return metadata_value
 
         else:
             # 손상 시
             self.metadata["title"] = "None"
             self.metadata["creator"] = "None"
+            self.metadata["lastModifiedBy"] = "None"
             self.metadata["created"] = "None"
             self.metadata["modified"] = "None"
+            self.metadata["subject"] = "None"
+            self.metadata["keywords"] = "None"
+            self.metadata["description"] = "None"
+            self.metadata["revision"] = "None"
+            self.metadata["lastPrinted"] = "None"
+            self.metadata["category"] = "None"
+            self.metadata["Explanation"] = "Unsupported"
+            self.metadata["Date"] = "Unsupported"
+            self.metadata["Creator"] = "Unsupported"
+            self.metadata["Trapped"] = "Unsupported"
             f = open(self.filename, "rb")
             cal_recovable_count = 0
             f.seek(0, 0)
@@ -1315,6 +1408,22 @@ class OOXML:
                             f3.close()
 
                             i = 0
+                            self.metadata["title"] = "None"
+                            self.metadata["creator"] = "None"
+                            self.metadata["lastModifiedBy"] = "None"
+                            self.metadata["created"] = "None"
+                            self.metadata["modified"] = "None"
+                            self.metadata["subject"] = "None"
+                            self.metadata["keywords"] = "None"
+                            self.metadata["description"] = "None"
+                            self.metadata["revision"] = "None"
+                            self.metadata["lastPrinted"] = "None"
+                            self.metadata["category"] = "None"
+                            self.metadata["Explanation"] = "Unsupported"
+                            self.metadata["Date"] = "Unsupported"
+                            self.metadata["Creator"] = "Unsupported"
+                            self.metadata["Trapped"] = "Unsupported"
+
                             title = "<dc:title>"
                             subject = "<dc:subject>"
                             creator = "<dc:creator>"
@@ -1324,12 +1433,22 @@ class OOXML:
                             revision = "<cp:revision>"
                             c_time = "<dcterms:created"
                             m_time = "<dcterms:modified"
+                            category = "<cp:category>"
+                            lastprinted = "<cp:lastPrinted>"
 
-                            t_pos = a1.find(title)+1
-                            c_pos = a1.find(creator)+1
-                            c_time_pos = a1.find(c_time)+1
-                            m_time_pos = a1.find(m_time)+1
-                            #print('*******메타데이터파싱*******')
+                            t_pos = a1.find(title) + 1
+                            c_pos = a1.find(creator) + 1
+                            c_time_pos = a1.find(c_time) + 1
+                            m_time_pos = a1.find(m_time) + 1
+                            s_pos = a1.find(subject) + 1
+                            k_pos = a1.find(keywords) + 1
+                            d_pos = a1.find(description) + 1
+                            l_pos = a1.find(lastmodifiedBy) + 1
+                            r_pos = a1.find(revision) + 1
+                            ca_pos = a1.find(category) + 1
+                            la_pos = a1.find(lastprinted) + 1
+
+                            # print('*******메타데이터파싱*******')
                             metadata_count = 0
                             if t_pos is not 0:
                                 metadata_value.append("")
@@ -1337,13 +1456,13 @@ class OOXML:
                                     if a1[c_pos + i + 9] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
-                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[c_pos+i+9]
-                                    self.metadata['title'] = metadata_value[metadata_count]
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[c_pos + i + 9]
+                                    self.metadata['Title'] = metadata_value[metadata_count]
                                     i = i + 1
-                                    if a1[c_pos+i+9] == '<':
+                                    if a1[c_pos + i + 9] == '<':
                                         break
                                 metadata_count = metadata_count + 1
-                                i=0
+                                i = 0
 
                             if c_pos is not 0:
                                 metadata_value.append("")
@@ -1351,13 +1470,13 @@ class OOXML:
                                     if a1[c_pos + i + 11] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
-                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[c_pos+i+11]
-                                    self.metadata['creator'] = metadata_value[metadata_count]
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[c_pos + i + 11]
+                                    self.metadata['Author'] = metadata_value[metadata_count]
                                     i = i + 1
-                                    if a1[c_pos+i+11] == '<':
+                                    if a1[c_pos + i + 11] == '<':
                                         break
                                 metadata_count = metadata_count + 1
-                                i=0
+                                i = 0
 
                             if c_time_pos is not 0:
                                 metadata_value.append("")
@@ -1365,14 +1484,15 @@ class OOXML:
                                     if a1[c_time_pos + i + 42] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
-                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[c_time_pos+i+42]
-                                    #self.metadata['created'] = metadata_value[1]
-                                    self.metadata['created'] = metadata_value[metadata_count]
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
+                                        c_time_pos + i + 42]
+                                    # self.metadata['created'] = metadata_value[1]
+                                    self.metadata['CreatedTime'] = metadata_value[metadata_count]
                                     i = i + 1
-                                    if a1[c_time_pos+i+42] == '<':
+                                    if a1[c_time_pos + i + 42] == '<':
                                         break
                                 metadata_count = metadata_count + 1
-                                i=0
+                                i = 0
 
                             if m_time_pos is not 0:
                                 metadata_value.append("")
@@ -1380,17 +1500,211 @@ class OOXML:
                                     if a1[m_time_pos + i + 43] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
-                                    metadata_value[metadata_count] = metadata_value[metadata_count]+a1[m_time_pos+i+43]
-                                    self.metadata['modified'] = metadata_value[metadata_count]
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
+                                        m_time_pos + i + 43]
+                                    self.metadata['LastSavedTime'] = metadata_value[metadata_count]
                                     i = i + 1
-                                    if a1[m_time_pos+i+43] == '<':
+                                    if a1[m_time_pos + i + 43] == '<':
+                                        break
+
+                            if s_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[s_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[s_pos + i + 43]
+                                    self.metadata['Subject'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[s_pos + i + 43] == '<':
+                                        break
+                            if k_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[s_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[k_pos + i + 43]
+                                    self.metadata['Tags'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[k_pos + i + 43] == '<':
+                                        break
+                            if d_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[d_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[d_pos + i + 43]
+                                    self.metadata['Comment'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[d_pos + i + 43] == '<':
+                                        break
+                            if l_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[l_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[l_pos + i + 43]
+                                    self.metadata['LastSavedBy'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[l_pos + i + 43] == '<':
+                                        break
+                            if r_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[r_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[r_pos + i + 43]
+                                    self.metadata['RevisionNumber'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[r_pos + i + 43] == '<':
+                                        break
+                            if ca_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[ca_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[ca_pos + i + 43]
+                                    self.metadata['Category'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[ca_pos + i + 43] == '<':
+                                        break
+                            if la_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[la_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[la_pos + i + 43]
+                                    self.metadata['LastPrintedTime'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[la_pos + i + 43] == '<':
+                                        break
+                            return metadata_value
+
+                        elif data_name == "docProps/app.xml":
+                            content_saved = f.read(data_length)
+
+                            f1 = open("./outputtest.zip", 'wb')
+                            f1.write(b'\x78\x9C')
+                            f1.write(content_saved)
+                            f1.close()
+
+                            fz = open("./outputtest.zip", 'rb')
+                            d = fz.read()
+                            fz.close()
+
+                            zobj = zlib.decompressobj()
+                            real_data = zobj.decompress(d)
+
+                            f2 = open("./test.xml", 'wb')
+                            f2.write(real_data)
+                            f2.close()
+
+                            f3 = open("./test.xml", 'r', encoding='utf-8')
+                            a1 = f3.read()
+                            f3.close()
+
+                            i = 0
+                            self.metadata["Manager"] = "None"
+                            self.metadata["Company"] = "None"
+                            self.metadata["Application"] = "None"
+                            self.metadata["TotalTime"] = "None"
+                            self.metadata["AppVersion"] = "None"
+
+                            manager = "<Manager>"
+                            company = "<Company>"
+                            application = "<Application>"
+                            totaltime = "<TotalTime>"
+                            appversion = "<AppVersion>"
+
+                            m_pos = a1.find(manager) + 1
+                            c_pos = a1.find(company) + 1
+                            a_pos = a1.find(application) + 1
+                            t_pos = a1.find(totaltime) + 1
+                            ap_pos = a1.find(appversion) + 1
+
+                            # print('*******메타데이터파싱*******')
+                            metadata_count = 0
+                            if m_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[m_pos + i + 9] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[m_pos + i + 9]
+                                    self.metadata['Manager'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[m_pos + i + 9] == '<':
+                                        break
+                                metadata_count = metadata_count + 1
+                                i = 0
+
+                            if c_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[c_pos + i + 11] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[c_pos + i + 11]
+                                    self.metadata['Company'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[c_pos + i + 11] == '<':
+                                        break
+                                metadata_count = metadata_count + 1
+                                i = 0
+
+                            if a_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[a_pos + i + 42] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
+                                        a_pos + i + 42]
+                                    # self.metadata['created'] = metadata_value[1]
+                                    self.metadata['ProgramName'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[a_pos + i + 42] == '<':
+                                        break
+                                metadata_count = metadata_count + 1
+                                i = 0
+
+                            if t_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[t_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[
+                                        t_pos + i + 43]
+                                    self.metadata['TotalTime'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[t_pos + i + 43] == '<':
+                                        break
+
+                            if ap_pos is not 0:
+                                metadata_value.append("")
+                                while True:
+                                    if a1[ap_pos + i + 43] == '<':
+                                        metadata_value[metadata_count] = metadata_value[metadata_count] + ''
+                                        break
+                                    metadata_value[metadata_count] = metadata_value[metadata_count] + a1[ap_pos + i + 43]
+                                    self.metadata['Version'] = metadata_value[metadata_count]
+                                    i = i + 1
+                                    if a1[ap_pos + i + 43] == '<':
                                         break
 
                             return metadata_value
 
-    def parse_media(self, filename, filetype, isDamaged):
+    def parse_media(self, filename, filetype, isDamaged, tmp_path):
         signature_last_three = b'\x4b\x03\x04'
 
+        extracted_filename = tmp_path+os.path.split(filename)[1]
         # 정상일 경우
         if isDamaged == False:
             if filetype == 'docx':
@@ -1402,14 +1716,14 @@ class OOXML:
                     if 'media' in a.filename:
                         self.has_ole = True
                         filelists = os.listdir('./test/word/media')
-                        if (os.path.isdir(filename + '_extracted')):
-                            shutil.rmtree(filename + '_extracted')
-                            os.mkdir(filename + '_extracted')
+                        if (os.path.isdir(extracted_filename + '_extracted')):
+                            shutil.rmtree(extracted_filename + '_extracted')
+                            os.mkdir(extracted_filename + '_extracted')
                         else:
-                            os.mkdir(filename + '_extracted')
+                            os.mkdir(extracted_filename + '_extracted')
                         for a in filelists:
                             full_filename = os.path.join('./test/word/media/', a)
-                            copyfile(full_filename, filename + '_extracted'+"/"+a)
+                            copyfile(full_filename, extracted_filename + '_extracted'+"/"+a)
                         break
 
                 #embedding file extraction
@@ -1417,12 +1731,12 @@ class OOXML:
                     if 'embeddings' in a.filename:
                         self.has_ole = True
                         filelists = os.listdir('./test/word/embeddings')
-                        if not (os.path.isdir(filename + '_extracted')):
-                            os.mkdir(filename + '_extracted')
+                        if not (os.path.isdir(extracted_filename + '_extracted')):
+                            os.mkdir(extracted_filename + '_extracted')
 
                         for a in filelists:
                             full_filename = os.path.join('./test/word/embeddings/', a)
-                            copyfile(full_filename, filename + '_extracted'+"/"+a)
+                            copyfile(full_filename, extracted_filename + '_extracted'+"/"+a)
 
                             # 엑셀인 경우에 hidden 없애줘야한다
 
@@ -1450,23 +1764,23 @@ class OOXML:
                                                         aaa = fembedd.read()
                                                         fembedd.close()
                                                         break
-                                        fembedd2 = open(filename + '_extracted' + '/' + data[6:count_data_name].decode(), 'wb')
+                                        fembedd2 = open(extracted_filename+ '_extracted' + '/' + data[6:count_data_name].decode(), 'wb')
                                         fembedd2.write(aaa)
-                                        os.remove(filename + '_extracted' + '/' + a)
+                                        os.remove(extracted_filename + '_extracted' + '/' + a)
                                         fembedd2.close()
                                     elif 'Hwp' in ole_list[0]:
-                                        filename_hwp = os.path.splitext(filename + '_extracted'+"/"+a)
-                                        os.rename(filename + '_extracted'+"/"+a, filename_hwp[0] + '.hwp')
+                                        filename_hwp = os.path.splitext(extracted_filename + '_extracted'+"/"+a)
+                                        os.rename(extracted_filename + '_extracted'+"/"+a, filename_hwp[0] + '.hwp')
                                     elif ole_list[0] == 'CONTENTS':
                                         stream = ole.openstream('CONTENTS')
                                         data = stream.read()
-                                        fembedd2 = open(filename + '_extracted' + '/' + a + '.pdf', 'wb')
+                                        fembedd2 = open(extracted_filename + '_extracted' + '/' + a + '.pdf', 'wb')
                                         fembedd2.write(data)
-                                        os.remove(filename + '_extracted' + '/' + a)
+                                        os.remove(extracted_filename + '_extracted' + '/' + a)
                                         fembedd2.close()
                         break
 
-                for (path, dir, files) in os.walk(filename+'_extracted/'):
+                for (path, dir, files) in os.walk(extracted_filename+'_extracted/'):
                     for fname in files:
                         self.ole_path.append(os.path.join(path, fname))
 
@@ -1479,25 +1793,25 @@ class OOXML:
                     if 'media' in a.filename:
                         self.has_ole = True
                         filelists = os.listdir('./test/xl/media')
-                        if (os.path.isdir(filename + '_extracted')):
-                            shutil.rmtree(filename + '_extracted')
-                            os.mkdir(filename + '_extracted')
+                        if (os.path.isdir(extracted_filename + '_extracted')):
+                            shutil.rmtree(extracted_filename + '_extracted')
+                            os.mkdir(extracted_filename + '_extracted')
                         else:
-                            os.mkdir(filename + '_extracted')
+                            os.mkdir(extracted_filename + '_extracted')
                         for a in filelists:
                             full_filename = os.path.join('./test/xl/media/', a)
-                            copyfile(full_filename, filename + '_extracted'+"/"+a)
+                            copyfile(full_filename, extracted_filename + '_extracted'+"/"+a)
                         break
                 #embedding file extraction
                 for a in fantasy_zip.filelist:
                     if 'embeddings' in a.filename:
                         self.has_ole = True
                         filelists = os.listdir('./test/xl/embeddings')
-                        if not (os.path.isdir(filename + '_extracted')):
-                            os.mkdir(filename + '_extracted')
+                        if not (os.path.isdir(extracted_filename + '_extracted')):
+                            os.mkdir(extracted_filename + '_extracted')
                         for a in filelists:
                             full_filename = os.path.join('./test/xl/embeddings/', a)
-                            copyfile(full_filename, filename + '_extracted'+"/"+a)
+                            copyfile(full_filename, extracted_filename + '_extracted'+"/"+a)
                             if a[0] == 'o':
                                 ole = olefile.OleFileIO(full_filename)
                                 for ole_list in ole.listdir():
@@ -1531,22 +1845,22 @@ class OOXML:
                                                         aaa = fembedd.read()
                                                         fembedd.close()
                                                         break
-                                        fembedd2 = open(filename + '_extracted' + '/' + data[6:count_data_name].decode(), 'wb')
+                                        fembedd2 = open(extracted_filename + '_extracted' + '/' + data[6:count_data_name].decode(), 'wb')
                                         fembedd2.write(aaa)
-                                        os.remove(filename + '_extracted' + '/' + a)
+                                        os.remove(extracted_filename + '_extracted' + '/' + a)
                                         fembedd2.close()
                                     elif 'Hwp' in ole_list[0]:
-                                        filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
-                                        os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.hwp')
+                                        filename_hwp = os.path.splitext(extracted_filename + '_extracted' + "/" + a)
+                                        os.rename(extracted_filename + '_extracted' + "/" + a, filename_hwp[0] + '.hwp')
                                     elif ole_list[0] == 'CONTENTS':
                                         stream = ole.openstream('CONTENTS')
                                         data = stream.read()
-                                        fembedd2 = open(filename + '_extracted' + '/' + a + '.pdf', 'wb')
+                                        fembedd2 = open(extracted_filename + '_extracted' + '/' + a + '.pdf', 'wb')
                                         fembedd2.write(data)
-                                        os.remove(filename + '_extracted' + '/' + a)
+                                        os.remove(extracted_filename + '_extracted' + '/' + a)
                                         fembedd2.close()
                         break
-                for (path, dir, files) in os.walk(filename+'_extracted/'):
+                for (path, dir, files) in os.walk(extracted_filename+'_extracted/'):
                     for fname in files:
                         self.ole_path.append(os.path.join(path, fname))
 
@@ -1560,26 +1874,26 @@ class OOXML:
                     if 'media' in a.filename:
                         self.has_ole = True
                         filelists = os.listdir('./test/ppt/media')
-                        if (os.path.isdir(filename + '_extracted')):
-                            shutil.rmtree(filename + '_extracted')
-                            os.mkdir(filename + '_extracted')
+                        if (os.path.isdir(extracted_filename + '_extracted')):
+                            shutil.rmtree(extracted_filename + '_extracted')
+                            os.mkdir(extracted_filename + '_extracted')
                         else:
-                            os.mkdir(filename + '_extracted')
+                            os.mkdir(extracted_filename + '_extracted')
                         for a in filelists:
                             full_filename = os.path.join('./test/ppt/media/', a)
-                            copyfile(full_filename, filename + '_extracted'+"/"+a)
+                            copyfile(full_filename, extracted_filename + '_extracted'+"/"+a)
                         break
 
                 # embedding file extraction
                 for a in fantasy_zip.filelist:
                     if 'embeddings' in a.filename:
                         filelists = os.listdir('./test/ppt/embeddings')
-                        if not (os.path.isdir(filename + '_extracted')):
-                            os.mkdir(filename + '_extracted')
+                        if not (os.path.isdir(extracted_filename + '_extracted')):
+                            os.mkdir(extracted_filename + '_extracted')
 
                         for a in filelists:
                             full_filename = os.path.join('./test/ppt/embeddings/', a)
-                            copyfile(full_filename, filename + '_extracted' + "/" + a)
+                            copyfile(full_filename, extracted_filename + '_extracted' + "/" + a)
                             if a[0] == 'o':
                                 self.has_ole = True
                                 ole = olefile.OleFileIO(full_filename)
@@ -1588,62 +1902,62 @@ class OOXML:
                                         stream = ole.openstream('Package')
                                         data = stream.read()
                                         if 'word' in str(data):
-                                            fembedd2 = open(filename + '_extracted' + '/' + a + '.docx', 'wb')
-                                            os.remove(filename + '_extracted' + '/' + a)
+                                            fembedd2 = open(extracted_filename + '_extracted' + '/' + a + '.docx', 'wb')
+                                            os.remove(extracted_filename + '_extracted' + '/' + a)
                                             fembedd2.write(data)
                                             fembedd2.close()
                                         elif 'ppt' in str(data):
-                                            fembedd2 = open(filename + '_extracted' + '/' + a + '.pptx', 'wb')
-                                            os.remove(filename + '_extracted' + '/' + a)
+                                            fembedd2 = open(extracted_filename + '_extracted' + '/' + a + '.pptx', 'wb')
+                                            os.remove(extracted_filename + '_extracted' + '/' + a)
                                             fembedd2.write(data)
                                             fembedd2.close()
                                         elif 'workbook' in str(data):
-                                            fembedd2 = open(filename + '_extracted' + '/' + a + '.xlsx', 'wb')
-                                            os.remove(filename + '_extracted' + '/' + a)
+                                            fembedd2 = open(extracted_filename + '_extracted' + '/' + a + '.xlsx', 'wb')
+                                            os.remove(extracted_filename + '_extracted' + '/' + a)
                                             fembedd2.write(data)
                                             fembedd2.close()
 
                                     elif 'Hwp' in temp_list[0]:
-                                        filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
-                                        os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.hwp')
+                                        filename_hwp = os.path.splitext(extracted_filename + '_extracted' + "/" + a)
+                                        os.rename(extracted_filename + '_extracted' + "/" + a, filename_hwp[0] + '.hwp')
                                         break
 
                                     elif '1Table' in temp_list[0]:
-                                        filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
-                                        os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.doc')
+                                        filename_hwp = os.path.splitext(extracted_filename + '_extracted' + "/" + a)
+                                        os.rename(extracted_filename + '_extracted' + "/" + a, filename_hwp[0] + '.doc')
                                         break
 
                                     elif 'Workbook' in temp_list[0]:
-                                        filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
-                                        os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.xls')
+                                        filename_hwp = os.path.splitext(extracted_filename + '_extracted' + "/" + a)
+                                        os.rename(extracted_filename + '_extracted' + "/" + a, filename_hwp[0] + '.xls')
                                         break
 
                                     elif 'Pictures' in temp_list[0]:
-                                        filename_hwp = os.path.splitext(filename + '_extracted' + "/" + a)
-                                        os.rename(filename + '_extracted' + "/" + a, filename_hwp[0] + '.ppt')
+                                        filename_hwp = os.path.splitext(extracted_filename + '_extracted' + "/" + a)
+                                        os.rename(extracted_filename + '_extracted' + "/" + a, filename_hwp[0] + '.ppt')
                                         break
 
                                     elif temp_list[0] == 'CONTENTS':
                                         stream = ole.openstream('CONTENTS')
                                         data = stream.read()
-                                        fembedd2 = open(filename + '_extracted' + '/' + a + '.pdf', 'wb')
+                                        fembedd2 = open(extracted_filename + '_extracted' + '/' + a + '.pdf', 'wb')
                                         fembedd2.write(data)
-                                        os.remove(filename + '_extracted' + '/' + a)
+                                        os.remove(extracted_filename + '_extracted' + '/' + a)
                                         fembedd2.close()
                         ole.close()
                         break
-                for (path, dir, files) in os.walk(filename+'_extracted/'):
+                for (path, dir, files) in os.walk(extracted_filename+'_extracted/'):
                     for fname in files:
                         self.ole_path.append(os.path.join(path, fname))
 
         #손상일때
         else:
-            if (os.path.isdir(filename + '_extracted')):
-                shutil.rmtree(filename + '_extracted')
-                os.mkdir(filename + '_extracted')
+            if (os.path.isdir(extracted_filename + '_extracted')):
+                shutil.rmtree(extracted_filename + '_extracted')
+                os.mkdir(extracted_filename + '_extracted')
             else:
-                os.mkdir(filename + '_extracted')
-            with open(filename, 'rb') as f:
+                os.mkdir(extracted_filename + '_extracted')
+            with open(extracted_filename, 'rb') as f:
                 notEnd = True
                 while notEnd:
                     try:
@@ -1654,10 +1968,10 @@ class OOXML:
                             #print(os.path.basename(hd.name.decode('utf-8')))
                             image_file = os.path.basename(hd.name.decode('utf-8'))
                             if image_file[0] != 'o':
-                                new_file = open(filename + '_extracted/' + image_file, 'wb')
+                                new_file = open(extracted_filename + '_extracted/' + image_file, 'wb')
                                 new_file.write(comps)
                             else:
-                                new_file = open(filename + '_extracted/' + image_file, 'wb')
+                                new_file = open(extracted_filename + '_extracted/' + image_file, 'wb')
                                 hd.writeHeader(new_file)
                                 new_file.write(comps)
                             new_file.flush()
@@ -1665,11 +1979,11 @@ class OOXML:
                         break
 
 
-            for (path, dir, files) in os.walk(filename + '_extracted/'):
+            for (path, dir, files) in os.walk(extracted_filename + '_extracted/'):
                 for fname in files:
                     self.ole_path.append(os.path.join(path, fname))
 
-    def parse_main(self, filename, filetype):
+    def parse_main(self, filename, filetype, tmp_path):
 
         content_data = ''
         metadata_data = ''
@@ -1683,7 +1997,7 @@ class OOXML:
             # 정상일때
         if damaged_flag == False:
             # 본문 파싱
-            content_data = self.parse_content(filename, filetype, damaged_flag)
+            content_data = self.parse_content(filename, filetype, damaged_flag, tmp_path)
             # 메타데이터 파싱
             metadata_data = self.parse_metadata(filename, damaged_flag)
 
@@ -1711,8 +2025,20 @@ class OOXML:
             if metadata_recoverable_flag == False:
                 self.metadata["title"] = "None"
                 self.metadata["creator"] = "None"
+                self.metadata["lastModifiedBy"] = "None"
                 self.metadata["created"] = "None"
                 self.metadata["modified"] = "None"
+                self.metadata["subject"] = "None"
+                self.metadata["keywords"] = "None"
+                self.metadata["description"] = "None"
+                self.metadata["revision"] = "None"
+                self.metadata["lastPrinted"] = "None"
+                self.metadata["category"] = "None"
+                self.metadata["Manager"] = "None"
+                self.metadata["Company"] = "None"
+                self.metadata["Application"] = "None"
+                self.metadata["TotalTime"] = "None"
+                self.metadata["AppVersion"] = "None"
         # 복구 불가
         else:
             # 메타데이터 복구 가능 여부 확인
