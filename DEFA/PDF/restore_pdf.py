@@ -13,6 +13,7 @@ from pdfminer.pdfinterp import *
 from pdfminer.pdftypes import *
 from pdfminer.pdffont import PDFUnicodeNotDefined
 from pdfminer.cmapdb import CMapParser, FileUnicodeMap
+from pdfminer.psparser import STRICT
 from error import CMAPNotFoundError
 import logger
 
@@ -31,7 +32,7 @@ class XRefFallback(PDFXRefFallback):
             except PSEOF:
                 break
 
-            line = line.decode('latin-1')  # default pdf encoding
+            # line = line.decode('latin-1')  # default pdf encoding
 
             m = self.PDFOBJ_CUE.match(line)
 
@@ -56,7 +57,7 @@ class XRefFallback(PDFXRefFallback):
                 try:
                     n = stream['N']
                 except KeyError:
-                    if settings.STRICT:
+                    if STRICT:
                         raise PDFSyntaxError('N is not defined: %r' % stream)
                     n = 0
                 parser1 = PDFStreamParser(stream.get_data())
@@ -176,6 +177,27 @@ class PDFRestore:
             # Not Found Metadata Object
             return False
         return True
+
+    def find_multimedia(self):
+        restore_pdf_log.debug("Called find_multimedia()")
+        for objid, pos in self.xref.offsets.items():
+            if not pos[0]:
+                self.parser.seek(pos[1])
+                self.parser.nextline()
+                try:
+                    (pos, obj) = self.parser.nextobject()
+                except PSEOF:
+                    return ('', None)
+                # Multimedia
+                if isinstance(obj, PDFStream) and obj.get('Type'):
+                    if obj.get('Type').name == 'XObject':
+                        yield ('', obj)
+
+                if isinstance(obj, dict) and obj.get('EF'):
+                    for media_ref, media_obj in obj['EF'].items():
+                        filename = obj[media_ref].decode('ascii')
+                        media_stream = media_obj.resolve()
+                        yield (filename, media_stream)
 
 
 class PDFPageStream:

@@ -4,6 +4,7 @@ import os, sys, subprocess
 import uuid
 
 from utility import carpe_db
+from utility import carpe_file_extractor
 from image_analyzer import split_disk
 from image_analyzer import scan_disk
 from filesystem_analyzer import carpe_fs_analyzer
@@ -12,8 +13,9 @@ from artifact_analyzer import artifact_analyzer
 from Carving.plugin_carving import CarvingManager
 from moduleInterface.interface import ModuleComponentInterface
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(os.path.dirname('__file__')), 'READ')))
-from READ import P3_Manager
+#sys.path.append(os.path.join(os.path.dirname(os.path.abspath(os.path.dirname('__file__')), 'READ')))
+from DEFA import P3_Manager
+from DEFA import MappingDocuments
 
 # Debuggin Module
 import pdb
@@ -146,20 +148,58 @@ class CARPE_AM:
 		analyzer.Analyze()
 
 	def Analyze_Documents(self):
+		# connect Carpe Database
 		db = carpe_db.Mariadb()
 		db.open()
-		
-		query = "SELECT name, file_id FROM file_info WHERE type IN('pdf, doc, docx, xls, xlsx, ppt, pptx, hwp') ORDER BY file_id " 
-		document_files = db.execute_query_mul(query)
-		db.close()
-		
-		p3_filePath = "/data/samples/"
 
-		doc = P3_Manager.IITP3()
-		doc.run_daemon()
+		data = MappingDocuments.MappingDocuments()
+		
+		# Get Case Information
+		# query = "SELECT * FROM case_info where administrator = 'jung byeongchan'"
+		# case = db.execute_query(query)
+		
+		data.case_id = self.case_id
+		query = "SELECT case_name FROM case_info where case_id ='%s';" % self.case_id
+		case = db.execute_query(query)
+		#print(query)
+		data.case_name = case[0]
+		#print(case)
+		# Get Evidence Information
+		query = "SELECT * FROM evidence_info where case_id='" + self.case_id + "' and evd_id='" + self.evd_id +"';"
+		evidence = db.execute_query(query)
+		#print(query)
+		data.evdnc_id = evidence[0]
+		data.evdnc_name = evidence[1]
+		evdnc_path = "/data/part3_test/" + evidence[2]
+		data.sha1_hash = evidence[11]
+		
+
+		# ole object save path
+		#work_dir = "/home/carpe/tmp/" + self.case_id + "/" + self.evd_id + "/documents"
+		data.work_dir = "/data/part3_test/" + self.case_id + "/" + self.evd_id + "/documents/"
+		#print(work_dir)
+		# Get document FileList
+		query = "SELECT * FROM file_info WHERE extension in ('pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp') ORDER BY file_id" 
+		document_files = db.execute_query_mul(query)
+		#print(document_files)
+		file_list = [list(doc) for doc in document_files]
+		
+		tuple = []
+		tuple_list = []
+		for idx in range(len(file_list)):
+			file_list[idx].append(data.work_dir+file_list[idx][4])
+			tuple = [file_list[idx][4], file_list[idx][1]]
+			tuple_list.append(tuple)
+		
 		fileExpoter = carpe_file_extractor.Carpe_File_Extractor()
-		fileExpoter.setConfig(self.path, document_files)
+		#fileExpoter.setConfig(work_dir, '/data/share/source/carpe/examples/test_img/[NTFS]_win1064_1.001', tuple_list)
+		fileExpoter.setConfig(data.work_dir, evdnc_path, tuple_list)
+		
 		fileExpoter.extract()
+		
+		P3_Manager.run_daemon(data, file_list)
+		
+		db.close()
 
 	def Carving(self, option):
 		db = carpe_db.Mariadb()
