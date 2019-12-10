@@ -38,7 +38,9 @@ class HWP:
             self.fileType = os.path.splitext(filePath)[1][1:]
 
             self.has_metadata = False
-            self.metaList = []
+            self.metaList = {'Title': "", 'Subject': "", 'Author': "", 'Tags':"", 'Explanation': "", 'LastSavedBy': "",'Version': "", 'Date': "",\
+        'LastPrintedTime': "", 'CreatedTime': "",'LastSavedTime': "", 'Comment': "", 'RevisionNumber': "", 'Category': "", 'Manager': "",\
+        'Company': "", 'ProgramName': "", 'TotalTime': "", 'Creator': "", 'Trapped': ""}
 
             self.has_content = False
             self.content = ""
@@ -75,7 +77,7 @@ class HWP:
             self.isEncrypted = None
             self.isCompressed = None
 
-    def parse(self):
+    def parse(self, ole_path):
 
         if self.fp is None:
             return False
@@ -89,6 +91,9 @@ class HWP:
             if not self.isEncrypted:
                 #self.parseDocInfo()
                 self.parseContents()
+                self.ole_path = ole_path
+                if not os.path.exists(self.ole_path):
+                    os.mkdir(self.ole_path)
                 self.parseMultimedia()
 
                 # Null 처리 해야함
@@ -123,8 +128,7 @@ class HWP:
 
     def parseSummaryInfo(self, fpSummary):
         records = []
-        meta = {'title': "", 'subject': "", 'author': "", 'keyword': "", 'explanation': "", 'lastSavedBy': "",'version': "", 'lastPrintedTime': "", 'createTime': "",'lastSavedTime': "",'date': ""}
-
+		
         metaNum = 0
         startOffset = struct.unpack('<i', fpSummary[0x2C: 0x30])[0]
         tempOffset = startOffset
@@ -144,112 +148,152 @@ class HWP:
                 recordStartOffset = startOffset + record['offset']
                 entryLength = struct.unpack('<i', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
                 if entryLength > 1:
-                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
-                        tempData = entryData.decode('utf-16')[0:-1]
-                        tempData = tempData.replace('\r\n', "")
-                        meta['title'] = tempData
+                        if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metaList['Title'] = tempData
                         metaNum += 1
                     except:
-                        meta['title'] = ''
+                        self.metaList['Title'] = ''
 
             # 2. Subject
             elif record['type'] is 0x03:
                 recordStartOffset = startOffset + record['offset']
                 entryLength = struct.unpack('<i', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
                 if entryLength > 1:
-                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
-                        tempData = entryData.decode('utf-16')[0:-1]
-                        tempData = tempData.replace('\r\n', "")
-                        meta['subject'] = tempData
+                        if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metaList['Subject'] = tempData
                         metaNum += 1
                     except:
-                        meta['subject'] = ''
+                        self.metaList['Subject'] = ''
 
             # 3. Author
             elif record['type'] is 0x04:
                 recordStartOffset = startOffset + record['offset']
                 entryLength = struct.unpack('<i', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
                 if entryLength > 1:
-                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
-                        tempData = entryData.decode('utf-16')[0:-1]
-                        tempData = tempData.replace('\r\n', "")
-                        meta['author'] = tempData
+                        if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metaList['Author'] = tempData
                         metaNum += 1
                     except:
-                        meta['author'] = ''
+                        self.metaList['Author'] = ''
 
             # 4. Keyword
             elif record['type'] is 0x05:
                 recordStartOffset = startOffset + record['offset']
                 entryLength = struct.unpack('<i', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
                 if entryLength > 1:
-                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
-                        tempData = entryData.decode('utf-16')[0:-1]
-                        tempData = tempData.replace('\r\n', "")
-                        meta['keyword'] = tempData
+                        if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metaList['Tags'] = tempData
                         metaNum += 1
                     except:
-                        meta['keyword'] = ''
+                        self.metaList['Tags'] = ''
 
             # 5. explanation
             elif record['type'] is 0x06:
                 recordStartOffset = startOffset + record['offset']
                 entryLength = struct.unpack('<i', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
                 if entryLength > 1:
-                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
-                        tempData = entryData.decode('utf-16')[0:-1]
-                        tempData = tempData.replace('\r\n', "")
-                        meta['explanation'] = tempData
+                        if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metaList['Explanation'] = tempData
                         metaNum += 1
                     except:
-                        meta['explanation'] = ''
+                        self.metaList['Explanation'] = ''
 
             # 6. LastSaveBy
             elif record['type'] is 0x08:
                 recordStartOffset = startOffset + record['offset']
                 entryLength = struct.unpack('<i', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
                 if entryLength > 1:
-                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
-                        tempData = entryData.decode('utf-16')[0:-1]
-                        tempData = tempData.replace('\r\n', "")
-                        meta['lastSavedBy'] = tempData
+                        if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metaList['lastSavedBy'] = tempData
                         metaNum += 1
                     except:
-                        meta['lastSavedBy'] = ''
+                        self.metaList['LastSavedBy'] = ''
 
             # 7. Version
             elif record['type'] is 0x09:
                 recordStartOffset = startOffset + record['offset']
                 entryLength = struct.unpack('<i', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
                 if entryLength > 1:
-                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
-                        tempData = entryData.decode('utf-16')[0:-1]
-                        tempData = tempData.replace('\r\n', "")
-                        meta['version'] = tempData
+                        if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metaList['Version'] = tempData
                         metaNum += 1
                     except:
-                        meta['version'] = ''
+                        self.metaList['Version'] = ''
 
             # 8. Date
             elif record['type'] is 0x14:
                 recordStartOffset = startOffset + record['offset']
                 entryLength = struct.unpack('<i', fpSummary[recordStartOffset + 4: recordStartOffset + 8])[0]
                 if entryLength > 1:
-                    entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
                     try:
-                        tempData = entryData.decode('utf-16')[0:-1]
-                        tempData = tempData.replace('\r\n', "")
-                        meta['date'] = tempData
+                        if entryType == 0x1E:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength)]
+                            tempData = entryData.decode('euc-kr')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        elif entryType == 0x1F:
+                            entryData = fpSummary[recordStartOffset + 8: recordStartOffset + 8 + (entryLength * 2)]
+                            tempData = entryData.decode('utf-16')[0:-1]
+                            tempData = tempData.replace('\r\n', "")
+                        self.metaList['Date'] = tempData
                         metaNum += 1
                     except:
-                        meta['date'] = ''
+                        self.metaList['Date'] = ''
 
             # 9. LastPrintedTime
             elif record['type'] is 0x0B:
@@ -258,10 +302,10 @@ class HWP:
                 if entryTimeData > 0.0:
                     try:
                         tempTime = datetime.datetime.utcfromtimestamp((entryTimeData - 116444736000000000) / 10000000) + datetime.timedelta(hours=9)
-                        meta['lastPrintedTime'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
+                        self.metaList['LastPrintedTime'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
                         metaNum += 1
                     except:
-                        meta['lastPrintedTime'] = ''
+                        self.metaList['LastPrintedTime'] = ''
 
             # 10. CreateTime
             elif record['type'] is 0x0C:
@@ -270,10 +314,10 @@ class HWP:
                 if entryTimeData > 0.0:
                     try:
                         tempTime = datetime.datetime.utcfromtimestamp((entryTimeData - 116444736000000000) / 10000000) + datetime.timedelta(hours=9)
-                        meta['createTime'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
+                        self.metaList['CreatedTime'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
                         metaNum += 1
                     except:
-                        meta['createTime'] = ''
+                        self.metaList['CreatedTime'] = ''
 
             # 11. LastSaveTime
             elif record['type'] is 0x0D:
@@ -282,15 +326,15 @@ class HWP:
                 if entryTimeData > 0.0:
                     try:
                         tempTime = datetime.datetime.utcfromtimestamp((entryTimeData - 116444736000000000) / 10000000) + datetime.timedelta(hours=9)
-                        meta['lastSavedTime'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
+                        self.metaList['LastSavedTime'] = tempTime.strftime('%Y-%m-%d %H:%M:%S.%f')
                         metaNum += 1
                     except:
-                        meta['lastSavedTime'] = ''
+                        self.metaList['LastSavedTime'] = ''
 
         if metaNum > 0:
             self.has_metadata = True
-            self.metaList.append(meta)
-            return True
+            
+        return True
 
 
     def parseContents(self):
@@ -329,7 +373,7 @@ class HWP:
             ext = name[1][-4:].lower()
             name = name[1]
             #global path로 변경하면 된다.
-            path = './output/'+name
+            path = self.ole_path+"/"+name
 
 
             if ext == '.jpg' or ext == '.png' or ext == '.gif':

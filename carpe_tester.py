@@ -6,44 +6,44 @@ import threading
 import json
 import uuid
 
+from datetime import datetime
 import carpe_am_module
+
 # Debugging Module
 import pdb
-
-def Init_Dummy_Case():
-  print('e1' + str(uuid.uuid4()).replace('-', ''))
 
 # Case, Evidence ID
 case_id = sys.argv[1]
 evd_id = sys.argv[2]
 
 options = {
-  'Artifacts' : 'Default',
-  'vss' : 'False'
+  'Artifacts': 'Default',
+  'vss': 'False'
 }
-
-# log2timeline filter option
-#filter_option = sys.argv[4]
 
 # Analysis Request
 carpe_am = carpe_am_module.CARPE_AM()
-
 # Set Module Information
 carpe_am.SetModule(case_id, evd_id)
 
 # Analyze
-carpe_am.ParseImage(options)
-carpe_am.ParseFilesystem()
-carpe_am.SysLogAndUserData_Analysis()
+now = datetime.now()
+print('[%s-%s-%s %s:%s:%s] Start Analyze Image' % (now.year, now.month, now.day, now.hour, now.minute, now.second))
+#carpe_am.ParseImage(options)
+now = datetime.now()
+print('[%s-%s-%s %s:%s:%s] Finish Analyze Image' % (now.year, now.month, now.day, now.hour, now.minute, now.second))
 
-#Init_Dummy_Case()
-carpe_am.Analyze_Artifacts(options)
+now = datetime.now()
+print('[%s-%s-%s %s:%s:%s] Start Analyze Filesystem' % (now.year, now.month, now.day, now.hour, now.minute, now.second))
+#carpe_am.ParseFilesystem()
+now = datetime.now()
+print('[%s-%s-%s %s:%s:%s] Finish Analyze Filesystem' % (now.year, now.month, now.day, now.hour, now.minute, now.second))
+
+now = datetime.now()
+print('[%s-%s-%s %s:%s:%s] Start Analyze Artifacts' % (now.year, now.month, now.day, now.hour, now.minute, now.second))
+#carpe_am.SysLogAndUserData_Analysis()
+now = datetime.now()
+print('[%s-%s-%s %s:%s:%s] Finish Analyze Artifacts' % (now.year, now.month, now.day, now.hour, now.minute, now.second))
+#carpe_am.Analyze_Artifacts(options)
+
 carpe_am.Analyze_Documents()
-
-"""
-  c16011ffad0b3a44e78aed17b366023f9c
-  e1c1004619edb24ffcb5ca1e48ec3c73cf
-  Windows10x64.E01
-  
-  python3.6 carpe_tester.py 'c16011ffad0b3a44e78aed17b366023f9c' 'e1c1004619edb24ffcb5ca1e48ec3c73cf'
-"""

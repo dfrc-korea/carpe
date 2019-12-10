@@ -44,7 +44,7 @@ class ModuleEML(ModuleComponentInterface):
     def signature(self, current_offset, sig_FOOTER):
         search_range = int((self.get_attrib(ModuleConstant.IMAGE_LAST) - self.get_attrib(ModuleConstant.IMAGE_BASE)) / (self.uClusterSize * 1))  # 1 => sizeof(UCHAR)
 
-        for i in range(0, search_range):
+        for i in range(0, search_range+1):
             self.fp.seek(current_offset + i * self.uClusterSize)
             temp = self.fp.read(self.uClusterSize)
 
@@ -64,11 +64,6 @@ class ModuleEML(ModuleComponentInterface):
         self.fp = open(self.get_attrib(ModuleConstant.FILE_ATTRIBUTE), 'rb')
 
         self.offset = self.signature(self.get_attrib(ModuleConstant.IMAGE_BASE), sigEML_FOOTER)
-
-        if self.offset != () :
-            print("Find!!", self.offset)  # 시작부터 self.uClusterSize + sOffset 여기까지 긁어와서 저장. 그러면 정상.
-        else:
-            print("not Found")  # 현재 offset에서 next_offset까지.
 
 
 

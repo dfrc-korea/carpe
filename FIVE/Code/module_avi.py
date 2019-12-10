@@ -131,7 +131,7 @@ class ModuleAVI(ModuleComponentInterface):
 
         if uDecSize < self.attrib.get(ModuleConstant.IMAGE_LAST) - self.attrib.get(ModuleConstant.IMAGE_BASE):
             self.offset = (True, self.attrib.get(ModuleConstant.IMAGE_BASE), uDecSize, ModuleConstant.FILE_ONESHOT)
-            print(hex(uDecSize))
+            #print(hex(uDecSize))
         else:
             self.offset = (False, 0, -1, ModuleConstant.INVALID)
 

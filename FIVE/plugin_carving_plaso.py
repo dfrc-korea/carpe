@@ -5,9 +5,9 @@ import os,sys,time,binascii
 import pickle
 import shutil
 import pandas as pd
+import hexdump
 
 from multiprocessing           import Process, Lock
-
 from moduleInterface.defines   import ModuleConstant
 from moduleInterface.interface import ModuleComponentInterface
 from moduleInterface.actuator  import Actuator
@@ -19,8 +19,8 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__))+os.sep+"Include")    
 from plugin_carving_defines import C_defy
 from Include.carpe_db       import Mariadb
 
-
 # CarvingManager : DB 수정권한 없음 (For safety)
+
 class CarvingManager(ModuleComponentInterface,C_defy):
     def __init__(self,debug=False,out=None,logBuffer=0x409600):
         super().__init__()
@@ -61,7 +61,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__out         = True
         else:
             self.__out         = False
-        
+      
         self.__log_open()
 
     def __del__(self):
@@ -112,7 +112,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             except:pass
             self.__fd = None
 
-
     def __load_config(self):
         self.__log_write("INFO","Loader::Start to module load...",always=True)
         if(self.__actuator.loadModuleClassAs("module_config","ModuleConfiguration","config")==False):
@@ -155,7 +154,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         self.__actuator.set(_request,ModuleConstant.ENCODE,etype)
         return self.__actuator.call(_request,cmd,option)
 
-    def __connect_master(self):
+    def __connect_master(self,cred):
         db = Mariadb()
         try:
             self.__cursor = db.open()
@@ -175,11 +174,11 @@ class CarvingManager(ModuleComponentInterface,C_defy):
     # This job have to work exclusively
     def __excl_get_master_data(self):
         try:
-            self.__cursor.execute('select * from carpe_block_info where p_id = %s',self.__part_id)
+            self.__cursor.execute('select * from block_info where p_id = %s',self.__part_id)
             return self.__cursor.fetchall()
         except:
             return C_defy.Return.EFAIL_DB
-       
+     
     def __scan_signature(self,data):
         dataIndex    = 0
         dataLength   = len(data)
@@ -193,7 +192,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             if(info!=[]):
                 crafted_data.append((data[dataIndex],info))
             dataIndex+=1
-
         return crafted_data
 
     def __scan_block(self,start,end):
@@ -205,7 +203,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             if(_info[1]!=None):
                 info.append(_info)
             current+=self.__blocksize
-        
         return info
 
     def __scan(self,offset):
@@ -214,17 +211,23 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         buffer = self.__parser.bread_raw(offset,self.__blocksize,os.SEEK_SET)
         if(buffer==None):
             return (offset,keys,flag)
-        
+
         for key in C_defy.Signature.Sig:
             temp = C_defy.Signature.Sig[key]
             if binascii.b2a_hex(buffer[temp[1]:temp[2]])==temp[0]:
                 keys = key
                 # 특정 파일포맷에 대한 추가 검증 알고리즘
                 if key=='aac_1' or key=='aac_2' :
-                    if binascii.b2a_hex(buffer[7:8])==b'21':
-                        flag = 1
-                break
-        
+                    if binascii.b2a_hex(buffer[7:8])!=b'21':
+                        keys = None
+                        continue
+                elif key == 'avi' :
+                    if binascii.b2a_hex(buffer[8:16]) == b'415649204c495354' :
+                        keys = 'avi'
+                        break
+                    if binascii.b2a_hex(buffer[8:16]) == b'57415645666d7420' :
+                        keys = 'wav'
+                        break 
         return (offset,keys,flag,C_defy.Signature.Sig.get(keys,(0,0,0,None)[3]))
 
     def __carving(self,data,enable):
@@ -286,7 +289,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                              lastPtr,                              # last offset to carve
                              internalList[internalIndex][3],       # category
                              enable)
-            
+
     # Extract file(s) from image.
     def __extractor(self,ext,start,last,cat,enable=True,cmd=None,option=None,encode='euc-kr'):
         if('_' in ext):
@@ -318,7 +321,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
 
         if(type(result[0])!=tuple):
             result[0].pop(0)
-
         if(ftype=='jfif'):
             ftype = 'jpg'
         elif(ftype=='exif'):
@@ -335,7 +337,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         if(not os.path.exists(path)):
             self.__log_write("INFO","Extract::create a result directory at {0}".format(path))
             os.makedirs(path)
-
 
         if(enable==False):
             self.__hit.update({ext:[value[0],value[1]+1]})
@@ -375,6 +376,8 @@ class CarvingManager(ModuleComponentInterface,C_defy):
                     if(byte2copy<self.__sectorsize):
                         data     = self.__parser.bread_raw(0,byte2copy)
                         wrtn +=fd.write(data)
+                        #zerofill = bytearray(self.__sectorsize-byte2copy)
+                        #wrtn +=fd.write(zerofill)
                         byte2copy-=byte2copy
                     else:
                         data = self.__parser.bread_raw(0,self.__sectorsize)
@@ -455,7 +458,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         return self.__get_cache_master()+os.path.basename(path)+".csv"
 
     # @ Module Interface
-
     def module_open(self,id=1):             # Reserved method for multiprocessing
         pass
     def module_close(self):                 # Reserved method for multiprocessing
@@ -464,7 +466,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
         pass
     def get_attrib(self,key,value=None):    # 모듈 호출자가 모듈 속성 획득하는 method interface
         pass
-
     def execute(self,cmd=None,option=None):
         if(cmd==C_defy.WorkLoad.PARAMETER):
             if(type(option)!=dict):
@@ -474,14 +475,16 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__sectorsize      = option.get("sector",self.__sectorsize)
             self.__par_startoffset = option.get("start",self.__par_startoffset)
             self.__i_path          = option.get("path",self.__i_path)
-            self.__dest_path       = option.get("dest",".{0}result".format(os.sep),self.__dest_path)
+            self.__dest_path       = option.get("dest",".{0}result".format(os.sep))
             self.__log_write("INFO","Main::Request to set parameters.",always=True)
-            
 
         elif(cmd==C_defy.WorkLoad.LOAD_MODULE):
             self.__log_write("INFO","Main::Request to load module(s).",always=True)
-            self.__connect_master()
             return self.__load_module()
+
+        elif(cmd==C_defy.WorkLoad.CONNECT_DB):
+            self.__log_write("INFO","Main::Request to connect to master database.",always=True)  
+            return self.__connect_master(option)
 
         elif(cmd==C_defy.WorkLoad.DISCONNECT_DB):
             self.__log_write("INFO","Main::Request to clean up. It would be disconnected with the master database.",always=True) 
@@ -521,6 +524,7 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             self.__parser.cleanup()
             self.__log_write("INFO","Carving::result:{0}".format(self.__hit),always=True)
             del data
+            # update to mariadb
             return self.__hit.copy()
 
         elif(cmd==C_defy.WorkLoad.REPLAY):
@@ -531,82 +535,22 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             if(data==""):
                 return ModuleConstant.Return.EINVAL_FILE
 
-            self.__log_write("INFO","Main::Data loaded from {0}".format(option),always=True)
-            
+            self.__log_write("INFO","Main::Data loaded from {0}".format(option),always=True)          
             self.__parser.get_file_handle(self.__i_path,0,1)
             start = time.time() 
-
             self.__carving(data,True)
-            self.__log_write("DBG_","Carving::processing time:{0}.".format(time.time()-start))
-            
+            self.__log_write("DBG_","Carving::processing time:{0}.".format(time.time()-start))          
             self.__parser.cleanup()
             self.__log_write("INFO","Carving::result:{0}".format(self.__hit),always=True)
             del data
             return self.__hit.copy()
-
+        
         elif(cmd==C_defy.WorkLoad.SELECT_ONE):
-            self.__hit = {}
-            self.__log_write("INFO","Main::Request to re-run carving process from stored data.",always=True)
-            if(type(option)!=dict):
-                return ModuleConstant.Return.EINVAL_TYPE
-
-            tmp = option.get("name",None)
-            if(type(tmp)!=str):
-                return ModuleConstant.Return.EINVAL_TYPE
-            
-            data = self.__import_result(option.get("path",self.get_cbin_file()))
-            if(data==""):
-                return ModuleConstant.Return.EINVAL_FILE
-            if(type(data)!=dict):
-                return ModuleConstant.Return.EINVAL_FILE
-            
-            target = data.get(tmp,None)
-            if(target==None):
-                return ModuleConstant.Return.EINVAL_NONE
-            if(len(target)!=4):
-                return ModuleConstant.Return.EINVAL_TYPE
-            
-            self.__parser.get_file_handle(self.__i_path,0,1)
-            try:self.__extractor(target[0],target[1],target[2])
-            except:self.__log_write("DBG_","Carving::Cannot carving some specific object:{0}.".format(target[1]),always=True)
-            self.__parser.cleanup()
-            self.__data = dict()
-            del data
-            return self.__hit.copy()
+            pass
 
         elif(cmd==C_defy.WorkLoad.SELECT_LIST):
-            self.__hit = {}
-            target = list()
-            self.__log_write("INFO","Main::Request to re-run carving process from stored data.",always=True)
-            if(type(option)!=dict):
-                return ModuleConstant.Return.EINVAL_TYPE
-
-            selected = option.get("name",None)
-            if(type(selected)!=list):
-                return ModuleConstant.Return.EINVAL_TYPE
-
-            data = self.__import_result(option.get("path",self.get_cbin_file()))
-            if(data==""):
-                return ModuleConstant.Return.EINVAL_FILE
-            if(type(data)!=dict):
-                return ModuleConstant.Return.EINVAL_FILE
-
-            for i in selected:
-                tmp = data.get(i,None)
-                if(type(tmp)==tuple and len(tmp)==4):
-                    target.append(tmp)
-
-            if(target==[]):
-                return ModuleConstant.Return.EINVAL_NONE
-            self.__parser.get_file_handle(self.__i_path,0,1)
-            for i in target:
-                try:self.__extractor(i[0],i[1],i[2])
-                except:self.__log_write("DBG_","Carving::Cannot carving some specific object:{0}.".format(target[1]),always=True)
-            self.__parser.cleanup()
-            self.__data = dict()
-            del data
-            return self.__hit.copy()
-
+            pass
+        
         elif(cmd==C_defy.WorkLoad.POLICY):
             if(type(option)!=dict):
                 return ModuleConstant.Return.EINVAL_TYPE
@@ -672,7 +616,6 @@ class CarvingManager(ModuleComponentInterface,C_defy):
             return C_defy.Return.EIOCTL
 
 if __name__ == '__main__':
-
     # PARAMETER :
     """
     {
@@ -684,6 +627,12 @@ if __name__ == '__main__':
         "dest"  :".{0}result".format(os.sep), # Output directory
     }
     """
+    # CONNECT_DB :
+    """
+    {
+       None
+    }
+    """
     # POLICY :
     """
     {
@@ -692,6 +641,7 @@ if __name__ == '__main__':
                                         False:캐시정보만 기록(Lazy))
         "save":True                 # 카빙 캐시 정보 저장(*.bin, *.cbin)
     }
+
     """
     # SELECT_ONE/SELECT_LIST
     """
@@ -712,6 +662,8 @@ if __name__ == '__main__':
         -----------------------------------------------------------------------------------------------------------------
         LOAD_MODULE           None         Int      # 카빙에 사용되는 모듈 등록
         PARAMETER             Dict         Int      # 작업 파라미터 설정
+        CONNECT_DB            Dict         Int      # Master DB에 연결
+        DISCONNECT_DB         None         Int      # Master DB와의 세션 종료
         EXEC                  None         Dict     # (enable=True일 때) 카빙 작업 실행 및 (save=True일 때) 캐시 데이터 생성
         REPLAY                None         Dict     # (eanble과 관계없음) 캐시 데이터를 이용해 현재 이미지에 대한 카빙 작업
         SELECT_ONE            Dict         Dict     # 캐시 데이터를 이용해 한 파일만 추출
@@ -725,47 +677,35 @@ if __name__ == '__main__':
         # Return Dict Format :
             {"Format":[찾은 시그니처 파일 수,검증 통과한 파일 수],}
     """
+
     manage = CarvingManager(debug=False,out="carving.log")
-
     res = manage.execute(C_defy.WorkLoad.LOAD_MODULE)
-
     if(res==False):
         sys.exit(0)
 
-    res = manage.execute(C_defy.WorkLoad.CONNECT_DB,
-                    {
-                        "ip":'218.145.27.66',
-                        "port":23306,
-                        "id":'root',
-                        "password":'dfrc4738',
-                        "category":'carpe_3'
-                    }
-    )
+    res = manage.execute(C_defy.WorkLoad.CONNECT_DB)
 
     if(res==C_defy.Return.EFAIL_DB):
         sys.exit(0)
 
-    manage.enable   = False
+    manage.enable   = True
     manage.save     = True
 
     manage.execute(C_defy.WorkLoad.PARAMETER,
                     {
-                        "p_id":"TEST_2",
-                        "block":4096,
+                        "p_id":"CFReDS3_1",
+                        "block":512,
                         "sector":512,
-                        "start":0x10000,
-                        "path":"D:\\iitp_carv\\[NTFS]_Carving_Test_Image1.001",
+                        "start":0x0,
+                        "path":"/home/carpe/iitp/Test/L1_Archive.dd",
                     }
     )
 
     manage.execute(C_defy.WorkLoad.EXEC)
-
     manage.execute(C_defy.WorkLoad.DISCONNECT_DB)
-
     manage.execute(C_defy.WorkLoad.EXPORT_CACHE_TO_CSV)
-
     #print(manage.execute(C_defy.WorkLoad.SELECT_LIST,{"name":["0x1c2c000","0x2aaa000"]}))
-    manage.execute(C_defy.WorkLoad.REPLAY,manage.get_bin_file())
+    #manage.execute(C_defy.WorkLoad.REPLAY,manage.get_bin_file())
     #manage.execute(C_defy.WorkLoad.REMOVE_CACHE)
 
     sys.exit(0)

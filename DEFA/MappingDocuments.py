@@ -17,7 +17,7 @@ class MappingDocuments(object):
 		self.doc_id = None
 		self.doc_type = None
 		self.doc_type_sub = None
-		self.path = None
+		self.full_path = None
 		self.path_with_ext = None
 		self.name = None
 		self.ext = None

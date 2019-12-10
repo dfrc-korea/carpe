@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os, time, subprocess
+import os, sys, time, subprocess
+from datetime import datetime
 import pika
 import functools
 import threading
@@ -17,33 +18,26 @@ def ack_message(channel, delivery_tag):
 		pass
 
 def do_work(connection, channel, delivery_tag, body):
-	body = body.replace("'", "\"")
-	request = json.loads(body)
-	req_id = request['req_id']
+	request = json.loads(body.decode('utf-8').replace("'", "\""))
 	req_type = request['req_type']
 	case_id = request['case_id']
 	evd_id = request['evd_id']
 	options = request['options']
-
-	if req_id == '1':
-		# Analysis Request
+	
+	print('[' + datetime.today().strftime("%Y-%m-%d %H:%M:%S") + '] New Request !')
+	print('\t\t\tCase ID : ' + case_id)
+	print('\t\t\tEvd ID : ' + evd_id)
+	print('\t\t\tRequest Type : ' + req_type)
+	
+	if req_type == 'analyze':
 		carpe_am = carpe_am_module.CARPE_AM()
-
-		# Set Module Information
 		carpe_am.SetModule(case_id, evd_id)
+		pdb.set_trace()
+		carpe_am.ParseImage(options)
+		carpe_am.ParseFilesystem()
+		carpe_am.SysLogAndUserData_Analysis()
+		print('[' + datetime.today().strftime("%Y-%m-%d %H:%M:%S") + '] Complete Evidence File Analysis !')
 
-		if req_type == 'analyze':
-			carpe_am.ParseImage(options)
-			carpe_am.ParseFilesystem()
-			carpe_am.SysLogAndUserData_Analysis(options)
-			print('Request Analysis!')
-		
-		else:
-			print('Request Type Error!')
-
-	elif req_id == '2':
-		# Visualzation Request
-		print('Visualzation Request')
 
 	cb = functools.partial(ack_message, channel, delivery_tag)
 	connection.add_callback_threadsafe(cb)

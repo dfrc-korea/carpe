@@ -65,12 +65,10 @@ class Compound:
             self.has_ole = False
             self.ole_path = []
             self.content = ""
-            self.metadata = {'Title': "", 'Subject': "", 'Author': "", 'Tags': "", 'Comment': "",
-                             'LastSavedBy': "",
-                             'RevisionNumber': "", 'LastPrintedTime': "", 'CreatedTime': "", 'LastSavedTime': "", 'ProgramName': ""}
+            self.metadata = {'Title': "", 'Subject': "", 'Author': "", 'Tags':"", 'Explanation': "", 'LastSavedBy': "",'Version': "", 'Date': "",\
+            'LastPrintedTime': "", 'CreatedTime': "",'LastSavedTime': "", 'Comment': "", 'RevisionNumber': "", 'Category': "", 'Manager': "",\
+            'Company': "", 'ProgramName': "", 'TotalTime': "", 'Creator': "", 'Trapped': ""}
             self.tmp_path = None
-
-
 
         else:
             self.fp = None

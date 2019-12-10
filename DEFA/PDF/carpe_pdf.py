@@ -224,10 +224,11 @@ class PDF:
 
             supported_key = ['Title', 'Subject', 'Author', 'Tags',
                              'CreatedTime', 'LastSavedTime', 'ProgramName', 'Creator', 'Trapped']
-
+            
             for key in supported_key:
                 if key not in self.metadata[0]:
-                    self.metadata[0][key] = 'Unsupported'
+                    self.metadata[0][key] = ''
+            
 
             unsupported_key = ['Explanation', 'LastSavedBy', 'Version', 'Date',
                                'LastPrintedTime', 'Comment', 'RevisionNumber', 'Category',
