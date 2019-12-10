@@ -1,0 +1,48 @@
+Name: Web Browser Cache
+Desc: Web Browser Cache Information
+Table:
+  - TableName: WebCache
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - browser_type
+      - time_type
+      - time
+      - cache_url
+      - cache_name
+      - cache_size
+      - mime_type
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      
+Artifacts:
+  - Name: Chrome Family
+    Desc: Chromium based browsers Cache
+    Values:
+      - [WEBHIST, Chrome Cache, Last Visited Time]
+
+#  - Name: Firefox
+#    Desc: Firefox browser History
+#    Values:
+#      #- [WEBHIST, Firefox History, Last Visited Time]
+#
+  - Name: Internet Explorer index.dat
+    Desc: Internet Explorer under 10 History
+    Values:
+      - [MSIE Cache File URL record, Temporary, msiecf]
+#
+#  - Name: Internet Explorer WebCacheV##.dat
+#    Desc: Internet Explorer 11 and Edge
+#    Values:
+#      - To Do

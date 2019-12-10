@@ -63,7 +63,7 @@ class PDFMultimedia:
                                     if filter.name == 'DCTDecode':
                                         yield ('', image_stream)
                             else:
-                                print(type(image_stream['Filter']), image_stream)
+                                #print(type(image_stream['Filter']), image_stream)
                                 if image_stream['Filter'].name == 'DCTDecode':
                                     yield ('', image_stream)
 

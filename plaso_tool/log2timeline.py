@@ -65,7 +65,6 @@ def Main():
     return False
 
   try:
-    pdb.set_trace()
     tool.ExtractEventsFromSources()
 
   except (KeyboardInterrupt, errors.UserAbort):

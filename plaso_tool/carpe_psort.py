@@ -63,6 +63,7 @@ def Main():
     return True
 
   try:
+    #pdb.set_trace()
     tool.ProcessStorage()
 
   except (KeyboardInterrupt, errors.UserAbort):

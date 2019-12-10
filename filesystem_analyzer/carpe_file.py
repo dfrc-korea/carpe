@@ -1,13 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import print_function
-import sys
-import re
+import sys, re
 
-class Carpe_File(object):
+class CARPE_File(object):
 	def __init__(self):
-		super(Carpe_File, self).__init__()
+		super(CARPE_File, self).__init__()
+		self._id = 0
 		self._p_id = ""
-		#self._attr_type = 0
-		#self._attr_id = 0
 		self._inode = ""
 		self._name = ""
 		self._file_id = 0
@@ -36,10 +36,14 @@ class Carpe_File(object):
 		self._mode = 0
 		self._uid = 0
 		self._gid = 0
-		self._hash = ""
+		self._md5 = ""
+		self._sha1 = ""
+		self._sha3 = ""
 		self._parent_path = ""
 		self._parent_id = 0
 		self._extension = ""
+		self._bookmark = 0
+		self._ads= 0
 
 	def toTuple(self):
 		if self._file_id==0:

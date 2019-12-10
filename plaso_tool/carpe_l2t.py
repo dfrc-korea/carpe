@@ -15,7 +15,6 @@ import pdb
 
 def Main():
   tool = carpe_l2t_tool.CARPEL2TTool()
-
   if not tool.ParseArguments(sys.argv[1:]):
     return False
 

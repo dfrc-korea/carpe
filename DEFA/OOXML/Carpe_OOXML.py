@@ -1351,21 +1351,26 @@ class OOXML:
 
         else:
             # 손상 시
-            self.metadata["title"] = "None"
-            self.metadata["creator"] = "None"
-            self.metadata["lastModifiedBy"] = "None"
-            self.metadata["created"] = "None"
-            self.metadata["modified"] = "None"
-            self.metadata["subject"] = "None"
-            self.metadata["keywords"] = "None"
-            self.metadata["description"] = "None"
-            self.metadata["revision"] = "None"
-            self.metadata["lastPrinted"] = "None"
-            self.metadata["category"] = "None"
+            self.metadata["Title"] = "None"
+            self.metadata["Author"] = "None"
+            self.metadata["LastSavedBy"] = "None"
+            self.metadata["CreatedTime"] = "None"
+            self.metadata["LastSavedTime"] = "None"
+            self.metadata["Subject"] = "None"
+            self.metadata["Tags"] = "None"
+            self.metadata["Comment"] = "None"
+            self.metadata["RevisionNumber"] = "None"
+            self.metadata["LastPrintedTime"] = "None"
+            self.metadata["Category"] = "None"
             self.metadata["Explanation"] = "Unsupported"
             self.metadata["Date"] = "Unsupported"
             self.metadata["Creator"] = "Unsupported"
             self.metadata["Trapped"] = "Unsupported"
+            self.metadata["Manager"] = "None"
+            self.metadata["Company"] = "None"
+            self.metadata["ProgramName"] = "None"
+            self.metadata["TotalTime"] = "None"
+            self.metadata["Version"] = "None"
             f = open(self.filename, "rb")
             cal_recovable_count = 0
             f.seek(0, 0)
@@ -1408,21 +1413,26 @@ class OOXML:
                             f3.close()
 
                             i = 0
-                            self.metadata["title"] = "None"
-                            self.metadata["creator"] = "None"
-                            self.metadata["lastModifiedBy"] = "None"
-                            self.metadata["created"] = "None"
-                            self.metadata["modified"] = "None"
-                            self.metadata["subject"] = "None"
-                            self.metadata["keywords"] = "None"
-                            self.metadata["description"] = "None"
-                            self.metadata["revision"] = "None"
-                            self.metadata["lastPrinted"] = "None"
-                            self.metadata["category"] = "None"
+                            self.metadata["Title"] = "None"
+                            self.metadata["Author"] = "None"
+                            self.metadata["LastSavedBy"] = "None"
+                            self.metadata["CreatedTime"] = "None"
+                            self.metadata["LastSavedTime"] = "None"
+                            self.metadata["Subject"] = "None"
+                            self.metadata["Tags"] = "None"
+                            self.metadata["Comment"] = "None"
+                            self.metadata["RevisionNumber"] = "None"
+                            self.metadata["LastPrintedTime"] = "None"
+                            self.metadata["Category"] = "None"
                             self.metadata["Explanation"] = "Unsupported"
                             self.metadata["Date"] = "Unsupported"
                             self.metadata["Creator"] = "Unsupported"
                             self.metadata["Trapped"] = "Unsupported"
+                            self.metadata["Manager"] = "None"
+                            self.metadata["Company"] = "None"
+                            self.metadata["ProgramName"] = "None"
+                            self.metadata["TotalTime"] = "None"
+                            self.metadata["Version"] = "None"
 
                             title = "<dc:title>"
                             subject = "<dc:subject>"
@@ -1703,8 +1713,7 @@ class OOXML:
 
     def parse_media(self, filename, filetype, isDamaged, tmp_path):
         signature_last_three = b'\x4b\x03\x04'
-
-        extracted_filename = tmp_path+os.path.split(filename)[1]
+        extracted_filename = tmp_path
         # 정상일 경우
         if isDamaged == False:
             if filetype == 'docx':
@@ -2023,31 +2032,56 @@ class OOXML:
                 # 메타데이터 파싱
                 metadata_data = self.parse_metadata(filename, damaged_flag)
             if metadata_recoverable_flag == False:
-                self.metadata["title"] = "None"
-                self.metadata["creator"] = "None"
-                self.metadata["lastModifiedBy"] = "None"
-                self.metadata["created"] = "None"
-                self.metadata["modified"] = "None"
-                self.metadata["subject"] = "None"
-                self.metadata["keywords"] = "None"
-                self.metadata["description"] = "None"
-                self.metadata["revision"] = "None"
-                self.metadata["lastPrinted"] = "None"
-                self.metadata["category"] = "None"
+                self.metadata["Title"] = "None"
+                self.metadata["Author"] = "None"
+                self.metadata["LastSavedBy"] = "None"
+                self.metadata["CreatedTime"] = "None"
+                self.metadata["LastSavedTime"] = "None"
+                self.metadata["Subject"] = "None"
+                self.metadata["Tags"] = "None"
+                self.metadata["Comment"] = "None"
+                self.metadata["RevisionNumber"] = "None"
+                self.metadata["LastPrintedTime"] = "None"
+                self.metadata["Category"] = "None"
+                self.metadata["Explanation"] = "Unsupported"
+                self.metadata["Date"] = "Unsupported"
+                self.metadata["Creator"] = "Unsupported"
+                self.metadata["Trapped"] = "Unsupported"
                 self.metadata["Manager"] = "None"
                 self.metadata["Company"] = "None"
-                self.metadata["Application"] = "None"
+                self.metadata["ProgramName"] = "None"
                 self.metadata["TotalTime"] = "None"
-                self.metadata["AppVersion"] = "None"
+                self.metadata["Version"] = "None"
         # 복구 불가
         else:
             # 메타데이터 복구 가능 여부 확인
             #print("---메타데이터복구가능여부---")
             metadata_recoverable_flag = self.isRecoverable_metadata(filetype)
-            #print(metadata_recoverable_flag)
+            self.metadata["Title"] = "None"
+            self.metadata["Author"] = "None"
+            self.metadata["LastSavedBy"] = "None"
+            self.metadata["CreatedTime"] = "None"
+            self.metadata["LastSavedTime"] = "None"
+            self.metadata["Subject"] = "None"
+            self.metadata["Tags"] = "None"
+            self.metadata["Comment"] = "None"
+            self.metadata["RevisionNumber"] = "None"
+            self.metadata["LastPrintedTime"] = "None"
+            self.metadata["Category"] = "None"
+            self.metadata["Explanation"] = "Unsupported"
+            self.metadata["Date"] = "Unsupported"
+            self.metadata["Creator"] = "Unsupported"
+            self.metadata["Trapped"] = "Unsupported"
+            self.metadata["Manager"] = "None"
+            self.metadata["Company"] = "None"
+            self.metadata["ProgramName"] = "None"
+            self.metadata["TotalTime"] = "None"
+            self.metadata["Version"] = "None"
+			#print(metadata_recoverable_flag)
             # 메타데이터 복구 가능일 때
             if metadata_recoverable_flag == True:
-                # 메타데이터 파싱
+                
+				# 메타데이터 파싱
                 metadata_data = self.parse_metadata(filename, damaged_flag)
             #else:
                 #print("***본문, 메타데이터복구불가***")

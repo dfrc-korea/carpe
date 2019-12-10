@@ -1,20 +1,5 @@
-#!/usr/bin/python
-#
-# Copyright 2011, Michael Cohen <scudette@gmail.com>.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""This module selects a suitable image info object based on the type."""
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import bisect
 import sys
  
@@ -23,18 +8,13 @@ import sys
 import pyewf
 import pyvmdk
 import pyvhdi
-import pyaff
+#import pyaff
 import pytsk3
 
-
-
-class Carpe_Image(pytsk3.Img_Info):
+class CARPE_Image(pytsk3.Img_Info):
   def __init__(self, img_hanle):
-    super(Carpe_Image, self).__init__()
+    super(CARPE_Image, self).__init__()
     self._partition_table = pytsk3.Volume_Info(img_hanle)
-    #self._attr_type = 0
-
-
 
 class vhdi_img_info(pytsk3.Img_Info):
   def __init__(self, vhdi_file):
@@ -69,10 +49,11 @@ class vmdk_img_info(pytsk3.Img_Info):
     return self._vmdk_handle.get_media_size()
 
 class ewf_img_info(pytsk3.Img_Info):
-  """An image info class which uses ewf as a backing reader.
+  """
+    An image info class which uses ewf as a backing reader.
 
-  All we really need to do to provide TSK with the ability to read image formats
-  is override the methods below.
+    All we really need to do to provide TSK with the ability to read image formats
+    is override the methods below.
   """
   def __init__(self, ewf_handle):
     # stores ewf_handle in class as new variable
@@ -96,7 +77,6 @@ class ewf_img_info(pytsk3.Img_Info):
   def get_size(self):
     return self._ewf_handle.get_media_size()
 
-
 """
 class QcowImgInfo(pytsk3.Img_Info):
   def __init__(self, filename):
@@ -117,10 +97,11 @@ class QcowImgInfo(pytsk3.Img_Info):
 """
 
 class SplitImage(pytsk3.Img_Info):
-  """Virtualize access to split images.
+  """
+    Virtualize access to split images.
 
-  Note that unlike other tools (e.g. affuse) we do not assume that the images
-  are the same size.
+    Note that unlike other tools (e.g. affuse) we do not assume that the images
+    are the same size.
   """
 
   def __init__(self, *files):
@@ -148,15 +129,15 @@ class SplitImage(pytsk3.Img_Info):
     return self.size
 
   def read(self, offset, length):
-    """Read a buffer from the split image set.
-
-    Handles the buffer straddling images.
+    """
+      Read a buffer from the split image set.
+      Handles the buffer straddling images.
     """
     result = ""
 
     # The total available size in the file
     length = int(length)
-    length = min(length, long(self.size) - offset)
+    length = min(length, int(self.size) - offset)
 
     while length > 0:
       data = self._ReadPartial(offset, length)
@@ -181,17 +162,11 @@ class SplitImage(pytsk3.Img_Info):
     # This can return less than length
     return fd.read(length)
 
-
 def SelectImage(img_type, files):
   if img_type == "raw":
-    if len(files) == 1:
-      # For a single file this is faster.
-      return pytsk3.Img_Info(files[0])
-    else:
-      return SplitImage(*files)
+    return pytsk3.Img_Info(files)
 
   elif img_type == "ewf":
-    # Instantiate our special image object
     filename = pyewf.glob(*files)
     ewf_handle = pyewf.handle()
     ewf_handle.open(filename)

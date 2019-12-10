@@ -17,11 +17,13 @@ class Carpe_File_Extractor(object):
         self._name_inode= []
         self._img_full_path = None
         self._output_path = None
+        self._offset = 0
 
-    def setConfig(self, output_path, img_path, name_inode_tuplelist):
+    def setConfig(self, output_path, img_path, offset, name_inode_tuplelist):
         self._output_path = output_path
         self._name_inode = name_inode_tuplelist
         self._img_full_path = img_path
+        self._offset = offset
 
     def extract(self):
         if len(self._name_inode) == 0:
@@ -35,7 +37,7 @@ class Carpe_File_Extractor(object):
         ## Step 1: get an IMG_INFO object (url can be any URL that AFF4 can handle)
         img = pytsk3.Img_Info(img_path)
         ## Step 2: Open the filesystem
-        fs = pytsk3.FS_Info(img, 1048576)
+        fs = pytsk3.FS_Info(img, offset=self._offset)
         ## Step 3: Open the file using the inode
         f = fs.open_meta(inode = inode)
 

@@ -1,2 +1,8 @@
 WindowsInstallation:windows_installation
-WindowsUserAccount:windows_useraccount
+WindowsExternalDevice:windows_extdevice
+WindowsInstallation:windows_installation
+WindowsInstalledApp:windows_installed_app
+WebHistory:web_history
+WebDownload:web_download
+WebCache:web_cache
+WebCookie:web_cookie

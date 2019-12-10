@@ -50,7 +50,8 @@ class Mariadb(object):
 
 	def open(self):
 		try:
-			self._conn = pymysql.connect(host='218.145.27.66', port=23306, user='root', passwd='dfrc4738', db='carpe_3',charset='utf8',autocommit=True)
+			self._conn = pymysql.connect(host='127.0.0.1', port=23306, user='root',
+                        passwd='dfrc4738', db='carpe',charset='utf8',autocommit=True)
 		except Exception:
 			self._conn=None
 			print("db connection error")

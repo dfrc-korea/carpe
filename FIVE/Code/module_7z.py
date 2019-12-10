@@ -71,7 +71,6 @@ class Module7Z(ModuleComponentInterface):
         if(self.parser.get_value('signature')!=Structure7Z.SIGNATURE):
             self.parser.cleanup()
             return
-        self.parser.print()
 
         next_hdr_off  = self.parser.byte2int(self.parser.get_value("next_hdr_off"))
         next_hdr_size = self.parser.byte2int(self.parser.get_value("next_hdr_size"))
@@ -80,8 +79,8 @@ class Module7Z(ModuleComponentInterface):
         buffer = self.parser.bread_raw(0,next_hdr_size)
         if(zlib.crc32(buffer)==self.parser.byte2int(self.parser.get_value("next_hdr_crc"))):
             self.fileSize = next_hdr_off+next_hdr_size
-     
-        self.offset.append((self.get_attrib(ModuleConstant.IMAGE_BASE),self.fileSize,ModuleConstant.FILE_ONESHOT))
+            self.offset.append((self.get_attrib(ModuleConstant.IMAGE_BASE),self.fileSize,ModuleConstant.FILE_ONESHOT))
+        
         self.parser.cleanup()
 
     """ Interfaces """

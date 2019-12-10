@@ -13,7 +13,10 @@ class Mariadb(object):
 		"file_info":{"id":"BIGINT PRIMARY KEY", "file_id":"BIGINT", "par_id":"VARCHAR", "inode":"TEXT", "name":"TEXT", "meta_seq":"BIGINT", "type":"INTEGER", "dir_type":"INTEGER", "meta_type":"INTEGER", "meta_flags":"INTEGER", "size":"BIGINT",
 					"mtime":"BIGINT", "atime":"BIGINT", "ctime":"BIGINT", "etime":"BIGINT", "mtime_nano":"BIGINT", "atime_nano":"BIGINT", "ctime_nano":"BIGINT", "etime_nano":"BIGINT",
 					"additional_mtime":"BIGINT", "additional_atime":"BIGINT", "additional_ctime":"BIGINT", "additional_etime":"BIGINT", "additional_mtime_nano":"BIGINT", "additional_atime_nano":"BIGINT", "additional_ctime_nano":"BIGINT", "additional_etime_nano":"BIGINT",
-					"mode":"INTEGER", "uid":"INTEGER", "gid":"INTEGER", "md5":"TEXT", "sha1":"TEXT", "sha3":"TEXT", "parent_path":"TEXT", "extension":"TEXT", "parent_id":"BIGINT", "bookmark":"BOOLEAN"},
+					"mode":"INTEGER", "uid":"INTEGER", "gid":"INTEGER",
+                                        "md5":"TEXT", "sha1":"TEXT", "sha3":"TEXT",
+                                        "parent_path":"TEXT", "extension":"TEXT",
+                                        "parent_id":"BIGINT", "bookmark":"BOOLEAN", "ads":"INTEGER"},
 		"block_info":{"par_id":"VARCHAR", "start":"BIGINT", "end":"BIGINT"}
 	}
 	#To Do
@@ -24,7 +27,7 @@ class Mariadb(object):
 		"evidence_info":"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
 		"partition_info":"%s, %s, %s, %s, %d, %s, %s, %s, %s, %s",
 		"fs_info":"%s, %s, %d, %s, %d, %d, %d",
-		"file_info":"%s, %s, %s, %s, %s, %s, %d, %d, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %d, %d, %s, %s, %s, %s, %s, %s, %d",
+		"file_info":"%s, %s, %s, %s, %s, %s, %d, %d, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %d, %d, %s, %s, %s, %s, %s, %s, %d, %d",
 		"block_info":"%s, %s, %s"
 	}
 
@@ -48,7 +51,7 @@ class Mariadb(object):
 
 	def open(self):
 		try:
-			self._conn = pymysql.connect(host='218.145.27.66', port=23306, user='root', passwd='dfrc4738', db='carpe',charset='utf8',autocommit=True)
+			self._conn = pymysql.connect(host='127.0.0.1', port=23306, user='root', passwd='dfrc4738', db='carpe',charset='utf8',autocommit=True)
 		except Exception:
 			self._conn=None
 			print("db connection error")

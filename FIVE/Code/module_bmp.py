@@ -61,10 +61,10 @@ class ModuleBMP(ModuleComponentInterface):
         biPlanes = temp[0x1A:0x1C]
         biCompression = struct.unpack('<I', temp[0x1E:0x22])[0]
 
-        if biSize != b'\x28\x00\x00\x00' or biPlanes != b'\x01\x00' or biCompression > 0x05:
-            self.offset = (False, 0, -1, ModuleConstant.INVALID)  # Fail
-            return False
-
+        if biSize != b'\x28\x00\x00\x00' or biSize != b'\x38\x00\x00\x00':
+            if biPlanes != b'\x01\x00' or biCompression > 0x05:
+                self.offset = (False, 0, -1, ModuleConstant.INVALID)  # Fail
+                return False
         self.offset = (True, self.attrib.get(ModuleConstant.IMAGE_BASE), bfSize, ModuleConstant.FILE_ONESHOT)
         return True
 

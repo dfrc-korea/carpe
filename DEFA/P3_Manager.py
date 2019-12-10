@@ -16,19 +16,28 @@ from DEFA.OOXML.Carpe_OOXML import OOXML
 from DEFA.MS_Office.carpe_compound import Compound
 from DEFA.Hancom.carpe_hwp import HWP
 
-
+import pdb
 
 class DEFA:
     def documentFilter(self, data, file):
+        
         es = Elasticsearch(hosts="220.73.134.142", port=9200)
-        index_name = 'read'
+        index_name = 'documents'
         type_name = 'document'
-        data
+        '''
+        es = Elasticsearch(hosts="211.192.109.193", port=9200)
+        index_name = 'documents'
+        type_name = 'document'
+		'''
         data.name = file[4] # 파일이름
         data.ext = file[34] # 파일 확장자
         data.parent_full_path = file[33] # parent 경로
         data.path_with_ext = file[33] + file[4] # 파일 전체 경로
-        data.path = data.path_with_ext.replace('.'+data.ext, '') # 확장자 제외
+        data.full_path = data.path_with_ext.replace('.'+data.ext, '') # 확장자 제외
+        #data.full_path = data.case_id + '/' + data.evdnc_id + '/documents/' + data.name
+
+        #data.full_path = 'test'
+        file_export_path = data.work_dir+file[4]
         data.creation_time = datetime.fromtimestamp(file[13])
         data.last_written_time = datetime.fromtimestamp(file[11])
         data.last_access_time = datetime.fromtimestamp(file[12])
@@ -40,90 +49,145 @@ class DEFA:
         data.doc_type_sub = data.ext
 
         #work_file = file[37]
-        data.download_path = file[37]
+        #data.download_path = file[38]
+        data.download_path = data.case_id + '/' + data.evdnc_id + '/documents/' + data.name
+        data.ole_path = file[38] + "_extracted"
         #print(data.download_path)
-        
+            
         if data.ext.lower() in 'pdf':
             #return False
-            with PDF(data.download_path) as pdf:
+            with PDF(file_export_path) as pdf:
                 pdf.parse_content() 
                 pdf.parse_metadata() 
                 pdf.extract_multimedia(data.ole_path) 
-                try:	
-                    data.content = pdf.content
+                #try:	
+                data.content = pdf.content
+                #print(type(pdf.metadata[0]['Title']))
+                if type(pdf.metadata[0]['Title']) == bytes:
+                    try:
+                        data.title = pdf.metadata[0]['Title'].decode('UTF-16')
+                    except UnicodeDecodeError:
+                        data.title = pdf.metadata[0]['Title'].decode('UTF-8')
+                else:
                     data.title = pdf.metadata[0]['Title']
+                #print(type(pdf.metadata[0]['Subject']))
+                if type(pdf.metadata[0]['Subject']) == bytes:
+                    try:
+                        data.subject = pdf.metadata[0]['Subject'].decode('UTF-16')
+                    except UnicodeDecodeError:
+                        data.subject = pdf.metadata[0]['Subject'].decode('UTF-8')
+                else:
                     data.subject = pdf.metadata[0]['Subject']
-                    data.author = pdf.metadata[0]['Author'].decode('utf-16') 
+                #print(type(pdf.metadata[0]['Author']))
+                if type(pdf.metadata[0]['Author']) == bytes:
+                    try:
+                        data.author = pdf.metadata[0]['Author'].decode('UTF-16')
+                    except UnicodeDecodeError:
+                        data.author = pdf.metadata[0]['Author'].decode('UTF-8')
+                else:
+                    data.author = pdf.metadata[0]['Author']
+						
+                if type(pdf.metadata[0]['Tags']) == bytes:
+                    try:
+                        data.tags = pdf.metadata[0]['Tags'].decode('UTF-16')
+                    except UnicodeDecodeError:
+                        data.tags = pdf.metadata[0]['Tags'].decode('UTF-8')
+                else:
                     data.tags = pdf.metadata[0]['Tags']
-                    data.explanation = None
-                    data.lastsavedby = None
-                    data.version = None
-                    data.date = None
-                    data.lastprintedtime = None
-                    data.createdtime = pdf.metadata[0]['CreatedTime']
-                    data.lastsavedtime = pdf.metadata[0]['LastSavedTime']
-                    data.comment = None
-                    data.revisionnumber = None
-                    data.category = None
-                    data.manager = None
-                    data.company = None
-                    data.programname = pdf.metadata[0]['ProgramName']
-                    data.totaltime = None
-                    data.creator = pdf.metadata[0]['Creator']
-                    data.trapped = pdf.metadata[0]['Trapped']
-
-                    #data.creation_time = pdf.metadata[0]['CreationDate'].decode('utf-8')
-                    #data.last_written_time = pdf.metadata[0]['ModDate'].decode('utf-8')
-                    data.has_metadata = pdf.has_metadata
-                    data.has_content = pdf.has_content
-                    data.is_damaged = pdf.is_damaged
-                    es.index(index=index_name, doc_type=type_name, body=data.__dict__)
-                    #print(data.__dict__)
-                    return True
-                except Exception as ex:
-                    print('[Error]%s-%s'%(ex, data.name))
-                    return False
-        
-        elif data.ext.lower() in 'hwp': 
-            hwp = HWP(data.download_path)
-            hwp.parse()
-            try:
-                data.content = hwp.content
-				
-                data.title = hwp.metaList[0]['Title']
-                data.subject = hwp.metaList[0]['Subject']
-                data.author = hwp.metaList[0]['Author']
-                data.tags = hwp.metaList[0]['Tags']
-                data.explanation = hwp.metaList[0]['Explanation']
-                data.lastsavedby = hwp.metaList[0]['LastSavedBy']
-                data.version = hwp.metaList[0]['Version']
-                data.date = hwp.metaList[0]['Date']
-                data.lastprintedtime = hwp.metaList[0]['LastPrintedTime']
-                data.createdtime = hwp.metaList[0]['CreatedTime']
-                data.lastsavedtime = hwp.metaList[0]['LastSavedTime']
-                data.comment = hwp.metaList[0]['Comment']
-                data.revisionnumber = hwp.metaList[0]['RevisionNumber']
+                #data.tags = pdf.metadata[0]['Tags']
+                data.explanation = None
+                data.lastsavedby = None
+                data.version = None
+                data.date = None
+                data.lastprintedtime = None
+                data.createdtime = pdf.metadata[0]['CreatedTime'].decode('UTF-8')
+                data.lastsavedtime = pdf.metadata[0]['LastSavedTime'].decode('UTF-8')
+                data.comment = None
+                data.revisionnumber = None
                 data.category = None
                 data.manager = None
                 data.company = None
-                data.programname = None
+				#print(type(pdf.metadata[0]['Author']))
+                if type(pdf.metadata[0]['ProgramName']) == bytes:
+                    try:
+                        data.programname = pdf.metadata[0]['ProgramName'].decode('UTF-16')
+                    except UnicodeDecodeError:
+                        data.programname = pdf.metadata[0]['ProgramName'].decode('UTF-8')
+                else:
+                    data.programname = pdf.metadata[0]['ProgramName']
+                #data.programname = pdf.metadata[0]['ProgramName'].decode('UTF-8')
                 data.totaltime = None
-                data.creator = None
-                data.trapped = None
+				#print(type(pdf.metadata[0]['Author']))
+                if type(pdf.metadata[0]['Creator']) == bytes:
+                    try:
+                        data.creator = pdf.metadata[0]['Creator'].decode('UTF-16')
+                    except UnicodeDecodeError:
+                        data.creator = pdf.metadata[0]['Creator'].decode('UTF-8')
+                else:
+                    data.creator = pdf.metadata[0]['Creator']
+                #data.creator = pdf.metadata[0]['Creator'].decode('UTF-8')
+                data.trapped = pdf.metadata[0]['Trapped']
+
+				#data.creation_time = pdf.metadata[0]['CreationDate'].decode('utf-8')
+				#data.last_written_time = pdf.metadata[0]['ModDate'].decode('utf-8')
+                data.has_metadata = pdf.has_metadata
+                data.has_content = pdf.has_content
+                data.is_damaged = pdf.is_damaged
+				
+                #print(f"{data.__dict__['name']}")				
+				
+                es.index(index=index_name, doc_type=type_name, body=data.__dict__)
+                #print(data.__dict__)
+                return True
+                #except Exception as ex:
+                #    print('[Error]%s-%s'%(ex, data.name))
+                #    return False
+        
+        elif data.ext.lower() in 'hwp': 
+            hwp = HWP(file_export_path)
+            hwp.parse(data.ole_path)
+            try:
+                
+                data.content = hwp.content
+                data.title = hwp.metaList['Title']
+                data.subject = hwp.metaList['Subject']
+                data.author = hwp.metaList['Author']
+                data.tags = hwp.metaList['Tags']
+                data.explanation = hwp.metaList['Explanation']
+                data.lastsavedby = hwp.metaList['LastSavedBy']
+                data.version = hwp.metaList['Version']
+                data.date = hwp.metaList['Date']
+                data.lastprintedtime = hwp.metaList['LastPrintedTime']
+                data.createdtime = hwp.metaList['CreatedTime']
+                data.lastsavedtime = hwp.metaList['LastSavedTime']
+                data.comment = hwp.metaList['Comment']
+                data.revisionnumber = hwp.metaList['RevisionNumber']
+                data.category = hwp.metaList['Category']
+                data.manager = hwp.metaList['Manager']
+                data.company = hwp.metaList['Company']
+                data.programname = hwp.metaList['ProgramName']
+                data.totaltime = hwp.metaList['TotalTime']
+                data.creator = hwp.metaList['Creator']
+                data.trapped = hwp.metaList['Trapped']
 			
                 #data.creation_time = hwp.metaList[0]['createTime']
                 #data.last_written_time = hwp.metaList[0]['lastSavedTime']
                 data.has_metadata = hwp.has_metadata
                 data.has_content = hwp.has_content
                 data.is_damaged = hwp.isDamaged
+				
+                print(f"{data.__dict__['name']}")				
+				
                 es.index(index=index_name, doc_type=type_name, body=data.__dict__)
                 #print(data.__dict__)
+
                 return True
             except Exception as ex:
+                #print(hwp.metaList)
                 print('[Error]%s-%s'%(ex, data.name))
                 return False
         elif data.ext.lower() in ('doc', 'xls', 'ppt'): 
-            compound = Compound(data.download_path) 
+            compound = Compound(file_export_path) 
             compound.parse(data.ole_path)
             try:
                 data.content = compound.content
@@ -131,28 +195,31 @@ class DEFA:
                 data.subject = compound.metadata['Subject']
                 data.author = compound.metadata['Author']
                 data.tags = compound.metadata['Tags']
-                data.explanation = None
+                data.explanation = compound.metadata['Explanation']
                 data.lastsavedby = compound.metadata['LastSavedBy']
-                data.version = None
-                data.date = None
+                data.version = compound.metadata['Version']
+                data.date = compound.metadata['Date']
                 data.lastprintedtime = compound.metadata['LastPrintedTime']
                 data.createdtime = compound.metadata['CreatedTime']
                 data.lastsavedtime = compound.metadata['LastSavedTime']
                 data.comment = compound.metadata['Comment']
                 data.revisionnumber = compound.metadata['RevisionNumber']
-                data.category = None
-                data.manager = None
-                data.company = None
+                data.category = compound.metadata['Category']
+                data.manager = compound.metadata['Manager']
+                data.company = compound.metadata['Company']
                 data.programname = compound.metadata['ProgramName']
-                data.totaltime = None
-                data.creator = None
-                data.trapped = None
+                data.totaltime = compound.metadata['TotalTime']
+                data.creator = compound.metadata['Creator']
+                data.trapped = compound.metadata['Trapped']
 				
                 #data.creation_time = compound.metadata['create_time']
                 #data.last_written_time = compound.metadata['modified_time']
                 data.has_metadata = compound.has_metadata
                 data.has_content = compound.has_content
                 data.is_damaged = compound.is_damaged
+				
+                print(f"{data.__dict__['name']}")				
+				
                 es.index(index=index_name, doc_type=type_name, body=data.__dict__)
                 #print(data.__dict__)
                 return True
@@ -160,7 +227,7 @@ class DEFA:
                 print('[Error]%s-%s'%(ex, data.name))
                 return False
         elif data.ext.lower() in ('docx', 'xlsx', 'pptx'): 
-            ooxml = OOXML(data.download_path)
+            ooxml = OOXML(file_export_path)
             ooxml.parse_ooxml(data.ole_path)
             try:
                 data.content = ooxml.content
@@ -191,6 +258,9 @@ class DEFA:
                 data.has_metadata = ooxml.has_metadata
                 data.has_content = ooxml.has_content
                 data.is_damaged = ooxml.is_damaged
+				
+                print(f"{data.__dict__['name']}")				
+				
                 es.index(index=index_name, doc_type=type_name, body=data.__dict__)
                 #print(data.__dict__)
                 return True
@@ -198,6 +268,7 @@ class DEFA:
                 print('[Error]%s-%s'%(ex, data.name))
                 return False
         else:
+            pass
             print('this file format not supported!')
 		
 
@@ -218,7 +289,7 @@ def run_daemon(data, file_list):
                 success += 1
             else:
                 failed += 1
-                f.write(file[37])		
+                f.write(file[38])		
                 f.write('\n')
         f.close()				
         print('success: %d failed: %d'% (success, failed))

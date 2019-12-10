@@ -137,7 +137,7 @@ class ModuleWAV(ModuleComponentInterface):
 
         if bDATA == True:
             self.offset = (True, self.attrib.get(ModuleConstant.IMAGE_BASE), uDecSize, ModuleConstant.FILE_ONESHOT)
-            print(hex(uDecSize))
+            #print(hex(uDecSize))
         else:
             self.offset = (False, 0, -1, ModuleConstant.INVALID)
 
