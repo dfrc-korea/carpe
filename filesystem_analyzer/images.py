@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 import bisect
 import sys
- 
-#import pyqcow
 
 import pyewf
 import pyvmdk
 import pyvhdi
-#import pyaff
 import pytsk3
+import pyqcow
+
+#import pyaff
 
 class CARPE_Image(pytsk3.Img_Info):
   def __init__(self, img_hanle):
@@ -77,7 +77,6 @@ class ewf_img_info(pytsk3.Img_Info):
   def get_size(self):
     return self._ewf_handle.get_media_size()
 
-"""
 class QcowImgInfo(pytsk3.Img_Info):
   def __init__(self, filename):
     self._qcow_file = pyqcow.file()
@@ -94,7 +93,6 @@ class QcowImgInfo(pytsk3.Img_Info):
 
   def get_size(self):
     return self._qcow_file.get_media_size()
-"""
 
 class SplitImage(pytsk3.Img_Info):
   """
@@ -181,11 +179,11 @@ def SelectImage(img_type, files):
     vhdi_handle = pyvhdi.file()
     vhdi_handle.open(files)
     return vhdi_img_info(vhdi_handle)
+
+  elif img_type == "qcow":
+    return QcowImgInfo(files[0])
     
 ''' 
   elif img_type == "aff":
     aff_handle = pyaff.handle()
-  
-  elif img_type == "qcow":
-    return QcowImgInfo(files[0])
 '''

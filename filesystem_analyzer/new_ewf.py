@@ -6,7 +6,6 @@ import pyewf
 import argparse
 import hashlib
 
-
 class ewf_Img_Info(pytsk3.Img_Info):
   def __init__(self, ewf_handle):
     self._ewf_handle = ewf_handle
