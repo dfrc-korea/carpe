@@ -5,7 +5,8 @@ from abc import *
 import os, sys
 import yaml
 
-sys.path.append(os.path.join(os.path.join(os.path.abspath(os.path.dirname('__file__')), "artifact_analyzer"), "parsers"))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "parsers"))
+
 from utility import carpe_db
 
 class ParserInterface(metaclass=ABCMeta):
