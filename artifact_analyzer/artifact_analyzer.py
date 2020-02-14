@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import os, sys, platform
+import os, sys, platform, pdb
 import importlib.util
-sys.path.append(os.path.join(os.path.join(os.path.abspath(os.path.dirname('__file__')), "artifact_analyzer"), "parsers"))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "parsers"))
 
 class ArtifactAnalyzer():
   def __init__(self):
@@ -14,9 +14,9 @@ class ArtifactAnalyzer():
     self.TargetArtifacts = []
     self.isDefault = True
     self.Status = 0
-    self.ArtList_File = os.path.join(os.path.join(os.path.abspath(os.path.dirname('__file__')), "artifact_analyzer"), "artifact_list")
-    self.Module_File = os.path.join(os.path.join(os.path.abspath(os.path.dirname('__file__')), "artifact_analyzer"), "parsers")
-    self.YAML_File = os.path.join(os.path.join(os.path.abspath(os.path.dirname('__file__')), "artifact_analyzer"), "artifacts")
+    self.ArtList_File = os.path.join(os.path.abspath(os.path.dirname(__file__)), "artifact_list")
+    self.Module_File = os.path.join(os.path.abspath(os.path.dirname(__file__)), "parsers")
+    self.YAML_File = os.path.join(os.path.abspath(os.path.dirname(__file__)), "artifacts")
 
   def Init_Module(self, _case_id, _evd_id, art_list):
     self.case_id = _case_id
@@ -77,6 +77,7 @@ class ArtifactAnalyzer():
       mod_obj.LoadYAML(data)
 
   def Analyze(self):
+    pdb.set_trace()
     for obj_name in self.ParserModuleObject.keys():
       obj = self.ParserModuleObject[obj_name]
       obj.Parse(self.case_id, self.evd_id)

@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 import os, sys, re
 
-sys.path.append(os.path.join(os.path.join(os.path.abspath(os.path.dirname('__file__')), "artifact_analyzer"), "parsers"))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "parsers"))
 
 import parser_interface
 from utility import carpe_db
