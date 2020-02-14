@@ -125,14 +125,14 @@ class CARPE_FS_Analyze(object):
       #self.directory_entry_info(directory_entry, parent_id=stack[-1], path=path)  
       
       files_tuple = map(lambda i: i.toTuple(), self.directory_entry_info(directory_entry, parent_id=stack[-1], path=path))
-      
-      if files_tuple is not None:
-        for i in files_tuple:
-          query = conn.insert_query_builder("file_info")
-          query = (query + "\n values " + "%s" % (i, ))
-          data=conn.execute_query(query)
-        conn.commit()
-      
+      """
+      for i in files_tuple:
+          if i is not None:
+              query = conn.insert_query_builder("file_info")
+              query = (query + "\n values " + "%s" % (i, ))
+              data=conn.execute_query(query)
+              conn.commit()
+      """
       if self._recursive:
         try:
           sub_directory = directory_entry.as_directory()
@@ -165,7 +165,11 @@ class CARPE_FS_Analyze(object):
     return directory
 
   def open_file_system(self, offset):
-    self._fs_info = pytsk3.FS_Info(self._img_info, offset=offset)
+    try:
+        self._fs_info = pytsk3.FS_Info(self._img_info, offset=offset)
+    except Exception as ex:
+        print('%s error is occurred'% ex)
+        return -1
 
   def open_block(self, offset):
     self._fs_block = pytsk3.FS_Block(self._fs_info, a_addr=offset)
