@@ -46,4 +46,4 @@ now = datetime.now()
 print('[%s-%s-%s %s:%s:%s] Finish Analyze Artifacts' % (now.year, now.month, now.day, now.hour, now.minute, now.second))
 #carpe_am.Analyze_Artifacts(options)
 
-carpe_am.Analyze_Documents()
+#carpe_am.Analyze_Documents()

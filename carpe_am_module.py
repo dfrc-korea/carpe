@@ -95,12 +95,17 @@ class CARPE_AM:
 		
 		for par in par_info:
 			par_id = str(par[0])
+			#print(par_id)
 			sector_size = int(str(par[1]))
 			start_sector = int(str(par[2]))
-			fs.open_file_system((sector_size * start_sector))
+			ret = fs.open_file_system((sector_size * start_sector))
+			if ret == -1:
+				print(par_id)
+				continue
 			fs.fs_info(par_id)
 
-			#unalloc 
+			#unalloc
+
 			fs_alloc_info = fs.block_alloc_status()
 			fs_alloc_info._p_id = par_id
 			for i in fs_alloc_info._unallock_blocks:
@@ -115,7 +120,7 @@ class CARPE_AM:
 
 		db.close()
 		return True
-	
+
 	def SysLogAndUserData_Analysis(self):
 		# connect CARPE Database
 		db = carpe_db.Mariadb()
@@ -131,8 +136,24 @@ class CARPE_AM:
 			p_id = str(par_info[0])
 			p_name = str(par_info[1])
 			storage_path = os.path.join(self.tmp_path, (p_id + ".plaso"))
-			subprocess.call(['python3.6', '/home/carpe/carpe/plaso_tool/carpe_l2t.py', '--no_vss', '--hashers', 'None',  storage_path, self.path, p_name])
-			subprocess.call(['python3.6', '/home/carpe/carpe/plaso_tool/carpe_psort.py', '-o', '4n6time_maria', '--server', '127.0.0.1', '--port', '23306', '--user', 'root', '--password', 'dfrc4738', '--db_name', 'carpe', '--case_id', str(self.case_id), '--evd_id', str(self.evd_id), '--par_id', p_id, storage_path])
+
+			print(p_id)
+			if p_id == 'p194e18781ce5b4e94a90d4591e3264b5a':
+				print("pass!!!")
+				continue
+			# test
+			subprocess.call(['python3.6', '/home/barley/CARPE/plaso_tool/carpe_l2t.py', '--no_vss', '--hashers', 'None',
+							 storage_path, self.path, p_name])
+			print('l2t end')
+			if os.path.exists(storage_path):
+				subprocess.call(
+					['python3.6', '/home/barley/CARPE/plaso_tool/carpe_psort.py', '-o', '4n6time_maria', '--server',
+					 '127.0.0.1', '--port', '3306', '--user', 'root', '--password', 'dfrc4738', '--db_name', 'carpe',
+					 '--case_id', str(self.case_id), '--evd_id', str(self.evd_id), '--par_id', p_id, storage_path])
+
+			# server
+			#subprocess.call(['python3.6', '/home/carpe/carpe/plaso_tool/carpe_l2t.py', '--no_vss', '--hashers', 'None',  storage_path, self.path, p_name])
+			#subprocess.call(['python3.6', '/home/carpe/carpe/plaso_tool/carpe_psort.py', '-o', '4n6time_maria', '--server', '127.0.0.1', '--port', '23306', '--user', 'root', '--password', 'dfrc4738', '--db_name', 'carpe', '--case_id', str(self.case_id), '--evd_id', str(self.evd_id), '--par_id', p_id, storage_path])
 
 	def Analyze_Artifacts(self, options):
 		analyzer = artifact_analyzer.ArtifactAnalyzer()

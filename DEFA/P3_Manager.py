@@ -11,7 +11,8 @@ from os.path import isfile, join
 from datetime import datetime, timedelta
 from elasticsearch import Elasticsearch
 
-from DEFA.PDF.carpe_pdf import PDF
+# pdf 주석
+#from DEFA.PDF.carpe_pdf import PDF
 from DEFA.OOXML.Carpe_OOXML import OOXML
 from DEFA.MS_Office.carpe_compound import Compound
 from DEFA.Hancom.carpe_hwp import HWP
@@ -56,6 +57,8 @@ class DEFA:
             
         if data.ext.lower() in 'pdf':
             #return False
+            # pdf 주석
+            """
             with PDF(file_export_path) as pdf:
                 pdf.parse_content() 
                 pdf.parse_metadata() 
@@ -142,7 +145,7 @@ class DEFA:
                 #except Exception as ex:
                 #    print('[Error]%s-%s'%(ex, data.name))
                 #    return False
-        
+        """
         elif data.ext.lower() in 'hwp': 
             hwp = HWP(file_export_path)
             hwp.parse(data.ole_path)
