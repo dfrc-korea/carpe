@@ -10,7 +10,8 @@ from image_analyzer import scan_disk
 from filesystem_analyzer import carpe_fs_analyzer
 from artifact_analyzer import artifact_analyzer
 
-from FIVE.plugin_carving import CarvingManager
+# 카빙 import 에러로 인해 잠시 주석처리
+#from FIVE.plugin_carving import CarvingManager
 from moduleInterface.interface import ModuleComponentInterface
 
 #sys.path.append(os.path.join(os.path.dirname(os.path.abspath(os.path.dirname('__file__')), 'READ')))
@@ -34,6 +35,7 @@ class CARPE_AM:
 		db = carpe_db.Mariadb()
 		db.open()
 		query = "SELECT evd_path FROM evidence_info WHERE case_id='" + _case_id + "' AND evd_id='" + _evd_id + "';"
+		#pdb.set_trace()
 		self.path = os.path.join("/home/carpe/storage", db.execute_query(query)[0])
 		db.close()
 		
@@ -130,7 +132,7 @@ class CARPE_AM:
 		query = "SELECT par_id, par_name FROM partition_info WHERE evd_id='" + self.evd_id + "' ORDER BY start_sector;"
 		par_infos = db.execute_query_mul(query)
 		db.close()
-
+        
 		# Call Log2Timeline & Psort Tool
 		for par_info in par_infos:
 			p_id = str(par_info[0])
