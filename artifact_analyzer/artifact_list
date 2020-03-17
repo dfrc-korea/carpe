@@ -1,7 +1,1 @@
-WebCache:web_cache
-WebCookie:web_cookie
-WebDownload:web_download
-WebHistory:web_history
-WindowsExternalDevice:windows_extdevice
-WindowsInstallation:windows_installation
-WindowsInstalledApp:windows_installed_app
+INSTALLEDPROGRAMS:reg_installed_programs
