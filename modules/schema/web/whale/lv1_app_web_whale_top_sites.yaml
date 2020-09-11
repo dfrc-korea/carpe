@@ -1,0 +1,23 @@
+Name: Top site
+Desc: whale top site
+Table:
+  - TableName: lv1_app_web_whale_top_sites
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - url
+      - url_rank
+      - title
+      - os_account
+      - whale_profile
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

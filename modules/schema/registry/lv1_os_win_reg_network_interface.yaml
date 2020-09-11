@@ -1,0 +1,68 @@
+Name: NETWORKINTERFACE
+Desc: Windows NETWORK INTERFACE
+Table:
+  - TableName: lv1_os_win_reg_network_interface
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - enable_dhcp
+      - ipaddress
+      - dhcp_ipaddress
+      - dhcp_subnetmask
+      - dhcp_server
+      - dhcp_connforcebroadcastflag
+      - dhcp_domain
+      - dhcp_name_server
+      - dhcp_default_gateway
+      - dhcp_subnetmaskopt
+      - dhcp_interfaceoptions
+      - dhcp_gatewayhardware
+      - dhcp_gatewayhardwarecount
+      - lease
+      - lease_obtained_time
+      - lease_terminate_time
+      - t1
+      - t2
+      - address_type
+      - isservernapaware
+      - registeradaptername
+      - registrationenabled
+      - backup_flag
+      - source_location
+
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: NETWORKINTERFACE
+    Desc: Windows NETWORK INTERFACE
+    Values:
+      - [source, REG]

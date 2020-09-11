@@ -1,0 +1,3 @@
+[console_scripts]
+msg_parser = msg_parser.cli:main
+

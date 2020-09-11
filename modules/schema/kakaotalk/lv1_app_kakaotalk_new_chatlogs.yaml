@@ -1,0 +1,51 @@
+Name: Kakaotalk_new_chatlogs
+Desc: Kakaotalk db chatlogs
+Table:
+  - TableName: lv1_app_kakaotalk_new_chatLogs
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - logId
+      - authorId
+      - type
+      - clientMsgId
+      - sendAt
+      - message
+      - attachment
+      - pc_logout
+      - prev_msg_missing
+      - next_msg_missing
+      - deleted
+      - prevLogId
+      - feed_flags
+      - write_on_pc
+      - is_link_message
+      - referrer
+      - supplement
+      - rewrite
+      - is_encrypt_delete_msg
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

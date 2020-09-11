@@ -1,0 +1,31 @@
+Name: SEARCHKEYWORD
+Desc: Windows SEARCH KEYWORD
+Table:
+  - TableName: lv1_os_win_reg_search_keyword
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - keyword
+      - modified_time
+      - ordering
+      - useraccount
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: SEARCHKEYWORD
+    Desc: Windows SEARCH KEYWORD
+    Values:
+      - [source, REG]

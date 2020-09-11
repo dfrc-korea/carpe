@@ -1,0 +1,35 @@
+Name: Logfile_restart_area
+Desc: Logfile restart area
+Table:
+  - TableName: lv1_fs_ntfs_logfile_restart_area
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - lsn
+      - version
+      - start_of_checkpoint
+      - open_attribute_table_lsn
+      - open_attribute_table_length
+      - attributes_names_lsn
+      - attributes_names_length
+      - dirty_page_table_lsn
+      - dirty_page_table_length
+      - transaction_table_lsn
+      - transaction_table_length
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

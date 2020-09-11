@@ -1,0 +1,25 @@
+Name: Autofill
+Desc: whale autofill
+Table:
+  - TableName: lv1_app_web_whale_autofill
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - value
+      - date_crated
+      - date_last_used
+      - count
+      - os_account
+      - whale_profile
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

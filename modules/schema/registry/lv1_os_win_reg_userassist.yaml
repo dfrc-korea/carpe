@@ -1,0 +1,40 @@
+Name: Registry UserAssist
+Desc: This is for parsing windows registry UserAssist
+Table:
+  - TableName: lv1_os_win_reg_user_assist
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - file_name
+      - type
+      - userassist_entry_number
+      - program_run_count
+      - last_run_time
+      - focus_count
+      - focus_seconds
+      - useraccount
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+
+Artifacts:
+  - Name: Registry UserAssist
+    Desc: This is for parsing windows registry UserAssist
+    Values:
+      - [sourcetype, 'Registry Key: UserAssist']

@@ -1,0 +1,35 @@
+Name: WindowsEventlogRemoteonff
+Desc: Windows Eventlog Remote On Off
+Table:
+  - TableName: lv1_os_win_event_logs_remoteonoff
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - task
+      - time
+      - connection
+      - address
+      - user_sid
+      - event_id
+      - source
+      - event_id_description
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+
+Artifacts:
+  - Name: WindowsEventlogRemoteonff
+    Desc: Windows Eventlog Remote On Off
+    Values:
+      - [sourcetype, WinEVTX]

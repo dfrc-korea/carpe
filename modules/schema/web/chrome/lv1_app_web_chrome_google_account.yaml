@@ -1,0 +1,37 @@
+Name: WebChromeGoogleAccount
+Desc: Web Chrome Google Account
+Table:
+  - TableName: lv1_app_web_chrome_google_account
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - account_id
+      - email
+      - full_name
+      - first_name
+      - locale
+      - host_domain
+      - is_child_account
+      - is_under_advanced_protection
+      - last_download_image_url
+      - picture_url
+      - os_account
+      - chrome_profile
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

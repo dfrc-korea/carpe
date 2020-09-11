@@ -1,0 +1,30 @@
+Name: Kakaotalk_Mobile_Channel_History
+Desc: Kakaotalk Mobile Channel History
+Table:
+  - TableName: lv1_app_kakaotalk_mobile_channel_history
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - item_id
+      - title
+      - link
+      - image_url
+      - source
+      - created_at
+      - tags_json
+      - service_id
+
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

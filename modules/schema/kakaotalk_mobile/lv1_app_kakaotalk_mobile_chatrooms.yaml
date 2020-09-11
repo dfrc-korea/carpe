@@ -1,0 +1,71 @@
+Name: Kakaotalk_Mobile_Chatrooms
+Desc: Kakaotalk Mobile Chatroomss
+Table:
+  - TableName: lv1_app_kakaotalk_mobile_chatrooms
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - _id
+      - id
+      - type
+      - members
+      - active_member_ids
+      - last_log_id
+      - last_message
+      - last_updated_at
+      - unread_count
+      - watermarks
+      - temporary_message
+      - v
+      - ext
+      - last_read_log_id
+      - last_update_seen_id
+      - active_members_count
+      - meta
+      - is_hint
+      - private_meta
+      - last_chat_log_type
+      - schat_token
+      - last_skey_token
+      - last_pk_tokens
+      - link_id
+      - moim_meta
+      - invite_info
+      - blinded_member_ids
+      - mute_until_at
+      - last_joined_log_id
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

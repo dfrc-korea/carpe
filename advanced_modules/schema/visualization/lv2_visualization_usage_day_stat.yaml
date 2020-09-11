@@ -1,0 +1,29 @@
+Name: USAGE DAY STAT
+Desc: VISUALIZATION USAGE HISTORY USAGE DAY STAT
+Table:
+  - TableName: usage_day_stat
+    Columns:
+      - year
+      - month
+      - day
+      - hour
+      - min
+      - act
+      - case_id
+      - evd_id
+
+    Types:
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: USAGE DAY STAT
+    Desc: VISUALIZATION USAGE HISTORY USAGE DAY STAT
+    Values:
+      - [source, REG]

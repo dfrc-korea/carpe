@@ -1,0 +1,63 @@
+Name: OSINFO
+Desc: Windows Operating System INFO
+Table:
+  - TableName: lv1_os_win_reg_os_information
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - operating_system
+      - release_id
+      - version_number
+      - install_time
+      - product_key
+      - owner
+      - display_computer_name
+      - computer_name
+      - dhcp_dns_server
+      - operating_system_version
+      - build_number
+      - product_id
+      - last_service_pack
+      - organization
+      - last_shutdown_time
+      - system_root
+      - path
+      - last_access_time_flag
+      - timezone_utc
+      - display_timezone_name
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: os_info
+    Desc: Windows Operating System INFO
+    Values:
+      - [source, REG]

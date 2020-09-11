@@ -1,0 +1,18 @@
+실행환경
+
+Python 3
+
+사용방법
+
+> python3 IconCacheParser.py <IconCache Filename> <Output SQLite Filename> [/export:<Path to export>]
+
+사용예
+
+> python3 IconCacheParser.py     ; 도움말 출력
+> python3 IconCacheParser.py ./iconcache_32.db output.db     ; iconcache_32.db 파일에서 추출하여 output.db 파일에 저장
+> python3 IconCacheParser.py ./iconcache_48.db output.db /export:export_dir     ; iconcache_48.db 파일에서 추출한 내용을 output.db 에 저장하고 이미지는 지정 폴더(/export) export_dir 에 저장한다.
+
+저장 데이터베이스 구조
+
+CREATE TABLE ThumbsData (_id integer PRIMARY KEY AUTOINCREMENT, Name VARCHAR(255), ResXY VARCHAR(15), ImgType VARCHAR(6), Data STRING, SHA1 VARCHAR(20));
+

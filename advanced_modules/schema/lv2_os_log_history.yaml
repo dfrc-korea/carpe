@@ -1,0 +1,29 @@
+Name: LogFileHistory
+Desc: Usnjrnl Log History
+Table:
+  - TableName: lv2_os_log_history
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - mft_entry
+      - sequence_val
+      - file_name
+      - file_size
+      - file_path
+      - usn_file_name
+      - timestamp
+      - reason
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [BIGINT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

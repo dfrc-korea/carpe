@@ -1,0 +1,37 @@
+Name: WindowsEventLogApplications
+Desc: Windows Eventlog Applications
+Table:
+  - TableName: lv1_os_win_event_logs_applications
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - task
+      - time
+      - application_name
+      - path
+      - resolver_name
+      - user_sid
+      - event_id
+      - source
+      - event_id_description
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+
+Artifacts:
+  - Name: WindowsEventLogApplications
+    Desc: Windows Eventlog Applications
+    Values:
+      - [sourcetype, WinEVTX]

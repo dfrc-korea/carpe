@@ -1,0 +1,21 @@
+Name: WindowsRecycleBin
+Desc: Windows Recycle Bin
+Table:
+  - TableName: lv1_os_win_recyclebin
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - file_name
+      - size
+      - deleted_time
+      - i_file_name
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

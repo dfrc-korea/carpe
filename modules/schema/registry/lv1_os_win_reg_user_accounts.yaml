@@ -1,0 +1,59 @@
+Name: USERACCOUNTS
+Desc: Windows Operating System User Accounts
+Table:
+  - TableName: lv1_os_win_reg_user_account
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - user_name
+      - full_name
+      - type_of_user
+      - account_description
+      - security_identifier
+      - user_group
+      - login_script
+      - profile_path
+      - account_created_time
+      - last_login_time
+      - last_password_change_time
+      - last_incorrect_password_login_time
+      - login_count
+      - account_disabled
+      - password_required
+      - password_hint
+      - lm_hash
+      - ntlm_hash
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: USERACCOUNTS
+    Desc: Windows Operating System User Accounts
+    Values:
+      - [source, REG]

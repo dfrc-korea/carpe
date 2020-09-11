@@ -1,0 +1,83 @@
+Name: Logfile
+Desc: Logfile
+Table:
+  - TableName: lv1_fs_ntfs_logfile
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - conn_prev_lsn
+      - conn_last_lsn
+      - page_nr
+      - nr_in_page
+      - transaction_num
+      - this_lsn
+      - previous_lsn
+      - undo_next_lsn
+      - data_len
+      - seq_nr
+      - client_index
+      - record_type
+      - dervied_record_type
+      - transaction_id
+      - flag
+      - is_split
+      - redo_op
+      - undo_op
+      - deriv_redo
+      - deriv_undo
+      - redo_offset
+      - redo_len
+      - undo_offset
+      - undo_len
+      - target_attr
+      - lcn_to_follow
+      - record_offset
+      - attribute_offset
+      - mft_cluster_index
+      - target_vcn
+      - target_lcn
+      - deriv_inum
+      - em_mft_seq_value
+      - em_usn_usn
+      - em_attr_file_name
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

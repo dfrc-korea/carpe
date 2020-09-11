@@ -1,0 +1,29 @@
+Name: NTFS Filesystem USN Jrnl
+Desc: NTFS Filesystem USN Jrnl Parser
+Table:
+  - TableName: lv1_fs_ntfs_usnjrnl
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - usn_value
+      - source
+      - reason
+      - mft_ref_num
+      - parent_mft_reference_number
+      - timestamp
+      - file_name
+      - file_path_from_mft
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

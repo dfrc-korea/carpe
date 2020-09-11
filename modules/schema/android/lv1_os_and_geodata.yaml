@@ -1,0 +1,29 @@
+Name: Geodata
+Desc: Geodata
+Table:
+  - TableName: lv1_os_and_geodata
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - package_name
+      - timestamp
+      - longitude
+      - latitude
+      - contents
+      - source
+      - is_visited
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+

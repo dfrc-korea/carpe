@@ -1,0 +1,22 @@
+Name: Kakaotalk_Mobile_Block_Friends
+Desc: Kakaotalk Mobile Block Friends
+Table:
+  - TableName: lv1_app_kakaotalk_mobile_block_friends
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - _id
+      - id
+      - nickname
+      - profile_image_url
+
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

@@ -1,0 +1,37 @@
+Name: NETWORKPROFILE
+Desc: Windows NETWORK PROFILE
+Table:
+  - TableName: lv1_os_win_reg_network_profile
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - profile_name
+      - profile_guid
+      - description
+      - datecreated
+      - datelstconnected
+      - dns
+      - default_gateway_mac
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: NETWORKPROFILE
+    Desc: Windows NETWORK PROFILE
+    Values:
+      - [source, REG]

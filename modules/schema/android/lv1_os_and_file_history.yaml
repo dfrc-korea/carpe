@@ -1,0 +1,27 @@
+Name: File history
+Desc: File history
+Table:
+  - TableName: lv1_os_and_file_history
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - package_name
+      - timestamp
+      - file
+      - phonenumber
+      - account
+      - contents
+      - source
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+

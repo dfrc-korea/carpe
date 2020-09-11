@@ -1,0 +1,39 @@
+Name: Logfile_log_record
+Desc: Logfile log record
+Table:
+  - TableName: lv1_fs_ntfs_logfile_log_record
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - lsn
+      - transaction_id
+      - redo_op
+      - undo_op
+      - target_file_number
+      - target_reference
+      - target_attribute_name
+      - file_path
+      - offset_in_target
+      - lcn
+      - redo_data
+      - undo_data
+      - attribute
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [BLOB]
+      - [BLOB]
+      - [TEXT]

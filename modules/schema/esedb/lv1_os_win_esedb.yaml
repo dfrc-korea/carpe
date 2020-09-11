@@ -1,0 +1,15 @@
+Name: ESE Database - Internet Explorer
+Desc: Windows Operating System ESE Database - Internet Explorer
+Path_Separator: '\'
+Paths:
+    - '\\Users\\.+\\AppData\\Local\\Microsoft\\Windows\\WebCache\\WebCacheV.+[.]dat'
+    - '\\Users\\.+\\AppData\\Local\\Microsoft\\Windows\\History\\History.IE5\\index[.]dat'
+    - '\\Users\\.+\\AppData\\Local\\Microsoft\\Windows\\History\\History.IE5\\MSHist.+\\index[.]dat'
+    - '\\Users\\.+\\AppData\\Local\\Microsoft\\Windows\\History\\Low\\History.IE5\\index[.]dat'
+    - '\\Users\\.+\\AppData\\Local\\Microsoft\\Windows\\History\\Low\\History.IE5\\MSHist.+\\index[.]dat'
+    - '\\Users\\.+\\AppData\\Local\\Microsoft\\Windows\\Temporary Internet Files\\Content.IE5\\index[.]dat'
+    - '\\Users\\.+\\AppData\\Local\\Microsoft\\Windows\\Temporary Internet Files\\Low\\Content.IE5\\index[.]dat'
+    - '\\Users\\.+\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\index[.]dat'
+    - '\\Users\\.+\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\Low\\index[.]dat'
+    - '\\Users\\.+\\AppData\\Local\\Microsoft\\Internet Explorer\\Recovery\\.+\\.+[.]dat'
+    - '\\Users\\.+\\AppData\\Local\\Microsoft\\Internet Explorer\\Recovery\\Immersive\\.+\\.+[.]dat'

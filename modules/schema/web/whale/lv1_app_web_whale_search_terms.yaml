@@ -1,0 +1,27 @@
+Name: Keyword
+Desc: keyword
+Table:
+  - TableName: lv1_app_web_whale_search_terms
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - url_id
+      - term
+      - normalized_term
+      - url
+      - last_visit_time
+      - os_account
+      - whale_profile
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
