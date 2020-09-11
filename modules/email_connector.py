@@ -6,6 +6,7 @@ from elasticsearch import Elasticsearch
 
 from modules import manager
 from modules import interface
+from dfvfs.lib import definitions as dfvfs_definitions
 #from modules.app_email.lib.yjSysUtils import *
 #from modules.app_email.lib.delphi import *
 
