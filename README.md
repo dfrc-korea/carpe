@@ -19,4 +19,6 @@ In this course, correlation analysis and string indexing are performed based on 
 
 
 ##### Ohter information
-* http://carpeforensics.org
+* Contact information: http://carpeforensics.org
+* How to build: https://github.com/dfrc-korea/carpe/wiki/Building
+* Documentation: https://github.com/dfrc-korea/carpe/wiki/Usage
