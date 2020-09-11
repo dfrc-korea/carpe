@@ -1,0 +1,35 @@
+Name: MRUFILE
+Desc: Windows MRU FILE
+Table:
+  - TableName: lv1_os_win_reg_mru_file
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - file_name
+      - file_path
+      - modified_time
+      - extension
+      - value
+      - useraccount
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: MRUFILE
+    Desc: Windows MRU FILE
+    Values:
+      - [source, REG]

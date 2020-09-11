@@ -1,0 +1,33 @@
+Name: WebWhaleFavicons
+Desc: Web Whale Favicons
+Table:
+  - TableName: lv1_app_web_whale_favicons
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - id
+      - icon_id
+      - icon_url
+      - last_updated
+      - last_requested
+      - image_data
+      - width
+      - height
+      - os_account
+      - whale_profile
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [BLOB]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

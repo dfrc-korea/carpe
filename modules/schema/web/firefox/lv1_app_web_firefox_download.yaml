@@ -1,0 +1,35 @@
+Name: WebFirefoxDownload
+Desc: Web Firefox Download
+Table:
+  - TableName: lv1_app_web_firefox_download
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - url
+      - download_path
+      - download_file_size
+      - state
+      - start_time
+      - end_time
+      - flags
+      - expiration
+      - type
+      - os_account
+      - firefox_profile_id
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

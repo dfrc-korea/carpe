@@ -1,0 +1,23 @@
+Name: USAGE YEAR
+Desc: VISUALIZATION USAGE HISTORY USAGE YEAR
+Table:
+  - TableName: usage_year
+    Columns:
+      - year
+      - month
+      - cnt
+      - case_id
+      - evd_id
+
+    Types:
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: USAGE YEAR
+    Desc: VISUALIZATION USAGE HISTORY USAGE YEAR
+    Values:
+      - [source, REG]

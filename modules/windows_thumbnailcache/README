@@ -1,0 +1,13 @@
+실행환경
+
+Python 3
+
+실행방법 
+
+> python3 ThumbnailParser.py 썸네일파일 저장될SQLite파일 /export:썸네일파일저장경로   ; 경로포함  
+
+실행예제
+
+> python3 ThumbnailParser.py     ; 사용법 출력
+> python3 ThumbnailParser.py ./thumbs.db ./items.sqlite     ; 현재디렉토리의 thumbs.db 파일에서 추출해서 현재디렉토리의 items.sqlite 파일에 결과 저장
+> python3 ThumbnailParser.py ./thumbs.db ./items.sqlite /export:exportdir   ; 현재디렉토리의 thumbs.db 파일에서 추출후 현재 디렉토리의 items.sqlite 파일에 결과저장하고 실제 파일은 exportdir 디렉토리를 만들어 저장 

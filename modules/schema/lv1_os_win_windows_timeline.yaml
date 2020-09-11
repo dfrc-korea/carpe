@@ -1,0 +1,49 @@
+Name: WindowsTimeline
+Desc: Windows Operating System Windows Timeline
+Table:
+  - TableName: lv1_os_win_windows_timeline
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - program_name
+      - display_name
+      - content
+      - activity_type
+      - focus_seconds
+      - start_time
+      - end_time
+      - activity_id
+      - platform
+      - created_time
+      - created_in_cloud_time
+      - last_modified_time
+      - last_modified_on_client_time
+      - original_last_modified_on_client_time
+      - local_only_flag
+      - group_type
+      - clipboardpayload
+      - timezone
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]

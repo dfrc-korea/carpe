@@ -1,0 +1,39 @@
+Name: InstalledPrograms
+Desc: Windows Operating System Installed Program History
+Table:
+  - TableName: lv1_os_win_reg_installed_program
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - program_name
+      - company
+      - created_date
+      - key_last_updated_time
+      - install_size
+      - version
+      - potential_location
+      - useraccount
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: InstalledPrograms
+    Desc: Windows Operating System Installed Program History
+    Values:
+      - [source, REG]

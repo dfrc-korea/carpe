@@ -1,0 +1,19 @@
+실행환경
+
+Python 3
+
+사용방법
+
+> python3 PFExport2.py <Prefetch Filename> <Output SQLite Filename>    ; 반드시 경로 포함
+> python3 PFExport2.py <Prefetch File Directory> <Output SQLite Filename>    ; 반드시 경로 포함
+
+사용예
+
+> python3 PFExport2.py     ; 도움말 출력
+> python3 PFExport2.py ./OUTLOOK.EXE-F1C71227.pf ./output.sqlite     ; OUTLOOK.EXE-F1C71227.pf 파일을 분석하여 결과를 output.sqlite 파일에 저장
+> python3 PFExport2.py ./pffiles output.sqlite                      ; pffiles 디렉토리내의 모든 pf 파일들을 분석하여 결과를 output.sqlite 파일에 저장 
+
+저장 데이터베이스 구조
+
+CREATE TABLE PrefetchInfo(sid integer PRIMARY KEY,Name VARCHAR2(255) NOT NULL, CreationTime VARCHAR2(30), ModifiedTime VARCHAR2(30), Size Integer, ProcessName VARCHAR2(255), ProcessPath VARCHAR2(255), RunCount Integer, AccessTime VARCHAR2(30));
+CREATE TABLE RunInfo(_id integer PRIMARY KEY AUTOINCREMENT, sid Integer, FileExt Varchar2(10), FileName VARCHAR2(255), LogicalPath VARCHAR2(255), DevicePath VARCHAR2(255));

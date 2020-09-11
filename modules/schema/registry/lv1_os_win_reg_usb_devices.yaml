@@ -1,0 +1,59 @@
+Name: USBAllDevice
+Desc: Windows Operating System USB All Deivce Connection History
+Table:
+  - TableName: lv1_os_win_reg_usb_device
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - device_class_id
+      - serial_number
+      - type
+      - last_connected_time
+      - device_description
+      - friendly_name
+      - manufacturer
+      - last_assigned_drive_letter
+      - volume_GUID
+      - volume_serial_number_decimal
+      - volume_serial_number_hex
+      - associated_user_accounts
+      - first_connected_time
+      - first_connected_since_reboot_time
+      - driver_install_time
+      - first_install_time
+      - last_insertion_time
+      - last_removal_time
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: USB_all_device
+    Desc: Windows Operating System USB All Deivce Connection History
+    Values:
+      - [source, REG]

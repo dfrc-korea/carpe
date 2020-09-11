@@ -1,0 +1,29 @@
+Name: WebFirefoxPermissions
+Desc: Web Firefox Permissions
+Table:
+  - TableName: lv1_app_web_firefox_permissions
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - url
+      - type
+      - permission
+      - expire_type
+      - expire_time
+      - modified_time
+      - os_account
+      - firefox_profile_id
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

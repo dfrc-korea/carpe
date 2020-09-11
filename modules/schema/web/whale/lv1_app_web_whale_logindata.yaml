@@ -1,0 +1,65 @@
+Name: WebWhaleLogindata
+Desc: Web Whale Logindata
+Table:
+  - TableName: lv1_app_web_whale_logindata
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - id
+      - origin_url
+      - action_url
+      - username_element
+      - username_value
+      - password_element
+      - password_value
+      - signon_realm
+      - date_created
+      - form_data
+      - blacklisted_by_user
+      - scheme
+      - password_type
+      - times_used
+      - dated_synced
+      - displayed_name
+      - icon_url
+      - federation_url
+      - skip_zero_click
+      - generation_upload_status
+      - possible_username_pairs
+      - submit_element
+      - preferred
+      - date_last_used
+      - os_account
+      - whale_profile
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [BLOB]
+      - [TEXT]
+      - [TEXT]
+      - [BLOB]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [BLOB]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

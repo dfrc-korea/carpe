@@ -1,0 +1,55 @@
+Name: MFT
+Desc: MFT record
+Table:
+  - TableName: lv1_fs_ntfs_mft
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - source
+      - mft_ref_num
+      - is_in_use
+      - is_directory
+      - lsn
+      - path
+      - SI_mtime
+      - SI_atime
+      - SI_ctime
+      - SI_etime
+      - SI_usn
+      - FN_mtime
+      - FN_atime
+      - FN_ctime
+      - FN_etime
+      - OBJID_timestamp
+      - file_size
+      - ads_list
+      - wsl_mtime
+      - wsl_atime
+      - wsl_chtime
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

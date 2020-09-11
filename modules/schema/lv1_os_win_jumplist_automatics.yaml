@@ -1,0 +1,34 @@
+Name: WindowsJumplistAutomatics
+Desc: Windows Jumplist file - Automaticsdestination
+Table:
+  - TableName: lv1_os_win_jumplist_automatics
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - file_name
+      - file_path
+      - record_time
+      - access_count
+      - entry_id
+      - file_ext
+      - file_attribute
+      - file_size
+      - app_id
+      - application_name
+
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

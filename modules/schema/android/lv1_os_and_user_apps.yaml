@@ -1,0 +1,8 @@
+Name: Android - User Apps
+Desc: Android User Apps SQLite database files.
+Path_Separator: '/'
+Paths:
+    - '/data/com.fineapp.yogiyo'
+    - '/data/com.skmc.okcashbag.home_google'
+    - '/data/com.google.android.apps.photos'
+    - '/data/com.android.providers.media'

@@ -1,0 +1,23 @@
+Name: OSAppHistory
+Desc: Windows Operating System Application History
+Table:
+  - TableName: lv2_os_app_history
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - process_name
+      - execution_time
+      - process_path
+      - reference_file
+      - source
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

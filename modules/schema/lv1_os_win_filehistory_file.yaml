@@ -1,0 +1,32 @@
+Name: WindowsFileHistoryFile
+Desc: Windows FileHistory - File
+Table:
+  - TableName: lv1_os_win_filehistory_file
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - id
+      - parent_id
+      - child_id
+      - state
+      - status
+      - file_size
+      - t_queued
+      - t_captured
+      - t_updated
+
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

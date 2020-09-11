@@ -1,0 +1,30 @@
+Name: Web browser history
+Desc: Web browser history
+Table:
+  - TableName: lv1_os_and_web_browser_history
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - package_name
+      - timestamp
+      - url
+      - account
+      - digit_positive
+      - file
+      - contents
+      - source
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+

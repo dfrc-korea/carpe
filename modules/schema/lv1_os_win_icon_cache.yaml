@@ -1,0 +1,25 @@
+Name: IconCache
+Desc: Windows Operating System Icon Cache
+Table:
+  - TableName: lv1_os_win_icon_cache
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - owner
+      - filename
+      - filesize
+      - imagetype
+      - data
+      - sha1
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [BLOB, NOT NULL]
+      - [TEXT, NOT NULL]

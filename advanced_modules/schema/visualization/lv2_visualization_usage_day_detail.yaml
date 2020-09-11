@@ -1,0 +1,25 @@
+Name: USAGE DAY DETAIL
+Desc: VISUALIZATION USAGE HISTORY USAGE DAY DETAIL
+Table:
+  - TableName: usage_day_detail
+    Columns:
+      - regdate
+      - evdnc_type
+      - artifact_type
+      - information
+      - case_id
+      - evd_id
+
+    Types:
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+
+Artifacts:
+  - Name: USAGE DAY DETAIL
+    Desc: VISUALIZATION USAGE HISTORY USAGE DAY DETAIL
+    Values:
+      - [source, REG]

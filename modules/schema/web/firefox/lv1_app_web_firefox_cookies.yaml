@@ -1,0 +1,43 @@
+Name: WebFirefoxCookies
+Desc: Web Firefox Cookies
+Table:
+  - TableName: lv1_app_web_firefox_cookies
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - name
+      - value
+      - host
+      - path
+      - expire_time
+      - last_accessed_time
+      - created_time
+      - is_secure
+      - is_http_only
+      - inbrowser_element
+      - same_site
+      - raw_same_site
+      - scheme_map
+      - os_account
+      - firefox_profile_id
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

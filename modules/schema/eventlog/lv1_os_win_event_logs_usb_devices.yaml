@@ -1,0 +1,45 @@
+Name: WindowsEventLogUSBDevices
+Desc: Windows Eventlog USB devices
+Table:
+  - TableName: lv1_os_win_event_logs_usb_devices
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - task
+      - time
+      - device_instance_id
+      - description
+      - manufacturer
+      - model
+      - revision
+      - serial_number
+      - parentid
+      - user_sid
+      - event_id
+      - source
+      - event_id_description
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+
+Artifacts:
+  - Name: WindowsEventLogUSBDevices
+    Desc: Windows Eventlog USB Devices
+    Values:
+      - [sourcetype, WinEVTX]

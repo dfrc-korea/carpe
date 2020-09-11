@@ -1,0 +1,37 @@
+Name: New Notification Parser
+Desc: Windows Notification Parser
+Table:
+  - TableName: lv1_os_win_notification_new
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - sequence
+      - id
+      - handler_id
+      - type
+      - payload
+      - expiry_time
+      - arrival_time
+      - boot_id
+      - primary_id
+      - handler_type
+      - created_time
+      - modified_time
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

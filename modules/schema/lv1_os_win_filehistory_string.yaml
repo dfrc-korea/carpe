@@ -1,0 +1,18 @@
+Name: WindowsFileHistoryString
+Desc: Windows FileHistory - String
+Table:
+  - TableName: lv1_os_win_filehistory_string
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - id
+      - string
+
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]

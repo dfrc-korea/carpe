@@ -1,0 +1,31 @@
+Name: RUNCOMMAND
+Desc: Windows RUN COMMAND
+Table:
+  - TableName: lv1_os_win_reg_run_command
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - command
+      - modified_time
+      - ordering
+      - useraccount
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: RUNCOMMAND
+    Desc: Windows RUN COMMAND
+    Values:
+      - [source, REG]

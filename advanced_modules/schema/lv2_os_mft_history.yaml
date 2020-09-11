@@ -1,0 +1,39 @@
+Name: MFT_History
+Desc: MFT History
+Table:
+  - TableName: lv2_os_mft_history
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - file_id
+      - inode
+      - name
+      - dir_type
+      - size
+      - extension
+      - mtime
+      - atime
+      - ctime
+      - etime
+      - parent_path
+      - parent_id
+      - is_copied
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

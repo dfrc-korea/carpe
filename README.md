@@ -8,20 +8,15 @@ Recently, the processing technology for large-capacity data is developed for eac
 
 ## OVERVIEW
 
-### Structure
-![Structure](http://forensic.korea.ac.kr/img/projects/intergrated_auto.jpg)
+#### CARPE Forensics Architecture
+![Structure](carpe-forensics.png)
 
-#### Analyze Image & Extract Artifacts
+##### Analyze Digital Forensic Image & Extract Artifacts
 In this course, we analyze the image data using plaso and RDS (Reference Data Sets) and perform the process of extracting the desired artifacts by the user. The extracted artifacts are then used as input values of the big data processing.
 
-#### Process Big Data
+##### Process Big Data
 In this course, correlation analysis and string indexing are performed based on the result data of image analysis and artifact extraction. The results analyzed in the whole process are stored in a database. The types of databases include a graph database, a time series database, and a relational database. The database data is finally visualized and displayed to the user.
 
-### Dependency
-* [Plaso](https://github.com/log2timeline/plaso)
-* [pymysql](https://github.com/PyMySQL/PyMySQL)
-* json
-* etc.
 
-## SITES
-* [Homapage](http://forensic.korea.ac.kr/dfrc-project-4.html)
+##### Ohter information
+* http://carpeforensics.org

@@ -1,0 +1,28 @@
+Name: Id pw hash
+Desc: Id password hash
+Table:
+  - TableName: lv1_os_and_id_pw_hash
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - package_name
+      - url
+      - account
+      - pwd
+      - contents
+      - timestamp
+      - source
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+

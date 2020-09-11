@@ -1,0 +1,22 @@
+Name: FILE HISTORY
+Desc: VISUALIZE FILE HISTORY
+Table:
+  - TableName: lv2_visualization_file_history
+    Columns:
+      - regmonth
+      - regtime
+      - day1
+
+    Types:
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+
+Artifacts:
+  - Name: TIMELINE MONTH
+    Desc: VISUALIZATION USAGE HISTORY TIMELINE MONTH
+    Values:
+      - [source, REG]

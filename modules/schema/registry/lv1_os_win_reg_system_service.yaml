@@ -1,0 +1,55 @@
+Name: SYSTEMSERVICE
+Desc: Windows SYSTEM SERVICE
+Table:
+  - TableName: lv1_os_win_reg_system_service
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - service_name
+      - service_type
+      - start_type
+      - service_location
+      - groups
+      - display_name
+      - dependancy
+      - user_account
+      - description
+      - service_detail_information
+      - host_flag
+      - host_service
+      - hosted_service_parameter
+      - modified_time
+      - error_control
+      - tag
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: SYSTEMSERVICE
+    Desc: Windows SYSTEM SERVICE
+    Values:
+      - [source, REG]

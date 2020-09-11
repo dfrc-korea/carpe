@@ -1,0 +1,68 @@
+Name: AMCACHE_FILE
+Desc: Windows Operating System Amcache File
+Table:
+  - TableName: lv1_os_win_reg_amcache_file
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - file_name
+      - key_last_updated_time
+      - file_extension
+      - program_id
+      - key_id
+      - related_programname
+      - sha1_hash
+      - os_component_flag
+      - full_path
+      - link_date
+      - product_name
+      - size
+      - version
+      - product_version
+      - long_path_hash
+      - binary_type
+      - pe_file_flag
+      - binary_file_version
+      - binary_product_version
+      - language_code
+      - usn
+      - publisher
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+
+Artifacts:
+  - Name: AMCACHE_FILE
+    Desc: Windows Operating System Amcache File
+    Values:
+      - [source, REG]

@@ -1,0 +1,69 @@
+Name: AMCACHE_PROGRAM
+Desc: Windows Operating System Amcache PROGRAM
+Table:
+  - TableName: lv1_os_win_reg_amcache_program
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - file_name
+      - key_last_updated_time
+      - installed_time
+      - version
+      - publisher
+      - uninstall_time
+      - os_version_at_install_time
+      - bundle_manifest_path
+      - hide_in_control_panel_flag
+      - inboxmodernapp
+      - language_code
+      - manifest_path
+      - msi_package_code
+      - msi_product_code
+      - package_full_name
+      - program_id
+      - program_instance_id
+      - uninstall_registry_key_path
+      - root_dir_path
+      - type
+      - program_source
+      - store_app_type
+      - uninstall_string
+      - backup_flag
+      - source_location
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+Artifacts:
+  - Name: AMCACHE_PROGRAM
+    Desc: Windows Operating System Amcache Program
+    Values:
+      - [source, REG]

@@ -1,0 +1,36 @@
+Name: WindowsFileHistoryNamespace
+Desc: Windows FileHistory - Namespace
+Table:
+  - TableName: lv1_os_win_filehistory_namespace
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - id
+      - parent_id
+      - child_id
+      - status
+      - file_attribute
+      - file_created
+      - file_modified
+      - usn
+      - t_created
+      - t_visible
+      - file_record_id
+
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

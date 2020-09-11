@@ -1,0 +1,14 @@
+Name: Android - Basic Apps
+Desc: Android Basic Apps SQLite database files.
+Path_Separator: '/'
+Paths:
+    - '/user_de/.+/com.android.providers.telephony'
+    - '/data/com.android.providers.contacts'
+    - '/data/com.sec.android.app.myfiles'
+    - '/data/com.android.providers.userdictionary'
+    - '/system/usagestats'
+    - '/system/users/.+/settings_secure.xml'
+    - '/system/SimCard.dat'
+    - '/misc/wifi/WifiConfigStore.xml'
+    - '/system_de'
+    - '/system_ce'

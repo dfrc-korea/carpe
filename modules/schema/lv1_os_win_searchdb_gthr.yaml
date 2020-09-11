@@ -1,0 +1,54 @@
+Name: WindowsSearchDBGthr
+Desc: Windows Search DB SystemIndex_Gthr
+Table:
+  - TableName: lv1_os_win_searchdb_gthr
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - scope_id
+      - document_id
+      - sdid
+      - last_modified
+      - transaction_flags
+      - transaction_extended_flags
+      - crawl_number_crawled
+      - start_address_identifier
+      - priority
+      - file_name
+      - user_data
+      - app_owner_id
+      - required_sids
+      - deleted_count
+      - runtime
+      - failure_update_attempts
+      - client_id
+      - last_requested_runtime
+      - storage_provider_id
+      - calculated_property_flags
+
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

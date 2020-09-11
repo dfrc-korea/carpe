@@ -1,0 +1,43 @@
+Name: Application List
+Desc: Application List
+Table:
+  - TableName: lv1_os_and_app_list
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - is_deleted
+      - category
+      - package_name
+      - app_name
+      - version
+      - installed_time
+      - apk_changed_time
+      - updated_time
+      - deleted_time
+      - fs_ctime
+      - fs_crtime
+      - fs_atime
+      - fs_mtime
+      - is_updated
+      - source
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
