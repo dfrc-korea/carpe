@@ -13,7 +13,6 @@ from modules import kakaotalk_mobile_decrypt_connector
 from modules import notification_connector
 from modules import andforensics_connector
 from modules import chromium_connector
-from modules import image_classification_connector
 from modules import android_basic_apps_connector
 from modules import android_user_apps_connector
 from modules import iconcache_connector
