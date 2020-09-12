@@ -26,7 +26,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
     """
     NAME = 'CARPE Forensics'
-    VERSION = '20200903'
+    VERSION = '20200912'
     DESCRIPTION = textwrap.dedent('\n'.join([
         '',
         'CARPE Forensics',
@@ -34,7 +34,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         'image or device.',
         '',
         'More information can be gathered from here:',
-        '    https://carpeforensic.com'
+        '    https://carpeforensic.org'
         '']))
     EPILOG = textwrap.dedent('\n'.join([
         '',
@@ -195,12 +195,8 @@ class CarpeTool(extraction_tool.ExtractionTool,
     def ExtractDataFromSources(self):
         self._output_writer.Write('Processing started.\n')
 
-        investigator = {'investigator1': 'jeong byeongchan',
-                        'investigator2': 'joun jihun',
-                        'investigator3': 'kim junho',
-                        'investigator4': 'youn woosung',
-                        'department': 'DFRC'
-                        }
+        investigator = {'investigator1': 'test1',
+                        'department': 'DFRC'}
 
         self.AddInvestigatorInformation(investigator)
 
@@ -240,64 +236,6 @@ class CarpeTool(extraction_tool.ExtractionTool,
         scan_context = self.ScanSource(self._source_path)
         self._source_type = scan_context.source_type
 
-        # detect operating_system
-        # # skpark(lnk) e111111111111111111111111111111111
-        # self._partition_list = {'p1': 'p19cadd320aefe40dfa5c85ebc38ff7613',
-        #                         'p2': 'p143490fa32b8a4f00a4b21d0ca1ac9530',
-        #                         'p3': 'p1ac280f9e9d864f84ab2bf4d68b5088ab',
-        #                         'p4': 'p1cdd828002bec46c6843905786daaac6f'}
-
-        ## skpark(ewf) e111111111111111111111111111111114
-        #self._partition_list = {'p1': 'p18e6c2dd56b5c405fb7c6738a9d7241ba',
-        #                        'p2': 'p13eac5c34d91b480da914d8b3e309bda0',
-        #                        'p3': 'p1b9fd2dda0cf4499e99902bbed321ad74',
-        #                        'p4': 'p10377ea5b2dad4aa3a22fbbac2a7574e6'}
-
-        ## email - test  e222222222222222222222222222222222
-        #self._partition_list = {'p1': 'p1f7af5047f1674818abc63de056ab1939',
-        #                        'p2': 'p1e3748f626c224f41ab513f782c37e5c7'}
-
-        ## email - test  e222222222222222222222222222222223
-        #self._partition_list = {'p1': 'p1bf219158859742a5a939ab2c51873161',
-        #                        'p2': 'p1a0229b45eaf341c8b81153d445b538c4'}
-
-        ## defa - test  e222222222222222222222222222222224
-        #self._partition_list = {'p1': 'p15ef2746ec60b4943a70ac79f5fcb3606',
-        #                        'p2': 'p1d09897bb7b334b79a2e1c21aa3ea2896'}
-
-        ## filehistory - e111111111111111111111111111111117
-        #self._partition_list = {'p1': 'p10acede86e2a747578712f5facf06abe6',
-        #                        'p2': 'p1951b89fd680d4ac390a5803e7ef75f26'}
-
-        ## skpark(RAW) e111111111111111111111111111111118
-        #self._partition_list = {'p1': 'p14b939fec88c5402180526f248b13b061',
-        #                        'p2': 'p15b56b52b93aa4792ac5e52cf88862425',
-        #                        'p3': 'p174739d4e0f774e2996f918818e2895b1',
-        #                        'p4': 'p110675c58eb344fdfbe0a34ff2fd7a15b'}
-
-        # # 미나레지스트리 e666666666666666666666666666666667
-        # self._partition_list = {'p1': 'p1eda9ba33b1104c34af8547f1202a8568'}
-
-        ## superfetch - e222222222222222222222222222222225
-        #self._partition_list = {'p1': 'p1fcf83303585e4bafb1c9fc2ec8db05a9',
-        #                        'p2': 'p1efe18b8b20094fc18177741a6b994728'}
-
-        # Opera
-        # self._partition_list = {'p1' : 'p195955defbb674458850527ac4e85d969'}
-
-        # # Web
-        # self._partition_list = {'p1': 'p1bb5a0d873b874c40a04f9ee80158dad4',
-        #                        'p2': 'p1f1a5000d57b04ea59aea665acd5c3ba4'}
-
-        # # mobile_test
-        # self._partition_list = {'p1': 'p10c82e8a81d3541a2a86f1b5f55c146aa'}
-
-        # skpark(RAW) e111111111111111111111111111111118
-        self._partition_list = {'p1': 'p1606ca11e8b9444f5bc55a266b0211962',
-                                'p2': 'p1b2e2f08896cb4c4885d2e8f9f6cdd21b',
-                                'p3': 'p13b32b5dbfc1840bab7890aa1c4f8fb66',
-                                'p4': 'p12de9eb3fb63540678af72b208242dab1'}
-
         # set configuration
         configuration = self._CreateProcessingConfiguration()
 
@@ -315,14 +253,14 @@ class CarpeTool(extraction_tool.ExtractionTool,
         if self.rds_check:
             self.LoadReferenceDataSet()
 
-        # # After analyzing of an IMAGE, Put the partition information into the partition_info TABLE.
-        #self.InsertImageInformation()
+        # After analyzing of an IMAGE, Put the partition information into the partition_info TABLE.
+        self.InsertImageInformation()
 
         # print partition_list
         print(self._partition_list)
 
-        # # After analyzing of filesystem, Put the block and file information into the block_info and file_info TABLE.
-        #self.InsertFileInformation()
+        # After analyzing of filesystem, Put the block and file information into the block_info and file_info TABLE.
+        self.InsertFileInformation()
 
         # create process
         engine = process_engine.ProcessEngine()
@@ -338,9 +276,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
         engine.Process(configuration)
 
 
-        # # set advanced modules
+        # set advanced modules
         engine.SetProcessAdvancedModules(advanced_module_filter_expression=configuration.advanced_module_filter_expression)
-        #
+        
         engine.ProcessAdvancedModules(configuration)
 
         self._cursor.close()
