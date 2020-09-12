@@ -868,10 +868,6 @@ class StorageMediaTool(tools.CLITool):
             # NTFS
             if attribute.info.type in definitions.ATTRIBUTE_TYPES_TO_ANALYZE:
 
-                #file._file_id = tsk_file.info.meta.addr
-                if file._file_id in [129059, 129095, 129232, 129272, 129732, 129762, 138891, 139168, 142751,
-                                     144116, 151577, 173087, 173346, 176877, 176910, 183408]:
-                    print("asdf")
                 file._inode = [lambda: "{0:d}".format(tsk_file.info.meta.addr),
                    lambda: "{0:d}-{1:d}-{2:d}".format(tsk_file.info.meta.addr, int(attribute.info.type), attribute.info.id)] \
                    [tsk_file.info.fs_info.ftype in [definitions.TSK_FS_TYPE_NTFS, definitions.TSK_FS_TYPE_NTFS_DETECT]]()
