@@ -2,23 +2,25 @@ import datetime
 import yarp
 import sqlite3
 
-
 import modules.windows_notification.old_notification_parser as old_notification_parser
 
 
-def get_win_version(_file_object):
-    hive = yarp.Registry.RegistryHive(_file_object)
-    current_version_key = hive.find_key('\SOFTWARE\Microsoft\Windows NT\CurrentVersion')
+def get_win_version(_file_object_dict):
+    primary = _file_object_dict["primary"]
+    log1 = _file_object_dict["log1"]
+    log2 = _file_object_dict["log2"]
+
+    hive = yarp.Registry.RegistryHive(primary)
+    # if not log1 is None and not log2 is None:
+    #     hive.recover_new(log1, log2)
+
+    current_version_key = hive.find_key('Microsoft\Windows NT\CurrentVersion')
 
     major_version, build_number = "", ""
     try:
-        for sub_key in current_version_key.subkeys():
-            try:
-                major_version = sub_key.value('CurrentMajorVersionNumber').data().rstrip('\x00')
-                build_number = sub_key.value('CurrentBuildNumber').data().rstrip('\x00')
-            except FileNotFoundError:
-                print("Value not found")
-    except AttributeError:
+        major_version = current_version_key.value('CurrentMajorVersionNumber').data()
+        build_number = int(current_version_key.value('CurrentBuildNumber').data().rstrip('\x00'))
+    except AttributeError or FileNotFoundError:
         print("Key not found")
 
     return major_version, build_number

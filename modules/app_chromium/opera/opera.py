@@ -550,7 +550,7 @@ def opera_autofill(file):
 
     return autofill
 
-def opera_logindata (file):
+def opera_logindata(file):
 
     if isinstance(file, str):
         conn = sqlite3.connect(file)
@@ -572,9 +572,9 @@ def opera_logindata (file):
     if 'date_last_used' in column_list:
         try:
             cur.execute(
-                'select id, origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
+                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
                 'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used from logins order by id asc')
+                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used from logins')
             result = cur.fetchall()
         except:
             print("[Web/Opera] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -583,9 +583,9 @@ def opera_logindata (file):
     else:
         try:
             cur.execute(
-                'select id, origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
+                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
                 'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred from logins order by id asc')
+                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred from logins')
             result = cur.fetchall()
         except:
             print("[Web/Opera] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -595,36 +595,36 @@ def opera_logindata (file):
 
     for row in result:
 
-        id = row[0]
-        origin_url = row[1]
-        action_url = row[2]
-        username_element = row[3]
-        username_value = row[4]
-        password_element = row[5]
-        password_value = row[6]
-        signon_realm = row[7]
-        date_created = _convert_timestamp(row[8])
-        form_data = row[9]
-        blacklisted_by_user = row[10]
-        scheme = row[11]
-        password_type = row[12]
-        times_used = row[13]
-        date_synced = row[14]
-        display_name = row[15]
-        icon_url = row[16]
-        federation_url = row[17]
-        skip_zero_click = row[18]
-        generation_upload_status = row[19]
-        possible_username_pairs = row[20]
-        submit_element = row[21]
-        preferred = row[22]
+        #id = row[0]
+        origin_url = row[0]
+        action_url = row[1]
+        username_element = row[2]
+        username_value = row[3]
+        password_element = row[4]
+        password_value = row[5]
+        signon_realm = row[6]
+        date_created = _convert_timestamp(row[7])
+        form_data = row[8]
+        blacklisted_by_user = row[9]
+        scheme = row[10]
+        password_type = row[11]
+        times_used = row[12]
+        date_synced = row[13]
+        display_name = row[14]
+        icon_url = row[15]
+        federation_url = row[16]
+        skip_zero_click = row[17]
+        generation_upload_status = row[18]
+        possible_username_pairs = row[19]
+        submit_element = row[20]
+        preferred = row[21]
 
-        if len(row) == 24:
-            date_last_used = _convert_timestamp(row[23])
+        if len(row) == 23:
+            date_last_used = _convert_timestamp(row[22])
         else:
             date_last_used = ''
 
-        outputformat = (id, origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used)
+        outputformat = (origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used)
 
         logindatas.append(outputformat)
 

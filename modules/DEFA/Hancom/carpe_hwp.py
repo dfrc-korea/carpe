@@ -32,10 +32,10 @@ class HWP:
         #    self.fp = None
 
         if self.fp is not None:
-            #self.fileName = os.path.basename(filePath)
+            self.fileName = os.path.basename(filePath)
             self.filePath = filePath
-            #self.fileSize = os.path.getsize(filePath)
-            #self.fileType = os.path.splitext(filePath)[1][1:]
+            self.fileSize = os.path.getsize(filePath)
+            self.fileType = os.path.splitext(filePath)[1][1:]
 
             self.has_metadata = False
             self.metaList = {'Title': "", 'Subject': "", 'Author': "", 'Tags':"", 'Explanation': "", 'LastSavedBy': "",'Version': "", 'Date': "",\

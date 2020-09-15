@@ -1,0 +1,55 @@
+Name: ApplicationEmail
+Desc: Application Email
+Table:
+  - TableName: lv1_app_email
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - received_lines
+      - to
+      - cc
+      - bcc
+      - from
+      - subject
+      - in_reply_to
+      - date
+      - message_id
+      - sender
+      - reply_to
+      - errors_to
+      - boundary
+      - content_type
+      - mime_version
+      - precedence
+      - user_agent
+      - x_mailer
+      - x_originating_ip
+      - x_priority
+      - body
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
