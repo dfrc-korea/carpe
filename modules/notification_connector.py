@@ -9,11 +9,9 @@ from modules.windows_notification import notification_parser as noti
 from dfvfs.lib import definitions as dfvfs_definitions
 
 
-
 class NotificationConnector(interface.ModuleConnector):
     NAME = 'notification_connector'
     DESCRIPTION = 'Module for notification'
-    TABLE_NAME = 'lv1_os_win_notification'
 
     _plugin_classes = {}
 
@@ -39,11 +37,10 @@ class NotificationConnector(interface.ModuleConnector):
         else:
             par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
 
-        if par_id == None:
+        if par_id is None:
             return False
 
         print('[MODULE]: Notification Start! - partition ID(%s)' % par_id)
-
 
         # Get user name (나중에 고쳐야함)
         users = []
@@ -53,41 +50,79 @@ class NotificationConnector(interface.ModuleConnector):
                     continue
                 users.append(hostname.username)
 
-        # Search registry path
-        path = f'/Windows/System32/config/SOFTWARE'
-        file_object = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
-                                                  configuration=configuration,
-                                                  file_path=path)
-        if file_object is None:
-            print('Registry key is not found')
-            return False
-
-        major_version, build_number = noti.get_win_version(file_object)
-
-        file_object.close()
-
         for user in users:
+            filepath = f'root/Windows/System32/config'
+            query = f"SELECT name, parent_path FROM file_info WHERE par_id = '{par_id}' and " \
+                    f"((name like 'SOFTWARE' and parent_path like '{filepath}') or " \
+                    f"(name like 'SOFTWARE.LOG1' and parent_path like '{filepath}') or " \
+                    f"(name like 'SOFTWARE.LOG2' and parent_path like '{filepath}'))"
+
+            results = configuration.cursor.execute_query_mul(query)
+
+            if len(results) == 0 or results == -1:
+                return False
+
+            file_objects = {
+                "primary": None,
+                "log1": None,
+                "log2": None
+            }
+
+            for file in results:
+                if file[0] == 'SOFTWARE':
+                    file_objects['primary'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
+                                                                          configuration=configuration,
+                                                                          file_path=file[1][4:] + '/' + file[0])
+                elif file[0] == 'SOFTWARE.LOG1':
+                    file_objects['log1'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
+                                                                       configuration=configuration,
+                                                                       file_path=file[1][4:] + '/' + file[0])
+                elif file[0] == 'SOFTWARE.LOG2':
+                    file_objects['log2'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
+                                                                       configuration=configuration,
+                                                                       file_path=file[1][4:] + '/' + file[0])
+
+            major_version, build_number = noti.get_win_version(file_objects)
+
+            file_objects['primary'].close()
+            file_objects['log1'].close()
+            file_objects['log2'].close()
+
             if major_version == 10:
-                user_path = f'C:\\Users\\{user}'
+                user_path = f'/Users/{user}'
+                output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
+                              configuration.evidence_id + os.sep + par_id
+                info = tuple([par_id, configuration.case_id, configuration.evidence_id])
+                noti_list = []
 
                 # 1607 (Redstone 1) and over
                 if build_number >= 14393:
-                    noti_path = "\\AppData\\Local\\Microsoft\\Windows\\Notifications\\wpndatabase.db"
-                    noti_tuple = noti.new_noti_parser(user_path + noti_path)
+                    noti_path = f"/AppData/Local/Microsoft/Windows/Notifications"
+                    self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
+                                                 configuration=configuration,
+                                                 dir_path=user_path + noti_path,
+                                                 output_path=output_path)
+                    noti_tuple = noti.new_noti_parser(output_path + os.sep + 'Notifications'
+                                                      + os.sep + 'wpndatabase.db')
+                    for data in noti_tuple:
+                        noti_list.append(info + data)
+                    query = f"Insert into {table_list[1]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                            f"%s, %s, %s, %s, %s);"
                 else:
-                    noti_path = "\\AppData\\Local\\Microsoft\\Windows\\Notifications\\appdb.dat"
-                    noti_tuple = noti.old_noti_parser(user_path + noti_path)
-                return noti_tuple
+                    noti_path = "/AppData/Local/Microsoft/Windows/Notifications/appdb.dat"
+                    self.ExtractTargetFileToPath(source_path_spec=source_path_spec,
+                                                 configuration=configuration,
+                                                 file_path=user_path + noti_path,
+                                                 output_path=output_path)
+                    noti_tuple = noti.old_noti_parser(output_path + os.sep + 'appdb.dat')
+                    for data in noti_tuple:
+                        noti_list.append(info + data)
+                    query = f"Insert into {table_list[0]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             else:
                 print("Notification exists only Windows 10")
-                return ""
+                return False
 
-            info = tuple([par_id, configuration.case_id, configuration.evidence_id])
-
-            for result in results:
-                result = info + result
-                query = f"Insert into {self.TABLE_NAME} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                configuration.cursor.execute_query(query)
+            configuration.cursor.bulk_execute(query, noti_list)
 
 
 manager.ModulesManager.RegisterModule(NotificationConnector)

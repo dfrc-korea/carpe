@@ -369,11 +369,25 @@ def chrome_top_sites(file):
         conn = sqlite3.connect(file.read())
     cur = conn.cursor()
 
-    try:
-        cur.execute('select url, title, url_rank from top_sites order by url_rank asc ')
-        result = cur.fetchall()
-    except:
-        print("[Web/Chrome] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
+    cur.execute('SELECT name FROM sqlite_master WHERE type=\'table\';')
+    table_list = cur.fetchall()
+
+    if ('top_sites',) in table_list:
+        try:
+            cur.execute('select url, title, url_rank from top_sites order by url_rank asc ')
+            result = cur.fetchall()
+        except:
+            print("[Web/Chrome] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
+            result = []
+    elif ('thumbnails',) in table_list:
+        try:
+            cur.execute('select url, title, url_rank from thumbnails order by url_rank asc ')
+            result = cur.fetchall()
+        except:
+            print("[Web/Chrome] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
+            result = []
+    else:
+        print("[Web/Chrome] Top Sites " + "\033[31m" + "Main Query Table Name Error" + "\033[0m")
         result = []
 
     top_sites = []
@@ -487,11 +501,32 @@ def chrome_cookies(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc, has_expires, is_persistent, priority, encrypted_value, samesite from cookies order by creation_utc asc')
+        cur.execute('pragma table_info(\'cookies\')')
         result = cur.fetchall()
     except:
-        print("[Web/Chrome] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
+        print("[Web/Chrome] Cookies " + "\033[31m" + "column check query error" + "\033[0m")
         result = []
+
+    column_list = []
+    for row in result:
+        column_list.append(row[1])
+
+    if 'samestie' in column_list:
+        try:
+            cur.execute('select creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc, '
+                        'has_expires, is_persistent, priority, encrypted_value, samesite from cookies order by creation_utc asc')
+            result = cur.fetchall()
+        except:
+            print("[Web/Chrome] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
+            result = []
+    else:
+        try:
+            cur.execute('select creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc, '
+                        'has_expires, is_persistent, priority, encrypted_value from cookies order by creation_utc asc')
+            result = cur.fetchall()
+        except:
+            print("[Web/Chrome] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
+            result = []
 
     cookies = []
 
@@ -509,7 +544,11 @@ def chrome_cookies(file):
         is_persistent = row[9]
         priority = row[10]
         encrypted_value = row[11]
-        samesite = row[12]
+
+        if len(row) == 13:
+            samesite = row[12]
+        else:
+            samesite = ''
 
         outputformat = (creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc, has_expires, is_persistent, priority, encrypted_value, samesite)
 
@@ -584,9 +623,9 @@ def chrome_logindata(file):
     if 'date_last_used' in column_list:
         try:
             cur.execute(
-                'select id, origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
+                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
                 'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used from logins order by id asc')
+                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used from logins')
             result = cur.fetchall()
         except:
             print("[Web/Chrome] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -595,9 +634,9 @@ def chrome_logindata(file):
     else:
         try:
             cur.execute(
-                'select id, origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
+                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
                 'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred from logins order by id asc')
+                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred from logins')
             result = cur.fetchall()
         except:
             print("[Web/Chrome] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -607,36 +646,36 @@ def chrome_logindata(file):
 
     for row in result:
 
-        id = row[0]
-        origin_url = row[1]
-        action_url = row[2]
-        username_element = row[3]
-        username_value = row[4]
-        password_element = row[5]
-        password_value = row[6]
-        signon_realm = row[7]
-        date_created = _convert_timestamp(row[8])
-        form_data = row[9]
-        blacklisted_by_user = row[10]
-        scheme = row[11]
-        password_type = row[12]
-        times_used = row[13]
-        date_synced = row[14]
-        display_name = row[15]
-        icon_url = row[16]
-        federation_url = row[17]
-        skip_zero_click = row[18]
-        generation_upload_status = row[19]
-        possible_username_pairs = row[20]
-        submit_element = row[21]
-        preferred = row[22]
+        #id = row[0]
+        origin_url = row[0]
+        action_url = row[1]
+        username_element = row[2]
+        username_value = row[3]
+        password_element = row[4]
+        password_value = row[5]
+        signon_realm = row[6]
+        date_created = _convert_timestamp(row[7])
+        form_data = row[8]
+        blacklisted_by_user = row[9]
+        scheme = row[10]
+        password_type = row[11]
+        times_used = row[12]
+        date_synced = row[13]
+        display_name = row[14]
+        icon_url = row[15]
+        federation_url = row[16]
+        skip_zero_click = row[17]
+        generation_upload_status = row[18]
+        possible_username_pairs = row[19]
+        submit_element = row[20]
+        preferred = row[21]
 
-        if len(row) == 24:
-            date_last_used = _convert_timestamp(row[23])
+        if len(row) == 23:
+            date_last_used = _convert_timestamp(row[22])
         else:
             date_last_used = ''
 
-        outputformat = (id, origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used)
+        outputformat = (origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used)
 
         logindatas.append(outputformat)
 
@@ -654,13 +693,19 @@ def chrome_bookmarks(file):
 
         for dir in bookmarks_dir_list:
 
-            path = '/roots'
+            if type(json_data["roots"][dir]) == dict:
 
-            for row in json_data["roots"][dir]['children']:
+                if "children" in json_data["roots"][dir].keys():
 
-                path = '/roots' + '/' + dir
+                    for row in json_data["roots"][dir]['children']:
 
-                _bookmark_dir_tree(row, path, bookmark_result)
+                        path = '/roots' + '/' + dir
+
+                        _bookmark_dir_tree(row, path, bookmark_result)
+                else:
+                    pass
+            else:
+                pass
 
     return bookmark_result
 
@@ -713,57 +758,64 @@ def chrome_google_account(file):
 
         account_list = []
         if 'account_info' in preferences_list:
-
             accounts = json_data['account_info']
 
-            for row in accounts:
+            if len(accounts) == 0:
+                return account_list
 
-                if 'account_id' in row.keys():
-                    account_id = row['account_id']
-                else:
-                    account_id = ''
-                if 'email' in row.keys():
-                    email = row['email']
-                else:
-                    email = ''
-                if 'full_name' in row.keys():
-                    full_name = row['full_name']
-                else:
-                    full_name = ''
-                if 'given_name' in row.keys():
-                    first_name = row['given_name']
-                else:
-                    first_name = ''
-                if 'locale' in row.keys():
-                    locale = row['locale']
-                else:
-                    locale = ''
-                if 'hd' in row.keys():
-                    host_domain = row['hd']
-                else:
-                    host_domain = ''
-                if 'is_child_account' in row.keys():
-                    is_child_account = row['is_child_account']
-                else:
-                    is_child_account = ''
-                if 'is_under_advanced_protection' in row.keys():
-                    is_under_advanced_protection = row['is_under_advanced_protection']
-                else:
-                    is_under_advanced_protection = ''
-                if 'last_download_image_url_with_size' in row.keys():
-                    last_download_image_url = row['last_download_image_url_with_size']
-                else:
-                    last_download_image_url = ''
-                if 'picture_url' in row.keys():
-                    picture_url = row['picture_url']
-                else:
-                    picture_url = ''
+            else:
+                for row in accounts:
 
-                outputformat = (account_id, email, full_name, first_name, locale, host_domain, is_child_account,
-                                is_under_advanced_protection, last_download_image_url, picture_url)
-                account_list.append(outputformat)
+                    if 'account_id' in row.keys():
+                        account_id = row['account_id']
+                    else:
+                        account_id = ''
+                    if 'email' in row.keys():
+                        email = row['email']
+                    else:
+                        email = ''
+                    if 'full_name' in row.keys():
+                        full_name = row['full_name']
+                    else:
+                        full_name = ''
+                    if 'given_name' in row.keys():
+                        first_name = row['given_name']
+                    else:
+                        first_name = ''
+                    if 'locale' in row.keys():
+                        locale = row['locale']
+                    else:
+                        locale = ''
+                    if 'hd' in row.keys():
+                        host_domain = row['hd']
+                    else:
+                        host_domain = ''
+                    if 'is_child_account' in row.keys():
+                        is_child_account = row['is_child_account']
+                    else:
+                        is_child_account = ''
+                    if 'is_under_advanced_protection' in row.keys():
+                        is_under_advanced_protection = row['is_under_advanced_protection']
+                    else:
+                        is_under_advanced_protection = ''
+                    if 'last_download_image_url_with_size' in row.keys():
+                        last_download_image_url = row['last_download_image_url_with_size']
+                    else:
+                        last_download_image_url = ''
+                    if 'picture_url' in row.keys():
+                        picture_url = row['picture_url']
+                    else:
+                        picture_url = ''
 
+                    outputformat = (account_id, email, full_name, first_name, locale, host_domain, is_child_account,
+                                    is_under_advanced_protection, last_download_image_url, picture_url)
+                    account_list.append(outputformat)
+
+                return account_list
+        else:
             return account_list
+
+
 
 def chrome_zoom_level(file):
     with open(file, 'r', encoding='UTF-8') as f:

@@ -758,7 +758,8 @@ class OOXML:
                 f.seek(0, 0)
                 #print("**********본문파싱**********")
                 while True:
-                    if f.read(1) == b'\x50':
+                    tmp = f.read(1)
+                    if tmp == b'\x50':
                         if f.read(3) == signature_last_three:
                             f.seek(0xE, 1)
                             data_length = int(hex(int.from_bytes(f.read(4), 'little')), 16)
@@ -837,6 +838,8 @@ class OOXML:
                                         break
                             endingpoint = f.tell() - 1
                             temp1 = endingpoint - temp1
+                    elif tmp == b'':
+                        break
                 #f.close()
                 if isinstance(self.filename, str):
                     f = open(self.filename, "rb")
@@ -847,7 +850,8 @@ class OOXML:
                 f.seek(0, 0)
                 # print("**********본문파싱**********")
                 while True:
-                    if f.read(1) == b'\x50':
+                    tmp = f.read(1)
+                    if tmp == b'\x50':
                         if f.read(3) == signature_last_three:
                             f.seek(0xE, 1)
                             data_length = int(hex(int.from_bytes(f.read(4), 'little')), 16)
@@ -937,12 +941,14 @@ class OOXML:
                                         break
                             endingpoint = f.tell() - 1
                             temp1 = endingpoint - temp1
+                    elif tmp == b'':
+                        break
 
                 self.content = final_word
                 #self.parse_media(filename, filetype, isDamaged, tmp_path)
                 return final_word
 
-                if "docProps" not in data_name:
+                """if "docProps" not in data_name:
                     temp_size = lastpart[30 + data_name_length:]
 
                     f1 = open("./outputtest.zip", 'wb')
@@ -987,7 +993,7 @@ class OOXML:
                                             break
                         i = i + 1
 
-                    return only_data
+                    return only_data"""
 
         if filetype == 'pptx':
            if isDamaged == False:

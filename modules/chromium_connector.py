@@ -445,16 +445,15 @@ class ChromiumConnector(interface.ModuleConnector):
                     row = info + list(row) + profile_match
 
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
-                        row[0:9]) + \
-                            "(UNHEX(\'" + row[9].hex() + "\'))" \
-                                                         ", '%s', '%s', " % tuple(row[10:12]) + \
-                            "(UNHEX(\'" + row[12].hex() + "\'))" \
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
+                        row[0:8]) + \
+                            "(UNHEX(\'" + row[8].hex() + "\'))" \
+                                                         ", '%s', '%s', " % tuple(row[9:11]) + \
+                            "(UNHEX(\'" + row[11].hex() + "\'))" \
                                                           ", '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
-                        row[13:23]) + \
-                            "(UNHEX(\'" + row[23].hex() + "\'))" \
-                                                          ", '%s', '%s', '%s', '%s', '%s');" % tuple(row[24:])
-
+                        row[12:22]) + \
+                            "(UNHEX(\'" + row[22].hex() + "\'))" \
+                                                          ", '%s', '%s', '%s', '%s', '%s');" % tuple(row[23:])
                     # print(query)
                     configuration.cursor.execute_query(query)
 
@@ -711,16 +710,15 @@ class ChromiumConnector(interface.ModuleConnector):
                     table_name = 'lv1_app_web_whale_logindata'
                     row = info + list(row) + profile_match
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
-                        row[0:9]) + \
-                            "(UNHEX(\'" + row[9].hex() + "\'))" \
-                                                         ", '%s', '%s', " % tuple(row[10:12]) + \
-                            "(UNHEX(\'" + row[12].hex() + "\'))" \
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
+                        row[0:8]) + \
+                            "(UNHEX(\'" + row[8].hex() + "\'))" \
+                                                         ", '%s', '%s', " % tuple(row[9:11]) + \
+                            "(UNHEX(\'" + row[11].hex() + "\'))" \
                                                           ", '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
-                        row[13:23]) + \
-                            "(UNHEX(\'" + row[23].hex() + "\'))" \
-                                                          ", '%s', '%s', '%s', '%s', '%s');" % tuple(row[24:])
-
+                        row[12:22]) + \
+                            "(UNHEX(\'" + row[22].hex() + "\'))" \
+                                                          ", '%s', '%s', '%s', '%s', '%s');" % tuple(row[23:])
                     # print(query)
                     configuration.cursor.execute_query(query)
 
@@ -975,16 +973,15 @@ class ChromiumConnector(interface.ModuleConnector):
                     table_name = 'lv1_app_web_chromium_edge_logindata'
                     row = info + list(row) + profile_match
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
-                        row[0:9]) + \
-                            "(UNHEX(\'" + row[9].hex() + "\'))" \
-                                                         ", '%s', '%s', " % tuple(row[10:12]) + \
-                            "(UNHEX(\'" + row[12].hex() + "\'))" \
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
+                        row[0:8]) + \
+                            "(UNHEX(\'" + row[8].hex() + "\'))" \
+                                                         ", '%s', '%s', " % tuple(row[9:11]) + \
+                            "(UNHEX(\'" + row[11].hex() + "\'))" \
                                                           ", '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
-                        row[13:23]) + \
-                            "(UNHEX(\'" + row[23].hex() + "\'))" \
-                                                          ", '%s', '%s', '%s', '%s', '%s');" % tuple(row[24:])
-
+                        row[12:22]) + \
+                            "(UNHEX(\'" + row[22].hex() + "\'))" \
+                                                          ", '%s', '%s', '%s', '%s', '%s');" % tuple(row[23:])
                     # print(query)
                     configuration.cursor.execute_query(query)
 
@@ -1192,16 +1189,15 @@ class ChromiumConnector(interface.ModuleConnector):
                     table_name = 'lv1_app_web_opera_logindata'
                     row = info + list(row) + profile_match
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
-                        row[0:9]) + \
-                            "(UNHEX(\'" + row[9].hex() + "\'))" \
-                                                         ", '%s', '%s', " % tuple(row[10:12]) + \
-                            "(UNHEX(\'" + row[12].hex() + "\'))" \
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
+                        row[0:8]) + \
+                            "(UNHEX(\'" + row[8].hex() + "\'))" \
+                                                         ", '%s', '%s', " % tuple(row[9:11]) + \
+                            "(UNHEX(\'" + row[11].hex() + "\'))" \
                                                           ", '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
-                        row[13:23]) + \
-                            "(UNHEX(\'" + row[23].hex() + "\'))" \
-                                                          ", '%s', '%s', '%s', '%s', '%s');" % tuple(row[24:])
-
+                        row[12:22]) + \
+                            "(UNHEX(\'" + row[22].hex() + "\'))" \
+                                                          ", '%s', '%s', '%s', '%s', '%s');" % tuple(row[23:])
                     # print(query)
                     configuration.cursor.execute_query(query)
 

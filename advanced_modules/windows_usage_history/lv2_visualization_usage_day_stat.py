@@ -44,6 +44,11 @@ def USAGEDAYSTAT(configuration):
                         result[target_day] = 0
 
         for r,k in sorted(result.items()):
+            if r[0:4].isdigit() and r[5:7].isdigit() and r[8:10].isdigit() and r[11:13].isdigit() and r[14:16].isdigit():
+                pass
+            else:
+                continue
+
             usage_day_stat_information = Usage_Day_Stat_Information()
             usage_history_list.append(usage_day_stat_information)
             usage_history_list[usage_history_count].year = r[0:4]

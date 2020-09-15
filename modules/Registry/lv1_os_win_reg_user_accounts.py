@@ -33,7 +33,7 @@ def USERACCOUNTS(reg_sam, reg_software):
     sam_users = reg_sam.find_key(r"SAM\Domains\Account\Users")
 
     try:
-        # Local User 계정
+         #Local User 계정
         for sam_subkey in sam_users.subkeys():
             if sam_subkey.name() != 'Names':
                 user_information = User_Information()
@@ -64,7 +64,10 @@ def USERACCOUNTS(reg_sam, reg_software):
                             #user_list[user_count].ntlm_hash = str(binascii.b2a_hex(same_subkey_value.data()[204 + int(binascii.b2a_hex(same_subkey_value.data()[168:172][::-1]),16):204 + int(binascii.b2a_hex(same_subkey_value.data()[168:172][::-1]),16) + int(binascii.b2a_hex(same_subkey_value.data()[172:176][::-1]),16)]))[1:]
                             user_list[user_count].ntlm_hash = ''
                     elif same_subkey_value.name() == 'UserPasswordHint':
-                        user_list[user_count].password_hint = same_subkey_value.data().decode().replace('\x00','')
+                        try:
+                            user_list[user_count].password_hint = same_subkey_value.data().decode().replace('\x00','')
+                        except UnicodeDecodeError:
+                            user_list[user_count].password_hint = ''
                 user_count = user_count + 1
             else:
                 for same_subkey_value in sam_subkey.subkeys():

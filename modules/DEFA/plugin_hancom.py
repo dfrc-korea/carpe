@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import os
 from modules import defa_connector
 from modules.DEFA import interface
 from modules.DEFA.Hancom.carpe_hwp import HWP
@@ -39,7 +39,6 @@ class HWPPlugin(interface.DEFAPlugin):
         #data.download_path = data.case_id + '/' + data.evdnc_id + '/documents/' + data.name
         #data.ole_path = file[38] + "_extracted"
         # print(data.download_path)
-
         data.ole_path = kwargs['ole_path']
         hwp = HWP(kwargs['fp'])  # 파일 포인터 전달
         hwp.parse(data.ole_path)
