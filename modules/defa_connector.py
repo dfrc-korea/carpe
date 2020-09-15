@@ -57,9 +57,6 @@ class DEFAConnector(interface.ModuleConnector):
         query = f"SELECT name, parent_path, sig_type, extension FROM file_info WHERE par_id='{par_id}'" \
                 f"and parent_path not like '%/Hnc/Office%' and parent_path not like '%_damaged%' and parent_path not like '%_encrypted%' and ("  # and parent_path not like '%_damaged/%' 임시
 
-        #query = f"SELECT name, parent_path, sig_type, extension FROM file_info WHERE par_id='{par_id}'" \
-        #        f"and name like '본파일 스포츠마케팅 덕업일치 프로젝트 4기 지원서(응답) (1).xlsx' and parent_path like '%Users/USER/Downloads%' and ("  # and parent_path not like '%_damaged/%' 임시
-
         for i in range(0, len(self._plugins)):
             if self._plugins[i].plugin_name == 'HWP':
                 query += " LOWER(extension) = 'hwp' "
@@ -117,71 +114,6 @@ class DEFAConnector(interface.ModuleConnector):
 
         for document in document_files:
             document_path = document[1][document[1].find('/'):] + '/' + document[0]  # document full path
-            #document_path = "/Users/USER/Downloads/본파일 스포츠마케팅 덕업일치 프로젝트 4기 지원서(응답) (1).xlsx"
-            print("\ndocument_path : " + document_path)
-
-            """ # 이 주석은 메모리로 사용
-            #################### load가 느려서 임시로 추가 ######################
-            sig_type = document[2].lower()
-            extension = document[3].lower()
-            result = None
-            # 에러가 많아서 임시처리로 sig_type, extension이 같아야 동작하게 처리
-            if sig_type != extension:
-                continue
-            #################### load가 느려서 임시로 추가 ######################
-
-            print("loading time : " + str(datetime.now()))
-            file_object = self.LoadTargetFileToMemory(
-                source_path_spec=source_path_spec,
-                configuration=configuration,
-                file_path=document_path)
-            print("load time : " + str(datetime.now()))
-
-            if not file_object:
-                continue
-            
-            sig_type = document[2].lower()
-            extension = document[3].lower()
-            result = None
-            # 에러가 많아서 임시처리로 sig_type, extension이 같아야 동작하게 처리
-            if sig_type == 'hwp' and extension == 'hwp':
-                result = hwp_plugin.Process(fp=file_object)
-            elif sig_type == 'doc' and extension == 'doc':
-                result = doc_plugin.Process(fp=file_object)
-            elif sig_type == 'ppt' and extension == 'ppt':
-                result = ppt_plugin.Process(fp=file_object)
-            elif sig_type == 'xls' and extension == 'xls':
-                result = xls_plugin.Process(fp=file_object)
-            elif sig_type == 'docx' and extension == 'docx':
-                result = docx_plugin.Process(fp=file_object)
-            elif sig_type == 'pptx' and extension == 'pptx':
-                result = pptx_plugin.Process(fp=file_object)
-            elif sig_type == 'xlsx' and extension == 'xlsx':
-                result = xlsx_plugin.Process(fp=file_object)
-            elif sig_type == 'pdf' and extension == 'pdf':
-                try:
-                    result = pdf_plugin.Process(fp=file_object)
-                except Exception:
-                    file_object.close()
-                    continue
-            else:
-                print("unknown sig_type")
-                file_object.close()
-                continue
-
-            if result == None:
-                file_object.close()
-                continue
-
-
-            result.case_id = configuration.case_id
-            result.evdnc_id = configuration.evidence_id
-            result.name = document[0]
-            result.path_with_ext = document_path
-            result.original_size = file_object._size
-
-            file_object.close()
-            """
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                             configuration.evidence_id + os.sep + par_id + os.sep + hashlib.sha1(document_path.encode('utf-8')).hexdigest()
             ole_path = output_path + os.sep + "ole"
@@ -217,11 +149,9 @@ class DEFAConnector(interface.ModuleConnector):
                 elif extension == 'pdf':
                     result = pdf_plugin.Process(fp=file_path, ole_path=ole_path)
             except Exception as e:
-                print("Error : " + str(e))
+                #print("Error : " + str(e))
                 error_count += 1
                 continue
-
-
 
             result.case_id = configuration.case_id
             result.evdnc_id = configuration.evidence_id
@@ -232,7 +162,7 @@ class DEFAConnector(interface.ModuleConnector):
             result.name = document[0]
             result.original_size = os.path.getsize(file_path)
             result.ole_path = ole_path
-            print(result.__dict__)
+            #print(result.__dict__)
 
             if configuration.standalone_check == True:
                 if result.has_content == True:
