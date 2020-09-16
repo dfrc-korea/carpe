@@ -592,7 +592,8 @@ class OOXML:
                     f.seek(0, 0)
                     #print("**********본문파싱**********")
                     while True:
-                        if f.read(1) == b'\x50':
+                        tmp = f.read(1)
+                        if tmp == b'\x50':
                             if f.read(3) == signature_last_three:
                                 f.seek(0xE, 1)
                                 data_length = int(hex(int.from_bytes(f.read(4), 'little')), 16)
@@ -618,6 +619,8 @@ class OOXML:
 
                                 if data_name == "word/document.xml":
                                     break
+                        elif tmp == b'':
+                            break
 
                     if content_saved == "":
                         temp_size = lastpart[30+data_name_length:]
@@ -1074,11 +1077,16 @@ class OOXML:
                                s_pos = a1.find(slides_app) + 1
 
                                if s_pos is not 0:
+                                   tmp = 0
                                    while True:
+                                       tmp += 1
                                        slides_value = slides_value + a1[s_pos + i + 7]
                                        i = i + 1
                                        if a1[s_pos + i + 7] == '<':
                                            break
+                                       if tmp >= 1000000:
+                                           break
+
                                    i = 0
 
                            if f.tell() + data_length > fileSize:
@@ -1093,8 +1101,8 @@ class OOXML:
                    for slides_i in range(1, int(slides_value)+1):
                        f.seek(0, 0)
                        while True:
-
-                           if f.read(1) == b'\x50':
+                           tmp = f.read(1)
+                           if tmp == b'\x50':
                                if f.read(3) == signature_three:
                                    f.seek(0xE, 1)
                                    data_length = int(hex(int.from_bytes(f.read(4), 'little')), 16)
@@ -1169,6 +1177,8 @@ class OOXML:
                                                break
                                    endingpoint = f.tell() - 1
                                    temp1 = endingpoint - temp1
+                           elif tmp == b'':
+                               break
                    #self.parse_media(filename, filetype, isDamaged, tmp_path)
                    return only_data
                else:
@@ -1179,7 +1189,8 @@ class OOXML:
                    f.seek(0, 0)
                    # print("**********본문파싱**********")
                    while True:
-                       if f.read(1) == b'\x50':
+                       tmp = f.read(1)
+                       if tmp == b'\x50':
                            if f.read(3) == signature_last_three:
                                f.seek(0xE, 1)
                                data_length = int(hex(int.from_bytes(f.read(4), 'little')), 16)
@@ -1255,6 +1266,8 @@ class OOXML:
                                            break
                                endingpoint = f.tell() - 1
                                temp1 = endingpoint - temp1
+                       elif tmp == b'':
+                           break
 
                    if "ppt/slideL" not in data_name:
                        temp_size = lastpart[30 + data_name_length:]
@@ -1532,7 +1545,9 @@ class OOXML:
                             metadata_count = 0
                             if t_pos is not 0:
                                 metadata_value.append("")
+                                tmp = 0
                                 while True:
+                                    tmp += 1
                                     if a1[c_pos + i + 9] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
@@ -1541,12 +1556,16 @@ class OOXML:
                                     i = i + 1
                                     if a1[c_pos + i + 9] == '<':
                                         break
+                                    if tmp >= 1000000:
+                                        break
                                 metadata_count = metadata_count + 1
                                 i = 0
 
                             if c_pos is not 0:
                                 metadata_value.append("")
+                                tmp = 0
                                 while True:
+                                    tmp +=1
                                     if a1[c_pos + i + 11] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
@@ -1555,12 +1574,16 @@ class OOXML:
                                     i = i + 1
                                     if a1[c_pos + i + 11] == '<':
                                         break
+                                    if tmp >= 1000000:
+                                        break
                                 metadata_count = metadata_count + 1
                                 i = 0
 
                             if c_time_pos is not 0:
                                 metadata_value.append("")
+                                tmp = 0
                                 while True:
+                                    tmp += 1
                                     if a1[c_time_pos + i + 42] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
@@ -1571,12 +1594,16 @@ class OOXML:
                                     i = i + 1
                                     if a1[c_time_pos + i + 42] == '<':
                                         break
+                                    if tmp >= 1000000:
+                                        break
                                 metadata_count = metadata_count + 1
                                 i = 0
 
                             if m_time_pos is not 0:
                                 metadata_value.append("")
+                                tmp = 0
                                 while True:
+                                    tmp += 1
                                     if a1[m_time_pos + i + 43] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
@@ -1586,10 +1613,14 @@ class OOXML:
                                     i = i + 1
                                     if a1[m_time_pos + i + 43] == '<':
                                         break
+                                    if tmp >= 1000000:
+                                        break
 
                             if s_pos is not 0:
                                 metadata_value.append("")
+                                tmp = 0
                                 while True:
+                                    tmp += 1
                                     if a1[s_pos + i + 43] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
@@ -1598,9 +1629,13 @@ class OOXML:
                                     i = i + 1
                                     if a1[s_pos + i + 43] == '<':
                                         break
+                                    if tmp >= 1000000:
+                                        break
                             if k_pos is not 0:
                                 metadata_value.append("")
+                                tmp = 0
                                 while True:
+                                    tmp += 1
                                     if a1[s_pos + i + 43] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
@@ -1609,9 +1644,13 @@ class OOXML:
                                     i = i + 1
                                     if a1[k_pos + i + 43] == '<':
                                         break
+                                    if tmp >= 1000000:
+                                        break
                             if d_pos is not 0:
                                 metadata_value.append("")
+                                tmp = 0
                                 while True:
+                                    tmp += 1
                                     if a1[d_pos + i + 43] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
@@ -1620,9 +1659,13 @@ class OOXML:
                                     i = i + 1
                                     if a1[d_pos + i + 43] == '<':
                                         break
+                                    if tmp >= 1000000:
+                                        break
                             if l_pos is not 0:
                                 metadata_value.append("")
+                                tmp = 0
                                 while True:
+                                    tmp += 1
                                     if a1[l_pos + i + 43] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
@@ -1631,9 +1674,13 @@ class OOXML:
                                     i = i + 1
                                     if a1[l_pos + i + 43] == '<':
                                         break
+                                    if tmp >= 1000000:
+                                        break
                             if r_pos is not 0:
                                 metadata_value.append("")
+                                tmp = 0
                                 while True:
+                                    tmp += 1
                                     if a1[r_pos + i + 43] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
@@ -1642,9 +1689,13 @@ class OOXML:
                                     i = i + 1
                                     if a1[r_pos + i + 43] == '<':
                                         break
+                                    if tmp >= 1000000:
+                                        break
                             if ca_pos is not 0:
                                 metadata_value.append("")
+                                tmp = 0
                                 while True:
+                                    tmp += 1
                                     if a1[ca_pos + i + 43] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
@@ -1653,9 +1704,13 @@ class OOXML:
                                     i = i + 1
                                     if a1[ca_pos + i + 43] == '<':
                                         break
+                                    if tmp >= 1000000:
+                                        break
                             if la_pos is not 0:
                                 metadata_value.append("")
+                                tmp = 0
                                 while True:
+                                    tmp += 1
                                     if a1[la_pos + i + 43] == '<':
                                         metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                         break
@@ -1663,6 +1718,8 @@ class OOXML:
                                     self.metadata['LastPrintedTime'] = metadata_value[metadata_count]
                                     i = i + 1
                                     if a1[la_pos + i + 43] == '<':
+                                        break
+                                    if tmp >= 1000000:
                                         break
                             return metadata_value
 
@@ -1713,7 +1770,9 @@ class OOXML:
                                 metadata_count = 0
                                 if m_pos is not 0:
                                     metadata_value.append("")
+                                    tmp = 0
                                     while True:
+                                        tmp += 1
                                         if a1[m_pos + i + 9] == '<':
                                             metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                             break
@@ -1722,12 +1781,16 @@ class OOXML:
                                         i = i + 1
                                         if a1[m_pos + i + 9] == '<':
                                             break
+                                        if tmp >= 1000000:
+                                            break
                                     metadata_count = metadata_count + 1
                                     i = 0
 
                                 if c_pos is not 0:
                                     metadata_value.append("")
+                                    tmp = 0
                                     while True:
+                                        tmp += 1
                                         if a1[c_pos + i + 11] == '<':
                                             metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                             break
@@ -1736,12 +1799,16 @@ class OOXML:
                                         i = i + 1
                                         if a1[c_pos + i + 11] == '<':
                                             break
+                                        if tmp >= 1000000:
+                                            break
                                     metadata_count = metadata_count + 1
                                     i = 0
 
                                 if a_pos is not 0:
                                     metadata_value.append("")
+                                    tmp = 0
                                     while True:
+                                        tmp += 1
                                         if a1[a_pos + i + 42] == '<':
                                             metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                             break
@@ -1752,12 +1819,16 @@ class OOXML:
                                         i = i + 1
                                         if a1[a_pos + i + 42] == '<':
                                             break
+                                        if tmp >= 1000000:
+                                            break
                                     metadata_count = metadata_count + 1
                                     i = 0
 
                                 if t_pos is not 0:
                                     metadata_value.append("")
+                                    tmp = 0
                                     while True:
+                                        tmp += 1
                                         if a1[t_pos + i + 43] == '<':
                                             metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                             break
@@ -1767,10 +1838,14 @@ class OOXML:
                                         i = i + 1
                                         if a1[t_pos + i + 43] == '<':
                                             break
+                                        if tmp >= 1000000:
+                                            break
 
                                 if ap_pos is not 0:
                                     metadata_value.append("")
+                                    tmp = 0
                                     while True:
+                                        tmp += 1
                                         if a1[ap_pos + i + 43] == '<':
                                             metadata_value[metadata_count] = metadata_value[metadata_count] + ''
                                             break
@@ -1778,6 +1853,8 @@ class OOXML:
                                         self.metadata['Version'] = metadata_value[metadata_count]
                                         i = i + 1
                                         if a1[ap_pos + i + 43] == '<':
+                                            break
+                                        if tmp >= 1000000:
                                             break
 
                                 return metadata_value
@@ -1835,7 +1912,9 @@ class OOXML:
                                             count_data_name = count_data_name +1
                                         ole.close()
                                         fembedd = open(full_filename, 'rb')
+                                        tmp = 0
                                         while True:
+                                            tmp += 1
                                             em_data = fembedd.read(1)
                                             if em_data == b'\x52':
                                                 em_data = fembedd.read(1)
@@ -1846,6 +1925,8 @@ class OOXML:
                                                         aaa = fembedd.read()
                                                         fembedd.close()
                                                         break
+                                            if tmp >= 1000000:
+                                                break
                                         fembedd2 = open(extracted_filename+ '_extracted' + '/' + data[6:count_data_name].decode(), 'wb')
                                         fembedd2.write(aaa)
                                         os.remove(extracted_filename + '_extracted' + '/' + a)
@@ -1907,7 +1988,9 @@ class OOXML:
                                             count_data_name = count_data_name +1
                                         ole.close()
                                         fembedd = open(full_filename, 'rb')
+                                        tmp = 0
                                         while True:
+                                            tmp += 1
                                             em_data = fembedd.read(1)
                                             if em_data == b'\x52':
                                                 em_data = fembedd.read(1)
@@ -1927,6 +2010,8 @@ class OOXML:
                                                         aaa = fembedd.read()
                                                         fembedd.close()
                                                         break
+                                            if tmp >= 1000000:
+                                                break
                                         fembedd2 = open(extracted_filename + '_extracted' + '/' + data[6:count_data_name].decode(), 'wb')
                                         fembedd2.write(aaa)
                                         os.remove(extracted_filename + '_extracted' + '/' + a)
@@ -2057,6 +2142,8 @@ class OOXML:
                                 hd.writeHeader(new_file)
                                 new_file.write(comps)
                             new_file.flush()
+                        if comps == b'':
+                            break
                     except:
                         break
 
