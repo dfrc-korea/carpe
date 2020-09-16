@@ -1094,6 +1094,8 @@ class OOXML:
 
                        elif read_threebyte == stop_signature_three:
                            break
+                   elif read_onebyte == b'':
+                       break
                f.close()
                if slides_value is not "":
                    f = open(self.filename, "rb")
@@ -1860,6 +1862,8 @@ class OOXML:
                                 return metadata_value
                             except Exception as e:
                                 print(f"Error : {str(e)}")
+                elif read_onebyte == b'':
+                    break
 
     def parse_media(self, filename, filetype, isDamaged, tmp_path):
         signature_last_three = b'\x4b\x03\x04'
