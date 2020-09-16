@@ -82,6 +82,7 @@ class JUMPLISTConnector(interface.ModuleConnector):
             app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_jumplist"
             results = JumpListParser.main(fn, app_path, fileName)  # filename, app_path
 
+
             app_id = fileName[:fileName.rfind('.')]
             app_id_list = {'65009083bfa6a094': '(app launched via XPMode)',
                            '469e4a7982cea4d4': '? (.job)',

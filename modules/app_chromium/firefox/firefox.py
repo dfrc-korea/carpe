@@ -276,21 +276,22 @@ def firefox_downloads(file):
 
     for row in download_record:
 
-        if row[1] == 1:
+        if row[2][0:4] == 'file':
 
+            place_id = row[0]
             url = url_dict[row[0]]
             file_path = row[2]
             flags = row[3]
             expiration = row[4]
             type = row[5]
-            start_time = row[6]
+            time = row[6]
 
-            record_format = (url, file_path, flags, expiration, type, start_time)
+            record_format = (place_id, url, file_path, flags, expiration, type, time)
             file_path_record.append(record_format)
 
+        elif row[2][2:7] == 'state':
 
-        if row[1] == 2:
-
+            place_id = row[0]
             meta_json = json.loads(row[2])
             try:
                 state = meta_json["state"]
@@ -304,30 +305,66 @@ def firefox_downloads(file):
                 file_size = meta_json["fileSize"]
             except:
                 file_size = ''
+            time = row[6]
 
-            recorded_end_time = row[6]
-
-            record_format = (state, end_time, file_size, recorded_end_time)
+            record_format = (place_id, state, end_time, file_size, time)
             meta_record.append(record_format)
 
-    for file_path_row, meta_row in zip(file_path_record, meta_record):
+        else:
+            pass
 
-        url = file_path_row[0]
-        download_path = file_path_row[1]
-        download_file_size = meta_row[2]
-        state = meta_row[0]
-        start_time = _convert_unixtimestamp(file_path_row[5])
-        end_time = _convert_unixtimestamp(meta_row[1])
-        flags = file_path_row[2]
-        expiration = file_path_row[3]
-        type = file_path_row[4]
+    if len(file_path_record) != len(meta_record):
+        print("[Web/Firefox] Downloads " + "\033[31m" + "There is record mismatch" + "\033[0m" + ". Check \"place.sqlite\" file.")
 
-        # Start time, End time
-        if int(str(file_path_row[5])[:-3]) > meta_row[1]:
-            end_time = _convert_unixtimestamp(meta_row[3])
+        for file_path_row in file_path_record:
 
-        outputformat = (url, download_path, download_file_size, state, start_time, end_time, flags, expiration, type)
-        result.append(outputformat)
+            for meta_row in meta_record:
+
+                if file_path_row[0] == meta_row[0]:
+                    url = file_path_row[1]
+                    download_path = file_path_row[2]
+                    download_file_size = meta_row[3]
+                    state = meta_row[1]
+
+                    if int(str(file_path_row[6])[:-3]) >= meta_row[2]:
+                        start_time = _convert_unixtimestamp(meta_row[2])
+                        end_time = _convert_unixtimestamp(file_path_row[6])
+                    else:
+                        start_time = _convert_unixtimestamp(file_path_row[6])
+                        end_time = _convert_unixtimestamp(meta_row[2])
+
+                    flags = file_path_row[3]
+                    expiration = file_path_row[4]
+                    type = file_path_row[5]
+
+                    outputformat = (url, download_path, download_file_size, state, start_time, end_time,
+                                    flags, expiration, type)
+                    result.append(outputformat)
+
+                else:
+                    pass
+
+    else:
+        for file_path_row, meta_row in zip(file_path_record, meta_record):
+
+            url = file_path_row[1]
+            download_path = file_path_row[2]
+            download_file_size = meta_row[3]
+            state = meta_row[1]
+
+            if int(str(file_path_row[6])[:-3]) >= meta_row[2]:
+                start_time = _convert_unixtimestamp(meta_row[2])
+                end_time = _convert_unixtimestamp(file_path_row[6])
+            else:
+                start_time = _convert_unixtimestamp(file_path_row[6])
+                end_time = _convert_unixtimestamp(meta_row[2])
+
+            flags = file_path_row[3]
+            expiration = file_path_row[4]
+            type = file_path_row[5]
+
+            outputformat = (url, download_path, download_file_size, state, start_time, end_time, flags, expiration, type)
+            result.append(outputformat)
 
     conn.close()
 

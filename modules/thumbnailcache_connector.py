@@ -4,6 +4,7 @@ from modules import manager
 from modules import interface
 from modules import logger
 from modules.windows_thumbnailcache import ThumbnailParser as tc
+from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class ThumbnailCacheConnector(interface.ModuleConnector):
@@ -27,8 +28,12 @@ class ThumbnailCacheConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
-        par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-        if par_id is None:
+        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
+            par_id = configuration.partition_list['p1']
+        else:
+            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
+
+        if par_id == None:
             return False
         owner = ''
         query = f"SELECT name, parent_path, extension FROM file_info WHERE par_id='{par_id}' and (name like '%Thumbs%' or name regexp 'thumbcache_[0-9]') and size > 24 and extension = 'db' and ("

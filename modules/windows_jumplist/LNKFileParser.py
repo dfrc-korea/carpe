@@ -134,7 +134,11 @@ class TLNKFileParser:
         data.position = pos
         p = data.data.find(b'\0', data.position)
         l = p - data.position + 1
-        return data.read(l).decode('cp949').rstrip('\x00')
+        try:
+            return data.read(l).decode('cp949').rstrip('\x00')
+        except Exception:
+            return ''
+
 
     def getUnicodeStrValue(self, pos):
         data = self.data

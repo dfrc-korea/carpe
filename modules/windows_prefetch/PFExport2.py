@@ -91,7 +91,10 @@ class TPFDecompressor:
       MAM\x84 : Windows 8 이상 수퍼패치 파일
       MAM\x04 : Windows 10 프리패치 파일
     """
-    id = data[0:3].decode('utf8')  # MAM
+    try:
+      id = data[0:3].decode('utf8')  # MAM
+    except Exception:
+      id = ''
     b1 = ord(data[3:4])            # b'\x84' , b'\x04'
     if (id != 'MAM') or (not b1 in [0x84, 0x04]):
       return None
@@ -166,7 +169,10 @@ class TPrefetchFileParser:
       'VolInfo': [['sid', 'DevicePath', 'CreationTime', 'SerialNumber', 'Directories']]
     }
     sid = self.sid
-    processName = bytes(self.header.FileName).decode('utf-16').rstrip('\x00')
+    try:
+      processName = bytes(self.header.FileName).decode('utf-16').rstrip('\x00')
+    except Exception:
+      processName = ''
     processPath = ''
 
     class TFileMetricsArrayEntry(LittleEndianStructure):
@@ -190,7 +196,10 @@ class TPrefetchFileParser:
       p = data.position
       if fileinfo.FilenameStringsOffset + fmaEntry.FileNameOffset + fmaEntry.FileNameChacterCount * 2 < data.size:
         data.position = fileinfo.FilenameStringsOffset + fmaEntry.FileNameOffset
-        fileName = data.read(fmaEntry.FileNameChacterCount * 2).decode('utf-16')
+        try:
+          fileName = data.read(fmaEntry.FileNameChacterCount * 2).decode('utf-16')
+        except Exception:
+          fileName = ''
         rec = []
         rec.append(sid)  # sid
         rec.append(ExtractFileExt(fileName))  # FileExt
@@ -207,13 +216,19 @@ class TPrefetchFileParser:
     rec = []
     volinfo = _cast(data.read(sizeof(TVolumeInfo), offset=fileinfo.VolumeInfoOffset), TVolumeInfo)
     data.position = fileinfo.VolumeInfoOffset + volinfo.VolumeDevicePathOffset
-    volumeDevicePath = data.read(volinfo.VolumeDevicePathLen * 2).decode('utf-16').rstrip('\x00')
+    try:
+      volumeDevicePath = data.read(volinfo.VolumeDevicePathLen * 2).decode('utf-16').rstrip('\x00')
+    except Exception:
+      volumeDevicePath = ''
     # Volume information - Directory strings
     data.position = fileinfo.VolumeInfoOffset + volinfo.DirStrsOffset
     dirlist = []
     for i in range(0, volinfo.DirStrsCount):
       size = data.read(2, 'H') * 2 + 2
-      dirlist.append(data.read(size).decode('utf-16').rstrip('\x00'))
+      try:
+        dirlist.append(data.read(size).decode('utf-16').rstrip('\x00'))
+      except Exception:
+        continue
     result['VolInfo'].append(
       [sid,
        volumeDevicePath,

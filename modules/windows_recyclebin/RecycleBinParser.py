@@ -42,6 +42,8 @@ def getIfileInfo(fileName):
             v = filetime_to_datetime(timestamp, 0).isoformat()
         except OSError:
             v = '%d' % timestamp
+        except Exception:
+            v = ''
         return v
 
     dump = TDataAccess()
