@@ -5,6 +5,7 @@ from advanced_modules import manager
 from advanced_modules import interface
 from advanced_modules import logger
 from datetime import datetime, timedelta
+from dfvfs.lib import definitions as dfvfs_definitions
 
 from advanced_modules.windows_usage_history import lv2_visualization_usage_year as uy, lv2_visualization_usage_day_stat as uds, \
     lv2_visualization_usage_day_detail as udd, lv2_visualization_timeline_month as tm
@@ -23,7 +24,11 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
     def Analyze(self, configuration, source_path_spec):
         print('[MODULE]: LV2 OS Usage History Analyzer')
         try:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
+            if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
+                par_id = configuration.partition_list['p1']
+            else:
+                par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
+
             if par_id == None:
                 return False
 

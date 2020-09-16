@@ -3,6 +3,7 @@
 from advanced_modules import manager
 from advanced_modules import interface
 from advanced_modules.NTFS.combine import collect_mft, collect_usnjrnl, combine_usnjrnl, UsnJrnl, preprocess_mft
+from dfvfs.lib import definitions as dfvfs_definitions
 import os
 
 
@@ -18,8 +19,12 @@ class Lv2OSLogHistoryAnalyzer(interface.AdvancedModuleAnalyzer):
     def Analyze(self, configuration, source_path_spec):
         print('[MODULE]: LV2 OS Log History Analyzer')
 
-        par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-        if par_id is None:
+        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
+            par_id = configuration.partition_list['p1']
+        else:
+            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
+
+        if par_id == None:
             return False
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
