@@ -6,6 +6,7 @@ from datetime import datetime
 from advanced_modules import manager
 from advanced_modules import interface
 from advanced_modules import logger
+from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
@@ -20,7 +21,11 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
     def Analyze(self, configuration, source_path_spec):
         print('[MODULE]: LV2 OS APP History Analyzer')
 
-        par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
+        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
+            par_id = configuration.partition_list['p1']
+        else:
+            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
+
         if par_id == None:
             return False
 
