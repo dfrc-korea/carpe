@@ -176,9 +176,15 @@ class TJumpListParser:
                     while True:
                         entry = data.read_recdata(TDestListEntry)
                         if not entry: break
-                        fileName = data.read(entry.length_of_unicode * 2).decode('utf-16')
+                        try:
+                            fileName = data.read(entry.length_of_unicode * 2).decode('utf-16')
+                        except UnicodeDecodeError:
+                            fileName = ''
                         filePath = ExtractFilePath(fileName) if fileName.find('://') == -1 else fileName
-                        computerName = entry.NetBIOSName.decode('utf-8')
+                        try:
+                            computerName = entry.NetBIOSName.decode('utf-8')
+                        except UnicodeDecodeError:
+                            fileName = ''
                         destList.append([sid, filetime_to_datetime(entry.last_recorded_aceess_time, 9), entry.access_count, entry.EntryID, computerName, ExtractFileName(fileName), filePath, ExtractFileExt(fileName).lower()])
                         data.position += 4
                 else:

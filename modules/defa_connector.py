@@ -27,10 +27,10 @@ class DEFAConnector(interface.ModuleConnector):
         if configuration.standalone_check == True:
             this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
             # 모든 yaml 파일 리스트
-            yaml_list = [this_file_path + 'lv1_app_document.yaml']
+            yaml_list = [this_file_path + 'lv1_file_document.yaml']
 
             # 모든 테이블 리스트
-            table_list = ['lv1_app_document']
+            table_list = ['lv1_file_document']
 
             if not self.check_table_from_yaml(configuration, yaml_list, table_list):
                 return False
@@ -189,7 +189,7 @@ class DEFAConnector(interface.ModuleConnector):
                     print(f"Error : {str(e)}")
                     continue
         if configuration.standalone_check == True:
-            query = "Insert into lv1_app_document values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+            query = "Insert into lv1_file_document values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_document)
 
             print(f"Total Count : {total_count}, Error Count : {error_count}")

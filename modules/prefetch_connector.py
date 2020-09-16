@@ -12,7 +12,6 @@ from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class PREFETCHConnector(interface.ModuleConnector):
-
     NAME = 'prefetch_connector'
     DESCRIPTION = 'Moudle for Prefetch'
 
@@ -42,7 +41,7 @@ class PREFETCHConnector(interface.ModuleConnector):
         else:
             par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
 
-        if par_id == None:
+        if par_id is None:
             return False
 
         print('[MODULE]: Prefetch Connect - partition ID(%s)' % par_id)
@@ -108,7 +107,9 @@ class PREFETCHConnector(interface.ModuleConnector):
             else:
                 tmp.append(result[6])  # program_path
             tmp.append(str(result[7]))  # program_run_count
-            tmp.append(str(datetime(1970,1,1) + timedelta(seconds=float(str(prefetch[3])+'.'+str(prefetch[4])))).replace(' ', 'T') + 'Z')  # 생성시간
+            tmp.append(
+                str(datetime(1970, 1, 1) + timedelta(seconds=float(str(prefetch[3]) + '.' + str(prefetch[4])))).replace(
+                    ' ', 'T') + 'Z')  # 생성시간
             tmp.append(' ')  # file_hash
             try:
                 tmp.append(last_run_time[0].replace(' ', 'T') + 'Z')  # last_run_time
@@ -149,7 +150,9 @@ class PREFETCHConnector(interface.ModuleConnector):
             for idx, result in enumerate(results['RunInfo']):
                 if idx == 0:
                     continue
-                insert_prefetch_run_info.append(tuple([par_id, configuration.case_id, configuration.evidence_id, prefetch_name, result[1], result[2], result[3], result[4]]))
+                insert_prefetch_run_info.append(tuple(
+                    [par_id, configuration.case_id, configuration.evidence_id, prefetch_name, result[1], result[2],
+                     result[3], result[4]]))
 
             ### prefetch_volume_info ###
             for idx, result in enumerate(results['VolInfo']):
