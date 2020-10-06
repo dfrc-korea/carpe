@@ -1,0 +1,38 @@
+Name: EvernoteNotes
+Desc: Evernote Notes
+Table:
+    - TableName: lv1_app_evernote_notes
+      Columns:
+          - par_id
+          - case_id
+          - evd_id
+          - title
+          - author
+          - notebook_name
+          - last_editor_id
+          - place_name
+          - latitude
+          - longitude
+          - created_time
+          - updated_time
+          - deleted_time
+          - reminder_time
+          - reminder_done_time
+          - content
+      Types:
+          - [VARCHAR(255), NOT NULL]
+          - [VARCHAR(255), NOT NULL]
+          - [VARCHAR(255), NOT NULL]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]

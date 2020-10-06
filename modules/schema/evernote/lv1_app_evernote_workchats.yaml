@@ -1,0 +1,24 @@
+Name: EvernoteWorkchats
+Desc: Evernote Workchats
+Table:
+    - TableName: lv1_app_evernote_workchats
+      Columns:
+          - par_id
+          - case_id
+          - evd_id
+          - sender_name
+          - sender_id
+          - message_body
+          - sent_time
+          - participants
+          - participant_ids
+      Types:
+          - [VARCHAR(255), NOT NULL]
+          - [VARCHAR(255), NOT NULL]
+          - [VARCHAR(255), NOT NULL]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
