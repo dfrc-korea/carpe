@@ -1,0 +1,20 @@
+Name: EvernoteAccounts
+Desc: Evernote Accounts
+Table:
+    - TableName: lv1_app_evernote_accounts
+      Columns:
+          - par_id
+          - case_id
+          - evd_id
+          - full_name
+          - email
+          - user_id
+          - created_time
+      Types:
+          - [VARCHAR(255), NOT NULL]
+          - [VARCHAR(255), NOT NULL]
+          - [VARCHAR(255), NOT NULL]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
+          - [TEXT]
