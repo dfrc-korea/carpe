@@ -349,7 +349,7 @@ class ModuleConnector(BaseConnector):
                 return False
 
     def ExtractTargetDirToPath(self, source_path_spec, configuration, dir_path=None, file_spec=None, output_path=None):
-        #TODO(jbc): 함수명 변경, 파일 넣어도 됨.
+        # TODO(jbc): 함수명 변경, 파일 넣어도 됨.
         """Extract target directory to path
 
             Args:

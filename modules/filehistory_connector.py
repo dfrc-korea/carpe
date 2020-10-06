@@ -92,11 +92,11 @@ class FileHistoryConnector(interface.ModuleConnector):
 
 			try:
 				file_created_time = str(datetime.utcfromtimestamp(file_created/10000000 - 11644473600)).replace(' ', 'T') + 'Z'
-			except ValueError:
+			except Exception:
 				file_created_time = None
 			try:
 				file_modified_time = str(datetime.utcfromtimestamp(file_modified / 10000000 - 11644473600)).replace(' ', 'T') + 'Z'
-			except ValueError:
+			except Exception:
 				file_modified_time = None
 
 			insert_filehistory_namespace.append(tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]),

@@ -73,7 +73,6 @@ class EMAILConnector(interface.ModuleConnector):
             _index_name = config.get('email', 'index')
             _type_name = config.get('email', 'type')
             es = Elasticsearch(hosts=_host, port=_port)
-
         for email in email_files:
             email_path = email[1][email[1].find('/'):] + '/' + email[0]  # document full path
             fileExt = email[2]
@@ -136,7 +135,7 @@ class EMAILConnector(interface.ModuleConnector):
             EmailBox.fileName = configuration.root_tmp_path + os.sep + configuration.case_id + os.path.sep + \
                                 configuration.evidence_id + os.path.sep + par_id + os.path.sep + fileName
             try:
-                print('\n' + EmailBox.fileName)
+                #print('\n' + EmailBox.fileName)
                 result = EmailBox.parse(fileExt)
             except Exception as e:
                 continue

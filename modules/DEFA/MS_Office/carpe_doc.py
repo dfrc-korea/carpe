@@ -7,18 +7,6 @@ import zlib
 import compoundfiles
 import olefile
 
-try:
-    from carpe_xls import XLS
-except ModuleNotFoundError:
-    sys.path.append(os.path.dirname(__file__))
-    from carpe_xls import XLS
-try:
-    from carpe_ppt import PPT
-except ModuleNotFoundError:
-    sys.path.append(os.path.dirname(__file__))
-    from carpe_ppt import PPT
-
-
 class DOC:
 
     def __init__(self, compound):
@@ -788,8 +776,8 @@ class DOC:
                         img_num += 1
 
                     # XLS
-                    from carpe_xls import XLS
-                    from carpe_compound import Compound
+                    from modules.DEFA.MS_Office.carpe_xls import XLS
+                    from modules.DEFA.MS_Office.carpe_compound import Compound
                     result = None
                     if workbook != None:
                         temp_xls = XLS(Compound(self.compound.filePath))
@@ -805,8 +793,8 @@ class DOC:
                         img_num += 1
 
                     # PPT
-                    from carpe_ppt import PPT
-                    from carpe_compound import Compound
+                    from modules.DEFA.MS_Office.carpe_ppt import PPT
+                    from modules.DEFA.MS_Office.carpe_compound import Compound
                     result = None
                     if powerpoint_document != None and current_user != None:
                         temp_ppt = PPT(Compound(self.compound.filePath))

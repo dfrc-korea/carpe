@@ -111,7 +111,6 @@ class DEFAConnector(interface.ModuleConnector):
         # for test
         total_count = len(document_files)
         error_count = 0
-
         for document in document_files:
             document_path = document[1][document[1].find('/'):] + '/' + document[0]  # document full path
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
@@ -162,6 +161,7 @@ class DEFAConnector(interface.ModuleConnector):
             result.name = document[0]
             result.original_size = os.path.getsize(file_path)
             result.ole_path = ole_path
+            result.content_size = len(result.content)
             #print(result.__dict__)
 
             if configuration.standalone_check == True:
@@ -192,6 +192,6 @@ class DEFAConnector(interface.ModuleConnector):
             query = "Insert into lv1_file_document values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_document)
 
-            print(f"Total Count : {total_count}, Error Count : {error_count}")
+            #print(f"Total Count : {total_count}, Error Count : {error_count}")
 
 manager.ModulesManager.RegisterModule(DEFAConnector)
