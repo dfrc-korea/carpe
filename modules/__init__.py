@@ -9,10 +9,8 @@ from modules import email_connector
 from modules import esedb_connector
 from modules import eventlog_connector
 from modules import evernote_connector
-from modules import fica_connector
 from modules import filehistory_connector
 from modules import iconcache_connector
-from modules import image_classification_connector
 from modules import jumplist_connector
 from modules import kakaotalk_mobile_decrypt_connector
 from modules import link_connector
