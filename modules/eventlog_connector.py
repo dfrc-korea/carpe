@@ -106,7 +106,7 @@ class EventlogConnector(interface.ModuleConnector):
             else:
                 par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
 
-            if par_id == None:
+            if par_id is None:
                 return False
 
             query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \

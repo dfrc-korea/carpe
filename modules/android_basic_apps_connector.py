@@ -76,7 +76,7 @@ class AndroidBasicAppsConnector(interface.ModuleConnector):
 
                 if not configuration.cursor.check_table_exist(table_name):
                     ret = self.CreateTableWithSchema(configuration.cursor, table_name,
-                            schema, configuration.standalone_check)
+                                                     schema, configuration.standalone_check)
                     if not ret:
                         logger.error('cannot create database table name: {0:s}'.format(table_name))
                         return False
