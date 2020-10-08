@@ -39,7 +39,6 @@ def parse_workchats(connection: sqlite3.Connection):
                 """
             )
             sender_name = cursor.fetchone()[0]
-            print(sender_name)
             workchat_dict["sender_name"] = sender_name
 
     thread_uids = list(
