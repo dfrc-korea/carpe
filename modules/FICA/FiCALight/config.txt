@@ -1,0 +1,21 @@
+Carving Module List
+7z:module_7z,Module7Z,7z
+alz:module_alz,ModuleALZ,alz
+rar:module_rar,ModuleRAR,rar
+zip:module_zip,ModuleZIP,zip
+egg:module_egg,MoudleEGG,egg
+bmp:module_bmp,ModuleBMP,bmp
+exif:module_exif,ModuleEXIF,exif
+gif:module_gif,ModuleGIF,gif
+jfif:module_jfif,ModuleJFIF,jfif
+png:module_png,ModulePNG,png
+compound:module_compound,ModuleCOMPOUND,compound
+pdf:module_pdf,ModulePDF,pdf
+isobmff:module_isobmff,ModuleISOBMFF,isobmff
+mp3:module_mp3,ModuleMP3,mp3
+riff:module_riff,ModuleRIFF,riff
+pf:module_pf,ModulePrefetch,pf
+lnk:module_lnk,ModuleLNK,lnk
+reg:module_reg,ModuleRegEntry,reg
+mft:module_mft,ModuleMFTEntry,mft
+evt:module_evt,ModuleEVT,evt

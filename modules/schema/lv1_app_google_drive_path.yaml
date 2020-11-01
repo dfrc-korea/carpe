@@ -1,0 +1,5 @@
+Name: Googledrive Path
+Desc: Google Drive Sync Path - Googledrive
+Path_Separator: '/'
+Paths:
+    - '/Users/.+/AppData/Local/Google/Drive/user_default/Tempdata/.+/change_buffer/change.+[.]db'
