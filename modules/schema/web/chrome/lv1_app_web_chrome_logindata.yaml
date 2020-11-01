@@ -19,7 +19,7 @@ Table:
       - scheme
       - password_type
       - times_used
-      - dated_synced
+      - date_synced
       - displayed_name
       - icon_url
       - federation_url

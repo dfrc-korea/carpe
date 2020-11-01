@@ -5,7 +5,6 @@ from modules import manager
 from modules import interface
 from modules import logger
 
-from dfvfs.lib import definitions as dfvfs_definitions
 from modules.Eventlog import lv1_os_win_evt_total as et
 from modules.Eventlog import lv1_os_win_event_logs_usb_devices as ud
 from modules.Eventlog import lv1_os_win_event_logs_antiforensics as af
@@ -29,8 +28,8 @@ from modules.Eventlog import lv1_os_win_event_logs_task_scheduler as ts
 from modules.Eventlog import lv1_os_win_event_logs_telemetry as tele
 from modules.Eventlog import lv1_os_win_event_logs_time_changed as tc
 
-class EventlogConnector(interface.ModuleConnector):
 
+class EventlogConnector(interface.ModuleConnector):
     NAME = 'eventlog_connector'
     DESCRIPTION = 'Module for Eventlog'
 
@@ -39,10 +38,11 @@ class EventlogConnector(interface.ModuleConnector):
     def __init__(self):
         super(EventlogConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
         try:
             this_file_path = os.path.dirname(
                 os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'eventlog' + os.sep
+
             # Total yaml 파일 리스트
             total_yaml_list = [this_file_path + 'lv1_os_win_evt_total.yaml']
             # Total 테이블 리스트
@@ -74,6 +74,7 @@ class EventlogConnector(interface.ModuleConnector):
                          this_file_path + 'lv1_os_win_event_logs_usb_devices.yaml',
                          this_file_path + 'lv1_os_win_event_logs_sleeponoff.yaml'
                          ]
+
             # 모든 테이블 리스트
             table_list = ['lv1_os_win_event_logs_antiforensics',
                           'lv1_os_win_event_logs_applications',
@@ -101,24 +102,13 @@ class EventlogConnector(interface.ModuleConnector):
             if not self.check_table_from_yaml(configuration, yaml_list, table_list):
                 return False
 
-            if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-                par_id = configuration.partition_list['p1']
-            else:
-                par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-            if par_id is None:
-                return False
-
             query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
                     f"and extension = 'evtx' and parent_path = 'root/Windows/System32/winevt/Logs'"
             eventlog_files = configuration.cursor.execute_query_mul(query)
 
             if len(eventlog_files) == 0:
+                print("There are no eventlog files")
                 return False
-
-            print('[MODULE]: Event Connect')
-            
-
 
             eventlog_file_list = ['Security.evtx', 'System.evtx', 'Application.evtx',
                                   'Microsoft-Windows-Application-Experience%4Program-Compatibility-Assistant.evtx',
@@ -152,19 +142,18 @@ class EventlogConnector(interface.ModuleConnector):
 
                     fn = output_path + os.path.sep + fileName
                     # Eventlog Total
-                    print('[MODULE]: Eventlog - Total - ' + fn.split('/')[-1])
+                    print(f'[{self.print_now_time()}] [MODULE]: Eventlog - Total - ' + fn.split('/')[-1])
                     for eventlog in et.EventlogTotal(fn):
                         insert_data.append(tuple(
                             [par_id, configuration.case_id, configuration.evidence_id, str(eventlog.event_id),
-                             str(eventlog.time_created), str(eventlog.source), str(eventlog.data), str(eventlog.user_sid)]))
+                             str(eventlog.time_created), str(eventlog.source), str(eventlog.data),
+                             str(eventlog.user_sid)]))
             query = "Insert into lv1_os_win_evt_total values (%s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-
-
-            #EVENTLOGUSBDEVICES
-            print('[MODULE]: Eventlog - EVENTLOGUSBDEVICES')
+            # EVENTLOGUSBDEVICES
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGUSBDEVICES')
             insert_data = []
             for usb in ud.EVENTLOGUSBDEVICES(configuration):
                 insert_data.append(tuple(
@@ -176,207 +165,251 @@ class EventlogConnector(interface.ModuleConnector):
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGANTIFORENSICS
-            print('[MODULE]: Eventlog - EVENTLOGANTIFORENSICS')
+            # EVENTLOGANTIFORENSICS
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGANTIFORENSICS')
             insert_data = []
             for antiforensics in af.EVENTLOGANTIFORENSICS(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(antiforensics.task), str(antiforensics.time), str(antiforensics.user_sid), str(antiforensics.event_id), str(antiforensics.source), str(antiforensics.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(antiforensics.task),
+                     str(antiforensics.time), str(antiforensics.user_sid), str(antiforensics.event_id),
+                     str(antiforensics.source), str(antiforensics.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_antiforensics values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGAPPLICATIONS
-            print('[MODULE]: Eventlog - EVENTLOGAPPLICATIONS')
+            # EVENTLOGAPPLICATIONS
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGAPPLICATIONS')
             insert_data = []
             for applications in app.EVENTLOGAPPLICATIONS(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(applications.task), str(applications.time), str(applications.application_name), str(applications.path), str(applications.resolver_name), str(applications.user_sid), str(applications.event_id), str(applications.source), str(applications.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(applications.task),
+                     str(applications.time), str(applications.application_name), str(applications.path),
+                     str(applications.resolver_name), str(applications.user_sid), str(applications.event_id),
+                     str(applications.source), str(applications.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_applications values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGDNS
-            print('[MODULE]: Eventlog - EVENTLOGDNS')
+            # EVENTLOGDNS
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGDNS')
             insert_data = []
             for dns in dn.EVENTLOGDNS(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(dns.task), str(dns.time), str(dns.query_name), str(dns.user_sid), str(dns.event_id), str(dns.source), str(dns.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(dns.task), str(dns.time),
+                     str(dns.query_name), str(dns.user_sid), str(dns.event_id), str(dns.source),
+                     str(dns.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_dns values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGFILEHANDLING
-            print('[MODULE]: Eventlog - EVENTLOGFILEHANDLING')
+            # EVENTLOGFILEHANDLING
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGFILEHANDLING')
             insert_data = []
             for file_handling in fh.EVENTLOGFILEHANDLING(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(file_handling.task), str(file_handling.time), str(file_handling.file_name), str(file_handling.user_sid), str(file_handling.event_id), str(file_handling.source), str(file_handling.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(file_handling.task),
+                     str(file_handling.time), str(file_handling.file_name), str(file_handling.user_sid),
+                     str(file_handling.event_id), str(file_handling.source), str(file_handling.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_file_handling values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGONOFF
-            print('[MODULE]: Eventlog - EVENTLOGONOFF')
+            # EVENTLOGONOFF
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGONOFF')
             insert_data = []
             for event in logon.EVENTLOGONOFF(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(event.task), str(event.time), str(event.user_sid), str(event.event_id), str(event.source), str(event.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(event.task), str(event.time),
+                     str(event.user_sid), str(event.event_id), str(event.source), str(event.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_logonoff values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGMSALERTS
-            print('[MODULE]: Eventlog - EVENTLOGMSALERTS')
+            # EVENTLOGMSALERTS
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGMSALERTS')
             insert_data = []
             for ms_alerts in ms.EVENTLOGMSALERTS(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(ms_alerts.task), str(ms_alerts.time), str(ms_alerts.program_name), str(ms_alerts.message), str(ms_alerts.error_type), str(ms_alerts.program_version), str(ms_alerts.user_sid), str(ms_alerts.event_id), str(ms_alerts.source), str(ms_alerts.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(ms_alerts.task), str(ms_alerts.time),
+                     str(ms_alerts.program_name), str(ms_alerts.message), str(ms_alerts.error_type),
+                     str(ms_alerts.program_version), str(ms_alerts.user_sid), str(ms_alerts.event_id),
+                     str(ms_alerts.source), str(ms_alerts.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_ms_alerts values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGMSIINSTALLER
-            print('[MODULE]: Eventlog - EVENTLOGMSIINSTALLER')
+            # EVENTLOGMSIINSTALLER
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGMSIINSTALLER')
             insert_data = []
             for msi_installer in msi.EVENTLOGMSIINSTALLER(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(msi_installer.task), str(msi_installer.time), str(msi_installer.product_name), str(msi_installer.product_version), str(msi_installer.manufacturer), str(msi_installer.user_sid), str(msi_installer.event_id), str(msi_installer.source), str(msi_installer.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(msi_installer.task),
+                     str(msi_installer.time), str(msi_installer.product_name), str(msi_installer.product_version),
+                     str(msi_installer.manufacturer), str(msi_installer.user_sid), str(msi_installer.event_id),
+                     str(msi_installer.source), str(msi_installer.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_msi_installer values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGNETWORK
-            print('[MODULE]: Eventlog - EVENTLOGNETWORK')
+            # EVENTLOGNETWORK
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGNETWORK')
             insert_data = []
             for network in nt.EVENTLOGNETWORK(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(network.task), str(network.time), str(network.network_name), str(network.description), str(network.category), str(network.user_sid), str(network.event_id), str(network.source), str(network.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(network.task), str(network.time),
+                     str(network.network_name), str(network.description), str(network.category), str(network.user_sid),
+                     str(network.event_id), str(network.source), str(network.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_network values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGOTHERS
-            print('[MODULE]: Eventlog - EVENTLOGOTHERS')
+            # EVENTLOGOTHERS
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGOTHERS')
             insert_data = []
             for others in ot.EVENTLOGOTHERS(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(others.task), str(others.time), str(others.name), str(others.user_sid), str(others.event_id), str(others.source), str(others.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(others.task), str(others.time),
+                     str(others.name), str(others.user_sid), str(others.event_id), str(others.source),
+                     str(others.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_others values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGPCONOFF
-            print('[MODULE]: Eventlog - EVENTLOGPCONOFF')
+            # EVENTLOGPCONOFF
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGPCONOFF')
             insert_data = []
             for event in pc.EVENTLOGPCONOFF(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(event.task), str(event.time), str(event.user_sid), str(event.event_id), str(event.source), str(event.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(event.task), str(event.time),
+                     str(event.user_sid), str(event.event_id), str(event.source), str(event.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_pconoff values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGPRINTER
-            print('[MODULE]: Eventlog - EVENTLOGPRINTER')
+            # EVENTLOGPRINTER
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGPRINTER')
             insert_data = []
             for printer in pr.EVENTLOGPRINTER(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(printer.task), str(printer.time), str(printer.location), str(printer.size), str(printer.pages), str(printer.user_sid), str(printer.event_id), str(printer.source), str(printer.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(printer.task), str(printer.time),
+                     str(printer.location), str(printer.size), str(printer.pages), str(printer.user_sid),
+                     str(printer.event_id), str(printer.source), str(printer.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_printer values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGPROCESS
-            print('[MODULE]: Eventlog - EVENTLOGPROCESS')
+            # EVENTLOGPROCESS
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGPROCESS')
             insert_data = []
             for process in pro.EVENTLOGPROCESS(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(process.task), str(process.time), str(process.process_name), str(process.user_sid), str(process.event_id), str(process.source), str(process.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(process.task), str(process.time),
+                     str(process.process_name), str(process.user_sid), str(process.event_id), str(process.source),
+                     str(process.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_process values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGREGISTRYHANDLING
-            print('[MODULE]: Eventlog - EVENTLOGREGISTRYHANDLING')
+            # EVENTLOGREGISTRYHANDLING
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGREGISTRYHANDLING')
             insert_data = []
             for registry in reg.EVENTLOGREGISTRYHANDLING(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(registry.task), str(registry.time), str(registry.registry_path), str(registry.registry_value_name), str(registry.old_value), str(registry.new_value), str(registry.user_sid), str(registry.event_id), str(registry.source), str(registry.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(registry.task), str(registry.time),
+                     str(registry.registry_path), str(registry.registry_value_name), str(registry.old_value),
+                     str(registry.new_value), str(registry.user_sid), str(registry.event_id), str(registry.source),
+                     str(registry.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_registry_handling values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGREMOTEONOFF
-            print('[MODULE]: Eventlog - EVENTLOGREMOTEONOFF')
+            # EVENTLOGREMOTEONOFF
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGREMOTEONOFF')
             insert_data = []
             for remote in rem.EVENTLOGREMOTEONOFF(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(remote.task), str(remote.time), str(remote.connection), str(remote.address), str(remote.user_sid), str(remote.event_id), str(remote.source), str(remote.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(remote.task), str(remote.time),
+                     str(remote.connection), str(remote.address), str(remote.user_sid), str(remote.event_id),
+                     str(remote.source), str(remote.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_remoteonoff values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGSCREENSAVER
-            print('[MODULE]: Eventlog - EVENTLOGSCREENSAVER')
+            # EVENTLOGSCREENSAVER
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGSCREENSAVER')
             insert_data = []
             for screen_saver in ss.EVENTLOGSCREENSAVER(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(screen_saver.task), str(screen_saver.time), str(screen_saver.user_sid), str(screen_saver.event_id), str(screen_saver.source), str(screen_saver.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(screen_saver.task),
+                     str(screen_saver.time), str(screen_saver.user_sid), str(screen_saver.event_id),
+                     str(screen_saver.source), str(screen_saver.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_screen_saver values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGSHAREDFOLDER
-            print('[MODULE]: Eventlog - EVENTLOGSHAREDFOLDER')
+            # EVENTLOGSHAREDFOLDER
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGSHAREDFOLDER')
             insert_data = []
             for shared_folder in sf.EVENTLOGSHAREDFOLDER(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(shared_folder.task), str(shared_folder.time), str(shared_folder.user_sid), str(shared_folder.event_id), str(shared_folder.source), str(shared_folder.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(shared_folder.task),
+                     str(shared_folder.time), str(shared_folder.user_sid), str(shared_folder.event_id),
+                     str(shared_folder.source), str(shared_folder.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_shared_folder values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGSLEEPONOFF
-            print('[MODULE]: Eventlog - EVENTLOGSLEEPONOFF')
+            # EVENTLOGSLEEPONOFF
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGSLEEPONOFF')
             insert_data = []
             for sleep in sle.EVENTLOGSLEEPONOFF(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(sleep.task), str(sleep.time_sleep), str(sleep.time_wake), str(sleep.user_sid), str(sleep.event_id), str(sleep.source), str(sleep.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(sleep.task), str(sleep.time_sleep),
+                     str(sleep.time_wake), str(sleep.user_sid), str(sleep.event_id), str(sleep.source),
+                     str(sleep.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_sleeponoff values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGTASKSCHEDULER
-            print('[MODULE]: Eventlog - EVENTLOGTASKSCHEDULER')
+            # EVENTLOGTASKSCHEDULER
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGTASKSCHEDULER')
             insert_data = []
             for task_scheduler in ts.EVENTLOGTASKSCHEDULER(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(task_scheduler.task), str(task_scheduler.time), str(task_scheduler.action_name), str(task_scheduler.user_sid), str(task_scheduler.event_id), str(task_scheduler.source), str(task_scheduler.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(task_scheduler.task),
+                     str(task_scheduler.time), str(task_scheduler.action_name), str(task_scheduler.user_sid),
+                     str(task_scheduler.event_id), str(task_scheduler.source),
+                     str(task_scheduler.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_task_scheduler values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGTELEMETRY
-            print('[MODULE]: Eventlog - EVENTLOGTELEMETRY')
+            # EVENTLOGTELEMETRY
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGTELEMETRY')
             insert_data = []
             for telemetry in tele.EVENTLOGTELEMETRY(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(telemetry.task), str(telemetry.time), str(telemetry.program_name), str(telemetry.program_path), str(telemetry.user_sid), str(telemetry.event_id), str(telemetry.source), str(telemetry.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(telemetry.task), str(telemetry.time),
+                     str(telemetry.program_name), str(telemetry.program_path), str(telemetry.user_sid),
+                     str(telemetry.event_id), str(telemetry.source), str(telemetry.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_telemetry values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            #EVENTLOGTIMECHANGED
-            print('[MODULE]: Eventlog - EVENTLOGTIMECHANGED')
+            # EVENTLOGTIMECHANGED
+            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGTIMECHANGED')
             insert_data = []
             for time in tc.EVENTLOGTIMECHANGED(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(time.task), str(time.time_old), str(time.time_new), str(time.user_sid), str(time.event_id), str(time.source), str(time.event_id_description)]))
+                    [par_id, configuration.case_id, configuration.evidence_id, str(time.task), str(time.time_old),
+                     str(time.time_new), str(time.user_sid), str(time.event_id), str(time.source),
+                     str(time.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_time_changed values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
         except Exception as e:
-            print("Eventlog Connector Error: %s" % e)
+            print(f"[{self.print_now_time()}] Eventlog Connector Error: {e}")
+
 
 manager.ModulesManager.RegisterModule(EventlogConnector)

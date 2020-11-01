@@ -3,6 +3,7 @@
 import os
 import abc
 import yaml
+from datetime import datetime
 
 from dfvfs.helpers import file_system_searcher
 from dfvfs.resolver import resolver as path_spec_resolver
@@ -13,8 +14,8 @@ from engine import path_extractors
 from engine import path_helper
 from modules import logger
 
-class BaseConnector(object):
 
+class BaseConnector(object):
     NAME = 'base_connector'
     DESCRIPTION = ''
 
@@ -148,7 +149,7 @@ class ModuleConnector(BaseConnector):
         self._path_spec_extractor = path_extractors.PathSpecExtractor()
 
     @abc.abstractmethod
-    def Connect(self, configuration, source_path_spec, knowledge_base):
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
         """
         Connect
         """
@@ -211,9 +212,8 @@ class ModuleConnector(BaseConnector):
 
         return find_specs
 
-
     def LoadTargetFileToMemory(self, source_path_spec, configuration,
-                               file_path = None, file_spec = None, data_stream_name = None):
+                               file_path=None, file_spec=None, data_stream_name=None):
 
         try:
             if not file_spec:
@@ -264,10 +264,9 @@ class ModuleConnector(BaseConnector):
             except KeyboardInterrupt:
                 return False
 
-
     def ExtractTargetFileToPath(self, source_path_spec, configuration,
-                                file_path = None, file_spec=None, output_path=None,  data_stream_name = None):
-        #TODO: find_spec 있을 경우 처리 해야함. Load참조
+                                file_path=None, file_spec=None, output_path=None, data_stream_name=None):
+        # TODO: find_spec 있을 경우 처리 해야함. Load참조
 
         try:
             if not file_spec:
@@ -343,7 +342,6 @@ class ModuleConnector(BaseConnector):
                             'Failed to extract file "{0:s}" : {1!s}'.format(display_name, exception))
                     finally:
                         file_object.close()
-
 
             except KeyboardInterrupt:
                 return False
@@ -510,12 +508,12 @@ class ModuleConnector(BaseConnector):
                 # For standalone mode: escape special character like '$'
                 query.append('"' + _schema[i] + '" ')
             else:
-                query.append('`'+_schema[i] + '` TEXT')
+                query.append('`' + _schema[i] + '` TEXT')
 
                 if _schema[i][:11].lower() == 'foreign key' or _schema[i][:11].lower() == 'primary key':
                     pass
                 else:
-                    #TODO: 타입 처리 해야함
+                    # TODO: 타입 처리 해야함
                     pass
                     """
                     for j in range(0, len(types[i])):
@@ -534,6 +532,7 @@ class ModuleConnector(BaseConnector):
         _cursor.execute_query(query)
 
         return True
+
     def check_table_from_yaml(self, configuration, yaml_list, table_list):
         # Create all table
         for count in range(0, len(yaml_list)):
@@ -546,9 +545,14 @@ class ModuleConnector(BaseConnector):
                 if not ret:
                     logger.error('cannot create database table name: {0:s}'.format(table_list[count]))
                     return False
-
         return True
 
-    def check_database(self):
-        pass
+    def print_now_time(self):
+        now = datetime.now()
+        return f'{now.year}-{now.month:02}-{now.day:02} {now.hour:02}:{now.minute:02}:{now.second:02}'
 
+    def print_run_info(self, module_name, par_id='None', start=True):
+        if start:
+            print(f'[{self.print_now_time()}] [MODULE]: {module_name} Start! - partition ID ({par_id})')
+        else:
+            print(f'[{self.print_now_time()}] [MODULE]: {module_name} End! - partition ID ({par_id})')

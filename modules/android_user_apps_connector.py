@@ -9,37 +9,27 @@ from modules import manager
 from modules import interface
 from modules.android_user_apps import main as android_user_apps
 from utility import errors
-from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class AndroidUserAppsConnector(interface.ModuleConnector):
-
     NAME = 'android_user_apps_connector'
     DESCRIPTION = 'Module for android user apps'
 
     def __init__(self):
         super(AndroidUserAppsConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
         """Connector to connect to Android User Apps modules.
 
         Args:
+            par_id: partition id.
             configuration: configuration values.
             source_path_spec (dfvfs.PathSpec): path specification of the source file.
             knowledge_base (KnowledgeBase): knowledge base.
 
         """
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id == None:
-            return False
-
-        print('[MODULE]: Android User Apps Analyzer Start! - partition ID(%s)' % par_id)
-
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'android' + os.sep
+
         ### Create LV1 Table ###
         # 모든 yaml 파일 리스트
         yaml_list = [this_file_path + 'lv1_os_and_geodata.yaml']
@@ -48,7 +38,6 @@ class AndroidUserAppsConnector(interface.ModuleConnector):
 
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
-
 
         ### Load Application List ###
         if not self.LoadSchemaFromYaml(this_file_path + 'lv1_os_and_user_apps.yaml'):
@@ -63,16 +52,16 @@ class AndroidUserAppsConnector(interface.ModuleConnector):
         if len(find_specs) < 1:
             return False
 
-        if not configuration.standalone_check:
-            output_path = configuration.root_tmp_path
-        else:
-            output_path = configuration.output_file_path
-        output_path += os.sep + configuration.case_id + os.sep + configuration.evidence_id + os.sep + par_id\
-                       + os.sep + 'AU2A_Raw_Files'
+        output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep \
+                      + configuration.evidence_id + os.sep + par_id + os.sep + 'AU2A_Raw_Files'
+
+        if not os.path.exists(output_path):
+            os.mkdir(output_path)
 
         for spec in find_specs:
             self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
-                                        configuration=configuration, file_spec=spec,
+                                        configuration=configuration,
+                                        file_spec=spec,
                                         output_path=output_path)
 
         results = android_user_apps.main(output_path)
@@ -81,16 +70,18 @@ class AndroidUserAppsConnector(interface.ModuleConnector):
         for result in results:
             if result['title'] == "geodata":
                 for data in result['data']:
-                    if (data[2] == float(0) and data[3] == float(0)) or (data[2] == None and data[3] == None):  # check longitude, latitude
+                    if (data[2] == float(0) and data[3] == float(0)) or (
+                            data[2] is None and data[3] is None):  # check longitude, latitude
                         continue
 
-                    if data[1] == None:  # check timestamp
+                    if data[1] is None:  # check timestamp
                         continue
 
                     if len(str(data[1])) == 10:  # Unixtime_seconds
-                        time = str(datetime(1970,1,1) + timedelta(seconds=float(data[1]))).replace(' ','T') + 'Z'
+                        time = str(datetime(1970, 1, 1) + timedelta(seconds=float(data[1]))).replace(' ', 'T') + 'Z'
                     elif len(str(data[1])) == 13:  # Unixtime_milliseconds
-                        time = str(datetime(1970,1,1) + timedelta(milliseconds=float(data[1]))).replace(' ', 'T') + 'Z'
+                        time = str(datetime(1970, 1, 1) + timedelta(milliseconds=float(data[1]))).replace(' ',
+                                                                                                          'T') + 'Z'
 
                     insert_geodata.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
                                                  data[0], time, data[2], data[3], data[4], data[5], data[6]]))
@@ -112,5 +103,3 @@ class AndroidUserAppsConnector(interface.ModuleConnector):
 
 
 manager.ModulesManager.RegisterModule(AndroidUserAppsConnector)
-
-

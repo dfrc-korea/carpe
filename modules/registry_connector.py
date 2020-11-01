@@ -27,8 +27,6 @@ from modules.Registry import lv1_os_win_reg_mac_address as ma
 from modules.Registry import lv1_os_win_reg_network_drive as nd
 from modules.Registry import lv1_os_win_reg_network_interface as ni
 from modules.Registry import lv1_os_win_reg_network_profile as np
-from dfvfs.lib import definitions as dfvfs_definitions
-
 
 
 class RegistryConnector(interface.ModuleConnector):
@@ -40,7 +38,7 @@ class RegistryConnector(interface.ModuleConnector):
     def __init__(self):
         super(RegistryConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
         this_file_path = os.path.dirname(
             os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'registry' + os.sep
@@ -95,15 +93,6 @@ class RegistryConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
-        # try:
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id == None:
-            return False
-
         ### 계정 불러오기 ###
         useraccount_list = []
         for user_accounts in knowledge_base._user_accounts.values():
@@ -130,6 +119,7 @@ class RegistryConnector(interface.ModuleConnector):
         registry_files = configuration.cursor.execute_query_mul(query)
 
         if len(registry_files) == 0:
+            print("There are no registry files")
             return False
 
         registry_files2 = []
@@ -143,8 +133,6 @@ class RegistryConnector(interface.ModuleConnector):
                      f"(name = 'ntuser.dat.LOG2' and parent_path like '%{useraccount}%'))"
 
             registry_files2.append(configuration.cursor.execute_query_mul(query2))
-
-        print('[MODULE]: Registry Connect')
 
         query3 = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') and " \
                  f"((name = 'SYSTEM' and parent_path = 'root/Windows.old/Windows/System32/config') or " \
@@ -386,11 +374,9 @@ class RegistryConnector(interface.ModuleConnector):
                             wow.append(registry[1].split('/')[2])
                             reg_nt_list.append(wow)
 
-
-
             # Amcache File
             if backup_flag != 'Backup-RegBack' and reg_am != '':
-                print('[MODULE]: Registry - Amcache File')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Amcache File')
                 insert_data = []
                 for amcache in afe.AMCACHEFILEENTRIES(reg_am):
                     insert_data.append(
@@ -412,7 +398,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Amcache Program
             if backup_flag != 'Backup-RegBack' and reg_am != '':
-                print('[MODULE]: Registry - Amcache Program')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Amcache Program')
                 insert_data = []
                 for amcache in ape.AMCACHEPROGRAMENTRIES(reg_am):
                     insert_data.append(
@@ -436,7 +422,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Installed Program
             if backup_flag != 'Backup-RegBack' and reg_software != '':
-                print('[MODULE]: Registry - Installed Program')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Installed Program')
                 count = 0
                 for reg_nt in reg_nt_list:
                     insert_data = []
@@ -467,7 +453,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # OS Information
             if reg_software != '' and reg_system != '':
-                print('[MODULE]: Registry - OS Information')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - OS Information')
                 insert_data = []
                 for operating_system in oi.OSINFO(reg_software, reg_system):
                     insert_data.append(
@@ -493,7 +479,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # USB Device
             if reg_software != '' and reg_system != '':
-                print('[MODULE]: Registry - USB Device')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - USB Device')
                 insert_data = []
                 for usb in ud.USBDEVICES(reg_software, reg_system, text_data):
                     insert_data.append(
@@ -515,7 +501,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # User Account
             if reg_sam != '' and reg_software != '':
-                print('[MODULE]: Registry - User Account')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - User Account')
                 insert_data = []
                 for user in ua.USERACCOUNTS(reg_sam, reg_software):
                     insert_data.append(
@@ -534,7 +520,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Known DLL
             if reg_system != '':
-                print('[MODULE]: Registry - Known DLL')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Known DLL')
                 insert_data = []
                 for dll in kd.KNOWNDLL(reg_system):
                     insert_data.append(
@@ -547,7 +533,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # MAC Address
             if reg_system != '':
-                print('[MODULE]: Registry - MAC Address')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - MAC Address')
                 if len(ma.MACADDRESS(reg_system)) != 0:
                     insert_data = []
                     for address in ma.MACADDRESS(reg_system):
@@ -560,7 +546,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Shim Cache
             if reg_system != '':
-                print('[MODULE]: Registry - Shim Cache')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Shim Cache')
                 insert_data = []
                 for cache in sc.SHIMCACHE(reg_system):
                     insert_data.append(
@@ -573,7 +559,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Network Interface
             if reg_system != '':
-                print('[MODULE]: Registry - Network Interface')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Network Interface')
                 insert_data = []
                 for network in ni.NETWORKINTERFACE(reg_system):
                     insert_data.append(
@@ -595,7 +581,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Network Profile
             if reg_software != '':
-                print('[MODULE]: Registry - Network Profile')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Network Profile')
                 insert_data = []
                 for network in np.NETWORKPROFILE(reg_software):
                     insert_data.append(
@@ -609,7 +595,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # File Connection
             if reg_software != '':
-                print('[MODULE]: Registry - File Connection')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - File Connection')
                 insert_data = []
                 for file in fc.FILECCONNECTION(reg_software):
                     insert_data.append(
@@ -622,7 +608,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # System service
             if reg_system != '':
-                print('[MODULE]: Registry - System service')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - System service')
                 insert_data = []
                 for service in ss.SYSTEMSERVICE(reg_system):
                     insert_data.append(
@@ -641,7 +627,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # User Assist
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print('[MODULE]: Registry - User Assist')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - User Assist')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for user in u.USERASSIST(reg_nt[0]):
@@ -657,7 +643,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # MUI Cache
             if backup_flag != 'Backup-RegBack' and len(reg_usrclass_list) != 0:
-                print('[MODULE]: Registry - MUI Cache')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - MUI Cache')
                 for reg_usrclass in reg_usrclass_list:
                     insert_data = []
                     for cache in mc.MUICACHE(reg_usrclass[0]):
@@ -671,7 +657,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Network Drive
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print('[MODULE]: Registry - Network Drive')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Network Drive')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for drive in nd.NETWORKDRIVE(reg_nt[0]):
@@ -686,7 +672,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Recent Docs
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print('[MODULE]: Registry - Recent Docs')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Recent Docs')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for doc in rd.RECENTDOCS(reg_nt[0]):
@@ -701,7 +687,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Run command
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print('[MODULE]: Registry - Run command')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Run command')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for command in rc.RUNCOMMAND(reg_nt[0]):
@@ -715,7 +701,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Search keyword
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print('[MODULE]: Registry - Search keyword')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Search keyword')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for keyword in sk.SEARCHKEYWORD(reg_nt[0]):
@@ -729,7 +715,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Start list
             if backup_flag != 'Backup-RegBack' and reg_software != '' and len(reg_nt_list) != 0:
-                print('[MODULE]: Registry - Start list')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Start list')
                 count = 0
                 for reg_nt in reg_nt_list:
                     insert_data = []
@@ -758,7 +744,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # MRU Foloder
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print('[MODULE]: Registry - MRU Folder')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - MRU Folder')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for mru in mf.MRUFOLDER(reg_nt[0]):
@@ -773,7 +759,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # MRU Open File
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print('[MODULE]: Registry - MRU File')
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - MRU File')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for mru in mof.MRUOPENEDFILE(reg_nt[0]):
@@ -824,11 +810,5 @@ class RegistryConnector(interface.ModuleConnector):
                 reg_nt_log1.close()
             if reg_nt_log2 is not '':
                 reg_nt_log2.close()
-
-            print('[MODULE]: Registry [' + backup_flag + '] Completed')
-
-        # except Exception as e:
-        #    print("Registry Connector Error: %s" % e)
-
 
 manager.ModulesManager.RegisterModule(RegistryConnector)

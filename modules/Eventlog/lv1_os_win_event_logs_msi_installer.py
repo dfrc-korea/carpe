@@ -27,7 +27,7 @@ def EVENTLOGMSIINSTALLER(configuration):
 
     msi_installer_list = []
     msi_installer_count = 0
-    query = r"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total where (event_id = '1033' or event_id = '11707' or event_id = '11724')"
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id = '1033' or event_id = '11707' or event_id = '11724')"
     #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:

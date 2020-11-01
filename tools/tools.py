@@ -9,9 +9,8 @@ import datetime
 from utility import errors
 from tools import logger
 
+
 class CLITool(object):
-
-
     _PREFERRED_ENCODING = 'utf-8'
 
     NAME = ''
@@ -21,9 +20,9 @@ class CLITool(object):
 
         preferred_encoding = locale.getpreferredencoding()
         if not input_reader:
-          input_reader = StdinInputReader(encoding=preferred_encoding)
+            input_reader = StdinInputReader(encoding=preferred_encoding)
         if not output_writer:
-          output_writer = StdoutOutputWriter(encoding=preferred_encoding)
+            output_writer = StdoutOutputWriter(encoding=preferred_encoding)
 
         self._debug_mode = False
         self._quiet_mode = False
@@ -35,7 +34,7 @@ class CLITool(object):
         self.show_troubleshooting = False
 
     def GetVersionInformation(self):
-        #TODO: 나중에 버전 추가해야함
+        # TODO: 나중에 버전 추가해야함
         return 'carpe - {0:s} version {1:s}'.format(self.NAME, "2020-02-20")
 
     def AddBasicOptions(self, argument_group):
@@ -121,29 +120,30 @@ class CLITool(object):
                 local_date_time.second)
 
     def ListModules(self):
-        #TODO: Modules List 출력해줘야함
+        # TODO: Modules List 출력해줘야함
         pass
 
     def ListParsers(self):
-        #TODO: Modules List 출력해줘야함
+        # TODO: Modules List 출력해줘야함
         pass
 
-class CLIInputReader(object):
-  """Command line interface input reader interface."""
 
-  def __init__(self, encoding='utf-8'):
-    """Initializes an input reader.
+class CLIInputReader(object):
+    """Command line interface input reader interface."""
+
+    def __init__(self, encoding='utf-8'):
+        """Initializes an input reader.
 
     Args:
       encoding (Optional[str]): input encoding.
     """
-    super(CLIInputReader, self).__init__()
-    self._encoding = encoding
+        super(CLIInputReader, self).__init__()
+        self._encoding = encoding
 
-  # pylint: disable=redundant-returns-doc
-  @abc.abstractmethod
-  def Read(self):
-    """Reads a string from the input.
+    # pylint: disable=redundant-returns-doc
+    @abc.abstractmethod
+    def Read(self):
+        """Reads a string from the input.
 
     Returns:
       str: input.
@@ -151,20 +151,20 @@ class CLIInputReader(object):
 
 
 class CLIOutputWriter(object):
-  """Command line interface output writer interface."""
+    """Command line interface output writer interface."""
 
-  def __init__(self, encoding='utf-8'):
-    """Initializes an output writer.
+    def __init__(self, encoding='utf-8'):
+        """Initializes an output writer.
 
     Args:
       encoding (Optional[str]): output encoding.
     """
-    super(CLIOutputWriter, self).__init__()
-    self._encoding = encoding
+        super(CLIOutputWriter, self).__init__()
+        self._encoding = encoding
 
-  @abc.abstractmethod
-  def Write(self, string):
-    """Writes a string to the output.
+    @abc.abstractmethod
+    def Write(self, string):
+        """Writes a string to the output.
 
     Args:
       string (str): output.
@@ -172,120 +172,122 @@ class CLIOutputWriter(object):
 
 
 class FileObjectInputReader(CLIInputReader):
-  """File object command line interface input reader.
+    """File object command line interface input reader.
 
   This input reader relies on the file-like object having a readline method.
   """
 
-  def __init__(self, file_object, encoding='utf-8'):
-    """Initializes a file object command line interface input reader.
+    def __init__(self, file_object, encoding='utf-8'):
+        """Initializes a file object command line interface input reader.
 
     Args:
       file_object (file): file-like object to read from.
       encoding (Optional[str]): input encoding.
     """
-    super(FileObjectInputReader, self).__init__(encoding=encoding)
-    self._errors = 'strict'
-    self._file_object = file_object
+        super(FileObjectInputReader, self).__init__(encoding=encoding)
+        self._errors = 'strict'
+        self._file_object = file_object
 
-  def Read(self):
-    """Reads a string from the input.
+    def Read(self):
+        """Reads a string from the input.
 
     Returns:
       str: input.
     """
-    encoded_string = self._file_object.readline()
+        encoded_string = self._file_object.readline()
 
-    if isinstance(encoded_string, str):
-      return encoded_string
+        if isinstance(encoded_string, str):
+            return encoded_string
 
-    try:
-      string = codecs.decode(encoded_string, self._encoding, self._errors)
-    except UnicodeDecodeError:
-      if self._errors == 'strict':
-        logger.error(
-            'Unable to properly read input due to encoding error. '
-            'Switching to error tolerant encoding which can result in '
-            'non Basic Latin (C0) characters to be replaced with "?" or '
-            '"\\ufffd".')
-        self._errors = 'replace'
+        try:
+            string = codecs.decode(encoded_string, self._encoding, self._errors)
+        except UnicodeDecodeError:
+            if self._errors == 'strict':
+                logger.error(
+                    'Unable to properly read input due to encoding error. '
+                    'Switching to error tolerant encoding which can result in '
+                    'non Basic Latin (C0) characters to be replaced with "?" or '
+                    '"\\ufffd".')
+                self._errors = 'replace'
 
-      string = codecs.decode(encoded_string, self._encoding, self._errors)
+            string = codecs.decode(encoded_string, self._encoding, self._errors)
 
-    return string
+        return string
+
 
 class StdinInputReader(FileObjectInputReader):
-  """Stdin command line interface input reader."""
+    """Stdin command line interface input reader."""
 
-  def __init__(self, encoding='utf-8'):
-    """Initializes an stdin input reader.
+    def __init__(self, encoding='utf-8'):
+        """Initializes an stdin input reader.
 
     Args:
       encoding (Optional[str]): input encoding.
     """
-    super(StdinInputReader, self).__init__(sys.stdin, encoding=encoding)
+        super(StdinInputReader, self).__init__(sys.stdin, encoding=encoding)
+
 
 class FileObjectOutputWriter(CLIOutputWriter):
-  """File object command line interface output writer.
+    """File object command line interface output writer.
 
   This output writer relies on the file-like object having a write method.
   """
 
-  def __init__(self, file_object, encoding='utf-8'):
-    """Initializes a file object command line interface output writer.
+    def __init__(self, file_object, encoding='utf-8'):
+        """Initializes a file object command line interface output writer.
 
     Args:
       file_object (file): file-like object to read from.
       encoding (Optional[str]): output encoding.
     """
-    super(FileObjectOutputWriter, self).__init__(encoding=encoding)
-    self._errors = 'strict'
-    self._file_object = file_object
+        super(FileObjectOutputWriter, self).__init__(encoding=encoding)
+        self._errors = 'strict'
+        self._file_object = file_object
 
-  def Write(self, string):
-    """Writes a string to the output.
+    def Write(self, string):
+        """Writes a string to the output.
 
     Args:
       string (str): output.
     """
-    try:
-      # Note that encode() will first convert string into a Unicode string
-      # if necessary.
-      encoded_string = codecs.encode(string, self._encoding, self._errors)
-    except UnicodeEncodeError:
-      if self._errors == 'strict':
-        logger.error(
-            'Unable to properly write output due to encoding error. '
-            'Switching to error tolerant encoding which can result in '
-            'non Basic Latin (C0) characters to be replaced with "?" or '
-            '"\\ufffd".')
-        self._errors = 'replace'
+        try:
+            # Note that encode() will first convert string into a Unicode string
+            # if necessary.
+            encoded_string = codecs.encode(string, self._encoding, self._errors)
+        except UnicodeEncodeError:
+            if self._errors == 'strict':
+                logger.error(
+                    'Unable to properly write output due to encoding error. '
+                    'Switching to error tolerant encoding which can result in '
+                    'non Basic Latin (C0) characters to be replaced with "?" or '
+                    '"\\ufffd".')
+                self._errors = 'replace'
 
-      encoded_string = codecs.encode(string, self._encoding, self._errors)
+            encoded_string = codecs.encode(string, self._encoding, self._errors)
 
-    self._file_object.write(encoded_string)
+        self._file_object.write(encoded_string)
 
 
 class StdoutOutputWriter(FileObjectOutputWriter):
-  """Stdout command line interface output writer."""
+    """Stdout command line interface output writer."""
 
-  def __init__(self, encoding='utf-8'):
-    """Initializes a stdout output writer.
+    def __init__(self, encoding='utf-8'):
+        """Initializes a stdout output writer.
 
     Args:
       encoding (Optional[str]): output encoding.
     """
-    super(StdoutOutputWriter, self).__init__(sys.stdout, encoding=encoding)
+        super(StdoutOutputWriter, self).__init__(sys.stdout, encoding=encoding)
 
-  def Write(self, string):
-    """Writes a string to the output.
+    def Write(self, string):
+        """Writes a string to the output.
 
     Args:
       string (str): output.
     """
-    if sys.version_info[0] < 3:
-      super(StdoutOutputWriter, self).Write(string)
-    else:
-      # sys.stdout.write() on Python 3 by default will error if string is
-      # of type bytes.
-      sys.stdout.write(string)
+        if sys.version_info[0] < 3:
+            super(StdoutOutputWriter, self).Write(string)
+        else:
+            # sys.stdout.write() on Python 3 by default will error if string is
+            # of type bytes.
+            sys.stdout.write(string)

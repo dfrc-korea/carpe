@@ -23,7 +23,7 @@ class LV2OSMFTHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         super(LV2OSMFTHISTORYAnalyzer, self).__init__()
 
     def Analyze(self, configuration, source_path_spec):
-        print('[MODULE]: LV2 OS APP History Analyzer')
+        #print('[MODULE]: LV2 OS APP History Analyzer')
 
         if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
             par_id = configuration.partition_list['p1']
@@ -53,7 +53,8 @@ class LV2OSMFTHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
                     logger.error('cannot create database table name: {0:s}'.format(table_list[count]))
                     return False
 
-        query = f"SELECT file_id, par_id, inode, name, dir_type, size, extension, mtime, atime, ctime, etime, mtime_nano, atime_nano, ctime_nano, etime_nano, parent_path, parent_id FROM file_info WHERE par_id='{par_id}' and not type = \"7\";"
+        query = f"SELECT file_id, par_id, inode, name, dir_type, size, extension, mtime, atime, ctime, etime, mtime_nano," \
+                f" atime_nano, ctime_nano, etime_nano, parent_path, parent_id FROM file_info WHERE par_id='{par_id}' and not type = \"7\";"
         results = configuration.cursor.execute_query_mul(query)
 
         if len(results) == 0:
@@ -97,7 +98,8 @@ class LV2OSMFTHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
                 parent_path = result[15]
                 parent_id = result[16]
 
-                insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id, file_id, inode, name, dir_type, size, extension, mtime, atime, ctime, etime, parent_path, parent_id, is_copied]))
+                insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id, file_id, inode, name,
+                                          dir_type, size, extension, mtime, atime, ctime, etime, parent_path, parent_id, is_copied]))
 
             query = "Insert into lv2_os_mft_history values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_data)

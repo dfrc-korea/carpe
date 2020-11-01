@@ -30,7 +30,6 @@ from engine import path_helper
 
 
 class StorageMediaTool(tools.CLITool):
-
     _BINARY_DATA_CREDENTIAL_TYPES = ['key_data']
 
     _SUPPORTED_CREDENTIAL_TYPES = [
@@ -40,6 +39,8 @@ class StorageMediaTool(tools.CLITool):
         super(StorageMediaTool, self).__init__(
             input_reader=input_reader, output_writer=output_writer)
 
+        self.case_id = None
+        self.evidence_id = None
         self._custom_artifacts_path = None
         self._artifact_definitions_path = None
 
@@ -72,6 +73,9 @@ class StorageMediaTool(tools.CLITool):
         self._signature_tool = signature_tool.SignatureTool()
         self._rds = None
         self._rds_set = None
+
+        self.sector_size = None
+        self.cluster_size = None
 
     def _ParseStorageMediaOptions(self, options):
         self._ParseSourcePathOption(options)
@@ -226,7 +230,6 @@ class StorageMediaTool(tools.CLITool):
                 '"1,3..5". The first store is 1. All stores can be defined as: '
                 '"all".'))
 
-
     def CreateStorageAndTempPath(self, cursor, case_id=None, evd_id=None):
 
         if not case_id or not evd_id:
@@ -253,7 +256,6 @@ class StorageMediaTool(tools.CLITool):
         self._tmp_path = os.path.join(os.path.join(self._root_tmp_path, case_id), evd_id)
         if not os.path.isdir(self._tmp_path):
             os.mkdir(self._tmp_path)
-
 
     def ScanSource(self, source_path):
 
@@ -313,15 +315,13 @@ class StorageMediaTool(tools.CLITool):
 
         return scan_context
 
-
     def _ScanVolume(self, scan_context, scan_node, base_path_specs):
 
         if not scan_node or not scan_node.path_spec:
             raise errors.SourceScannerError('Invalid or missing scan node.')
 
         if scan_context.IsLockedScanNode(scan_node.path_spec):
-            # The source scanner found a locked volume and we need a credential to
-            # unlock it.
+            # The source scanner found a locked volume and we need a credential to unlock it.
             self._ScanEncryptedVolume(scan_context, scan_node)
 
             if scan_context.IsLockedScanNode(scan_node.path_spec):
@@ -410,11 +410,11 @@ class StorageMediaTool(tools.CLITool):
             raise errors.SourceScannerError('Invalid scan node.')
 
         if scan_node.type_indicator == (
-            dfvfs_definitions.TYPE_INDICATOR_APFS_CONTAINER):
+                dfvfs_definitions.TYPE_INDICATOR_APFS_CONTAINER):
             volume_identifiers = self._GetAPFSVolumeIdentifiers(scan_node)
 
         elif scan_node.type_indicator == dfvfs_definitions.TYPE_INDICATOR_VSHADOW:
-        #if scan_node.type_indicator == dfvfs_definitions.TYPE_INDICATOR_VSHADOW:
+            # if scan_node.type_indicator == dfvfs_definitions.TYPE_INDICATOR_VSHADOW:
             if self._process_vss:
                 volume_identifiers = self._GetVSSStoreIdentifiers(scan_node)
                 # Process VSS stores (snapshots) starting with the most recent one.
@@ -637,7 +637,6 @@ class StorageMediaTool(tools.CLITool):
             raise errors.UserAbort('File system scan aborted.')
 
     def InsertImageInformation(self):
-
         if not self._source_path_specs:
             logger.error('source is empty')
             return
@@ -645,6 +644,7 @@ class StorageMediaTool(tools.CLITool):
         disk_info = []
         for path_spec in self._source_path_specs:
             filesystem_type = None
+            bytes_per_cluster = 0
 
             if not path_spec.parent:
                 return False
@@ -654,6 +654,7 @@ class StorageMediaTool(tools.CLITool):
                     fs = dfvfs_resolver.Resolver.OpenFileSystem(path_spec)
                     fs_info = fs.GetFsInfo()
                     filesystem_type = getattr(fs_info.info, 'ftype', None)
+                    bytes_per_cluster = getattr(fs_info.info, 'block_size', 0)
                 path_spec = path_spec.parent
 
             file_system = dfvfs_resolver.Resolver.OpenFileSystem(path_spec)
@@ -678,11 +679,13 @@ class StorageMediaTool(tools.CLITool):
                     disk_info.append({
                         "base_path_spec": base_path_spec, "type_indicator": path_spec.type_indicator,
                         "length": length * bytes_per_sector, "bytes_per_sector": bytes_per_sector,
-                        "start_sector": start_sector, "vol_name": volume_name, "identifier": None,
+                        "start_sector": start_sector, "bytes_per_cluster": bytes_per_cluster,
+                        "vol_name": volume_name, "identifier": None,
                         "par_label": par_label, "filesystem": filesystem_type
                     })
+
             elif path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_TSK:
-            #elif path_spec.IsFileSystem():
+                # elif path_spec.IsFileSystem():
                 file_system = dfvfs_resolver.Resolver.OpenFileSystem(path_spec)
                 fs_info = file_system.GetFsInfo()
                 block_size = getattr(fs_info.info, 'block_size', 0)
@@ -692,12 +695,12 @@ class StorageMediaTool(tools.CLITool):
 
                 disk_info.append({
                     "base_path_spec": base_path_spec, "type_indicator": path_spec.type_indicator,
-                    "length":  block_count * block_size, "bytes_per_sector": block_size, "start_sector": 0,
+                    "length": block_count * block_size, "bytes_per_sector": block_size, "start_sector": 0,
+                    "bytes_per_cluster": block_size,
                     "vol_name": 'p1', "identifier": None, "par_label": None, "filesystem": filesystem
                 })
 
             elif path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_VSHADOW:
-
                 vss_volumes = file_system.GetVShadowVolume()
                 store_index = dfvfs_vshadow.VShadowPathSpecGetStoreIndex(path_spec)
 
@@ -708,7 +711,8 @@ class StorageMediaTool(tools.CLITool):
                 base_path_spec = path_spec
                 disk_info.append({
                     "base_path_spec": base_path_spec, "type_indicator": path_spec.type_indicator,
-                    "length": length, "bytes_per_sector": None, "start_sector": None, "vol_name": volume_name,
+                    "length": length, "bytes_per_sector": None, "start_sector": None,
+                    "bytes_per_cluster": None, "vol_name": volume_name,
                     "identifier": identifier, "par_label": None, "filesystem": None
                 })
 
@@ -723,6 +727,7 @@ class StorageMediaTool(tools.CLITool):
             sector_size = str(disk['bytes_per_sector'])
             par_size = str(disk['length'])
             start_sector = str(disk['start_sector'])
+            bytes_per_cluster = str(disk['bytes_per_cluster'])
             par_label = str(disk['par_label'])
             filesystem = str(disk['filesystem'])
             if par_type == 'VSHADOW' and self._process_vss:
@@ -730,9 +735,10 @@ class StorageMediaTool(tools.CLITool):
             else:
                 try:
                     query = "INSERT INTO partition_info(par_id, par_name, evd_id, par_type, sector_size, par_size, " \
-                            "start_sector, par_label, filesystem) VALUES('" + par_id + "', '" + par_name + "', '" + self.evidence_id + "', '" + par_type + \
-                            "', '" + sector_size + "', '" + par_size + "', '" + start_sector + "', '" + par_label + \
-                            "', '" + filesystem +"');"
+                            "start_sector, cluster_size, par_label, filesystem) VALUES('" \
+                            + par_id + "', '" + par_name + "', '" + self.evidence_id + "', '" + par_type + "', '" + \
+                            sector_size + "', '" + par_size + "', '" + start_sector + "', '" + bytes_per_cluster + \
+                            "', '" + par_label + "', '" + filesystem + "');"
                     self._cursor.execute_query(query)
 
                     partition_dir = \
@@ -744,7 +750,6 @@ class StorageMediaTool(tools.CLITool):
 
                 except Exception as exception:
                     self._output_writer.Write(exception)
-
 
         # Split VSS Partition
         """VSS는 나중에하자
@@ -778,7 +783,6 @@ class StorageMediaTool(tools.CLITool):
     def _ProcessFileOrDirectory(self, path_spec, parent_id):
 
         current_display_name = path_helper.PathHelper.GetDisplayNameForPathSpec(path_spec)
-        #print(current_display_name)
 
         file_entry = dfvfs_resolver.Resolver.OpenFileEntry(
             path_spec)
@@ -811,11 +815,10 @@ class StorageMediaTool(tools.CLITool):
         self._InsertFileInfo(file_entry, parent_id=parent_id)
         file_entry = None
 
-
-    def _InsertFileInfo(self, file_entry, parent_id = 0):
+    def _InsertFileInfo(self, file_entry, parent_id=0):
 
         if file_entry.name in ['', '.', '..']:
-             return
+            return
 
         files = []
         tsk_file = file_entry.GetTSKFile()
@@ -828,11 +831,9 @@ class StorageMediaTool(tools.CLITool):
 
         if len(self._partition_list) > 1:
             parent_location = getattr(file_entry.path_spec.parent, 'location', None)
-            #if parent_location is None:
-            #    return
             file._p_id = self._partition_list[parent_location[1:]]
         else:
-            file._p_id = self._partition_list['p1'] # check
+            file._p_id = self._partition_list['p1']  # check
 
         location = getattr(file_entry.path_spec, 'location', None)
 
@@ -860,17 +861,22 @@ class StorageMediaTool(tools.CLITool):
             else:
                 file._dir_type = 0
 
-        file._meta_type = [lambda:0, lambda:int(tsk_file.info.meta.type)][tsk_file.info.meta is not None]()
+        file._meta_type = [lambda: 0, lambda: int(tsk_file.info.meta.type)][tsk_file.info.meta is not None]()
         file._file_id = tsk_file.info.meta.addr
 
         for attribute in tsk_file:
-            # print(attribute.info.type)
             # NTFS
             if attribute.info.type in definitions.ATTRIBUTE_TYPES_TO_ANALYZE:
 
+                # file._file_id = tsk_file.info.meta.addr
+                # if file._file_id in [129059, 129095, 129232, 129272, 129732, 129762, 138891, 139168, 142751,
+                #                      144116, 151577, 173087, 173346, 176877, 176910, 183408]:
+                #     print("asdf")
                 file._inode = [lambda: "{0:d}".format(tsk_file.info.meta.addr),
-                   lambda: "{0:d}-{1:d}-{2:d}".format(tsk_file.info.meta.addr, int(attribute.info.type), attribute.info.id)] \
-                   [tsk_file.info.fs_info.ftype in [definitions.TSK_FS_TYPE_NTFS, definitions.TSK_FS_TYPE_NTFS_DETECT]]()
+                               lambda: "{0:d}-{1:d}-{2:d}".format(tsk_file.info.meta.addr, int(attribute.info.type),
+                                                                  attribute.info.id)] \
+                    [tsk_file.info.fs_info.ftype in [definitions.TSK_FS_TYPE_NTFS,
+                                                     definitions.TSK_FS_TYPE_NTFS_DETECT]]()
 
                 # $Standard_Information
                 if attribute.info.type in definitions.ATTRIBUTE_TYPES_TO_ANALYZE_TIME:
@@ -894,13 +900,13 @@ class StorageMediaTool(tools.CLITool):
 
                 # $FileName
                 if attribute.info.type in definitions.ATTRIBUTE_TYPES_TO_ANALYZE_ADDITIONAL_TIME:
-                    file._additional_mtime = [lambda: 0, lambda : tsk_file.info.meta.mtime][
+                    file._additional_mtime = [lambda: 0, lambda: tsk_file.info.meta.mtime][
                         tsk_file.info.meta.mtime is not None]()
-                    file._additional_atime = [lambda: 0, lambda : tsk_file.info.meta.atime][
+                    file._additional_atime = [lambda: 0, lambda: tsk_file.info.meta.atime][
                         tsk_file.info.meta.atime is not None]()
-                    file._additional_ctime = [lambda: 0, lambda : tsk_file.info.meta.ctime][
+                    file._additional_ctime = [lambda: 0, lambda: tsk_file.info.meta.ctime][
                         tsk_file.info.meta.ctime is not None]()
-                    file._additional_etime = [lambda: 0, lambda : tsk_file.info.meta.crtime][
+                    file._additional_etime = [lambda: 0, lambda: tsk_file.info.meta.crtime][
                         tsk_file.info.meta.crtime is not None]()
 
                     file._additional_mtime_nano = [lambda: 0, lambda: tsk_file.info.meta.mtime_nano][
@@ -953,8 +959,8 @@ class StorageMediaTool(tools.CLITool):
                                 signature_result = self._signature_tool.siga.ext[1:]
 
                     except IOError as exception:
-                            raise errors.BackEndError(
-                                'Unable to scan file: error: {0:s}'.format(exception))
+                        raise errors.BackEndError(
+                            'Unable to scan file: error: {0:s}'.format(exception))
                     finally:
                         file_object.close()
 
@@ -969,7 +975,8 @@ class StorageMediaTool(tools.CLITool):
                         hash_result = hashlib.sha1(file_object.read(file._size)).hexdigest().upper()
                     except Exception as exception:
                         raise errors.HashCalculateError(
-                            'Failed to compute SHA1 hash for file({0:s}): error: {1:s} '.format(file_entry.name, exception))
+                            'Failed to compute SHA1 hash for file({0:s}): error: {1:s} '.format(file_entry.name,
+                                                                                                exception))
                         logger.error('Failed to compute SHA1 hash for file: {0:s} '.format(
                             file_entry.name))
                         continue
@@ -1020,7 +1027,6 @@ class StorageMediaTool(tools.CLITool):
                 files.append(file_slack)
 
         self._InsertFileInfoRecords(files)
-
         # print(file._name +":"+ str(file._sha1) + ":"+str(file._sig_type))
 
     def _InsertFileInfoRecords(self, files):
@@ -1029,11 +1035,9 @@ class StorageMediaTool(tools.CLITool):
             if file is not None:
                 try:
                     query = self._cursor.insert_query_builder("file_info")
-                    query = (query + "\n values " + "%s" % (file, ))
+                    query = (query + "\n values " + "%s" % (file,))
                     self._cursor.execute_query(query)
                 except Exception as exception:
                     print(exception)
 
-
         self._cursor.commit()
-

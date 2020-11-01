@@ -6,6 +6,7 @@ from tools import logger
 import pytz
 import datetime
 
+
 class CaseManager(object):
 
     def __init__(self):
@@ -56,8 +57,7 @@ class CaseManager(object):
         Args:
           argument_group (argparse._ArgumentGroup): argparse argument group.
         """
-        # Note the default here is None so we can determine if the time zone
-        # option was set.
+        # Note the default here is None so we can determine if the time zone option was set.
         argument_group.add_argument(
             '-z', '--zone', '--timezone', dest='timezone', action='store',
             type=str, default=None, help=(

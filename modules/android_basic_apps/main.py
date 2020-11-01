@@ -43,13 +43,12 @@ def main(input=None, debug_mode=False, quiet_mode=False):
 
     # set output directory and logfile
     local_date_time = datetime.datetime.now()
-    _result_path = ('{0:s}AB2A_Results-{1:04d}{2:02d}{3:02d}T{4:02d}{5:02d}{6:02d}').format(
+    _result_path = '{0:s}AB2A_Results-{1:04d}{2:02d}{3:02d}T{4:02d}{5:02d}{6:02d}'.format(
         output_path + os.sep, local_date_time.year, local_date_time.month,
         local_date_time.day, local_date_time.hour, local_date_time.minute,
         local_date_time.second)
 
-    _log_file = (
-        '{0:s}{1:s}-{2:04d}{3:02d}{4:02d}T{5:02d}{6:02d}{7:02d}.log.gz').format(
+    _log_file = '{0:s}{1:s}-{2:04d}{3:02d}{4:02d}T{5:02d}{6:02d}{7:02d}.log.gz'.format(
         _result_path, os.sep + 'AB2A', local_date_time.year, local_date_time.month,
         local_date_time.day, local_date_time.hour, local_date_time.minute,
         local_date_time.second)

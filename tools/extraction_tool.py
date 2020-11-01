@@ -46,6 +46,9 @@ class ExtractionTool(storage_media_tool.StorageMediaTool,
         configuration.partition_list = self._partition_list
         configuration.operating_systems = self._operating_systems
 
+        configuration.sector_size = self.sector_size
+        configuration.cluster_size = self.cluster_size
+
         return configuration
 
     def _Preprocess(self, engine):

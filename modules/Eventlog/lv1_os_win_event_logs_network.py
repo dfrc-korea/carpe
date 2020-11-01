@@ -26,7 +26,7 @@ def EVENTLOGNETWORK(configuration):
 
     network_list = []
     network_count = 0
-    query = r"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total where source like '%NetworkProfile%' and (event_id like '10000' or event_id like '10001')"
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (source like '%NetworkProfile%') and (event_id like '10000' or event_id like '10001')"
     #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:

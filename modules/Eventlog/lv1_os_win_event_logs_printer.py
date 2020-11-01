@@ -26,7 +26,7 @@ def EVENTLOGPRINTER(configuration):
 
     printer_list = []
     printer_count = 0
-    query = r"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total where source like '%PrintService%' and (event_id like '307' or event_id like '801' or event_id like '801' or event_id like '802')"
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (source like '%PrintService%' and (event_id like '307' or event_id like '801' or event_id like '801' or event_id like '802'))"
     #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:

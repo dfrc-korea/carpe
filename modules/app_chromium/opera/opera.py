@@ -101,7 +101,11 @@ def opera_search_terms(file):
     for row in result:
 
         date = _convert_timestamp(row[0])
-        url = row[1]
+
+        if type(row[1]) == str and ("\'" or "\"") in row[1]:
+            url = row[1].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            url = row[1]
 
         if type(row[2]) == str and ("\'" or "\"") in row[2]:
             search_word = row[2].replace("\'", "\'\'").replace('\"', '\"\"')
@@ -154,7 +158,10 @@ def opera_visit_urls(file):
 
     for row in result:
 
-        url = row[0]
+        if type(row[0]) == str and ("\'" or "\"") in row[0]:
+            url = row[0].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            url = row[0]
 
         if type(row[1]) == str and ("\'" or "\"") in row[1]:
             title = row[1].replace("\'", "\'\'").replace('\"', '\"\"')
@@ -255,14 +262,32 @@ def opera_visit_history(file):
             from_url = id_url_visits_dict[row[2]]
         except:
             from_url = ''
+
+        if type(from_url) == str and ("\'" or "\"") in from_url:
+            from_url = from_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         try:
             url = id_url_dict[row[0]]
         except:
             url = ''
+
+        if type(url) == str and ("\'" or "\"") in url:
+            url = url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         try:
             segment_url = id_name_seg_dict[row[4]]
         except:
             segment_url = ''
+
+        if type(segment_url) == str and ("\'" or "\"") in segment_url:
+            segment_url = segment_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         try:
             title = id_title_dict[row[0]]
         except:
@@ -345,9 +370,29 @@ def opera_download(file):
             file_last_modified_time = row[13]
 
         download_tab_url = row[11]
+        if type(download_tab_url) == str and ("\'" or "\"") in download_tab_url:
+            download_tab_url = download_tab_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         download_tab_refer_url = row[12]
+        if type(download_tab_refer_url) == str and ("\'" or "\"") in download_tab_refer_url:
+            download_tab_refer_url = download_tab_refer_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         site_url = row[10]
+        if type(site_url) == str and ("\'" or "\"") in site_url:
+            site_url = site_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         refer_url = row[9]
+        if type(refer_url) == str and ("\'" or "\"") in refer_url:
+            refer_url = refer_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         mime_type = row[14]
         original_mime_type = row[15]
 
@@ -381,8 +426,16 @@ def opera_top_sites(file):
 
     for row in result:
 
-        url = row[0]
-        title = row[1]
+        if type(row[0]) == str and ("\'" or "\"") in row[0]:
+            url = row[0].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            url = row[0]
+
+        if type(row[1]) == str and ("\'" or "\"") in row[1]:
+            title = row[1].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            title = row[1]
+            
         url_rank = row[2]
 
         outputformat = (url, title, url_rank)
@@ -414,9 +467,19 @@ def opera_shortcuts(file):
 
         text = row[0]
         fill_into_edit = row[1]
-        url = row[2]
+        
+        if type(row[2]) == str and ("\'" or "\"") in row[2]:
+            url = row[2].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            url = row[2]
+        
         contents = row[3]
-        description = row[4]
+
+        if type(row[4]) == str and ("\'" or "\"") in row[4]:
+            description = row[4].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            description = row[4]
+
         keyword = row[5]
         last_access_time = _convert_timestamp(row[6])
         number_of_hits = row[7]
@@ -452,7 +515,12 @@ def opera_favicons(file):
 
         id = row[0]
         icon_id = row[1]
-        icon_url = row[2]
+        
+        if type(row[2]) == str and ("\'" or "\"") in row[2]:
+            icon_url = row[2].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            icon_url = row[2]
+            
         last_updated = _convert_timestamp(row[3])
         last_requested = _convert_timestamp(row[4])
         image_data = row[5]
@@ -597,7 +665,17 @@ def opera_logindata(file):
 
         #id = row[0]
         origin_url = row[0]
+        if type(origin_url) == str and ("\'" or "\"") in origin_url:
+            origin_url = origin_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+        
         action_url = row[1]
+        if type(action_url) == str and ("\'" or "\"") in action_url:
+            action_url = action_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+        
         username_element = row[2]
         username_value = row[3]
         password_element = row[4]
@@ -612,7 +690,17 @@ def opera_logindata(file):
         date_synced = row[13]
         display_name = row[14]
         icon_url = row[15]
+        if type(icon_url) == str and ("\'" or "\"") in icon_url:
+            icon_url = icon_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+        
         federation_url = row[16]
+        if type(federation_url) == str and ("\'" or "\"") in federation_url:
+            federation_url = federation_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         skip_zero_click = row[17]
         generation_upload_status = row[18]
         possible_username_pairs = row[19]

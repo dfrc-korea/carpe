@@ -3,6 +3,7 @@ import sqlite3
 import json
 import datetime
 
+
 class Windows_Timeline_Information:
     par_id = ''
     case_id = ''
@@ -47,7 +48,7 @@ last_modified_on_client_time : LastModifiedOnClient
 original_last_modified_on_client_time : OriginalLastModifiedOnClient
 local_only_flag : IsLocalOnly
 """
-#db에 들어갈 column_name
+# db에 들어갈 column_name
 our_db_column_name = ['program_name', 'display_name', 'content', 'activity_type', 'focus_seconds', 'start_time', \
                       'end_time', 'activity_id', 'platform','created_in_cloud_time', 'last_modified_time', \
                       'last_modified_time', 'last_modified_on_client_time', 'original_last_modified_on_client_time', 'local_only_flag', 'group', 'clipboardpayload(base64)', 'timezone']
@@ -58,6 +59,7 @@ known_path_column = ["6D809377-6AF0-444B-8957-A3773F02200E", "7C5A40EF-A0FB-4BFC
 
 known_path_data = ["%ProgramFiles% (%SystemDrive%\\Program Files)", "%SystemDrive%\Program Files (x86)", "%SystemRoot%\\System", "%SystemRoot%",
                    "%SystemRoot%\\system32"]
+
 for i in range(0, len(known_path_column)):
     known_path_dict[known_path_column[i]] = known_path_data[i]
 
@@ -80,25 +82,26 @@ is_local_list = ["IsLocalOnly"]
 clipboardpayload_list = ["ClipboardPayload"]
 group_list = ["Group"]
 
+
 def convertTime(unixtime):
     if unixtime is not None:
         temp_time = datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=unixtime)
         date = temp_time.isoformat()
         date += 'Z'
         return date
-    else :
+    else:
         pass
 
-def convertbe(bytes) :
+def convertbe(bytes):
     result = bytes
     return result
 
-def convertle(bytes) :
+def convertle(bytes):
     result = bytes[::-1]
     return result
 
-def parseAppActivityId(data) :
-    known_string =  'ECB32AF3-1440-4086-94E3-5311F97F89C4'
+def parseAppActivityId(data):
+    known_string = 'ECB32AF3-1440-4086-94E3-5311F97F89C4'
 
     if data.find(known_string) >= 0 :
         data = data.strip(known_string)
@@ -106,34 +109,34 @@ def parseAppActivityId(data) :
     elif data.find(known_string) < 0:
         return data
 
-def parseType(data) :
+def parseType(data):
     #참고 : https://github.com/kacos2000/WindowsTimeline/blob/master/WindowsTimeline.sql
     type = ""
-    if data == 2 :
+    if data == 2:
         type = "Notification"
-    elif data == 3 :
+    elif data == 3:
         type = "Mobile Backup"
-    elif data == 5 :
+    elif data == 5:
         type = "Open App/File/Page"
-    elif data == 6 :
+    elif data == 6:
         type = "App In Use/Focus"
-    elif data == 10 :
+    elif data == 10:
         type = "Clipboard"
-    elif data == 16 :
+    elif data == 16:
         type = "Copy/Paste"
     elif data == 11 or 12 or 15:
         type = "System"
 
     return type
 
-def parseLocal(data) :
+def parseLocal(data):
     local_only_flag = "False"
     if data == 1:
         local_only_flag = "True"
 
     return local_only_flag
 
-def parseId(data) :
+def parseId(data):
     #mixed endian 변환
     le1 = data[0:4]
     le2 = data[4:6]

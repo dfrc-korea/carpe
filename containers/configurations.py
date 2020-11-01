@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import pytz
+import dateutil.parser
+
+
 class Configuration(object):
 
     def __init__(self):
@@ -21,3 +25,13 @@ class Configuration(object):
         self.partition_list = {}
         self.operating_systems = []
         self.standalone_check = None
+        self.sector_size = None
+        self.cluster_size = None
+
+    @staticmethod
+    def apply_time_zone(timestamp, time_zone):
+        if timestamp is None or timestamp is '':
+            return timestamp
+        date = dateutil.parser.parse(timestamp)
+        local_date = date.replace(tzinfo=pytz.utc).astimezone(time_zone)
+        return local_date.isoformat()

@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 """module for Link."""
-import os, sys
+import os
 
 from modules import logger
 from modules import manager
 from modules import interface
 from modules.windows_jumplist import LNKFileParser
-from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class LINKConnector(interface.ModuleConnector):
-
     NAME = 'link_connector'
     DESCRIPTION = 'Module for Link'
 
@@ -19,10 +17,10 @@ class LINKConnector(interface.ModuleConnector):
     def __init__(self):
         super(LINKConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
-        print('[MODULE]: Link Connect')
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
+
         # 모든 yaml 파일 리스트
         yaml_list = [this_file_path + 'lv1_os_win_link.yaml']
 
@@ -30,14 +28,6 @@ class LINKConnector(interface.ModuleConnector):
         table_list = ['lv1_os_win_link']
 
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
-            return False
-
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id == None:
             return False
 
         # extension -> sig_type 변경해야 함
@@ -48,8 +38,6 @@ class LINKConnector(interface.ModuleConnector):
 
         if len(jumplist_automatic_files) == 0:
             return False
-
-
 
         insert_link_file = []
 
@@ -102,6 +90,15 @@ class LINKConnector(interface.ModuleConnector):
                     volume_label = result[3]
                 elif result[2] == '볼륨 종류':
                     drive_type = result[3]
+                elif result[2] == '대상 파일 크기':
+                    file_size = result[3]
+                elif result[2] == 'Machine Id':
+                    machine_id = result[3]
+                elif result[2] == 'Drive Serial Number':
+                    drive_serial_number = result[3]
+                elif result[2] == 'Mac Address':
+                    mac_address = result[3]
+
 
             if file_path == '':
                 continue
@@ -113,7 +110,6 @@ class LINKConnector(interface.ModuleConnector):
 
         query = "Insert into lv1_os_win_link values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_link_file)
-
 
 
 manager.ModulesManager.RegisterModule(LINKConnector)

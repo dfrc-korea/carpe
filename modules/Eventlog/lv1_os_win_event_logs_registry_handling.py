@@ -28,7 +28,7 @@ def EVENTLOGREGISTRYHANDLING(configuration):
 
     registry_list = []
     registry_count = 0
-    query = r"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total where event_id like '4657' and source like '%Security.evtx%'"
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id like '4657' and source like '%Security.evtx%')"
     #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:

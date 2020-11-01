@@ -5,14 +5,13 @@ import hashlib
 import configparser
 from datetime import datetime
 
-from dfvfs.lib import definitions as dfvfs_definitions
 from elasticsearch import Elasticsearch, helpers
 
 from modules import manager
 from modules import interface
 
-class DEFAConnector(interface.ModuleConnector):
 
+class DEFAConnector(interface.ModuleConnector):
     NAME = 'defa_connector'
     DESCRIPTION = 'Module for DEFA'
 
@@ -21,10 +20,9 @@ class DEFAConnector(interface.ModuleConnector):
     def __init__(self):
         super(DEFAConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
-        print('[MODULE]: DEFA Connect')
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
-        if configuration.standalone_check == True:
+        if configuration.standalone_check:
             this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
             # 모든 yaml 파일 리스트
             yaml_list = [this_file_path + 'lv1_file_document.yaml']
@@ -34,14 +32,6 @@ class DEFAConnector(interface.ModuleConnector):
 
             if not self.check_table_from_yaml(configuration, yaml_list, table_list):
                 return False
-
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id == None:
-            return False
 
         # 선택한 플러그인 파일만 읽어오기
         hwp_plugin = None
@@ -111,10 +101,15 @@ class DEFAConnector(interface.ModuleConnector):
         # for test
         total_count = len(document_files)
         error_count = 0
+        # tmp = 0
         for document in document_files:
+            # tmp += 1
+            # if tmp == 300:  # 임시
+            #     break
             document_path = document[1][document[1].find('/'):] + '/' + document[0]  # document full path
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
-                            configuration.evidence_id + os.sep + par_id + os.sep + hashlib.sha1(document_path.encode('utf-8')).hexdigest()
+                          configuration.evidence_id + os.sep + par_id + os.sep + hashlib.sha1(
+                document_path.encode('utf-8')).hexdigest()
             ole_path = output_path + os.sep + "ole"
 
             if not os.path.exists(output_path):
@@ -148,7 +143,7 @@ class DEFAConnector(interface.ModuleConnector):
                 elif extension == 'pdf':
                     result = pdf_plugin.Process(fp=file_path, ole_path=ole_path)
             except Exception as e:
-                #print("Error : " + str(e))
+                # print("Error : " + str(e))
                 error_count += 1
                 continue
 
@@ -162,7 +157,7 @@ class DEFAConnector(interface.ModuleConnector):
             result.original_size = os.path.getsize(file_path)
             result.ole_path = ole_path
             result.content_size = len(result.content)
-            #print(result.__dict__)
+            # print(result.__dict__)
 
             if configuration.standalone_check == True:
                 if result.has_content == True:
@@ -180,7 +175,17 @@ class DEFAConnector(interface.ModuleConnector):
                 else:
                     result.is_damaged = 0
                 insert_document.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, result.author, result.case_name, result.category, result.comment, result.company, result.content, result.content_size, result.createdtime, result.creation_time, result.creator, result.date, result.doc_id, result.doc_type, result.doc_type_sub, result.download_path, result.evdnc_name, result.exclude_user_id, result.explanation, result.ext, result.fail_code, result.full_path, result.has_content, result.has_exif, result.has_metadata, result.id, result.is_damaged, result.is_fail, result.last_access_time, result.last_written_time, result.lastprintedtime, result.lastsavedby, result.lastsavedtime, result.manager, result.name, result.ole_path, result.original_size, result.parent_full_path, result.path_with_ext, result.programname, result.revisionnumber, result.sha1_hash, result.subject, result.tags, result.title, result.totaltime, result.trapped, result.version, result.work_dir]))
+                    [par_id, configuration.case_id, configuration.evidence_id, result.author, result.case_name,
+                     result.category, result.comment, result.company, result.content, result.content_size,
+                     result.createdtime, result.creation_time, result.creator, result.date, result.doc_id,
+                     result.doc_type, result.doc_type_sub, result.download_path, result.evdnc_name,
+                     result.exclude_user_id, result.explanation, result.ext, result.fail_code, result.full_path,
+                     result.has_content, result.has_exif, result.has_metadata, result.id, result.is_damaged,
+                     result.is_fail, result.last_access_time, result.last_written_time, result.lastprintedtime,
+                     result.lastsavedby, result.lastsavedtime, result.manager, result.name, result.ole_path,
+                     result.original_size, result.parent_full_path, result.path_with_ext, result.programname,
+                     result.revisionnumber, result.sha1_hash, result.subject, result.tags, result.title,
+                     result.totaltime, result.trapped, result.version, result.work_dir]))
 
             else:
                 try:
@@ -192,6 +197,7 @@ class DEFAConnector(interface.ModuleConnector):
             query = "Insert into lv1_file_document values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_document)
 
-            #print(f"Total Count : {total_count}, Error Count : {error_count}")
+            # print(f"Total Count : {total_count}, Error Count : {error_count}")
+
 
 manager.ModulesManager.RegisterModule(DEFAConnector)

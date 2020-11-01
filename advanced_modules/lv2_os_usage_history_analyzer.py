@@ -22,7 +22,7 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         super(LV2OSUSAGEHISTORYAnalyzer, self).__init__()
 
     def Analyze(self, configuration, source_path_spec):
-        print('[MODULE]: LV2 OS Usage History Analyzer')
+        #print('[MODULE]: LV2 OS Usage History Analyzer')
         try:
             if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
                 par_id = configuration.partition_list['p1']
@@ -105,7 +105,7 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             query = "Insert into usage_day_stat values (%s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
-
+            '''
             #Timeline_month
             print('[MODULE]: LV2 OS Win Usage History Analyzer - TIMELINE MONTH')
             insert_data = []
@@ -114,7 +114,7 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
                 for i in result:
                     insert_data.append(tuple(i))
             configuration.cursor.bulk_execute(query, insert_data)
-
+            '''
         except:
             print("LV2 OS Win Usage History Analyzer Error")
 

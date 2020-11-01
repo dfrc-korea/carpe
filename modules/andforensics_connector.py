@@ -10,8 +10,8 @@ from modules import logger
 from modules import manager
 from modules import interface
 
-class AndForensicsConnector(interface.ModuleConnector):
 
+class AndForensicsConnector(interface.ModuleConnector):
     NAME = 'andforensics_connector'
     DESCRIPTION = 'Module for android'
     TABLE_NAME = 'lv1_os_android_andforensics'
@@ -21,23 +21,16 @@ class AndForensicsConnector(interface.ModuleConnector):
     def __init__(self):
         super(AndForensicsConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
         """Connector to connect to AndForensics.
 
         Args:
+            par_id: partition id.
             configuration: configuration values.
             source_path_spec (dfvfs.PathSpec): path specification of the source file.
             knowledge_base (KnowledgeBase): knowledge base.
 
         """
-
-        # TODO: change 'p1'
-        # par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-        par_id = configuration.partition_list['p1']
-        if par_id is None:
-            return False
-
-        print('[MODULE]: Andforensics_Connector Call: %s' % par_id)
         # 이미지를 복사해와야함 andforensics
         if os.path.exists(configuration.source_path):
             cmd = 'python3.6 /home/byeongchan/modules/andForensics/andForensics.py -i \'{0:s}\' -o \'{1:s}\' ' \
@@ -54,12 +47,13 @@ class AndForensicsConnector(interface.ModuleConnector):
 
                 base_name = os.path.basename(configuration.source_path)
                 output_path = configuration.tmp_path + os.sep + 'andForensics' + os.sep \
-                      + os.path.basename(configuration.source_path)
+                              + os.path.basename(configuration.source_path)
                 analysis_db_path = output_path + os.sep + 'analysis_' + base_name + '.db'
                 load_db_path = output_path + os.sep + 'loaddb_' + base_name + '.db'
                 preprocess_db_path = output_path + os.sep + 'preprocess_' + base_name + '.db'
 
-                this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'android' + os.sep
+                this_file_path = os.path.dirname(
+                    os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'android' + os.sep
 
                 yaml_list = [this_file_path + 'lv1_os_and_app_list.yaml',
                              this_file_path + 'lv1_os_and_call_history.yaml',
@@ -73,20 +67,11 @@ class AndForensicsConnector(interface.ModuleConnector):
                                   'geodata', 'id_password_hash', 'web_browser_history']
 
                 new_table_list = ['lv1_os_and_app_list', 'lv1_os_and_call_history', 'lv1_os_and_emb_file',
-                              'lv1_os_and_file_history', 'lv1_os_and_geodata', 'lv1_os_and_id_pw_hash',
-                              'lv1_os_and_web_browser_history']
+                                  'lv1_os_and_file_history', 'lv1_os_and_geodata', 'lv1_os_and_id_pw_hash',
+                                  'lv1_os_and_web_browser_history']
 
-                # Create all table
-                for count in range(0, len(yaml_list)):
-                    if not self.LoadSchemaFromYaml(yaml_list[count]):
-                        logger.error('cannot load schema from yaml: {0:s}'.format(new_table_list[count]))
-                        return False
-                    # If table is not existed, create table
-                    if not configuration.cursor.check_table_exist(new_table_list[count]):
-                        ret = self.CreateTable(configuration.cursor)
-                        if not ret:
-                            logger.error('cannot create database table name: {0:s}'.format(new_table_list[count]))
-                            return False
+                if not self.check_table_from_yaml(configuration, yaml_list, new_table_list):
+                    return False
 
                 info = tuple([par_id, configuration.case_id, configuration.evidence_id])
                 try:
@@ -176,6 +161,7 @@ class AndForensicsConnector(interface.ModuleConnector):
                     "        )" \
                     ")"
             configuration.cursor.execute_query(query)
+
 
 manager.ModulesManager.RegisterModule(AndForensicsConnector)
 

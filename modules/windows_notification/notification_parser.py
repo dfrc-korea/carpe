@@ -82,7 +82,7 @@ def new_noti_parser(path):
     cur.execute('select * from NotificationHandler')
     for row in cur:
         # 0: RecordId / 1: PrimaryId, 3: HandlerType, 6: CreatedTime, 7: ModifiedTime
-        noti_handler_dict[row[0]] = [row[1], row[3], row[6], row[7]]
+        noti_handler_dict[row[0]]     = [row[1], row[3], row[6], row[7]]
 
     cur.execute('select * from Notification')
     for row in cur:

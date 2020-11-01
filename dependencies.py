@@ -29,6 +29,7 @@ PYTHON_DEPENDENCIES = {
     'google.protobuf': ('__version__', '3.12.2', None, True), # for android usagestats
     'olefile': ('__version__', '0.46', None, True), # for windows sticky notes
     'pdfminer': ('__version__', '20191125', None, True), # for defa
+    'pika': ('__version__', '1.1.0', None, True), # for carpe server
     'pyewf': ('get_version()', '', None, True),
     'pyesedb': ('get_version()', '20150409', None, True),
     'pyfsapfs': ('get_version()', '20181205', None, True),

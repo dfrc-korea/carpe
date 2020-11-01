@@ -4,19 +4,18 @@ from modules import manager
 from modules import interface
 from modules import logger
 from modules.windows_iconcache import IconCacheParser as ic
-from dfvfs.lib import definitions as dfvfs_definitions
+
 
 class IconCacheConnector(interface.ModuleConnector):
     NAME = 'iconcache_connector'
-    DESCRIPTION = 'Module for iconcache_connector'
+    DESCRIPTION = 'Module for Iconcache'
 
     _plugin_classes = {}
 
     def __init__(self):
         super(IconCacheConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
-        print('[MODULE]: IconCacheConnector Connect')
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
 
@@ -30,14 +29,6 @@ class IconCacheConnector(interface.ModuleConnector):
             return False
         
         try:
-            if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-                par_id = configuration.partition_list['p1']
-            else:
-                par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-            if par_id == None:
-                return False
-
             owner = ''
             query = f"SELECT name, parent_path, extension FROM file_info WHERE par_id='{par_id}' " \
                     f"and extension = 'db' and size > 24 and name regexp 'iconcache_[0-9]' and ("
@@ -49,14 +40,9 @@ class IconCacheConnector(interface.ModuleConnector):
                     query += f"parent_path like '%{hostname.username}%' or "
             query = query[:-4] + ");"
 
-            #print(query)
-
             iconcache_files = configuration.cursor.execute_query_mul(query)
-            #print(f'iconcache_files: {len(iconcache_files)}')
             if len(iconcache_files) == 0:
                 return False
-
-
 
             insert_iconcache_info = []
 
@@ -113,12 +99,9 @@ class IconCacheConnector(interface.ModuleConnector):
                     insert_iconcache_info.append(tuple(tmp))
 
                 os.remove(output_path + os.sep + fileName)
-                # IconCache
 
-            print('[MODULE]: IconCache')
             query = "Insert into lv1_os_win_icon_cache values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_iconcache_info)
-            print('[MODULE]: IconCache Complete')
 
         except Exception as e:
             print("IconCache Connector Error", e)
