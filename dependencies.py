@@ -42,6 +42,7 @@ PYTHON_DEPENDENCIES = {
     'pytz': ('__version__', '', None, True),
     'pyvshadow': ('get_version()', '20190323', None, True),
     'six': ('__version__', '1.1.0', None, True),
+    'structureReader': ('__version__', '2.1.11', None, True),
     'tqdm': ('__version__', '4.46.0', None, True),
     'xlrd': ('__version__', '1.2.0', None, True),
     'yaml': ('__version__', '3.10', None, True)

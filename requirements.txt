@@ -24,12 +24,14 @@ libsigscan-python==20191221
 libsmdev-python==20200210
 libsmraw-python==20191221
 libvshadow-python==20190323
+moduleInterface==2.1.0
 more-itertools==8.5.0
 numpy==1.19.1
 olefile==0.46
 packaging==20.4
 pandas==1.1.1
 pdfminer.six==20200726
+pika==1.1.0
 pluggy==0.13.1
 protobuf==3.13.0
 py==1.9.0
@@ -47,8 +49,10 @@ PyYAML==5.3.1
 sentinel==0.1.2
 six==1.15.0
 sortedcontainers==2.2.2
+structureReader==2.1.11
 toml==0.10.1
 tqdm==4.48.2
 urllib3==1.25.10
 xlrd==1.2.0
+yarp==1.0.30
 zipp==3.1.0
