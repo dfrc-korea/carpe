@@ -6,7 +6,6 @@ from modules import logger
 from modules import manager
 from modules import interface
 from modules.windows_notification import notification_parser as noti
-from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class NotificationConnector(interface.ModuleConnector):
@@ -18,7 +17,7 @@ class NotificationConnector(interface.ModuleConnector):
     def __init__(self):
         super(NotificationConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
         this_file_path = os.path.dirname(
             os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'notification' + os.sep
@@ -32,17 +31,6 @@ class NotificationConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id is None:
-            return False
-
-        print('[MODULE]: Notification Start! - partition ID(%s)' % par_id)
-
-        # Get user name (나중에 고쳐야함)
         users = []
         for user_accounts in knowledge_base._user_accounts.values():
             for hostname in user_accounts.values():

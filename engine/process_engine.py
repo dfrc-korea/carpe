@@ -9,6 +9,7 @@ from dfvfs.lib import errors as dfvfs_errors
 from dfvfs.path import factory as path_spec_factory
 from dfvfs.helpers import file_system_searcher
 from dfvfs.resolver import resolver as path_spec_resolver
+from dfvfs.lib import definitions as dfvfs_definitions
 
 from engine import logger, knowledge_base
 from engine.preprocessors import manager as preprocess_manager
@@ -19,6 +20,7 @@ from advanced_modules import interface as advanced_modules_interface
 
 from utility import definitions
 from utility import errors
+
 
 class ProcessEngine(object):
 
@@ -87,16 +89,43 @@ class ProcessEngine(object):
                         module = self._modules.get(module_name, None)
                         if isinstance(module, modules_interface.ModuleConnector):
                             if module_name == 'andforensics_connector':
+                                par_id = configuration.partition_list['p1']
+                                if par_id is None:
+                                    return False
                                 if not and_flag:
-                                    module.Connect(configuration=configuration, source_path_spec=source_path_spec,
+                                    module.Connect(par_id=par_id, configuration=configuration,
+                                                   source_path_spec=source_path_spec,
                                                    knowledge_base=self.knowledge_base)
                                     and_flag = True
+                            elif module_name in ['fica', 'extract',
+                                                 'image_classification_connector',
+                                                 'mssql_recovery_connector',
+                                                 'mysql_recovery_connector',
+                                                 'kakaotalk_mobile_decrypt_connector',
+                                                 'defa_connector',
+                                                 'android_basic_apps_connector',
+                                                 'android_user_apps_connector']:
+                                pass
                             else:
-                                module.Connect(configuration=configuration, source_path_spec=source_path_spec,
-                                           knowledge_base=self.knowledge_base)
+                                if source_path_spec.parent.TYPE_INDICATOR \
+                                        != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
+                                    par_id = configuration.partition_list['p1']
+                                else:
+                                    par_id = configuration.partition_list[
+                                        getattr(source_path_spec.parent, 'location', None)[1:]
+                                    ]
+                                if par_id is None:
+                                    return False
+
+                                module.print_run_info(module.DESCRIPTION, par_id, start=True)
+                                module.Connect(par_id=par_id,
+                                               configuration=configuration,
+                                               source_path_spec=source_path_spec,
+                                               knowledge_base=self.knowledge_base)
+                                module.print_run_info(module.DESCRIPTION, par_id, start=False)
 
                 except RuntimeError as exception:
-                    raise errors.BackEndError(('The module cannot be connected: {0!s}').format(exception))
+                    raise errors.BackEndError('The module cannot be connected: {0!s}'.format(exception))
 
     def ProcessAdvancedModules(self, configuration):
         for source_path_spec in configuration.source_path_specs:
@@ -111,11 +140,34 @@ class ProcessEngine(object):
                 except RuntimeError as exception:
                     raise errors.BackEndError(('The module cannot be connected: {0!s}').format(exception))
 
-    def AnalyzeArtifacts(self, configuration):
+    def process_carve(self, configuration, is_partition=False):
+        if is_partition:
+            for source_path_spec in configuration.source_path_specs:
+                if source_path_spec.parent.TYPE_INDICATOR == 'VSHADOW':
+                    continue
+                if source_path_spec.IsFileSystem():
+                    try:
+                        module = self._modules.get('fica', None)
 
-        analyzer = artifact_analyzer.ArtifactAnalyzer()
-        analyzer.Init_Module(configuration.case_id, configuration.evidence_id, "Default")
-        analyzer.Analyze()
+                        par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
+                        if par_id is None:
+                            return False
+
+                        module.print_run_info(module.DESCRIPTION, par_id, start=True)
+                        module.Connect(par_id=par_id,
+                                       configuration=configuration,
+                                       source_path_spec=source_path_spec,
+                                       knowledge_base=self.knowledge_base)
+                        module.print_run_info(module.DESCRIPTION, par_id, start=False)
+
+                    except RuntimeError as exception:
+                        raise errors.BackEndError('The module cannot be connected: {0!s}'.format(exception))
+        else:
+            module = self._modules.get('fica', None)
+            module.print_run_info(module.DESCRIPTION, start=True)
+            module.Connect(configuration=configuration,
+                           knowledge_base=self.knowledge_base)
+            module.print_run_info(module.DESCRIPTION, start=False)
 
     def _GetSourceFileSystem(self, source_path_spec, resolver_context=None):
 
@@ -203,8 +255,8 @@ class ProcessEngine(object):
 
         except (KeyError, artifacts_errors.FormatError) as exception:
             raise errors.BadConfigOption((
-                 'Unable to read artifact definitions from: {0:s} with error: '
-                 '{1!s}').format(artifact_definitions_path, exception))
+                                             'Unable to read artifact definitions from: {0:s} with error: '
+                                             '{1!s}').format(artifact_definitions_path, exception))
 
         if custom_artifacts_path:
             try:
@@ -212,7 +264,7 @@ class ProcessEngine(object):
 
             except (KeyError, artifacts_errors.FormatError) as exception:
                 raise errors.BadConfigOption((
-                     'Unable to read artifact definitions from: {0:s} with error: '
-                     '{1!s}').format(custom_artifacts_path, exception))
+                                                 'Unable to read artifact definitions from: {0:s} with error: '
+                                                 '{1!s}').format(custom_artifacts_path, exception))
 
         return registry

@@ -5,6 +5,7 @@ import os, sys, re
 import numpy as np
 
 class Timeline_Month_Information:
+    evd_id = ''
     regmonth = ''
     regtime = ''
     day1 = ''

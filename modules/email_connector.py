@@ -6,7 +6,6 @@ from elasticsearch import Elasticsearch
 
 from modules import manager
 from modules import interface
-from dfvfs.lib import definitions as dfvfs_definitions
 #from modules.app_email.lib.yjSysUtils import *
 #from modules.app_email.lib.delphi import *
 
@@ -20,10 +19,9 @@ class EMAILConnector(interface.ModuleConnector):
     def __init__(self):
         super(EMAILConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
-        print('[MODULE]: E-mail Connect')
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
-        if configuration.standalone_check == True:
+        if configuration.standalone_check:
             this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
             # 모든 yaml 파일 리스트
             yaml_list = [this_file_path + 'lv1_app_email.yaml']
@@ -34,14 +32,6 @@ class EMAILConnector(interface.ModuleConnector):
             if not self.check_table_from_yaml(configuration, yaml_list, table_list):
                 return False
 
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id == None:
-            return False
-
         # extension -> sig_type 변경해야 함
 
         query = f"SELECT name, parent_path, extension FROM file_info WHERE par_id='{par_id}' and " \
@@ -51,12 +41,12 @@ class EMAILConnector(interface.ModuleConnector):
                 f"extension = 'ost' or " \
                 f"extension = 'pst');"
 
-        #query = f"SELECT name, parent_path, extension FROM file_info WHERE par_id='{par_id}' and " \
+        # query = f"SELECT name, parent_path, extension FROM file_info WHERE par_id='{par_id}' and " \
         #        f"(extension = 'mbox');"
 
         email_files = configuration.cursor.execute_query_mul(query)
 
-        if len(email_files) == 0:
+        if type(email_files) == int or len(email_files) == 0:
             return False
 
         if configuration.standalone_check == True:
@@ -73,7 +63,11 @@ class EMAILConnector(interface.ModuleConnector):
             _index_name = config.get('email', 'index')
             _type_name = config.get('email', 'type')
             es = Elasticsearch(hosts=_host, port=_port)
+        # tmp = 0
         for email in email_files:
+            # tmp += 1
+            # if tmp == 300:  # 임시
+            #     break
             email_path = email[1][email[1].find('/'):] + '/' + email[0]  # document full path
             fileExt = email[2]
             fileName = email[0]
@@ -135,7 +129,7 @@ class EMAILConnector(interface.ModuleConnector):
             EmailBox.fileName = configuration.root_tmp_path + os.sep + configuration.case_id + os.path.sep + \
                                 configuration.evidence_id + os.path.sep + par_id + os.path.sep + fileName
             try:
-                #print('\n' + EmailBox.fileName)
+                # print('\n' + EmailBox.fileName)
                 result = EmailBox.parse(fileExt)
             except Exception as e:
                 continue
@@ -145,7 +139,7 @@ class EMAILConnector(interface.ModuleConnector):
             if not result:
                 continue
 
-            #print(result)
+            # print(result)
             if configuration.standalone_check == True:
                 if fileExt == "mbox" or fileExt == "pst" or fileExt == "ost":
                     for r in result:
@@ -254,7 +248,12 @@ class EMAILConnector(interface.ModuleConnector):
                             if type(header['X_Priority']) == str:
                                 h_x_priority = header['X_Priority']
 
-                            insert_email.append(tuple([par_id, configuration.case_id, configuration.evidence_id, received_lines, to, cc, bcc, h_from, h_subject, h_in_reply_to, h_date, h_message_id, h_sender, h_reply_to, h_errors_to, h_boundary, h_content_type, h_mime_version, h_precedence, h_user_agent, h_x_mailer, h_x_originating_ip, h_x_priority, r['EmailMessageObject']['Body']]))
+                            insert_email.append(tuple(
+                                [par_id, configuration.case_id, configuration.evidence_id, received_lines, to,
+                                 cc, bcc, h_from, h_subject, h_in_reply_to, h_date, h_message_id, h_sender,
+                                 h_reply_to, h_errors_to, h_boundary, h_content_type, h_mime_version,
+                                 h_precedence, h_user_agent, h_x_mailer, h_x_originating_ip, h_x_priority,
+                                 r['EmailMessageObject']['Body']]))
                         except Exception:
                             pass
 
@@ -365,8 +364,10 @@ class EMAILConnector(interface.ModuleConnector):
                             h_x_priority = header['X_Priority']
 
                         insert_email.append(tuple(
-                            [par_id, configuration.case_id, configuration.evidence_id, received_lines, to, cc, bcc,
-                             h_from, h_subject, h_in_reply_to, h_date, h_message_id, h_sender, h_reply_to, h_errors_to,
+                            [par_id, configuration.case_id, configuration.evidence_id, received_lines, to, cc,
+                             bcc,
+                             h_from, h_subject, h_in_reply_to, h_date, h_message_id, h_sender, h_reply_to,
+                             h_errors_to,
                              h_boundary, h_content_type, h_mime_version, h_precedence, h_user_agent, h_x_mailer,
                              h_x_originating_ip, h_x_priority, result['EmailMessageObject']['Body']]))
                     except Exception:
@@ -381,8 +382,6 @@ class EMAILConnector(interface.ModuleConnector):
                         es.index(index=_index_name, doc_type=_type_name, body=result)
                 except Exception as e:
                     print("Error : " + str(e))
-
-
 
         if configuration.standalone_check == True:
             query = "Insert into lv1_app_email values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"

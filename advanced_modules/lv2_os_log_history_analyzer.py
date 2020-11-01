@@ -17,7 +17,7 @@ class Lv2OSLogHistoryAnalyzer(interface.AdvancedModuleAnalyzer):
         super(Lv2OSLogHistoryAnalyzer, self).__init__()
 
     def Analyze(self, configuration, source_path_spec):
-        print('[MODULE]: LV2 OS Log History Analyzer')
+        #print('[MODULE]: LV2 OS Log History Analyzer')
 
         if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
             par_id = configuration.partition_list['p1']
@@ -46,6 +46,9 @@ class Lv2OSLogHistoryAnalyzer(interface.AdvancedModuleAnalyzer):
         if not mft_results:
             print("MFT is not exist")
             return False
+        elif mft_results == -1:
+            print("No Table")
+            return False
         mft_results = preprocess_mft(mft_results)
 
         # $Usnjrnl
@@ -54,6 +57,9 @@ class Lv2OSLogHistoryAnalyzer(interface.AdvancedModuleAnalyzer):
         usnjrnl_results = configuration.cursor.execute_query_mul(query)
         if not usnjrnl_results:
             print("$UsnJrnl is not exist")
+            return False
+        elif usnjrnl_results == -1:
+            print("No Table")
             return False
         usnjrnl = UsnJrnl(usnjrnl_results)
         usnjrnl.parse()

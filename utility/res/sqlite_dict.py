@@ -86,15 +86,6 @@ TABLE_INFO = {
     }
 }
 
-INSERT_HELPER = {
-    "case_info": "%s, %s, %s, %s, %s",
-    "investigator": "%s, %s, %s, %s",
-    "evidence_info": "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d",
-    "partition_info": "%s, %s, %s, %s, %d, %s, %s, %s, %s, %s",
-    "file_info": "%s, %s, %s, %s, %s, %s, %d, %d, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
-                 "%s, %s, %s, %d, %d, %d, %s, %s, %s, %s, %s, %s, %d, %d"
-}
-
 CREATE_HELPER = {
     "case_info": "CREATE TABLE case_info ("
                  "case_id VARCHAR(100) NOT NULL, "
@@ -134,6 +125,7 @@ CREATE_HELPER = {
                       "evd_id VARCHAR(100) NOT NULL, "
                       "par_type TEXT NOT NULL, "
                       "sector_size INT(11) NOT NULL DEFAULT 0, "
+                      "cluster_size INT(11) NOT NULL DEFAULT 0, "
                       "par_size BIGINT NOT NULL DEFAULT 0, "
                       "md5 TEXT, "
                       "sha1 TEXT, "

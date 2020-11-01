@@ -1,4 +1,4 @@
-
+import datetime
 
 class Device_information:
     par_id = ''
@@ -156,8 +156,10 @@ def USBDEVICES(reg_software, reg_system, text_data):
             if device_class_id.startswith('_'):
                 for device in device_list:
                    if device.serial_number == device_class_id.split('\\r\\n')[0].split('#')[2]:
-                        device.first_connected_time = device_class_id.split('\\r\\n')[1].split('start ')[1].replace('/','-').replace(' ','T')+'Z'
-                        device.source_location.append('setupapi.dev.log')
+                       temp_date = datetime.datetime.strptime(device_class_id.split('\\r\\n')[1].split('start ')[1],"%Y/%m/%d %H:%M:%S.%f")
+                       temp_date2 = temp_date-datetime.timedelta(hours=9)
+                       device.first_connected_time = temp_date2.replace(' ','T')+'Z'
+                       device.source_location.append('setupapi.dev.log')
 
     except:
         print('-----USB devices Error')

@@ -8,7 +8,6 @@ from modules import manager
 from modules import interface
 from modules.android_basic_apps import main as android_basic_apps
 from utility import errors
-from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class AndroidBasicAppsConnector(interface.ModuleConnector):
@@ -18,24 +17,16 @@ class AndroidBasicAppsConnector(interface.ModuleConnector):
     def __init__(self):
         super(AndroidBasicAppsConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
         """Connector to connect to Android Basic Apps modules.
 
         Args:
+            par_id: partition id.
             configuration: configuration values.
             source_path_spec (dfvfs.PathSpec): path specification of the source file.
             knowledge_base (KnowledgeBase): knowledge base.
 
         """
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id == None:
-            return False
-
-        print('[MODULE]: Android Basic Apps Analyzer Start! - partition ID(%s)' % par_id)
 
         # Load Schema
         if not self.LoadSchemaFromYaml('../modules/schema/android/lv1_os_and_basic_apps.yaml'):
@@ -50,19 +41,16 @@ class AndroidBasicAppsConnector(interface.ModuleConnector):
         if len(find_specs) < 1:
             return False
 
-        if not configuration.standalone_check:
-            output_path = configuration.root_tmp_path
-        else:
-            output_path = configuration.output_file_path
-        output_path += os.sep + configuration.case_id + os.sep + configuration.evidence_id + os.sep + par_id \
-                       + os.sep + 'AB2A_Raw_Files'
+        output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
+                      configuration.evidence_id + os.sep + par_id + os.sep + 'AB2A_Raw_Files'
 
         if not os.path.exists(output_path):
             os.mkdir(output_path)
 
         for spec in find_specs:
             self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
-                                        configuration=configuration, file_spec=spec,
+                                        configuration=configuration,
+                                        file_spec=spec,
                                         output_path=output_path)
 
         results = android_basic_apps.main(output_path)
@@ -94,7 +82,6 @@ class AndroidBasicAppsConnector(interface.ModuleConnector):
                     data = header_data + data
                     data_list.append(tuple(data))
                 configuration.cursor.bulk_execute(query, data_list)
-        print('[MODULE]: Android Basic Apps Analyzer End! - partition ID(%s)' % par_id)
 
 
 manager.ModulesManager.RegisterModule(AndroidBasicAppsConnector)

@@ -43,7 +43,7 @@ class TGUID(LittleEndianStructure):
 def GUIDToString(v):
     if debug_mode: assert type(v) is TGUID
     r = '%.8X-%.4X-%.4X-%.2X%.2X-%.2X%.2X%.2X%.2X%.2X%.2X' % (
-    v.D1, v.D2, v.D3, v.D4[0], v.D4[1], v.D4[2], v.D4[3], v.D4[4], v.D4[5], v.D4[6], v.D4[7])
+        v.D1, v.D2, v.D3, v.D4[0], v.D4[1], v.D4[2], v.D4[3], v.D4[4], v.D4[5], v.D4[6], v.D4[7])
     return r
 
 
@@ -139,7 +139,6 @@ class TLNKFileParser:
         except Exception:
             return ''
 
-
     def getUnicodeStrValue(self, pos):
         data = self.data
         data.position = pos
@@ -171,12 +170,10 @@ class TLNKFileParser:
         hinfo.append(addItem('CLSID', GUIDToString(h.CLSID)))
         hinfo.append(addItem('Link Flags', str(h.LinkFlags)))
         node = _id
-        hinfo.append(addItem('HasLinkTargetIDList', RS_ExistsIDListInShellHeader if (
-                                                                                                h.LinkFlags & HasLinkTargetIDList) != 0 else RS_NoExistsIDListInShellHeader,
-                             node))
         hinfo.append(
-            addItem('HasLinkInfo', RS_LinkInfoPresent if (h.LinkFlags & HasLinkInfo) != 0 else RS_NoLinkInfoAvailable,
-                    node))
+            addItem('HasLinkTargetIDList', RS_ExistsIDListInShellHeader if (h.LinkFlags & HasLinkTargetIDList) != 0 else RS_NoExistsIDListInShellHeader, node))
+        hinfo.append(
+            addItem('HasLinkInfo', RS_LinkInfoPresent if (h.LinkFlags & HasLinkInfo) != 0 else RS_NoLinkInfoAvailable, node))
         if (h.LinkFlags & HasName) != 0:
             hinfo.append(addItem('HasName', RS_ShellLinkNamePresent, node))
         if (h.LinkFlags & HasRelativePath) != 0:
@@ -303,6 +300,7 @@ class TLNKFileParser:
                                   'Remote (Network drive)', 'CD-ROM', 'Ram drive')
                     hinfo.append(addItem(RS_VolumeType, volumeType[LFLVTable.VolumeType] if LFLVTable.VolumeType < len(
                         volumeType) else 'Unknown', subNode))
+                    hinfo.append(addItem('Drive Serial Number', '%x' % LFLVTable.VolumeSerialNbr, subNode))
 
                 if (LFLInfo.LinkInfoFlags & CommonNetworkRelativeLinkAndPathSuffix) != 0:
                     if subNode == 0:
@@ -378,6 +376,27 @@ class TLNKFileParser:
                     hinfo.append(addItem('Arguments', self.getUnicodeStrValue(data.position), subNode))
                 if (h.LinkFlags & HasIconLocation) != 0:
                     hinfo.append(addItem('Icon Location', self.getUnicodeStrValue(data.position), subNode))
+        stpos = data.position
+        while stpos <= data.size - 10:
+            size = data.read(4, '<I')
+            blk_sig = data.read(4, '<I')
+            if blk_sig == 0xa0000003:
+                hinfo.append(addItem('Distributed Tracker', 'Pos=0x%.4X' % data.position))
+                node = _id
+                sp = stpos + 16  # machine_id
+                ep = data.data[sp:].find(b'\x00')
+                if ep != -1:
+                    ep += sp
+                    hinfo.append(addItem('Machine Id', data.data[sp:ep].decode('utf-8'), node))
+                sp = stpos + 80 + 10  # mac_address
+                id = data.data[sp:sp + 6]
+                hinfo.append(
+                    addItem('Mac Address', '%.2x:%.2x:%.2x:%.2x:%.2x:%.2x' % (id[0], id[1], id[2], id[3], id[4], id[5]),
+                            node))
+                pass
+            data.position = stpos + size
+            stpos = data.position
+
         return result
 
     def parse(self):
@@ -390,9 +409,10 @@ class TLNKFileParser:
         result.update(self.parse_data())
         return result
 
+
 def printHelp():
     print(
-    """
+        """
     Usage:
        LNKFileParser.py <LNK Filename> <Output .db Filename>
        LNKFileParser.py <Path> <Output .db Filename>
@@ -402,6 +422,7 @@ def printHelp():
        >python LNKFileParser.py Telegram.lnk re.db
        >python LNKFileParser.py 메모장.lnk re.db
     """)
+
 
 def main(file, app_path, file_name):
     """
@@ -445,10 +466,10 @@ def main(file, app_path, file_name):
         if db.execmanySQL(sql, dataset): 
             db.commit()
     """
-    #print('Processing...')
+    # print('Processing...')
     i = 0
     for fn in src_files:
-        #print(ExtractFileName(fn))
+        # print(ExtractFileName(fn))
         LNKFileParser = TLNKFileParser(fn, i, fileName=file_name)
         if LNKFileParser.header.HeaderSize != 76:
             return False
@@ -470,6 +491,8 @@ def main(file, app_path, file_name):
         insertDatasetIntoTable(db, table, result[table])
     print('%d files\r\nFinished. - "%s"' % (i, ExtractFileName(dest_file)))
     """
+
+
 """
 if sys.version_info < (3, 8):
     print('\'%s\' \r\nError: \'%s\' works on Python v3.8 and above.' % (sys.version, ExtractFileName(__file__)))

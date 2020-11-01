@@ -24,7 +24,8 @@ def EVENTLOGPCONOFF(configuration):
 
     event_list = []
     event_count = 0
-    query = r"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total where (event_id like '6005' or event_id like '1074' or event_id like '6006') and source like '%System%'"
+    # 1074 뺏음. 재시작이라서
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id like '6005' or event_id like '6006') and (source like '%System%')"
     #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:
@@ -42,7 +43,7 @@ def EVENTLOGPCONOFF(configuration):
                 elif result_data[1] == '12':
                     event_list[event_count].event_id_description = 'The operating system started'
                 event_count = event_count + 1
-            elif result_data[1] == '6006' or result_data[1] == '13' or result_data[1] == '1074':
+            elif result_data[1] == '6006' or result_data[1] == '13':
                 event_list.append(eventlog_information)
                 event_list[event_count].task = 'System Off'
                 event_list[event_count].event_id = result_data[1]
@@ -53,8 +54,6 @@ def EVENTLOGPCONOFF(configuration):
                     event_list[event_count].event_id_description = 'The Event log service was stopped.'
                 elif result_data[1] == '13':
                     event_list[event_count].event_id_description = 'The operating system is shutting down'
-                elif result_data[1] == '1074':
-                    event_list[event_count].event_id_description = 'The process has initiated the power off/restart of the computer'
                 event_count = event_count + 1
         except:
             print("EVENT LOG PC ON OFF ERROR")

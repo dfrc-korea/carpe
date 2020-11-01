@@ -19,7 +19,7 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         super(LV2OSAPPHISTORYAnalyzer, self).__init__()
 
     def Analyze(self, configuration, source_path_spec):
-        print('[MODULE]: LV2 OS APP History Analyzer')
+        #print('[MODULE]: LV2 OS APP History Analyzer')
 
         if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
             par_id = configuration.partition_list['p1']
@@ -53,7 +53,7 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         query = f"SELECT file_name, last_run_time FROM lv1_os_win_reg_user_assist WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
 
-        if len(results) == 0:
+        if type(results) == int or len(results) == 0:
             pass
         else:
             insert_data = []
@@ -69,7 +69,7 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         query = f"SELECT file_name, key_last_updated_time, full_path FROM lv1_os_win_reg_amcache_file WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
 
-        if len(results) == 0:
+        if type(results) == int or len(results) == 0:
             pass
         else:
             insert_data = []
@@ -85,7 +85,7 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         query = f"SELECT 'program_name', 'program_path', 'program_run_count', 'file_created_time', 'last_run_time', '2nd_last_run_time', '3rd_last_run_time', '4th_last_run_time', '5th_last_run_time', '6th_last_run_time', '7th_last_run_time', '8th_last_run_time' FROM lv1_os_win_prefetch WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
 
-        if len(results) == 0:
+        if type(results) == int or len(results) == 0:
             pass
         else:
             insert_data = []
@@ -133,7 +133,7 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         query = f"SELECT program_name, start_time, content FROM lv1_os_win_windows_timeline WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
 
-        if len(results) == 0:
+        if type(results) == int or len(results) == 0:
             pass
         else:
             insert_data = []
@@ -150,7 +150,7 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         query = f"SELECT application_name, time, path FROM lv1_os_win_event_logs_applications WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
 
-        if len(results) == 0:
+        if type(results) == int or len(results) == 0:
             pass
         else:
             insert_data = []
@@ -167,7 +167,7 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         query = f"SELECT file_name, file_path, record_time, application_name FROM lv1_os_win_jumplist_automatics WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
 
-        if len(results) == 0:
+        if type(results) == int or len(results) == 0:
             pass
         else:
             insert_data = []

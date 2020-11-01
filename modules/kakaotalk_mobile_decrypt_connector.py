@@ -21,25 +21,10 @@ class KakaotalkMobileDecryptConnector(interface.ModuleConnector):
 	def __init__(self):
 		super(KakaotalkMobileDecryptConnector, self).__init__()
 
-	def Connect(self, configuration, source_path_spec, knowledge_base):
-		"""
-		par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-		if par_id is None:
-			return False
-
-		par_id = configuration.partition_list['p1']
-		"""
-		if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-			par_id = configuration.partition_list['p1']
-		else:
-			par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-		if par_id == None:
-			return False
-
-		print('[MODULE]: Kakaotalk mobile decryptor Start! - partition ID(%s)' % par_id)
+	def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
 		this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'kakaotalk_mobile'
+
 		# Load schema
 		yaml_list = [this_file_path + 'lv1_app_kakaotalk_mobile_chatlogs.yaml',
 					 this_file_path + 'lv1_app_kakaotalk_mobile_chatrooms.yaml',
@@ -181,8 +166,6 @@ class KakaotalkMobileDecryptConnector(interface.ModuleConnector):
 
 		query = "Insert into lv1_app_kakaotalk_mobile_channel_history values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
 		configuration.cursor.bulk_execute(query, insert_kakaotalk_mobile_channel_history)
-
-
 
 
 		os.remove(kakaotalk_db_list[0])

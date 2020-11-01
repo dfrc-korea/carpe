@@ -2,6 +2,7 @@
 """The artifact knowledge base object."""
 import pytz
 
+
 class KnowledgeBase(object):
     """The knowledge base."""
 
@@ -15,6 +16,7 @@ class KnowledgeBase(object):
         self._codepage = 'cp1252'
         self._environment_variables = {}
         self._hostnames = {}
+        self._time_zone = None
         self._user_accounts = {}
         self._values = {}
 
@@ -27,6 +29,10 @@ class KnowledgeBase(object):
     def user_accounts(self):
         """list[UserAccountArtifact]: user accounts of the current session."""
         return self._user_accounts.get(self._active_session, {}).values()
+
+    @property
+    def time_zone(self):
+        return self._time_zone
 
     def AddAvailableTimeZone(self, time_zone, session_identifier=None):
         """Adds an available time zone.
@@ -174,7 +180,6 @@ class KnowledgeBase(object):
             user_directory = user_account.user_directory.lower()
             if path.startswith(user_directory):
                 return user_account.username
-
         return None
 
     def HasUserAccounts(self):

@@ -24,7 +24,7 @@ Table:
       - mime_type
       - original_mime_type
       - os_account
-      - opera_profile
+      - edge_profile
 
     Types:
       - [VARCHAR(100), NOT NULL]

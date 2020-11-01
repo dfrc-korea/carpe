@@ -152,10 +152,20 @@ def firefox_visit_history(file):
         except KeyError:
             from_visit = row[1]
 
+        if type(from_visit) == str and ("\'" or "\"") in from_visit:
+            from_visit = from_visit.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         try:
             place_id = url_dict[row[2]]
         except KeyError:
             place_id = row[2]
+
+        if type(place_id) == str and ("\'" or "\"") in place_id:
+            place_id = place_id.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
 
         visit_date = _convert_unixtimestamp(row[3])
         visit_type = _visit_type(row[4])
@@ -188,7 +198,10 @@ def firefox_visit_urls(file):
 
     for row in visit_urls:
 
-        url = row[0]
+        if type(row[0]) == str and ("\'" or "\"") in row[0]:
+            url = row[0].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            url = row[0]
 
         if type(row[1]) == str and ("\'" or "\"") in row[1]:
             title = row[1].replace("\'", "\'\'").replace('\"', '\"\"')
@@ -283,10 +296,10 @@ def firefox_downloads(file):
             file_path = row[2]
             flags = row[3]
             expiration = row[4]
-            type = row[5]
+            record_type = row[5]
             time = row[6]
 
-            record_format = (place_id, url, file_path, flags, expiration, type, time)
+            record_format = (place_id, url, file_path, flags, expiration, record_type, time)
             file_path_record.append(record_format)
 
         elif row[2][2:7] == 'state':
@@ -322,7 +335,17 @@ def firefox_downloads(file):
 
                 if file_path_row[0] == meta_row[0]:
                     url = file_path_row[1]
+                    if type(url) == str and ("\'" or "\"") in url:
+                        url = url.replace("\'", "\'\'").replace('\"', '\"\"')
+                    else:
+                        pass
+
                     download_path = file_path_row[2]
+                    if type(download_path) == str and ("\'" or "\"") in download_path:
+                        download_path = download_path.replace("\'", "\'\'").replace('\"', '\"\"')
+                    else:
+                        pass
+
                     download_file_size = meta_row[3]
                     state = meta_row[1]
 
@@ -335,10 +358,10 @@ def firefox_downloads(file):
 
                     flags = file_path_row[3]
                     expiration = file_path_row[4]
-                    type = file_path_row[5]
+                    download_type = file_path_row[5]
 
                     outputformat = (url, download_path, download_file_size, state, start_time, end_time,
-                                    flags, expiration, type)
+                                    flags, expiration, download_type)
                     result.append(outputformat)
 
                 else:
@@ -348,7 +371,17 @@ def firefox_downloads(file):
         for file_path_row, meta_row in zip(file_path_record, meta_record):
 
             url = file_path_row[1]
+            if type(url) == str and ("\'" or "\"") in url:
+                url = url.replace("\'", "\'\'").replace('\"', '\"\"')
+            else:
+                pass
+
             download_path = file_path_row[2]
+            if type(download_path) == str and ("\'" or "\"") in download_path:
+                download_path = download_path.replace("\'", "\'\'").replace('\"', '\"\"')
+            else:
+                pass
+
             download_file_size = meta_row[3]
             state = meta_row[1]
 
@@ -361,9 +394,9 @@ def firefox_downloads(file):
 
             flags = file_path_row[3]
             expiration = file_path_row[4]
-            type = file_path_row[5]
+            download_type = file_path_row[5]
 
-            outputformat = (url, download_path, download_file_size, state, start_time, end_time, flags, expiration, type)
+            outputformat = (url, download_path, download_file_size, state, start_time, end_time, flags, expiration, download_type)
             result.append(outputformat)
 
     conn.close()
@@ -483,6 +516,11 @@ def firefox_forms(file):
 
         fieldname = row[0]
         value = row[1]
+        if type(value) == str and ("\'" or "\"") in value:
+            value = value.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         times_used = row[2]
         first_used_time = _convert_unixtimestamp(row[3])
         last_used_time = _convert_unixtimestamp(row[4])
@@ -542,6 +580,11 @@ def firefox_favicons(file):
     for row in favicons:
         icon_id = row[0]
         icon_url = row[1]
+        if type(icon_url) == str and ("\'" or "\"") in icon_url:
+            icon_url = icon_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         icon_url_hash = row[2]
         width = row[3]
         root = row[4]
@@ -708,6 +751,16 @@ def firefox_bookmarks(file):
         last_modified_time = _convert_unixtimestamp(row[6])
         sync_status = row[7]
         sync_change_count = row[8]
+
+        if type(url) == str and ("\'" or "\"") in url:
+            url = url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
+        if type(title) == str and ("\'" or "\"") in title:
+            title = title.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
 
         outputformat = (type, url, title, bookmark_path, added_time, last_modified_time, sync_status, sync_change_count)
         result.append(outputformat)

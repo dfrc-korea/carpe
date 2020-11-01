@@ -106,7 +106,11 @@ def chrome_search_terms(file):
     for row in result:
 
         date = _convert_timestamp(row[0])
-        url = row[1]
+
+        if type(row[1]) == str and ("\'" or "\"") in row[1]:
+            url = row[1].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            url = row[1]
 
         if type(row[2]) == str and ("\'" or "\"") in row[2]:
             search_word = row[2].replace("\'", "\'\'").replace('\"', '\"\"')
@@ -159,7 +163,11 @@ def chrome_visit_urls(file):
 
     for row in result:
 
-        url = row[0]
+        if type(row[0]) == str and ("\'" or "\"") in row[0]:
+            url = row[0].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            url = row[0]
+
         last_visited_time = _convert_timestamp(row[1])
 
         if type(row[2]) == str and ("\'" or "\"") in row[2]:
@@ -253,14 +261,32 @@ def chrome_visit_history(file):
             from_url = id_url_visits_dict[row[2]]
         except:
             from_url = ''
+
+        if type(from_url) == str and ("\'" or "\"") in from_url:
+            from_url = from_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         try:
             url = id_url_dict[row[0]]
         except:
             url = ''
+
+        if type(url) == str and ("\'" or "\"") in url:
+            url = url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         try:
             segment_url = id_name_seg_dict[row[4]]
         except:
             segment_url = ''
+
+        if type(segment_url) == str and ("\'" or "\"") in segment_url:
+            segment_url = segment_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         try:
             title = id_title_dict[row[0]]
         except:
@@ -343,9 +369,29 @@ def chrome_download(file):
             file_last_modified_time = row[13]
 
         download_tab_url = row[11]
+        if type(download_tab_url) == str and ("\'" or "\"") in download_tab_url:
+            download_tab_url = download_tab_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         download_tab_refer_url = row[12]
+        if type(download_tab_refer_url) == str and ("\'" or "\"") in download_tab_refer_url:
+            download_tab_refer_url = download_tab_refer_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         site_url = row[10]
+        if type(site_url) == str and ("\'" or "\"") in site_url:
+            site_url = site_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         refer_url = row[9]
+        if type(refer_url) == str and ("\'" or "\"") in refer_url:
+            refer_url = refer_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         mime_type = row[14]
         original_mime_type = row[15]
 
@@ -394,7 +440,10 @@ def chrome_top_sites(file):
 
     for row in result:
 
-        url = row[0]
+        if type(row[0]) == str and ("\'" or "\"") in row[0]:
+            url = row[0].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            url = row[0]
 
         if type(row[1]) == str and ("\'" or "\"") in row[1]:
             title = row[1].replace("\'", "\'\'").replace('\"', '\"\"')
@@ -433,7 +482,12 @@ def chrome_shortcuts(file):
 
         text = row[0]
         fill_into_edit = row[1]
-        url = row[2]
+
+        if type(row[2]) == str and ("\'" or "\"") in row[2]:
+            url = row[2].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            url = row[2]
+
         contents = row[3]
 
         if type(row[4]) == str and ("\'" or "\"") in row[4]:
@@ -477,7 +531,12 @@ def chrome_favicons(file):
 
         id = row[0]
         icon_id = row[1]
-        icon_url = row[2]
+
+        if type(row[2]) == str and ("\'" or "\"") in row[2]:
+            icon_url = row[2].replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            icon_url = row[2]
+
         last_updated = _convert_timestamp(row[3])
         last_requested = _convert_timestamp(row[4])
         image_data = row[5]
@@ -646,9 +705,18 @@ def chrome_logindata(file):
 
     for row in result:
 
-        #id = row[0]
         origin_url = row[0]
+        if type(origin_url) == str and ("\'" or "\"") in origin_url:
+            origin_url = origin_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         action_url = row[1]
+        if type(action_url) == str and ("\'" or "\"") in action_url:
+            action_url = action_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         username_element = row[2]
         username_value = row[3]
         password_element = row[4]
@@ -660,10 +728,21 @@ def chrome_logindata(file):
         scheme = row[10]
         password_type = row[11]
         times_used = row[12]
-        date_synced = row[13]
+        date_synced = _convert_timestamp(row[13])
         display_name = row[14]
+
         icon_url = row[15]
+        if type(icon_url) == str and ("\'" or "\"") in icon_url:
+            icon_url = icon_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         federation_url = row[16]
+        if type(federation_url) == str and ("\'" or "\"") in federation_url:
+            federation_url = federation_url.replace("\'", "\'\'").replace('\"', '\"\"')
+        else:
+            pass
+
         skip_zero_click = row[17]
         generation_upload_status = row[18]
         possible_username_pairs = row[19]
@@ -675,13 +754,17 @@ def chrome_logindata(file):
         else:
             date_last_used = ''
 
-        outputformat = (origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used)
+        outputformat = (origin_url, action_url, username_element, username_value, password_element, password_value,
+                        signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used,
+                        date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status,
+                        possible_username_pairs, submit_element, preferred, date_last_used)
 
         logindatas.append(outputformat)
 
     conn.close()
 
     return logindatas
+
 
 def chrome_bookmarks(file):
 
@@ -719,35 +802,41 @@ def chrome_domain_analysis(file):
 
         if 'profile' in preferences_list:
 
-            urls = json_data['profile']['content_settings']['exceptions']['site_engagement']
+            try: # todo : temporary fix 201021
+                urls = json_data['profile']['content_settings']['exceptions']['site_engagement']
 
-            for url in urls:
+                for url in urls:
 
-                domain = url
-                urls[url].keys()
+                    domain = url
+                    urls[url].keys()
 
-                if 'expiration' in urls[url].keys():
-                    expiration = urls[url]['expiration']
-                else:
-                    expiration = ''
+                    if 'expiration' in urls[url].keys():
+                        expiration = urls[url]['expiration']
+                    else:
+                        expiration = ''
 
-                if 'last_modified' in urls[url].keys():
-                    last_modified = _convert_timestamp(int(urls[url]['last_modified']))
-                else:
-                    last_modified = ''
+                    if 'last_modified' in urls[url].keys():
+                        last_modified = _convert_timestamp(int(urls[url]['last_modified']))
+                    else:
+                        last_modified = ''
 
-                if 'model' in urls[url].keys():
-                    model = urls[url]['model']
-                else:
-                    model = ''
+                    if 'model' in urls[url].keys():
+                        model = urls[url]['model']
+                    else:
+                        model = ''
 
-                last_engagement_time = _convert_timestamp(int(urls[url]['setting']['lastEngagementTime']))
-                last_shortcut_launch_time = _convert_timestamp(int(urls[url]['setting']['lastShortcutLaunchTime']))
-                points_added = urls[url]['setting']['pointsAddedToday']
-                raw_score = urls[url]['setting']['rawScore']
+                    last_engagement_time = _convert_timestamp(int(urls[url]['setting']['lastEngagementTime']))
+                    last_shortcut_launch_time = _convert_timestamp(int(urls[url]['setting']['lastShortcutLaunchTime']))
+                    points_added = urls[url]['setting']['pointsAddedToday']
+                    raw_score = urls[url]['setting']['rawScore']
 
-                output_format = (domain, expiration, last_modified, model, last_engagement_time, last_shortcut_launch_time, points_added, raw_score)
-                domain_result.append(output_format)
+                    output_format = (
+                    domain, expiration, last_modified, model, last_engagement_time, last_shortcut_launch_time,
+                    points_added, raw_score)
+                    domain_result.append(output_format)
+
+            except:
+                domain_result = []
 
     return domain_result
 
@@ -814,8 +903,6 @@ def chrome_google_account(file):
                 return account_list
         else:
             return account_list
-
-
 
 def chrome_zoom_level(file):
     with open(file, 'r', encoding='UTF-8') as f:

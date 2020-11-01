@@ -8,8 +8,6 @@ from modules import manager
 from modules import interface
 from modules.NTFS import mft_parser, logfile_parser, usnjrnl_parser
 from modules.NTFS.dfir_ntfs import USN, LogFile, MFT
-from dfvfs.lib import definitions as dfvfs_definitions
-
 
 
 class NTFSConnector(interface.ModuleConnector):
@@ -26,7 +24,7 @@ class NTFSConnector(interface.ModuleConnector):
         self._logfile_path = None
         self._deleted_files = []
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'ntfs' + os.sep
 
@@ -47,16 +45,6 @@ class NTFSConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id == None:
-            return False
-
-        print('[MODULE]: DFIR_NTFS_Connector Call - partition ID(%s)' % par_id)
-
         # path, name, ads_name
         file_list = [['/', '$MFT', None], ['/', '$MFTMirr', None], ['/$Extend/', '$UsnJrnl', '$J'],
                      ['/', '$LogFile', None]]
@@ -75,8 +63,6 @@ class NTFSConnector(interface.ModuleConnector):
         self._mftmirr_path = output_path + os.sep + '$MFTMirr'
         self._logfile_path = output_path + os.sep + '$LogFile'
         self._usnjrnl_path = output_path + os.sep + '$UsnJrnl_$J'
-
-
 
         if os.path.exists(self._mft_path):
             print("Start parsing $MFT")
@@ -101,7 +87,7 @@ class NTFSConnector(interface.ModuleConnector):
                 f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
 
         mft_list = []
-        for idx, file_record in tqdm(enumerate(mft_file.file_records())):
+        for idx, file_record in enumerate(mft_file.file_records()):
             try:
                 file_paths = mft_file.build_full_paths(file_record, True)
             except MFT.MasterFileTableException:
@@ -126,7 +112,7 @@ class NTFSConnector(interface.ModuleConnector):
         log_record_list = []
         info = tuple([par_id, configuration.case_id, configuration.evidence_id])
 
-        for idx, log_item in tqdm(enumerate(log_file.parse_ntfs_records())):
+        for idx, log_item in enumerate(log_file.parse_ntfs_records()):
             if not type(log_item):
                 continue
             elif type(log_item) is LogFile.NTFSRestartArea:
@@ -158,7 +144,7 @@ class NTFSConnector(interface.ModuleConnector):
         query = f"Insert into {table_list[3]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
 
         usnjrnl_list = []
-        for idx, usn_record in tqdm(enumerate(usn_journal.usn_records())):
+        for idx, usn_record in enumerate(usn_journal.usn_records()):
             usn_tuple = usnjrnl_parser.usnjrnl_parse(mft_file, usn_record)
             values = (par_id, configuration.case_id, configuration.evidence_id) + usn_tuple
             usnjrnl_list.append(values)

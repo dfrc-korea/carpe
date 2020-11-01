@@ -25,7 +25,7 @@ def EVENTLOGTASKSCHEDULER(configuration):
 
     task_scheduler_list = []
     task_scheduler_count = 0
-    query = r"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total where (event_id like '200' or event_id like '201') and source like '%TaskScheduler%'"
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id like '200' or event_id like '201') and source like '%TaskScheduler%'"
     #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:

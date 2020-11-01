@@ -24,7 +24,7 @@ def EVENTLOGSHAREDFOLDER(configuration):
 
     shared_folder_list = []
     shared_folder_count = 0
-    query = r"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total where (event_id like '4656' and source like '%Security.evtx%') or (event_id like '4663' and source like '%Security.evtx%') or (event_id like '5140' and source like '%Security.evtx%') or (event_id like '30804' and source like '%SMBClient%') or (event_id like '30805' and source like '%SMBClient%') or (event_id like '30806' and source like '%SMBClient%') or (event_id like '30807' and source like '%SMBClient%') or (event_id like '30808' and source like '%SMBClient%')"
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id like '4656' and source like '%Security.evtx%') or (event_id like '4663' and source like '%Security.evtx%') or (event_id like '5140' and source like '%Security.evtx%') or (event_id like '30804' and source like '%SMBClient%') or (event_id like '30805' and source like '%SMBClient%') or (event_id like '30806' and source like '%SMBClient%') or (event_id like '30807' and source like '%SMBClient%') or (event_id like '30808' and source like '%SMBClient%')"
     #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:

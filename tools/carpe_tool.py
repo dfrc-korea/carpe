@@ -6,6 +6,7 @@ import argparse
 import textwrap
 import platform
 
+from datetime import datetime
 from tools.helpers import manager as helpers_manager
 from tools import extraction_tool, case_manager
 from engine import process_engine
@@ -26,7 +27,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
     """
     NAME = 'CARPE Forensics'
-    VERSION = '20200912'
+    VERSION = '20200903'
     DESCRIPTION = textwrap.dedent('\n'.join([
         '',
         'CARPE Forensics',
@@ -34,14 +35,14 @@ class CarpeTool(extraction_tool.ExtractionTool,
         'image or device.',
         '',
         'More information can be gathered from here:',
-        '    https://carpeforensic.org'
+        '    https://carpeforensic.com'
         '']))
     EPILOG = textwrap.dedent('\n'.join([
         '',
         'Example usage:',
         '',
         'Run the tool against a storage media image (full kitchen sink)',
-        '    --modules shellbag_connector --cid c1c16a681937b345f1990d10a9d0fdfcc8 --eid e666666666666666666666666666666668',
+        '--modules shellbag_connector --cid c1c16a681937b345f1990d10a9d0fdfcc8 --eid e666666666666666666666666666666668',
         '']))
 
     def __init__(self):
@@ -60,6 +61,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
         self.list_advanced_modules = False
         self.show_info = False
 
+        self.sector_size = None
+        self.cluster_size = None
+
     def ParseArguments(self, arguments):
         """Parses the command line arguments.
 
@@ -67,7 +71,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
             arguments (list[str]): command line arguments.
 
         """
-        #TODO: logger 설정
+        # TODO: logger 설정
         loggers.ConfigureLogging()
 
         argument_parser = argparse.ArgumentParser(
@@ -76,14 +80,13 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         self.AddBasicOptions(argument_parser)
 
-        ### Info argument group
+        # Info argument group
         info_group = argument_parser.add_argument_group('informational arguments')
 
         self.AddInformationalOptions(info_group)
 
-        ### Moudule argument group
-        module_group = argument_parser.add_argument_group(
-            'module arguments')
+        # Module argument group
+        module_group = argument_parser.add_argument_group('module arguments')
 
         argument_helper_names = ['artifact_definitions', 'modules', 'advanced_modules']
         helpers_manager.ArgumentHelperManager.AddCommandLineArguments(
@@ -94,13 +97,36 @@ class CarpeTool(extraction_tool.ExtractionTool,
         self.AddVSSProcessingOptions(module_group)
         self.AddCredentialOptions(module_group)
 
+        # source path
+        argument_parser.add_argument(
+            'source', action='store', metavar='SOURCE', nargs='?',
+            default=None, type=str, help=(
+                'Path to a source device, file or directory. If the source is '
+                'a supported storage media device or image file, archive file '
+                'or a directory, the files within are processed recursively.'))
+
+        # output path
+        argument_parser.add_argument(
+            'output_file', metavar='OUTPUT', nargs='?', type=str,
+            default=None, help='Path to a output file.')
+
         argument_parser.add_argument(
             '--cid', '--case_id',  action='store', dest='case_id', type=str,
-            default=None,  help='Enter your case id')
+            default='case01',  help='Enter your case id')
 
         argument_parser.add_argument(
             '--eid', '--evdnc_id', '--evidence_id', action='store', dest='evidence_id', type=str,
-            default=None, help='Enter your evidence id')
+            default='evd01', help='Enter your evidence id')
+
+        # sector size
+        argument_parser.add_argument(
+            '--sector', '--sector_size', action='store', dest='sector_size', type=str,
+            default='512', help='Enter your sector size')
+
+        # cluster size
+        argument_parser.add_argument(
+            '--cluster', '--cluster_size', action='store', dest='cluster_size', type=str,
+            default='4096', help='Enter your cluster size')
 
         # check standalone mode
         argument_parser.add_argument(
@@ -120,20 +146,8 @@ class CarpeTool(extraction_tool.ExtractionTool,
             '--rds-check', action='store_true', dest='rds_check',
             default=False, help=(
                 'Define RDS Check to be processed.'
-            ))
-
-        ### source path
-        argument_parser.add_argument(
-            'source', action='store', metavar='SOURCE', nargs='?',
-            default=None, type=str, help=(
-                'Path to a source device, file or directory. If the source is '
-                'a supported storage media device or image file, archive file '
-                'or a directory, the files within are processed recursively.'))
-
-        ### output path
-        argument_parser.add_argument(
-            'output_file', metavar='OUTPUT', nargs='?', type=str,
-            default=None, help='Path to a output file.')
+            )
+        )
 
         try:
             options = argument_parser.parse_args(arguments)
@@ -173,8 +187,11 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         self.list_modules = self._module_filter_expression == 'list'
         self.list_advanced_modules = self._advanced_module_filter_expression == 'list'
-        self.case_id = getattr(options, 'case_id', False)
-        self.evidence_id = getattr(options, 'evidence_id', False)
+        self.case_id = getattr(options, 'case_id', 'case01')
+        self.evidence_id = getattr(options, 'evidence_id', 'evd01')
+
+        self.sector_size = getattr(options, 'sector_size', 512)
+        self.cluster_size = getattr(options, 'cluster_size', 4096)
 
         self.standalone_check = getattr(options, 'standalone_check', False)
         self.signature_check = getattr(options, 'signature_check', False)
@@ -186,21 +203,22 @@ class CarpeTool(extraction_tool.ExtractionTool,
         if (self.list_modules or self.show_info or self.show_troubleshooting or
                 self.list_timezones or self.list_advanced_modules):
             return
+
         self._ParseTimezoneOption(options)
         self._ParseInformationalOptions(options)
         self._ParseLogFileOptions(options)
         self._ParseStorageMediaOptions(options)
 
-
     def ExtractDataFromSources(self):
-        self._output_writer.Write('Processing started.\n')
 
-        investigator = {'investigator1': 'test1',
-                        'department': 'DFRC'}
+        self._output_writer.Write('Processing started.\n')
+        investigator = {'investigator1': 'CARPE-Release',
+                        'department': 'DFRC'
+                        }
 
         self.AddInvestigatorInformation(investigator)
 
-        #  Create a database connection
+        # Create a database connection
         try:
             if self.standalone_check:
                 self._cursor = database_sqlite.Database(
@@ -209,12 +227,12 @@ class CarpeTool(extraction_tool.ExtractionTool,
                     self._source_path,
                     self._output_file_path)
                 self._cursor.initialize()
-                self._output_writer.Write("Standalone version")
+                self._output_writer.Write("Standalone version\n")
             else:
                 self._cursor = database.Database()
             self._cursor.open()
         except Exception as exception:
-            self._output_writer.Write('Failed tor connect to the database: {0!s}'.format(exception))
+            self._output_writer.Write('Failed for connect to the database: {0!s}'.format(exception))
             return
 
         if platform.system() == 'Windows':
@@ -239,12 +257,14 @@ class CarpeTool(extraction_tool.ExtractionTool,
         # set configuration
         configuration = self._CreateProcessingConfiguration()
 
+        now = datetime.now()
+        print('\n[%s-%s-%s %s:%s:%s] Start Analyze Image' % (
+            now.year, now.month, now.day, now.hour, now.minute, now.second))
+
         # set signature check options
         if self.signature_check:
             self._signature_tool.ParseSignatureOptions()
             self._signature_tool.SetScanner(self._signature_tool.signature_specifications)
-
-        from datetime import datetime
 
         now = datetime.now()
         print('\n[%s-%s-%s %s:%s:%s] Start Analyze Image' % (
@@ -253,21 +273,27 @@ class CarpeTool(extraction_tool.ExtractionTool,
         if self.rds_check:
             self.LoadReferenceDataSet()
 
-        # After analyzing of an IMAGE, Put the partition information into the partition_info TABLE.
+        # # After analyzing of an IMAGE, Put the partition information into the partition_info TABLE.
+
         self.InsertImageInformation()
+
+        # check partition_list
+        if not self._partition_list:
+            raise errors.BadConfigObject('partition does not exist.\n')
 
         # print partition_list
         print(self._partition_list)
 
         # After analyzing of filesystem, Put the block and file information into the block_info and file_info TABLE.
+
         self.InsertFileInformation()
+
 
         # create process
         engine = process_engine.ProcessEngine()
 
-        # determine operating system
+        # determine operating system and set time zone
         self._Preprocess(engine)
-
 
         # set modules
         engine.SetProcessModules(module_filter_expression=configuration.module_filter_expression)
@@ -278,7 +304,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         # set advanced modules
         engine.SetProcessAdvancedModules(advanced_module_filter_expression=configuration.advanced_module_filter_expression)
-        
+
         engine.ProcessAdvancedModules(configuration)
 
         self._cursor.close()
@@ -327,10 +353,8 @@ class CarpeTool(extraction_tool.ExtractionTool,
                         self._output_writer.Write(format_string2.format('', line))
             self._output_writer.Write('\n')
 
-            #self._output_writer.Write(data)
     def _GetModuleData(self):
-        """Retrieves the version vand various module information
-
+        """Retrieves the version and various module information
 
         Returns:
             dict[str, list[str]]: available modules.
@@ -346,3 +370,127 @@ class CarpeTool(extraction_tool.ExtractionTool,
         return_dict['Modules'] = modules_information
 
         return return_dict
+
+    def carve_data_from_source(self):
+
+        self._output_writer.Write('Processing started.\n')
+
+        # Create a database connection
+        try:
+            if self.standalone_check:
+                self._cursor = database_sqlite.Database(
+                    self.case_id,
+                    self.evidence_id,
+                    self._source_path,
+                    self._output_file_path)
+                self._cursor.initialize()
+                self._output_writer.Write("Standalone version\n")
+            else:
+                self._cursor = database.Database()
+            self._cursor.open()
+        except Exception as exception:
+            self._output_writer.Write('Failed for connect to the database: {0!s}'.format(exception))
+            return
+
+        if platform.system() == 'Windows':
+            self._root_tmp_path = self._output_file_path + os.sep + 'tmp'
+            if not os.path.exists(self._root_tmp_path):
+                os.mkdir(self._root_tmp_path)
+
+        # set storage path and temp path
+        try:
+            self.CreateStorageAndTempPath(
+                cursor=self._cursor,
+                case_id=self.case_id,
+                evd_id=self.evidence_id)
+        except Exception as exception:
+            self._output_writer.Write(str(exception))
+            return False
+
+        # scan source
+        scan_context = self.ScanSource(self._source_path)
+        self._source_type = scan_context.source_type
+
+        # set configuration
+        configuration = self._CreateProcessingConfiguration()
+
+        now = datetime.now()
+        print('\n[%s-%s-%s %s:%s:%s] Start Carve Image' % (
+            now.year, now.month, now.day, now.hour, now.minute, now.second))
+
+        # After analyzing of an IMAGE, Put the partition information into the partition_info TABLE.
+        self.InsertImageInformation()
+
+        # create process
+        engine = process_engine.ProcessEngine()
+        self._Preprocess(engine)
+        engine.SetProcessModules(module_filter_expression=configuration.module_filter_expression)
+
+        # check partition_list
+        if not self._partition_list:
+            print("There is no partition")
+            engine.process_carve(configuration, is_partition=False)
+
+        else:
+            print(self._partition_list)
+            engine.process_carve(configuration, is_partition=True)
+
+        now = datetime.now()
+        print('[%s-%s-%s %s:%s:%s] Finish Carve Image' % (
+            now.year, now.month, now.day, now.hour, now.minute, now.second))
+
+    def extract_data_from_source(self):
+
+        self._output_writer.Write('Processing started.\n')
+
+        # set root_path
+        if platform.system() == 'Windows':
+            self._root_tmp_path = self._output_file_path + os.sep + 'tmp'
+            if not os.path.exists(self._root_tmp_path):
+                os.mkdir(self._root_tmp_path)
+
+        # set tmp_path
+        self._tmp_path = os.path.join(os.path.join(self._root_tmp_path, self.case_id), self.evidence_id)
+        if not os.path.isdir(self._tmp_path):
+            os.mkdir(self._tmp_path)
+
+        # scan source
+        scan_context = self.ScanSource(self._source_path)
+        self._source_type = scan_context.source_type
+
+        # set configuration
+        configuration = self._CreateProcessingConfiguration()
+
+        now = datetime.now()
+        print('\n[%s-%s-%s %s:%s:%s] Start Extract Data' % (
+            now.year, now.month, now.day, now.hour, now.minute, now.second))
+
+        # create process
+        engine = process_engine.ProcessEngine()
+        self._Preprocess(engine)
+        engine.SetProcessModules(module_filter_expression=configuration.module_filter_expression)
+        for source_path_spec in configuration.source_path_specs:
+            print(source_path_spec.comparable)
+        module = engine._modules.get('extract', None)
+        module.ExtractTargetDirToPath()
+
+        now = datetime.now()
+        print('[%s-%s-%s %s:%s:%s] Finish Extract Data' % (
+            now.year, now.month, now.day, now.hour, now.minute, now.second))
+
+    def create_db_connection(self):
+        try:
+            if self.standalone_check:
+                self._cursor = database_sqlite.Database(
+                    self.case_id,
+                    self.evidence_id,
+                    self._source_path,
+                    self._output_file_path)
+                self._cursor.initialize()
+                self._output_writer.Write("Standalone version\n")
+            else:
+                self._cursor = database.Database()
+            self._cursor.open()
+        except Exception as exception:
+            self._output_writer.Write('Failed for connect to the database: {0!s}'.format(exception))
+            return

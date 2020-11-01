@@ -4,7 +4,7 @@ import re
 import datetime
 import binascii
 
-from utility.res.sqlite_dict import TABLE_INFO, INSERT_HELPER, CREATE_HELPER
+from utility.res.sqlite_dict import TABLE_INFO, CREATE_HELPER
 
 
 def mysql_to_sqlite(query):

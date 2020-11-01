@@ -4,7 +4,6 @@ import os
 import shutil
 
 
-from dfvfs.lib import definitions as dfvfs_definitions
 from modules import logger
 from modules import manager
 from modules import interface
@@ -24,16 +23,7 @@ class ChromiumConnector(interface.ModuleConnector):
     def __init__(self):
         super(ChromiumConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
-        print('[MODULE]: Chromium Connect')
-
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id == None:
-            return False
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
         chrome_query = f"SELECT name, parent_path, extension FROM file_info WHERE par_id='{par_id}' and ("
         whale_query = f"SELECT name, parent_path, extension FROM file_info WHERE par_id='{par_id}' and ("
@@ -341,19 +331,23 @@ class ChromiumConnector(interface.ModuleConnector):
                 for row in search_terms:
                     table_name = 'lv1_app_web_chrome_search_terms'
 
-                    row = info + list(row) + profile_match
+                    row = list(row)
+                    row[2] = configuration.apply_time_zone(row[2], knowledge_base.time_zone)    # searched_time
+                    row = info + row + profile_match
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
-                        row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" \
+                            % tuple(row)
 
-                    # print(query)
                     configuration.cursor.execute_query(query)
             # print("[chrome] search terms data insert complete")
 
             for visit_urls, profile_match in zip(chrome_visit_urls_result, os_user_chrome_profile):
                 for row in visit_urls:
                     table_name = 'lv1_app_web_chrome_visit_urls'
-                    row = info + list(row) + profile_match
+
+                    row = list(row)
+                    row[1] = configuration.apply_time_zone(row[1], knowledge_base.time_zone)  # last_visited_time
+                    row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
                         row)
@@ -364,7 +358,10 @@ class ChromiumConnector(interface.ModuleConnector):
             for visit_history, profile_match in zip(chrome_visit_history, os_user_chrome_profile):
                 for row in visit_history:
                     table_name = 'lv1_app_web_chrome_visit_history'
-                    row = info + list(row) + profile_match
+
+                    row = list(row)
+                    row[4] = configuration.apply_time_zone(row[4], knowledge_base.time_zone)  # visit_time
+                    row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'," \
                             f"'%s', '%s', '%s', '%s');" % tuple(row)
@@ -374,13 +371,18 @@ class ChromiumConnector(interface.ModuleConnector):
             for download_files, profile_match in zip(chrome_download_result, os_user_chrome_profile):
                 for row in download_files:
                     table_name = 'lv1_app_web_chrome_download'
-                    row = info + list(row) + profile_match
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" \
-                            f", '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" \
+                    row = list(row)
+                    row[7] = configuration.apply_time_zone(row[7], knowledge_base.time_zone)    # start_time
+                    row[8] = configuration.apply_time_zone(row[8], knowledge_base.time_zone)    # end_time
+                    row[9] = configuration.apply_time_zone(row[9], knowledge_base.time_zone)    # file_last_access_time
+                    row[10] = configuration.apply_time_zone(row[10], knowledge_base.time_zone)  # file_last_modified_time
+                    row = info + row + profile_match
+
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " \
+                            f"'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" \
                             f", '%s', '%s');" % tuple(row)
 
-                    # print(query)
                     configuration.cursor.execute_query(query)
 
             for top_sites, profile_match in zip(chrome_top_sites, os_user_chrome_profile):
@@ -391,59 +393,74 @@ class ChromiumConnector(interface.ModuleConnector):
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
                         row)
 
-                    # print(query)
                     configuration.cursor.execute_query(query)
 
             for shortcuts, profile_match in zip(chrome_shortcuts, os_user_chrome_profile):
                 for row in shortcuts:
                     table_name = 'lv1_app_web_chrome_shortcuts'
-                    row = info + list(row) + profile_match
+
+                    row = list(row)
+                    row[6] = configuration.apply_time_zone(row[6], knowledge_base.time_zone)  # last_access_time
+                    row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
                         row)
 
-                    # print(query)
                     configuration.cursor.execute_query(query)
 
             for favicons, profile_match in zip(chrome_favicons, os_user_chrome_profile):
                 for row in favicons:
                     table_name = 'lv1_app_web_chrome_favicons'
-                    row = info + list(row) + profile_match
+
+                    row = list(row)
+                    row[3] = configuration.apply_time_zone(row[3], knowledge_base.time_zone)  # last_updated
+                    row[4] = configuration.apply_time_zone(row[4], knowledge_base.time_zone)  # last_requested
+                    row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
                         row[0:8]) + \
                             "(UNHEX(\'" + row[8].hex() + "\'))" \
                                                          ", '%s', '%s', '%s', '%s');" % tuple(row[9:])
-                    # print(query)
                     configuration.cursor.execute_query(query)
 
             for cookies, profile_match in zip(chrome_cookies, os_user_chrome_profile):
                 for row in cookies:
                     table_name = 'lv1_app_web_chrome_cookies'
-                    row = info + list(row) + profile_match
+
+                    row = list(row)
+                    row[0] = configuration.apply_time_zone(row[0], knowledge_base.time_zone)  # creation_utc
+                    row[4] = configuration.apply_time_zone(row[4], knowledge_base.time_zone)  # expires_utc
+                    row[7] = configuration.apply_time_zone(row[7], knowledge_base.time_zone)  # last_access_utc
+                    row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
                         row[0:14]) + \
                             "(UNHEX(\'" + row[14].hex() + "\'))" \
                                                           ", '%s', '%s', '%s');" % tuple(row[15:])
-                    # print(query)
                     configuration.cursor.execute_query(query)
 
             for autofill, profile_match in zip(chrome_autofill, os_user_chrome_profile):
                 for row in autofill:
                     table_name = 'lv1_app_web_chrome_autofill'
-                    row = info + list(row) + profile_match
+
+                    row = list(row)
+                    row[3] = configuration.apply_time_zone(row[3], knowledge_base.time_zone)  # date_created
+                    row[4] = configuration.apply_time_zone(row[4], knowledge_base.time_zone)  # date_last_used
+                    row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
                         row)
-                    # print(query)
                     configuration.cursor.execute_query(query)
 
             for logindata, profile_match in zip(chrome_logindata, os_user_chrome_profile):
                 for row in logindata:
                     table_name = 'lv1_app_web_chrome_logindata'
-                    row = info + list(row) + profile_match
 
+                    row = list(row)
+                    row[7] = configuration.apply_time_zone(row[7], knowledge_base.time_zone)  # date_created
+                    row[13] = configuration.apply_time_zone(row[13], knowledge_base.time_zone)  # date_synced
+                    row[22] = configuration.apply_time_zone(row[22], knowledge_base.time_zone)  # date_last_used
+                    row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
                         row[0:8]) + \
@@ -454,17 +471,18 @@ class ChromiumConnector(interface.ModuleConnector):
                         row[12:22]) + \
                             "(UNHEX(\'" + row[22].hex() + "\'))" \
                                                           ", '%s', '%s', '%s', '%s', '%s');" % tuple(row[23:])
-                    # print(query)
                     configuration.cursor.execute_query(query)
 
             for bookmark, profile_match in zip(chrome_bookmarks, os_user_chrome_profile):
                 for row in bookmark:
                     table_name = 'lv1_app_web_chrome_bookmarks'
-                    row = info + list(row) + profile_match
+
+                    row = list(row)
+                    row[0] = configuration.apply_time_zone(row[0], knowledge_base.time_zone)    # date_added
+                    row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
                         row)
-                    # print(query)
                     configuration.cursor.execute_query(query)
 
             for domain, profile_match in zip(chrome_domain, os_user_chrome_profile):
@@ -472,9 +490,14 @@ class ChromiumConnector(interface.ModuleConnector):
                     table_name = 'lv1_app_web_chrome_domain'
                     row = info + list(row) + profile_match
 
+                    row = list(row)
+                    row[2] = configuration.apply_time_zone(row[2], knowledge_base.time_zone)  # last_modified
+                    row[4] = configuration.apply_time_zone(row[4], knowledge_base.time_zone)  # last_engagement_time
+                    row[5] = configuration.apply_time_zone(row[5], knowledge_base.time_zone)  # last_shortcut_launch_time
+                    row = info + row + profile_match
+
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
                         row)
-                    # print(query)
                     configuration.cursor.execute_query(query)
 
             for google_account, profile_match in zip(chrome_google_account, os_user_chrome_profile):
@@ -490,7 +513,10 @@ class ChromiumConnector(interface.ModuleConnector):
             for zoom_level, profile_match in zip(chrome_zoom_level, os_user_chrome_profile):
                 for row in zoom_level:
                     table_name = 'lv1_app_web_chrome_zoom_level'
-                    row = info + list(row) + profile_match
+
+                    row = list(row)
+                    row[2] = configuration.apply_time_zone(row[2], knowledge_base.time_zone)  # last_modified_time
+                    row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
 
@@ -514,8 +540,6 @@ class ChromiumConnector(interface.ModuleConnector):
                 if 'Profile' in whale_artifact[i][0]:
                     full_path.append(whale_artifact[i][1] + os.sep + whale_artifact[i][0])
 
-            # print(full_path)
-
             # Make Whale artifact ouput dir
             whale_output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                                 configuration.evidence_id + os.sep + par_id + os.sep + "web" + os.sep + "whale" + os.sep
@@ -529,8 +553,6 @@ class ChromiumConnector(interface.ModuleConnector):
                         profile_index = f.rfind(os.sep)
                         os_user_whale_profile.append([user, f[profile_index + 1:]])
 
-            # print(os_user_whale_profile)
-
             # Create profile dir in ouput dir
             if not os.path.isdir(whale_output_path):
                 for make_dir_tree in os_user_whale_profile:
@@ -541,7 +563,6 @@ class ChromiumConnector(interface.ModuleConnector):
                                         'Favicons', 'Cookies', 'Bookmarks']
 
             for make_dir_tree in os_user_whale_profile:
-
                 for file in chromium_artifact_file_list:
                     self.ExtractTargetFileToPath(
                         source_path_spec=source_path_spec,
@@ -566,7 +587,6 @@ class ChromiumConnector(interface.ModuleConnector):
 
             # Parse artifact
             for file_check in os_user_whale_profile:
-
                 files = [f for f in os.listdir(whale_output_path + file_check[0] + os.sep + file_check[1] + os.sep) if
                          os.path.isfile(
                              os.path.join(whale_output_path + file_check[0] + os.sep + file_check[1] + os.sep, f))]
@@ -620,7 +640,6 @@ class ChromiumConnector(interface.ModuleConnector):
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
                         row)
 
-                    # print(query)
                     configuration.cursor.execute_query(query)
 
             for download, profile_match in zip(whale_download_result, os_user_whale_profile):

@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 import os, sys, re
-from datetime import datetime
-
+from datetime import datetime, timedelta
 from utility import database
 
 
@@ -18,6 +17,41 @@ def USAGEDAYDETAIL(configuration):
 
     usage_history_list = []
     usage_history_count = 0
+
+    par_list = []
+    for i in (configuration.partition_list.values()):
+        # 문서파일 생성
+        query = f"SELECT name, from_unixtime(ctime,'%Y-%m-%d %H:%i:%s') as created_time, from_unixtime(mtime,'%Y-%m-%d %H:%i:%s') as modified_time, from_unixtime(atime,'%Y-%m-%d %H:%i:%s') as accessed_time FROM file_info where (extension like 'doc%' or extension like 'ppt%' or extension like 'xls%' or extension like 'pdf' or extension like 'hwp') AND (par_id='{i}')"
+        result_query = db.execute_query_mul(query)
+        if len(result_query) != 0:
+            for result_data in result_query:
+                try:
+                    if result_data[0] == 'document.doc' or result_data[0] == 'hancom.hwp':
+                        pass
+                    else:
+                        usage_day_detail_information = Usage_Day_Detail_Information()
+                        usage_history_list.append(usage_day_detail_information)
+                        usage_history_list[usage_history_count].regdate = datetime.strptime(result_data[1], '%Y-%m-%d %H:%M:%S')-timedelta(hours=9)
+                        usage_history_list[usage_history_count].evdnc_type = 'Created Time'
+                        usage_history_list[usage_history_count].artifact_type = 'File Info'
+                        usage_history_list[usage_history_count].information = result_data[0]
+                        usage_history_count = usage_history_count + 1
+                        usage_day_detail_information = Usage_Day_Detail_Information()
+                        usage_history_list.append(usage_day_detail_information)
+                        usage_history_list[usage_history_count].regdate = datetime.strptime(result_data[2], '%Y-%m-%d %H:%M:%S')-timedelta(hours=9)
+                        usage_history_list[usage_history_count].evdnc_type = 'Modified Time'
+                        usage_history_list[usage_history_count].artifact_type = 'File Info'
+                        usage_history_list[usage_history_count].information = result_data[0]
+                        usage_history_count = usage_history_count + 1
+                        usage_day_detail_information = Usage_Day_Detail_Information()
+                        usage_history_list.append(usage_day_detail_information)
+                        usage_history_list[usage_history_count].regdate = datetime.strptime(result_data[3], '%Y-%m-%d %H:%M:%S')-timedelta(hours=9)
+                        usage_history_list[usage_history_count].evdnc_type = 'Accessed Time'
+                        usage_history_list[usage_history_count].artifact_type = 'File Info'
+                        usage_history_list[usage_history_count].information = result_data[0]
+                        usage_history_count = usage_history_count + 1
+                except:
+                    print('-----Document Error')
 
     # 이벤트로그 -  로그온/로그오프
     query = f"SELECT task, time, user_sid FROM lv1_os_win_event_logs_logonoff WHERE (evd_id='{configuration.evidence_id}')"

@@ -1,28 +1,27 @@
 # -*- coding: utf-8 -*-
 """module for Prefetch."""
-import os, sys
-import time
+import os
 from datetime import datetime, timedelta
 
 from modules import logger
 from modules import manager
 from modules import interface
 from modules.windows_prefetch import PFExport2
-from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class PREFETCHConnector(interface.ModuleConnector):
     NAME = 'prefetch_connector'
-    DESCRIPTION = 'Moudle for Prefetch'
+    DESCRIPTION = 'Module for Prefetch'
 
     _plugin_classes = {}
 
     def __init__(self):
         super(PREFETCHConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
+
         # 모든 yaml 파일 리스트
         yaml_list = [this_file_path + 'lv1_os_win_prefetch.yaml',
                      this_file_path + 'lv1_os_win_prefetch_run_info.yaml',
@@ -35,16 +34,6 @@ class PREFETCHConnector(interface.ModuleConnector):
 
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
-
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id is None:
-            return False
-
-        print('[MODULE]: Prefetch Connect - partition ID(%s)' % par_id)
 
         # extension -> sig_type 변경해야 함
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano FROM file_info WHERE par_id='{par_id}' and " \

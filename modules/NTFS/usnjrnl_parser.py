@@ -29,5 +29,5 @@ def usnjrnl_parse(mft_file, usn_record):
         else:
             fr_file_path = ''
 
-    return (r_usn, r_source, r_reason, fr_reference_number, parent_fr_reference_number, r_timestamp,
+    return (r_usn, r_source, r_reason, str(fr_reference_number), str(parent_fr_reference_number), r_timestamp,
             fr_file_name, fr_file_path)

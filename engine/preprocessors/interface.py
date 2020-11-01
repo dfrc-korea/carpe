@@ -185,8 +185,7 @@ class WindowsRegistryKeyArtifactPreprocessorPlugin(ArtifactPreprocessorPlugin):
           PreProcessFail: if the preprocessing fails.
         """
 
-    def Collect(
-            self, knowledge_base, artifact_definition, searcher):
+    def Collect(self, knowledge_base, artifact_definition, searcher):
         """Collects values using a Windows Registry value artifact definition.
 
         Args:

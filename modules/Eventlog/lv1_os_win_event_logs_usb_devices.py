@@ -29,7 +29,7 @@ def EVENTLOGUSBDEVICES(configuration):
     #db.open()
     usb_list = []
     usb_count = 0
-    query = r"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total where (event_id like '1006' and source like '%Partition%') or (event_id like '507' and source like '%Storage%') or (event_id like '504'and source like '%Storage%') or (event_id like '10000'and source like '%System.evtx%') or (event_id like '20001'and source like '%System.evtx%') or (event_id like '20003'and source like '%System.evtx%') or (event_id like '2003'and source like '%DriverFrameworks%') or (event_id like '2101'and source like '%DriverFrameworks%') or (event_id like '2102'and source like '%DriverFrameworks%') or (event_id like '2901'and source like '%DriverFrameworks%')"
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id like '1006' and source like '%Partition%') or (event_id like '507' and source like '%Storage%') or (event_id like '504'and source like '%Storage%') or (event_id like '10000'and source like '%System.evtx%') or (event_id like '20001'and source like '%System.evtx%') or (event_id like '20003'and source like '%System.evtx%') or (event_id like '2003'and source like '%DriverFrameworks%') or (event_id like '2101'and source like '%DriverFrameworks%') or (event_id like '2102'and source like '%DriverFrameworks%') or (event_id like '2901'and source like '%DriverFrameworks%')"
     #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:

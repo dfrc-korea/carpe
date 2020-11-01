@@ -93,8 +93,7 @@ def mft_parse(info, mft_file, file_record, file_paths):
     else:
         fr_directory = 'N'
 
-    fr_number = MFT.EncodeFileRecordSegmentReference(file_record.get_master_file_table_number(),
-                                                     file_record.get_sequence_number())
+    fr_number = str(MFT.EncodeFileRecordSegmentReference(file_record.get_master_file_table_number(), file_record.get_sequence_number()))
 
     if len(file_paths) > 0:
         for file_path, attr_file_name in file_paths:
@@ -141,7 +140,7 @@ def mft_parse(info, mft_file, file_record, file_paths):
                 else:
                     file_path = MFT.PATH_SEPARATOR.join(['<Unknown>', attr_file_name.get_file_name()])
 
-                fr_number = index_entry.get_file_reference()
+                fr_number = str(index_entry.get_file_reference())
 
                 if attr_file_name.get_file_attributes() & Attributes.DUP_FILE_NAME_INDEX_PRESENT > 0:
                     fr_directory = 'Y'

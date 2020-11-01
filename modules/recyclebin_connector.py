@@ -8,8 +8,6 @@ from modules import logger
 from modules import manager
 from modules import interface
 from modules.windows_recyclebin import RecycleBinParser
-from dfvfs.lib import definitions as dfvfs_definitions
-
 
 class RECYCLEBINConnector(interface.ModuleConnector):
 
@@ -21,8 +19,7 @@ class RECYCLEBINConnector(interface.ModuleConnector):
     def __init__(self):
         super(RECYCLEBINConnector, self).__init__()
 
-    def Connect(self, configuration, source_path_spec, knowledge_base):
-        print('[MODULE]: RecycleBin Connect')
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
         # 모든 yaml 파일 리스트
@@ -32,14 +29,6 @@ class RECYCLEBINConnector(interface.ModuleConnector):
         table_list = ['lv1_os_win_recyclebin']
 
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
-            return False
-
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id == None:
             return False
 
         # extension -> sig_type 변경해야 함
@@ -88,6 +77,5 @@ class RECYCLEBINConnector(interface.ModuleConnector):
         query = "Insert into lv1_os_win_recyclebin values (%s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_recyclebin_info)
 
-        print('[MODULE]: RecycleBin parse success')
 
 manager.ModulesManager.RegisterModule(RECYCLEBINConnector)
