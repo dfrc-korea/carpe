@@ -1,7 +1,10 @@
-def covnert_to_UNIX(evernote_timestamp):
+from datetime import datetime
+
+
+def covnert_to_iso(evernote_timestamp):
     if evernote_timestamp is None:
         return evernote_timestamp
-    return evernote_timestamp * 86400 - 62135683200
+    return datetime.fromtimestamp(evernote_timestamp * 86400 - 62135683200).isoformat(timespec="seconds")+"Z"
 
 
 def _strip(str_data):

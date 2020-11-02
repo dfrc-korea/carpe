@@ -1,6 +1,6 @@
 import sqlite3
 import re
-from modules.Evernote.util import covnert_to_UNIX, _strip
+from modules.Evernote.util import covnert_to_iso, _strip
 
 
 def parse_user(connection: sqlite3.Connection):
@@ -43,6 +43,6 @@ def parse_user(connection: sqlite3.Connection):
         """,
     )
 
-    user_dict["created_time"] = covnert_to_UNIX(cursor.fetchone()[0])
+    user_dict["created_time"] = covnert_to_iso(cursor.fetchone()[0])
     user_dict.pop("url_for_user_id", None)
     return user_dict

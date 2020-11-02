@@ -1,5 +1,5 @@
 import sqlite3
-from modules.Evernote.util import covnert_to_UNIX, _strip
+from modules.Evernote.util import covnert_to_iso, _strip
 
 
 def parse_notes(connection: sqlite3.Connection):
@@ -29,7 +29,7 @@ def parse_notes(connection: sqlite3.Connection):
 
     def parse_note_data(index, data):
         if index > 7 and data is not None:
-            return covnert_to_UNIX(data)
+            return covnert_to_iso(data)
         if type(data) == str:
             return _strip(data)
         return data
