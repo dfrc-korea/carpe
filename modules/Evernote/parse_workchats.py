@@ -1,6 +1,6 @@
 import sqlite3
 import struct
-from modules.Evernote.util import covnert_to_UNIX, _strip
+from modules.Evernote.util import covnert_to_iso, _strip
 
 
 def parse_workchats(connection: sqlite3.Connection):
@@ -24,7 +24,7 @@ def parse_workchats(connection: sqlite3.Connection):
     ]
 
     for workchat_dict in workchat_dicts:
-        UNIX_timestamp = covnert_to_UNIX(workchat_dict["sent_time"])
+        UNIX_timestamp = covnert_to_iso(workchat_dict["sent_time"])
         if UNIX_timestamp is not None:
             workchat_dict["sent_time"] = UNIX_timestamp
         sender_id = workchat_dict["sender_id"]

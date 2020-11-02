@@ -7,6 +7,7 @@ from modules import chromium_connector
 from modules import defa_connector
 from modules import email_connector
 from modules import esedb_connector
+from modules import evernote_connector
 from modules import filehistory_connector
 from modules import iconcache_connector
 from modules import jumplist_connector
