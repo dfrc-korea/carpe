@@ -27,17 +27,16 @@ class EvernoteConnector(interface.ModuleConnector):
             + "schema"
             + os.sep
             + "evernote"
-            + os.sep
         )
         # 모든 yaml 파일 리스트
         yamls = [
-            this_file_path + "lv1_app_evernote_accounts.yaml",
-            this_file_path + "lv1_app_evernote_notes.yaml",
-            this_file_path + "lv1_app_evernote_workchats.yaml",
+            this_file_path + os.sep + "lv1_app_evernote_accounts.yaml",
+            this_file_path + os.sep + "lv1_app_evernote_notes.yaml",
+            this_file_path + os.sep + "lv1_app_evernote_workchats.yaml",
         ]
         # 모든 테이블 리스트
         tables = [
-            "lv1_app_evernote_contacts",
+            "lv1_app_evernote_accounts",
             "lv1_app_evernote_notes",
             "lv1_app_evernote_workchats",
         ]
@@ -53,30 +52,33 @@ class EvernoteConnector(interface.ModuleConnector):
             FROM file_info 
             WHERE par_id = '{par_id}' 
             AND extension = 'exb'
-            AND INSTR(parent_path, 'Evernote') > 0; 
+            AND parent_path like '%Evernote%') > 0; 
         """
 
         evernote_db_query_results: List = configuration.cursor.execute_query_mul(query)
 
         if len(evernote_db_query_results) == 0:
             return False
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
 
         for file_name, parent_path, _ in evernote_db_query_results:
-            file_path = parent_path[parent_path.find("/") :] + "/" + file_name
+            file_path = (
+                parent_path[parent_path.find(path_separator):] + path_separator + file_name
+            )
 
             output_path = (
                 configuration.root_tmp_path
-                + os.path.sep
+                + os.sep
                 + configuration.case_id
-                + os.path.sep
+                + os.sep
                 + configuration.evidence_id
-                + os.path.sep
+                + os.sep
                 + par_id
             )
 
             if not os.path.exists(output_path):
                 os.mkdir(output_path)
-
             self.ExtractTargetFileToPath(
                 source_path_spec=source_path_spec,
                 configuration=configuration,
@@ -86,7 +88,6 @@ class EvernoteConnector(interface.ModuleConnector):
 
             parse_result = evernote_parser.main(output_path + os.sep + file_name)
             account = parse_result["user"]
-            print(account)
             query = "INSERT INTO lv1_app_evernote_accounts values (%s, %s, %s, %s, %s, %s, %s)"
 
             account_tuple = tuple(
@@ -131,7 +132,7 @@ class EvernoteConnector(interface.ModuleConnector):
 
                 configuration.cursor.execute_query(query, workchat_tuple)
 
-            os.remove(output_path + os.path.sep + file_name)
+            os.remove(output_path + os.sep + file_name)
 
 
 manager.ModulesManager.RegisterModule(EvernoteConnector)

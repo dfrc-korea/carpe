@@ -5,23 +5,18 @@ import os
 from modules import manager
 from modules import interface
 
-
 from modules.FICA import main as fica
 
-
 class Fica(interface.ModuleConnector):
-    NAME = 'fica'
+    NAME = 'fica_connector'
     DESCRIPTION = 'Module for file carving'
 
     def __init__(self):
         super(Fica, self).__init__()
 
     def Connect(self, configuration, knowledge_base, source_path_spec=None, par_id=None):
-
-        if par_id:
-            output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
-                          configuration.evidence_id + os.sep + par_id
-
+        output_path = configuration.root_tmp_path
+        if par_id and source_path_spec.TYPE_INDICATOR is not 'OS':
             query = f"SELECT sector_size, cluster_size, par_size, start_sector FROM partition_info WHERE par_id='{par_id}';"
 
             result = configuration.cursor.execute_query(query)
@@ -48,9 +43,6 @@ class Fica(interface.ModuleConnector):
             }
 
         else:
-            output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
-                          configuration.evidence_id
-
             case_profile = {
                 "name": configuration.case_id,
                 "uid": configuration.case_id,
@@ -58,14 +50,15 @@ class Fica(interface.ModuleConnector):
                 "out": output_path,
                 "off_start": 0,
                 "off_end": 0,
-                "cluster": 2048,
-                "sector": 512,
+                "cluster": configuration.cluster_size,
+                "sector": configuration.sector_size,
                 "encode": "utf-8",
                 "extract": True,
                 "export": True
             }
 
-        fica.main(case_profile)
+        copier = fica.main(case_profile)
+        copier.to_sql('carve', configuration.cursor._conn)
 
 
 manager.ModulesManager.RegisterModule(Fica)

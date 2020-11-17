@@ -5,7 +5,6 @@ import re
 class CarpeFile(object):
     def __init__(self):
         super(CarpeFile, self).__init__()
-        self._id = 0
         self._p_id = ""
         self._inode = ""
         self._name = ""

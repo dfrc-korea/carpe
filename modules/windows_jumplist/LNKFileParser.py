@@ -1,16 +1,7 @@
 import os.path, sys
-
 from modules.windows_jumplist.consts import *
-from ctypes import *
 from modules.windows_jumplist.lib.yjSysUtils import *
 from modules.windows_jumplist.lib.yjDateTime import *
-from modules.windows_jumplist.lib.yjSQLite3 import TSQLite3
-
-
-def exit(exit_code, msg=None):
-    if debug_mode: exit_code = 0
-    if msg: print(msg)
-    sys.exit(exit_code)
 
 
 def get_files(path, w='*'):
@@ -41,14 +32,12 @@ class TGUID(LittleEndianStructure):
 
 
 def GUIDToString(v):
-    if debug_mode: assert type(v) is TGUID
     r = '%.8X-%.4X-%.4X-%.2X%.2X-%.2X%.2X%.2X%.2X%.2X%.2X' % (
         v.D1, v.D2, v.D3, v.D4[0], v.D4[1], v.D4[2], v.D4[3], v.D4[4], v.D4[5], v.D4[6], v.D4[7])
     return r
 
 
 class TLNKFileHeader(LittleEndianStructure):
-    _pack_ = 1
     _fields_ = [
         ('HeaderSize', c_uint32),  # 헤더의 크기로 항상 0x0000004C(76) 값
         ('CLSID', TGUID),  # 클래스 식별자(class identifier;CLSID)로 항상 00021401-0000-0000-C000-000000000046 값
@@ -68,7 +57,6 @@ class TLNKFileHeader(LittleEndianStructure):
 
 
 class TLinkFileLocationInfo(LittleEndianStructure):
-    _pack_ = 1
     _fields_ = [
         ('LinkInfoSize', c_uint32),
         ('LinkInfoHeaderSize', c_uint32),
@@ -81,7 +69,6 @@ class TLinkFileLocationInfo(LittleEndianStructure):
 
 
 class TLinkFileLocalVolumeTable(LittleEndianStructure):
-    _pack_ = 1
     _fields_ = [
         ('VolumeTableLength', c_uint32),
         ('VolumeType', c_uint32),
@@ -91,7 +78,6 @@ class TLinkFileLocalVolumeTable(LittleEndianStructure):
 
 
 class TLinkFileNetworkVolumeTable(LittleEndianStructure):
-    _pack_ = 1
     _fields_ = [
         ('NetVolumeLength', c_uint32),
         ('NetFlags', c_uint32),
@@ -105,7 +91,9 @@ class TLNKFileParser:
     def __init__(self, srcfile, src_id, fileName='', fileCTime='', fileMTime='', fileATime=''):
         self.src_id = src_id
         self.data = None
-        if type(srcfile) is str:
+        if srcfile == None :
+            return None
+        elif type(srcfile) is str:
             with open(srcfile, 'rb') as f:
                 self.data = TDataAccess(f.read())
             self.fileName = srcfile
@@ -134,10 +122,7 @@ class TLNKFileParser:
         data.position = pos
         p = data.data.find(b'\0', data.position)
         l = p - data.position + 1
-        try:
-            return data.read(l).decode('cp949').rstrip('\x00')
-        except Exception:
-            return ''
+        return data.read(l).decode('cp949').rstrip('\x00')
 
     def getUnicodeStrValue(self, pos):
         data = self.data
@@ -145,7 +130,7 @@ class TLNKFileParser:
         l = data.read(2, 'H')
         try:
             return data.read(l * 2).decode('utf-16')
-        except UnicodeDecodeError:
+        except:
             return ''
 
     def parse_data(self):
@@ -168,12 +153,14 @@ class TLNKFileParser:
         h = _cast(data.read(sizeof(TLNKFileHeader)), TLNKFileHeader)
         hinfo.append(addItem(RS_HeaderSize, '%d (%x)' % (h.HeaderSize, h.HeaderSize)))
         hinfo.append(addItem('CLSID', GUIDToString(h.CLSID)))
-        hinfo.append(addItem('Link Flags', str(h.LinkFlags)))
+        hinfo.append(addItem('Link Flags', '0x%.4X' % h.LinkFlags))
         node = _id
+        hinfo.append(addItem('HasLinkTargetIDList', RS_ExistsIDListInShellHeader if (h.LinkFlags & HasLinkTargetIDList) != 0 else RS_NoExistsIDListInShellHeader,
+                             node))
         hinfo.append(
-            addItem('HasLinkTargetIDList', RS_ExistsIDListInShellHeader if (h.LinkFlags & HasLinkTargetIDList) != 0 else RS_NoExistsIDListInShellHeader, node))
-        hinfo.append(
-            addItem('HasLinkInfo', RS_LinkInfoPresent if (h.LinkFlags & HasLinkInfo) != 0 else RS_NoLinkInfoAvailable, node))
+            addItem('HasLinkInfo', RS_LinkInfoPresent if (h.LinkFlags & HasLinkInfo) != 0 else RS_NoLinkInfoAvailable,
+                    node)
+        )
         if (h.LinkFlags & HasName) != 0:
             hinfo.append(addItem('HasName', RS_ShellLinkNamePresent, node))
         if (h.LinkFlags & HasRelativePath) != 0:
@@ -238,13 +225,13 @@ class TLNKFileParser:
         if h.FileAttrFlags != 0:
             hinfo.append(addItem(RS_TargetFileProp, str(h.FileAttrFlags)))
         if (h.FileCreationTime.LowDateTime + h.FileCreationTime.HighDateTime) != 0:
-            t = filetime_to_datetime(FileTime(h.FileCreationTime), 9)
+            t = filetime_to_datetime(FileTime(h.FileCreationTime), 0).isoformat()
             hinfo.append(addItem(RS_TargetFileCreateDT, t))
         if (h.FileAccessTime.LowDateTime + h.FileAccessTime.HighDateTime) != 0:
-            t = filetime_to_datetime(FileTime(h.FileAccessTime), 9)
+            t = filetime_to_datetime(FileTime(h.FileAccessTime), 0).isoformat()
             hinfo.append(addItem(RS_TargetFileAccessDT, t))
         if (h.FileModifiedTime.LowDateTime + h.FileModifiedTime.HighDateTime) != 0:
-            t = filetime_to_datetime(FileTime(h.FileModifiedTime), 9)
+            t = filetime_to_datetime(FileTime(h.FileModifiedTime), 0).isoformat()
             hinfo.append(addItem(RS_TargetFileModifyDT, t))
         if h.FileSize != 0:
             hinfo.append(addItem(RS_TargetFileSize, str(h.FileSize)))
@@ -255,7 +242,7 @@ class TLNKFileParser:
         hinfo.append(addItem(RS_ReservedField3, str(h._Reserved2)))
         if (h.LinkFlags & HasLinkTargetIDList) != 0:
             targetIDListSize = data.read(2, 'H')
-            hinfo.append(addItem('Target ID List', '0x%.4X (Size=%d)' % (data.position - 2, targetIDListSize)))
+            hinfo.append(addItem('Target ID List', 'Pos=0x%.4X, Size=%d' % (data.position - 2, targetIDListSize)))
             node = _id
             if targetIDListSize > 0:
                 i = 1
@@ -265,30 +252,28 @@ class TLNKFileParser:
                         hinfo.append(addItem('Terminator found', '', node))
                         break
                     hinfo.append(
-                        addItem('ID List entry - %.2d' % i, '0x%.4X (Size=%d)' % (data.position - 2, listLen), node))
+                        addItem('ID List entry - %.2d' % i, 'Pos=0x%.4X, Size=%d' % (data.position - 2, listLen), node))
                     data.position = data.position + (listLen - 2)
                     i += 1
 
         if (h.LinkFlags & HasLinkInfo) != 0:
-            hinfo.append(addItem('Link Info List', '0x%.4X' % data.position))
+            hinfo.append(addItem('Link Info List', 'Pos=0x%.4X' % data.position))
             node = _id
             LFLInfo = _cast(data.read(sizeof(TLinkFileLocationInfo)), TLinkFileLocationInfo)
             hinfo.append(addItem('Table Length', '%d (%x)' % (LFLInfo.LinkInfoSize, LFLInfo.LinkInfoSize), node))
             hinfo.append(
                 addItem('Header Length', '%d (%x)' % (LFLInfo.LinkInfoHeaderSize, LFLInfo.LinkInfoHeaderSize), node))
             if LFLInfo.LinkInfoFlags != 0:
-                hinfo.append(addItem('Link Info Flags', '', node))
+                hinfo.append(addItem('Link Info Flags', 'Pos=0x%.4X' % data.position, node))
                 subNode = _id
                 if (LFLInfo.LinkInfoFlags & VolumeIDAndLocalBasePath) != 0:
-                    hinfo.append(addItem('Flags 0x1', 'VolumeIDAndLocalBasePath', subNode))
+                    pass
                 if (LFLInfo.LinkInfoFlags & CommonNetworkRelativeLinkAndPathSuffix) != 0:
-                    hinfo.append(addItem('Flags 0x2', 'CommonNetworkRelativeLinkAndPathSuffix', subNode))
-                    hinfo.append(addItem(RS_TargetFilePath, RS_Network, subNode))
+                    pass
                 else:
                     hinfo.append(addItem(RS_TargetFilePath, RS_Local, subNode))
-                subNode = 0
                 if (LFLInfo.LinkInfoFlags & VolumeIDAndLocalBasePath) != 0:
-                    hinfo.append(addItem(RS_TargetFilePathInfo, ''))
+                    hinfo.append(addItem(RS_TargetFilePathInfo, 'Pos=0x%.4X' % data.position, subNode))
                     subNode = _id
                     if LFLInfo.LinkInfoHeaderSize > 0x1c:
                         data.position += 4
@@ -303,9 +288,8 @@ class TLNKFileParser:
                     hinfo.append(addItem('Drive Serial Number', '%x' % LFLVTable.VolumeSerialNbr, subNode))
 
                 if (LFLInfo.LinkInfoFlags & CommonNetworkRelativeLinkAndPathSuffix) != 0:
-                    if subNode == 0:
-                        hinfo.append(addItem(RS_TargetFilePathInfo, ''))
-                        subNode = _id
+                    hinfo.append(addItem(RS_TargetFilePathInfo, 'Pos=0x%.4X' % data.position, subNode))
+                    subNode = _id
                     LFNVTable = _cast(data.read(sizeof(TLinkFileNetworkVolumeTable)), TLinkFileNetworkVolumeTable)
                     if LFNVTable.NetNameOffset > 0x14:
                         data.position += 4
@@ -379,6 +363,8 @@ class TLNKFileParser:
         stpos = data.position
         while stpos <= data.size - 10:
             size = data.read(4, '<I')
+            if size == 0:
+                return result
             blk_sig = data.read(4, '<I')
             if blk_sig == 0xa0000003:
                 hinfo.append(addItem('Distributed Tracker', 'Pos=0x%.4X' % data.position))
@@ -392,11 +378,11 @@ class TLNKFileParser:
                 id = data.data[sp:sp + 6]
                 hinfo.append(
                     addItem('Mac Address', '%.2x:%.2x:%.2x:%.2x:%.2x:%.2x' % (id[0], id[1], id[2], id[3], id[4], id[5]),
-                            node))
+                            node)
+                )
                 pass
             data.position = stpos + size
             stpos = data.position
-
         return result
 
     def parse(self):
@@ -405,100 +391,19 @@ class TLNKFileParser:
         finfo = result['LinkFileInfo']
         finfo.append(
             [self.src_id, ExtractFileName(fn), ExtractFilePath(fn), self.fileCTime, self.fileMTime, self.fileATime])
-        if debug_mode: assert len(finfo[0]) == len(finfo[1])
+        if debug_mode:
+            assert len(finfo[0]) == len(finfo[1])
         result.update(self.parse_data())
         return result
 
 
-def printHelp():
-    print(
-        """
-    Usage:
-       LNKFileParser.py <LNK Filename> <Output .db Filename>
-       LNKFileParser.py <Path> <Output .db Filename>
-
-       >python LNKFileParser.py 
-       >python LNKFileParser.py c:\lnk_samples re.db
-       >python LNKFileParser.py Telegram.lnk re.db
-       >python LNKFileParser.py 메모장.lnk re.db
-    """)
-
-
-def main(file, app_path, file_name):
-    """
-    argc = len(argv)
-    if argc <= 2:
-        printHelp()
-        exit(0)
-    """
-    fn = file
-    # 처리할 소스 파일(src_files)을 구한다.
-    src_files = []
-    src_files.append(fn)
-    """
-    if os.path.isfile(fn): 
-        if ExtractFilePath(fn) == '': fn = app_path + fn
-        if FileExists(fn): src_files.append(fn)
-        else: exit(1, 'Error: File not found - "%s"' % fn)
-    else: 
-        if not DirectoryExists(fn): exit(1, 'Error: Directory not found - "%s"' % fn)
-        src_files = get_files(fn, '*.lnk')
-    """
-    """
-    dest_file = argv[2]
-    if ExtractFilePath(dest_file) == '': dest_file = app_path + dest_file
-
-    # 결과 db를 생성한다.
-    if FileExists(dest_file): os.remove(dest_file)
-    DDL = ['CREATE TABLE LinkFileInfo(sid integer PRIMARY KEY, Name VARCHAR2(255) NOT NULL, Path VARCHAR2(255), CreationTime VARCHAR2(30), ModifiedTime VARCHAR2(30), AccessTime VARCHAR2(30));',
-           'CREATE TABLE LinkHeaderInfo(_id integer PRIMARY KEY AUTOINCREMENT, sid Integer, ParentIdx Integer, Item VARCHAR2(255), ItemInfo VARCHAR2(255));']
-    db = TSQLite3(dest_file)
-    if db.conn is None: 
-        exit(1, 'Error: Cannot create the database connection.')
-    for sql in DDL:
-        db.execSQL(sql)
-
-    def insertDatasetIntoTable(db, table, dataset):
-        if len(dataset) == 1: return
-        if debug_mode: assert len(dataset[0]) == len(dataset[1])
-        sql = db.getInsertSQL(table, dataset[0])
-        del dataset[0]
-        if db.execmanySQL(sql, dataset): 
-            db.commit()
-    """
-    # print('Processing...')
-    i = 0
-    for fn in src_files:
-        # print(ExtractFileName(fn))
-        LNKFileParser = TLNKFileParser(fn, i, fileName=file_name)
-        if LNKFileParser.header.HeaderSize != 76:
-            return False
-        """
-        if len(src_files) == 1: 
-            exit(1, 'Error: Unknown format')
-        continue
-        """
-        i += 1
-        result = LNKFileParser.parse()
-        if debug_mode:
-            assert (len(result['LinkFileInfo'][0]) == 6) and (len(result['LinkHeaderInfo'][0]) == 4)
+def main(file, file_name):
+    LNKFileParser = TLNKFileParser(file, 0, fileName=file_name)
+    print(file_name)
+    if LNKFileParser.data == None:
+        return False
+    if LNKFileParser.header.HeaderSize != 76:
+        return False
+    result = LNKFileParser.parse()
 
     return result
-    """
-    # 결과를 db에 저장한다.
-    tables = ['LinkFileInfo', 'LinkHeaderInfo']
-    for table in tables:
-        insertDatasetIntoTable(db, table, result[table])
-    print('%d files\r\nFinished. - "%s"' % (i, ExtractFileName(dest_file)))
-    """
-
-
-"""
-if sys.version_info < (3, 8):
-    print('\'%s\' \r\nError: \'%s\' works on Python v3.8 and above.' % (sys.version, ExtractFileName(__file__)))
-    exit(1)
-
-if __name__ == "__main__":
-  app_path = IncludeTrailingBackslash(os.path.dirname(os.path.abspath( __file__ )))  # 현재 소스 경로
-  main(sys.argv, len(sys.argv))
-"""

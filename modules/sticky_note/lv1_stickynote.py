@@ -53,9 +53,7 @@ def Parse2FilePath(data):
 
 
 def Parse2TimeStamp(data):
-    # 20.04.20
-    # 타임스탬프의 형식이 뭔지 몰라서 그냥 반환함.
-    return data
+    return datetime.datetime.fromtimestamp(data / 10000000 - 62135596800).strftime('%Y-%m-%dT%H:%M:%S.%f')+'Z'
 
 
 def Parse2Active(data):
@@ -173,7 +171,6 @@ def STICKYNOTE(filename):
     '''
     basepath = os.getcwd()
     #filename = "[win10]_1809_가상환경_plum.sqlite"
-    # filename = "[win10]_1909_mina_c_plum.sqlite"
     target_file = basepath + "//" + filename
     '''
     target_file = filename
@@ -202,8 +199,8 @@ def STICKYNOTE(filename):
             result[note_count].type = note_data_row[1]
             result[note_count].content = note_data_row[2]
             result[note_count].activated = note_data_row[3]
-            result[note_count].createdtime = datetime(note_data_row[4]/10000000 - 62135596800, 'unixepoch')
-            result[note_count].modifiedtime = datetime(note_data_row[5]/10000000 - 62135596800, 'unixepoch')
+            result[note_count].createdtime = note_data_row[4]
+            result[note_count].modifiedtime = note_data_row[5]
             note_count = note_count + 1
 
         sql_command = "SELECT "

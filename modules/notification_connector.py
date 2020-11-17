@@ -38,8 +38,10 @@ class NotificationConnector(interface.ModuleConnector):
                     continue
                 users.append(hostname.username)
 
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
         for user in users:
-            filepath = f'root/Windows/System32/config'
+            filepath = f'root{query_separator}Windows{query_separator}System32{query_separator}config'
             query = f"SELECT name, parent_path FROM file_info WHERE par_id = '{par_id}' and " \
                     f"((name like 'SOFTWARE' and parent_path like '{filepath}') or " \
                     f"(name like 'SOFTWARE.LOG1' and parent_path like '{filepath}') or " \
@@ -48,6 +50,7 @@ class NotificationConnector(interface.ModuleConnector):
             results = configuration.cursor.execute_query_mul(query)
 
             if len(results) == 0 or results == -1:
+                print("There are no registry files")
                 return False
 
             file_objects = {
@@ -60,15 +63,15 @@ class NotificationConnector(interface.ModuleConnector):
                 if file[0] == 'SOFTWARE':
                     file_objects['primary'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
                                                                           configuration=configuration,
-                                                                          file_path=file[1][4:] + '/' + file[0])
+                                                                          file_path=file[1][4:] + path_separator + file[0])
                 elif file[0] == 'SOFTWARE.LOG1':
                     file_objects['log1'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
                                                                        configuration=configuration,
-                                                                       file_path=file[1][4:] + '/' + file[0])
+                                                                       file_path=file[1][4:] + path_separator + file[0])
                 elif file[0] == 'SOFTWARE.LOG2':
                     file_objects['log2'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
                                                                        configuration=configuration,
-                                                                       file_path=file[1][4:] + '/' + file[0])
+                                                                       file_path=file[1][4:] + path_separator + file[0])
 
             major_version, build_number = noti.get_win_version(file_objects)
 
@@ -77,27 +80,34 @@ class NotificationConnector(interface.ModuleConnector):
             file_objects['log2'].close()
 
             if major_version == 10:
-                user_path = f'/Users/{user}'
+                user_path = f'{query_separator}Users{query_separator}{user}'
                 output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                               configuration.evidence_id + os.sep + par_id
-                info = tuple([par_id, configuration.case_id, configuration.evidence_id])
+                info = [par_id, configuration.case_id, configuration.evidence_id]
                 noti_list = []
 
                 # 1607 (Redstone 1) and over
                 if build_number >= 14393:
-                    noti_path = f"/AppData/Local/Microsoft/Windows/Notifications"
+                    noti_path = f"{query_separator}AppData{query_separator}Local{query_separator}Microsoft{query_separator}Windows{query_separator}Notifications"
                     self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
-                                                 configuration=configuration,
-                                                 dir_path=user_path + noti_path,
-                                                 output_path=output_path)
-                    noti_tuple = noti.new_noti_parser(output_path + os.sep + 'Notifications'
-                                                      + os.sep + 'wpndatabase.db')
-                    for data in noti_tuple:
+                                                configuration=configuration,
+                                                dir_path=user_path + noti_path,
+                                                output_path=output_path)
+                    noti_data = noti.new_noti_parser(output_path + os.sep + 'Notifications'
+                                                     + os.sep + 'wpndatabase.db')
+                    for data in noti_data:
+                        data[5] = configuration.apply_time_zone(data[5], knowledge_base.time_zone)  # expiry_time
+                        data[6] = configuration.apply_time_zone(data[6], knowledge_base.time_zone)  # arrival_time
+                        data[7] = configuration.apply_time_zone(data[7], knowledge_base.time_zone)  # boot_id
+                        data[10] = configuration.apply_time_zone(data[10], knowledge_base.time_zone)  # created_time
+                        data[11] = configuration.apply_time_zone(data[11], knowledge_base.time_zone)  # modified_time
                         noti_list.append(info + data)
+
                     query = f"Insert into {table_list[1]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
                             f"%s, %s, %s, %s, %s);"
                 else:
-                    noti_path = "/AppData/Local/Microsoft/Windows/Notifications/appdb.dat"
+                    noti_path = f"{query_separator}AppData{query_separator}Local{query_separator}" \
+                        f"Microsoft{query_separator}Windows{query_separator}Notifications{query_separator}appdb.dat"
                     self.ExtractTargetFileToPath(source_path_spec=source_path_spec,
                                                  configuration=configuration,
                                                  file_path=user_path + noti_path,

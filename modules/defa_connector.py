@@ -43,9 +43,11 @@ class DEFAConnector(interface.ModuleConnector):
         xlsx_plugin = None
         pdf_plugin = None
 
+        query_separator  = self.GetQuerySeparator(source_path_spec, configuration) 
+        path_separator = self.GetPathSeparator(source_path_spec)
         # sig_type -> extension 임시 변경,
         query = f"SELECT name, parent_path, sig_type, extension FROM file_info WHERE par_id='{par_id}'" \
-                f"and parent_path not like '%/Hnc/Office%' and parent_path not like '%_damaged%' and parent_path not like '%_encrypted%' and ("  # and parent_path not like '%_damaged/%' 임시
+                f"and parent_path not like '%{query_separator}Hnc{query_separator}Office%' and parent_path not like '%_damaged%' and parent_path not like '%_encrypted%' and ("  # and parent_path not like '%_damaged/%' 임시
 
         for i in range(0, len(self._plugins)):
             if self._plugins[i].plugin_name == 'HWP':
@@ -80,7 +82,7 @@ class DEFAConnector(interface.ModuleConnector):
 
         document_files = configuration.cursor.execute_query_mul(query)
 
-        if len(document_files) == 0:
+        if document_files == -1 or len(document_files) == 0:
             return False
 
         if configuration.standalone_check == True:
@@ -94,9 +96,11 @@ class DEFAConnector(interface.ModuleConnector):
             config.read(conf_file)
             _host = config.get('elasticsearch', 'host')
             _port = config.getint('elasticsearch', 'port')
+            _elastic_id = config.get('elasticsearch', 'id')
+            _elastic_passwd = config.get('elasticsearch', 'passwd')
             _index_name = config.get('document', 'index')
             _type_name = config.get('document', 'type')
-            es = Elasticsearch(hosts=_host, port=_port)
+            es = Elasticsearch(hosts=_host, port=_port, http_auth=(_elastic_id, _elastic_passwd))
 
         # for test
         total_count = len(document_files)
@@ -104,9 +108,10 @@ class DEFAConnector(interface.ModuleConnector):
         # tmp = 0
         for document in document_files:
             # tmp += 1
-            # if tmp == 300:  # 임시
+            # if tmp == 15:  # 임시
             #     break
-            document_path = document[1][document[1].find('/'):] + '/' + document[0]  # document full path
+            print(document[0])
+            document_path = document[1][document[1].find(path_separator):] + path_separator + document[0]  # document full path
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                           configuration.evidence_id + os.sep + par_id + os.sep + hashlib.sha1(
                 document_path.encode('utf-8')).hexdigest()
@@ -152,7 +157,7 @@ class DEFAConnector(interface.ModuleConnector):
             result.download_path = file_path
             result.full_path = document_path  # 이미지 내 full_path
             result.path_with_ext = document_path  # 이미지 내 full_path
-            result.parent_full_path = document_path[:document_path.rfind('/')]
+            result.parent_full_path = document_path[:document_path.rfind(os.path.sep)]
             result.name = document[0]
             result.original_size = os.path.getsize(file_path)
             result.ole_path = ole_path
@@ -194,7 +199,16 @@ class DEFAConnector(interface.ModuleConnector):
                     print(f"Error : {str(e)}")
                     continue
         if configuration.standalone_check == True:
-            query = "Insert into lv1_file_document values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+            query = "Insert into lv1_file_document values (%s, %s, %s, %s, %s, " \
+                    "%s, %s, %s, %s, %s, " \
+                    "%s, %s, %s, %s, %s, " \
+                    "%s, %s, %s, %s, %s, " \
+                    "%s, %s, %s, %s, %s, " \
+                    "%s, %s, %s, %s, %s, " \
+                    "%s, %s, %s, %s, %s, " \
+                    "%s, %s, %s, %s, %s, " \
+                    "%s, %s, %s, %s, %s, " \
+                    "%s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_document)
 
             # print(f"Total Count : {total_count}, Error Count : {error_count}")

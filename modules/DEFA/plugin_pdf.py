@@ -149,7 +149,7 @@ class PDFPlugin(interface.DEFAPlugin):
                     data.creator = None
                 # data.creator = pdf.metadata[0]['Creator'].decode('UTF-8')
                 try:
-                    data.trapped = pdf.metadata[0]['Trapped']
+                    data.trapped = pdf.metadata[0]['Trapped']['name']
                 except Exception:
                     data.trapped = None
 

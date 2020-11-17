@@ -14,7 +14,6 @@ class CLITool(object):
     _PREFERRED_ENCODING = 'utf-8'
 
     NAME = ''
-    VERSION = ''
 
     def __init__(self, input_reader=None, output_writer=None):
         super(CLITool, self).__init__()
@@ -31,12 +30,20 @@ class CLITool(object):
         self._output_writer = output_writer
         self._log_file = None
 
+        # carpe_extract
+        self.par_id = None
+        self.extract_path = None
+
+        # carpe_carve
+        self.sector_size = None
+        self.cluster_size = None
+
         self.preferred_encoding = preferred_encoding
         self.show_troubleshooting = False
 
     def GetVersionInformation(self):
         # TODO: 나중에 버전 추가해야함
-        return 'carpe - {0:s} version {1:s}'.format(self.NAME, self.VERSION)
+        return 'carpe - {0:s} version {1:s}'.format(self.NAME, "2020-02-20")
 
     def AddBasicOptions(self, argument_group):
         version_string = self.GetVersionInformation()
@@ -119,6 +126,14 @@ class CLITool(object):
                 self.NAME, local_date_time.year, local_date_time.month,
                 local_date_time.day, local_date_time.hour, local_date_time.minute,
                 local_date_time.second)
+
+    def parse_extract_options(self, options):
+        self.extract_path = getattr(options, 'extract_path', None)
+        self.par_id = getattr(options, 'par_id', None)
+
+    def parse_carve_options(self, options):
+        self.sector_size = getattr(options, 'sector_size', 512)
+        self.cluster_size = getattr(options, 'cluster_size', 2048)
 
     def ListModules(self):
         # TODO: Modules List 출력해줘야함

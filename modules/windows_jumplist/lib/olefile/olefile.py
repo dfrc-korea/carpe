@@ -110,6 +110,7 @@ import struct, array, os.path, datetime, logging
 if str is not bytes:
     long = int
 
+'''
 # Need to make sure we use xrange both on Python 2 and 3.x:
 try:
     # on Python 2 we need xrange:
@@ -117,6 +118,8 @@ try:
 except:
     # no xrange, for Python 3 it was renamed as range:
     iterrange = range
+'''
+iterrange = range
 
 #[PL] workaround to fix an issue with array item size on 64 bits systems:
 if array.array('L').itemsize == 4:
@@ -141,13 +144,15 @@ elif array.array('i').itemsize == 4:
 else:
     raise ValueError('Need to fix a bug with 32 bit arrays, please contact author...')
 
-
+'''
 #[PL] These workarounds were inspired from the Path module
 # (see http://www.jorendorff.com/articles/python/path/)
 try:
     basestring
 except NameError:
     basestring = str
+'''
+basestring = str
 
 #[PL] Experimental setting: if True, OLE filenames will be kept in Unicode
 # if False (default PIL behaviour), all filenames are converted to Latin-1.

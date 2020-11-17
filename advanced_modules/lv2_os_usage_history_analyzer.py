@@ -31,8 +31,9 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
 
             if par_id == None:
                 return False
-
-            query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') and extension = 'evtx' and parent_path = 'root/Windows/System32/winevt/Logs'"
+            query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+            query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') and extension = 'evtx' and " \
+                f"parent_path = 'root{query_separator}Windows{query_separator}System32{query_separator}winevt{query_separator}Logs'"
             eventlog_files = configuration.cursor.execute_query_mul(query)
 
             if len(eventlog_files) == 0:

@@ -2,7 +2,7 @@
 """module for Chromium Web Browser."""
 import os
 import shutil
-
+from sys import path
 
 from modules import logger
 from modules import manager
@@ -33,6 +33,8 @@ class ChromiumConnector(interface.ModuleConnector):
 
         user_list = []
 
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
         if not knowledge_base._user_accounts:
             return False
 
@@ -41,11 +43,11 @@ class ChromiumConnector(interface.ModuleConnector):
                 if hostname.identifier.find('S-1-5-21') == -1:
                     continue
 
-                chrome_query += f"parent_path= \'root/Users/{hostname.username}/AppData/Local/Google/Chrome/User Data\' or "
-                whale_query += f"parent_path= \'root/Users/{hostname.username}/AppData/Local/Naver/Naver Whale/User Data\' or "
-                chromium_edge_query += f"parent_path= \'root/Users/{hostname.username}/AppData/Local/Microsoft/Edge/User Data\' or "
-                opera_query += f"parent_path= \'root/Users/{hostname.username}/AppData/Roaming/Opera Software/Opera Stable\' or "
-                firefox_query += f"parent_path= \'root/Users/{hostname.username}/AppData/Roaming/Mozilla/Firefox/Profiles\' or "
+                chrome_query += f"parent_path like \'root{query_separator}Users{query_separator}{hostname.username}{query_separator}AppData{query_separator}Local{query_separator}Google{query_separator}Chrome{query_separator}User Data\' or "
+                whale_query += f"parent_path like \'root{query_separator}Users{query_separator}{hostname.username}{query_separator}AppData{query_separator}Local{query_separator}Naver{query_separator}Naver Whale{query_separator}User Data\' or "
+                chromium_edge_query += f"parent_path like \'root{query_separator}Users{query_separator}{hostname.username}{query_separator}AppData{query_separator}Local{query_separator}Microsoft{query_separator}Edge{query_separator}User Data\' or "
+                opera_query += f"parent_path like \'root{query_separator}Users{query_separator}{hostname.username}{query_separator}AppData{query_separator}Roaming{query_separator}Opera Software{query_separator}Opera Stable\' or "
+                firefox_query += f"parent_path like \'root{query_separator}Users{query_separator}{hostname.username}{query_separator}AppData{query_separator}Roaming{query_separator}Mozilla{query_separator}Firefox{query_separator}Profiles\' or "
                 user_list.append(hostname.username)
 
         chrome_query = chrome_query[:-4] + ")and not type='7';"
@@ -68,7 +70,7 @@ class ChromiumConnector(interface.ModuleConnector):
                          + 'chromium_edge' + os.sep
         opera_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'web' + os.sep \
                           + 'opera' + os.sep
-        firefox_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'web' + os.sep\
+        firefox_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'web' + os.sep \
                             + 'firefox' + os.sep
 
         # Web Browser yaml file list
@@ -87,51 +89,51 @@ class ChromiumConnector(interface.ModuleConnector):
                             chrome_file_path + 'lv1_app_web_chrome_google_account.yaml',
                             chrome_file_path + 'lv1_app_web_chrome_zoom_level.yaml']
 
-        whale_yaml_list = [whale_file_path+'lv1_app_web_whale_bookmarks.yaml',
-                           whale_file_path+'lv1_app_web_whale_download.yaml',
-                           whale_file_path+'lv1_app_web_whale_visit_urls.yaml',
-                           whale_file_path+'lv1_app_web_whale_visit_history.yaml',
-                           whale_file_path+'lv1_app_web_whale_search_terms.yaml',
-                           whale_file_path+'lv1_app_web_whale_cookies.yaml',
-                           whale_file_path+'lv1_app_web_whale_top_sites.yaml',
-                           whale_file_path+'lv1_app_web_whale_autofill.yaml',
-                           whale_file_path+'lv1_app_web_whale_logindata.yaml',
-                           whale_file_path+'lv1_app_web_whale_shortcuts.yaml',
-                           whale_file_path+'lv1_app_web_whale_favicons.yaml']
+        whale_yaml_list = [whale_file_path + 'lv1_app_web_whale_bookmarks.yaml',
+                           whale_file_path + 'lv1_app_web_whale_download.yaml',
+                           whale_file_path + 'lv1_app_web_whale_visit_urls.yaml',
+                           whale_file_path + 'lv1_app_web_whale_visit_history.yaml',
+                           whale_file_path + 'lv1_app_web_whale_search_terms.yaml',
+                           whale_file_path + 'lv1_app_web_whale_cookies.yaml',
+                           whale_file_path + 'lv1_app_web_whale_top_sites.yaml',
+                           whale_file_path + 'lv1_app_web_whale_autofill.yaml',
+                           whale_file_path + 'lv1_app_web_whale_logindata.yaml',
+                           whale_file_path + 'lv1_app_web_whale_shortcuts.yaml',
+                           whale_file_path + 'lv1_app_web_whale_favicons.yaml']
 
-        edge_yaml_list = [edge_file_path+'lv1_app_web_chromium_edge_search_terms.yaml',
-                          edge_file_path+'lv1_app_web_chromium_edge_visit_urls.yaml',
-                          edge_file_path+'lv1_app_web_chromium_edge_visit_history.yaml',
-                          edge_file_path+'lv1_app_web_chromium_edge_download.yaml',
-                          edge_file_path+'lv1_app_web_chromium_edge_shortcuts.yaml',
-                          edge_file_path+'lv1_app_web_chromium_edge_favicons.yaml',
-                          edge_file_path+'lv1_app_web_chromium_edge_cookies.yaml',
-                          edge_file_path+'lv1_app_web_chromium_edge_autofill.yaml',
-                          edge_file_path+'lv1_app_web_chromium_edge_logindata.yaml',
-                          edge_file_path+'lv1_app_web_chromium_edge_bookmarks.yaml',
-                          edge_file_path+'lv1_app_web_chromium_edge_top_sites.yaml']
+        edge_yaml_list = [edge_file_path + 'lv1_app_web_chromium_edge_search_terms.yaml',
+                          edge_file_path + 'lv1_app_web_chromium_edge_visit_urls.yaml',
+                          edge_file_path + 'lv1_app_web_chromium_edge_visit_history.yaml',
+                          edge_file_path + 'lv1_app_web_chromium_edge_download.yaml',
+                          edge_file_path + 'lv1_app_web_chromium_edge_shortcuts.yaml',
+                          edge_file_path + 'lv1_app_web_chromium_edge_favicons.yaml',
+                          edge_file_path + 'lv1_app_web_chromium_edge_cookies.yaml',
+                          edge_file_path + 'lv1_app_web_chromium_edge_autofill.yaml',
+                          edge_file_path + 'lv1_app_web_chromium_edge_logindata.yaml',
+                          edge_file_path + 'lv1_app_web_chromium_edge_bookmarks.yaml',
+                          edge_file_path + 'lv1_app_web_chromium_edge_top_sites.yaml']
 
-        opera_yaml_list = [opera_file_path+'lv1_app_web_opera_search_terms.yaml',
-                           opera_file_path+'lv1_app_web_opera_visit_urls.yaml',
-                           opera_file_path+'lv1_app_web_opera_visit_history.yaml',
-                           opera_file_path+'lv1_app_web_opera_autofill.yaml',
-                           opera_file_path+'lv1_app_web_opera_bookmarks.yaml',
-                           opera_file_path+'lv1_app_web_opera_cookies.yaml',
-                           opera_file_path+'lv1_app_web_opera_favicons.yaml',
-                           opera_file_path+'lv1_app_web_opera_logindata.yaml',
-                           opera_file_path+'lv1_app_web_opera_shortcuts.yaml',
-                           opera_file_path+'lv1_app_web_opera_download.yaml']
+        opera_yaml_list = [opera_file_path + 'lv1_app_web_opera_search_terms.yaml',
+                           opera_file_path + 'lv1_app_web_opera_visit_urls.yaml',
+                           opera_file_path + 'lv1_app_web_opera_visit_history.yaml',
+                           opera_file_path + 'lv1_app_web_opera_autofill.yaml',
+                           opera_file_path + 'lv1_app_web_opera_bookmarks.yaml',
+                           opera_file_path + 'lv1_app_web_opera_cookies.yaml',
+                           opera_file_path + 'lv1_app_web_opera_favicons.yaml',
+                           opera_file_path + 'lv1_app_web_opera_logindata.yaml',
+                           opera_file_path + 'lv1_app_web_opera_shortcuts.yaml',
+                           opera_file_path + 'lv1_app_web_opera_download.yaml']
 
-        firefox_yaml_list = [firefox_file_path+'lv1_app_web_firefox_visit_history.yaml',
-                             firefox_file_path+'lv1_app_web_firefox_visit_urls.yaml',
-                             firefox_file_path+'lv1_app_web_firefox_domain.yaml',
-                             firefox_file_path+'lv1_app_web_firefox_download.yaml',
-                             firefox_file_path+'lv1_app_web_firefox_cookies.yaml',
-                             firefox_file_path+'lv1_app_web_firefox_permissions.yaml',
-                             firefox_file_path+'lv1_app_web_firefox_formhistory.yaml',
-                             firefox_file_path+'lv1_app_web_firefox_favicons.yaml',
-                             firefox_file_path+'lv1_app_web_firefox_content_prefs.yaml',
-                             firefox_file_path+'lv1_app_web_firefox_bookmarks.yaml']
+        firefox_yaml_list = [firefox_file_path + 'lv1_app_web_firefox_visit_history.yaml',
+                             firefox_file_path + 'lv1_app_web_firefox_visit_urls.yaml',
+                             firefox_file_path + 'lv1_app_web_firefox_domain.yaml',
+                             firefox_file_path + 'lv1_app_web_firefox_download.yaml',
+                             firefox_file_path + 'lv1_app_web_firefox_cookies.yaml',
+                             firefox_file_path + 'lv1_app_web_firefox_permissions.yaml',
+                             firefox_file_path + 'lv1_app_web_firefox_formhistory.yaml',
+                             firefox_file_path + 'lv1_app_web_firefox_favicons.yaml',
+                             firefox_file_path + 'lv1_app_web_firefox_content_prefs.yaml',
+                             firefox_file_path + 'lv1_app_web_firefox_bookmarks.yaml']
 
         # Web Browser table list
         chrome_table_list = ['lv1_app_web_chrome_search_terms',
@@ -215,10 +217,10 @@ class ChromiumConnector(interface.ModuleConnector):
             for i in range(len(chrome_artifact)):
 
                 if 'Default' in chrome_artifact[i][0]:
-                    full_path.append(chrome_artifact[i][1] + os.sep + chrome_artifact[i][0])
+                    full_path.append(chrome_artifact[i][1] + query_separator + chrome_artifact[i][0])
 
                 if 'Profile' in chrome_artifact[i][0]:
-                    full_path.append(chrome_artifact[i][1] + os.sep + chrome_artifact[i][0])
+                    full_path.append(chrome_artifact[i][1] + query_separator + chrome_artifact[i][0])
 
             # print(full_path)
 
@@ -232,19 +234,20 @@ class ChromiumConnector(interface.ModuleConnector):
             for f in full_path:
                 for user in user_list:
                     if f.find(user) != -1:
+                        f = f.replace(query_separator, os.sep)
                         profile_index = f.rfind(os.sep)
                         os_user_chrome_profile.append([user, f[profile_index + 1:]])
-
+        
             # print(os_user_chrome_profile)
 
-            # Create profile dir in ouput dir
-            if os.path.isdir(chrome_output_path) == False:
+            # Create profile dir in output dir
+            if not os.path.isdir(chrome_output_path):
                 for make_dir_tree in os_user_chrome_profile:
                     os.makedirs(chrome_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
             # Extract chrome artifact file
-            chromium_artifact_file_list = ['Preferences', 'History', 'Login Data', 'Shortcuts', 'Top Sites', 'Web Data', 'Favicons',
-                                         'Cookies', 'Bookmarks']
+            chromium_artifact_file_list = ['Preferences', 'History', 'Login Data', 'Shortcuts', 'Top Sites', 'Web Data',
+                                           'Favicons', 'Cookies', 'Bookmarks']
 
             for make_dir_tree in os_user_chrome_profile:
 
@@ -252,8 +255,10 @@ class ChromiumConnector(interface.ModuleConnector):
                     self.ExtractTargetFileToPath(
                         source_path_spec=source_path_spec,
                         configuration=configuration,
-                        file_path='/Users/' + make_dir_tree[0] + '/AppData/Local/Google/Chrome/User Data/' +
-                                  make_dir_tree[1] + '/' + file,
+                        file_path= path_separator + 'Users' + path_separator  + make_dir_tree[0] + 
+                        f'{path_separator}AppData{path_separator}Local{path_separator}Google' +
+                        f'{path_separator}Chrome{path_separator}User Data{path_separator}' +
+                        make_dir_tree[1] + path_separator + file,
                         output_path=chrome_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
             print("[Web] Chrome artifact files extraction success")
@@ -332,7 +337,7 @@ class ChromiumConnector(interface.ModuleConnector):
                     table_name = 'lv1_app_web_chrome_search_terms'
 
                     row = list(row)
-                    row[2] = configuration.apply_time_zone(row[2], knowledge_base.time_zone)    # searched_time
+                    row[2] = configuration.apply_time_zone(row[2], knowledge_base.time_zone)  # searched_time
                     row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" \
@@ -373,10 +378,11 @@ class ChromiumConnector(interface.ModuleConnector):
                     table_name = 'lv1_app_web_chrome_download'
 
                     row = list(row)
-                    row[7] = configuration.apply_time_zone(row[7], knowledge_base.time_zone)    # start_time
-                    row[8] = configuration.apply_time_zone(row[8], knowledge_base.time_zone)    # end_time
-                    row[9] = configuration.apply_time_zone(row[9], knowledge_base.time_zone)    # file_last_access_time
-                    row[10] = configuration.apply_time_zone(row[10], knowledge_base.time_zone)  # file_last_modified_time
+                    row[7] = configuration.apply_time_zone(row[7], knowledge_base.time_zone)  # start_time
+                    row[8] = configuration.apply_time_zone(row[8], knowledge_base.time_zone)  # end_time
+                    row[9] = configuration.apply_time_zone(row[9], knowledge_base.time_zone)  # file_last_access_time
+                    row[10] = configuration.apply_time_zone(row[10],
+                                                            knowledge_base.time_zone)  # file_last_modified_time
                     row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " \
@@ -478,7 +484,7 @@ class ChromiumConnector(interface.ModuleConnector):
                     table_name = 'lv1_app_web_chrome_bookmarks'
 
                     row = list(row)
-                    row[0] = configuration.apply_time_zone(row[0], knowledge_base.time_zone)    # date_added
+                    row[0] = configuration.apply_time_zone(row[0], knowledge_base.time_zone)  # date_added
                     row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
@@ -488,12 +494,12 @@ class ChromiumConnector(interface.ModuleConnector):
             for domain, profile_match in zip(chrome_domain, os_user_chrome_profile):
                 for row in domain:
                     table_name = 'lv1_app_web_chrome_domain'
-                    row = info + list(row) + profile_match
 
                     row = list(row)
                     row[2] = configuration.apply_time_zone(row[2], knowledge_base.time_zone)  # last_modified
                     row[4] = configuration.apply_time_zone(row[4], knowledge_base.time_zone)  # last_engagement_time
-                    row[5] = configuration.apply_time_zone(row[5], knowledge_base.time_zone)  # last_shortcut_launch_time
+                    row[5] = configuration.apply_time_zone(row[5],
+                                                           knowledge_base.time_zone)  # last_shortcut_launch_time
                     row = info + row + profile_match
 
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
@@ -518,14 +524,15 @@ class ChromiumConnector(interface.ModuleConnector):
                     row[2] = configuration.apply_time_zone(row[2], knowledge_base.time_zone)  # last_modified_time
                     row = info + row + profile_match
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     configuration.cursor.execute_query(query)
 
-            print("[Web] "+"\033[32m"+"Chrome Analysis Complete" +"\033[0m")
+            print("[Web] " + "\033[32m" + "Chrome Analysis Complete" + "\033[0m")
 
         else:
-            print("[Web] "+"\033[31m"+"No Chrome artifact"+"\033[0m"+" in par_id %s." % (par_id))
+            print("[Web] " + "\033[31m" + "No Chrome artifact" + "\033[0m" + " in par_id %s." % (par_id))
 
         ################## Whale ###################
         if len(whale_artifact) != 0:
@@ -535,10 +542,10 @@ class ChromiumConnector(interface.ModuleConnector):
             for i in range(len(whale_artifact)):
 
                 if 'Default' in whale_artifact[i][0]:
-                    full_path.append(whale_artifact[i][1] + os.sep + whale_artifact[i][0])
+                    full_path.append(whale_artifact[i][1] + query_separator + whale_artifact[i][0])
 
                 if 'Profile' in whale_artifact[i][0]:
-                    full_path.append(whale_artifact[i][1] + os.sep + whale_artifact[i][0])
+                    full_path.append(whale_artifact[i][1] + query_separator + whale_artifact[i][0])
 
             # Make Whale artifact ouput dir
             whale_output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
@@ -550,6 +557,7 @@ class ChromiumConnector(interface.ModuleConnector):
             for f in full_path:
                 for user in user_list:
                     if f.find(user) != -1:
+                        f = f.replace(query_separator, os.sep)
                         profile_index = f.rfind(os.sep)
                         os_user_whale_profile.append([user, f[profile_index + 1:]])
 
@@ -560,15 +568,17 @@ class ChromiumConnector(interface.ModuleConnector):
 
             # Extract whale artifact file
             chromium_artifact_file_list = ['Preferences', 'History', 'Login Data', 'Shortcuts', 'Top Sites', 'Web Data',
-                                        'Favicons', 'Cookies', 'Bookmarks']
+                                           'Favicons', 'Cookies', 'Bookmarks']
 
             for make_dir_tree in os_user_whale_profile:
                 for file in chromium_artifact_file_list:
                     self.ExtractTargetFileToPath(
                         source_path_spec=source_path_spec,
                         configuration=configuration,
-                        file_path='/Users/' + make_dir_tree[0] + '/AppData/Local/Naver/Naver Whale/User Data/' +
-                                  make_dir_tree[1] + '/' + file,
+                        file_path= path_separator + 'Users' + path_separator  + make_dir_tree[0] + 
+                        f'{path_separator}AppData{path_separator}Local{path_separator}Google' +
+                        f'{path_separator}Chrome{path_separator}User Data{path_separator}' +
+                        make_dir_tree[1] + path_separator + file,
                         output_path=whale_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
             print("[Web] Whale artifact files extraction success")
@@ -637,8 +647,8 @@ class ChromiumConnector(interface.ModuleConnector):
                     table_name = 'lv1_app_web_whale_bookmarks'
                     row = info + list(row) + profile_match
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
-                        row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " \
+                            f"'%s', '%s', '%s', '%s');" % tuple(row)
 
                     configuration.cursor.execute_query(query)
 
@@ -647,8 +657,8 @@ class ChromiumConnector(interface.ModuleConnector):
                     table_name = 'lv1_app_web_whale_download'
                     row = info + list(row) + profile_match
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" \
-                            f", '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" \
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " \
+                            f"'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" \
                             f", '%s', '%s');" % tuple(row)
 
                     # print(query)
@@ -792,6 +802,7 @@ class ChromiumConnector(interface.ModuleConnector):
             for f in full_path:
                 for user in user_list:
                     if f.find(user) != -1:
+                        f = f.replace(query_separator, os.sep)
                         profile_index = f.rfind(os.sep)
                         os_user_edge_profile.append([user, f[profile_index + 1:]])
 
@@ -801,8 +812,8 @@ class ChromiumConnector(interface.ModuleConnector):
                     os.makedirs(edge_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
             # Extract chrome artifact file
-            chromium_artifact_file_list = ['Preferences', 'History', 'Login Data', 'Shortcuts', 'Top Sites', 'Web Data', 'Favicons',
-                                           'Cookies', 'Bookmarks']
+            chromium_artifact_file_list = ['Preferences', 'History', 'Login Data', 'Shortcuts', 'Top Sites', 'Web Data',
+                                           'Favicons', 'Cookies', 'Bookmarks']
 
             for make_dir_tree in os_user_edge_profile:
 
@@ -810,8 +821,10 @@ class ChromiumConnector(interface.ModuleConnector):
                     self.ExtractTargetFileToPath(
                         source_path_spec=source_path_spec,
                         configuration=configuration,
-                        file_path='/Users/' + make_dir_tree[0] + '/AppData/Local/Microsoft/Edge/User Data/' +
-                                  make_dir_tree[1] + '/' + file,
+                        file_path= query_separator + 'Users' + path_separator  + make_dir_tree[0] + 
+                        f'{path_separator}AppData{path_separator}Local{path_separator}Google' +
+                        f'{path_separator}Chrome{path_separator}User Data{path_separator}' +
+                        make_dir_tree[1] + path_separator + file,
                         output_path=edge_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
             print("[Web] Chromium Edge artifact files extraction success")
@@ -837,7 +850,6 @@ class ChromiumConnector(interface.ModuleConnector):
 
                 if 'Preferences' in files:
                     tmp_file_path = edge_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'Preferences'
-
 
                 if 'History' in files:
                     tmp_file_path = edge_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'History'
@@ -972,20 +984,20 @@ class ChromiumConnector(interface.ModuleConnector):
                     # print(query)
                     configuration.cursor.execute_query(query)
 
-            for autofill, profile_match in zip(edge_autofill, os_user_edge_profile):
-                for row in autofill:
-                    table_name = 'lv1_app_web_chromium_edge_autofill'
-                    row = info + list(row) + profile_match
+            # for autofill, profile_match in zip(edge_autofill, os_user_edge_profile):
+            #     for row in autofill:
+            #         table_name = 'lv1_app_web_chromium_edge_autofill'
+            #         row = info + list(row) + profile_match
 
-                    # query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+            #         # query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', " % tuple(row[0:4]) + \
-                            "(UNHEX(\'" + row[4].hex() + "\'))" + ", " + "(UNHEX(\'" + row[5].hex() + "\'))" \
-                                                                                                      ", '%s', '%s', '%s', '%s', '%s');" % tuple(
-                        row[6:])
+            #         query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', " % tuple(row[0:4]) + \
+            #                 "(UNHEX(\'" + row[4].hex() + "\'))" + ", " + "(UNHEX(\'" + row[5].hex() + "\'))" \
+            #                                                                                           ", '%s', '%s', '%s', '%s', '%s');" % tuple(
+            #             row[6:])
 
-                    # print(query)
-                    configuration.cursor.execute_query(query)
+            #         # print(query)
+            #         configuration.cursor.execute_query(query)
 
             for logindata, profile_match in zip(edge_logindata, os_user_edge_profile):
                 for row in logindata:
@@ -1030,7 +1042,7 @@ class ChromiumConnector(interface.ModuleConnector):
 
             # Make Chrome artifact output dir
             opera_output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
-                               configuration.evidence_id + os.sep + par_id + os.sep + "web" + os.sep + "opera" + os.sep
+                                configuration.evidence_id + os.sep + par_id + os.sep + "web" + os.sep + "opera" + os.sep
 
             # Match between os user chrome profile
             os_user_opera_profile = []
@@ -1045,7 +1057,8 @@ class ChromiumConnector(interface.ModuleConnector):
                 for make_dir_tree in os_user_opera_profile:
                     os.makedirs(opera_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
-            opera_artifact_file_list = ['Bookmarks', 'Cookies', 'Favicons', 'History', 'Login Data', 'Preferences', 'Shortcuts', 'Web Data']
+            opera_artifact_file_list = ['Bookmarks', 'Cookies', 'Favicons', 'History', 'Login Data', 'Preferences',
+                                        'Shortcuts', 'Web Data']
 
             for make_dir_tree in os_user_opera_profile:
 
@@ -1053,7 +1066,10 @@ class ChromiumConnector(interface.ModuleConnector):
                     self.ExtractTargetFileToPath(
                         source_path_spec=source_path_spec,
                         configuration=configuration,
-                        file_path='/Users/' + make_dir_tree[0] + '/AppData/Roaming/Opera Software/Opera Stable/' + file,
+                        file_path= path_separator + 'Users' + path_separator  + make_dir_tree[0] + 
+                        f'{path_separator}AppData{path_separator}Local{path_separator}Google' +
+                        f'{path_separator}Chrome{path_separator}User Data{path_separator}' +
+                        make_dir_tree[1] + path_separator + file,
                         output_path=opera_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
             print("[Web] Opera artifact files extraction success")
@@ -1094,7 +1110,7 @@ class ChromiumConnector(interface.ModuleConnector):
                     tmp_file_path = opera_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'Cookies'
                     opera_cookies.append(opera.opera_cookies(tmp_file_path))
 
-                if 'Web Data' in files: #autofill
+                if 'Web Data' in files:  # autofill
                     tmp_file_path = opera_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'Web Data'
                     opera_autofill.append(opera.opera_autofill(tmp_file_path))
 
@@ -1105,7 +1121,6 @@ class ChromiumConnector(interface.ModuleConnector):
                 if 'Bookmarks' in files:
                     tmp_file_path = opera_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'Bookmarks'
                     opera_bookmarks.append(opera.opera_bookmarks(tmp_file_path))
-
 
             # delete chrome output dir
             shutil.rmtree(opera_output_path)
@@ -1119,7 +1134,8 @@ class ChromiumConnector(interface.ModuleConnector):
 
                     row = info + list(row) + profile_match
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     # print(query)
                     configuration.cursor.execute_query(query)
@@ -1199,7 +1215,8 @@ class ChromiumConnector(interface.ModuleConnector):
                     table_name = 'lv1_app_web_opera_autofill'
                     row = info + list(row) + profile_match
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     configuration.cursor.execute_query(query)
 
@@ -1247,7 +1264,7 @@ class ChromiumConnector(interface.ModuleConnector):
 
             # Make Chrome artifact output dir
             firefox_output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
-                               configuration.evidence_id + os.sep + par_id + os.sep + "web" + os.sep + "firefox" + os.sep
+                                  configuration.evidence_id + os.sep + par_id + os.sep + "web" + os.sep + "firefox" + os.sep
 
             # Match between os user chrome profile
             os_user_firefox_profile = []
@@ -1255,6 +1272,7 @@ class ChromiumConnector(interface.ModuleConnector):
             for f in full_path:
                 for user in user_list:
                     if f.find(user) != -1:
+                        f = f.replace(query_separator, os.sep)
                         profile_start_index = f.rfind(os.sep) + 1
                         profile_end_index = f.rfind('default-release') - 1
                         os_user_firefox_profile.append([user, f[profile_start_index:profile_end_index]])
@@ -1265,7 +1283,8 @@ class ChromiumConnector(interface.ModuleConnector):
                     os.makedirs(firefox_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
             # Extract chrome artifact file
-            firefox_artifact_file_list = ['places.sqlite', 'content-prefs.sqlite', 'cookies.sqlite', 'favicons.sqlite', 'formhistory.sqlite', 'permissions.sqlite', 'prefs.js']
+            firefox_artifact_file_list = ['places.sqlite', 'content-prefs.sqlite', 'cookies.sqlite', 'favicons.sqlite',
+                                          'formhistory.sqlite', 'permissions.sqlite', 'prefs.js']
 
             for make_dir_tree in os_user_firefox_profile:
 
@@ -1273,8 +1292,10 @@ class ChromiumConnector(interface.ModuleConnector):
                     self.ExtractTargetFileToPath(
                         source_path_spec=source_path_spec,
                         configuration=configuration,
-                        file_path='/Users/' + make_dir_tree[0] + '/AppData/Roaming/Mozilla/Firefox/Profiles/' +
-                                  make_dir_tree[1] + '.default-release/' + file,
+                        file_path= path_separator + 'Users' + path_separator  + make_dir_tree[0] + 
+                        f'{path_separator}AppData{path_separator}Local{path_separator}Google' +
+                        f'{path_separator}Chrome{path_separator}User Data{path_separator}' +
+                        make_dir_tree[1] + path_separator + file,
                         output_path=firefox_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
             print("[Web] Firefox artifact files extraction success")
@@ -1297,7 +1318,8 @@ class ChromiumConnector(interface.ModuleConnector):
                              os.path.join(firefox_output_path + file_check[0] + os.sep + file_check[1] + os.sep, f))]
 
                 if 'places.sqlite' in files:
-                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'places.sqlite'
+                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[
+                        1] + os.sep + 'places.sqlite'
                     firefox_visit_history.append(firefox.firefox_visit_history(tmp_file_path))
                     firefox_visit_urls.append(firefox.firefox_visit_urls(tmp_file_path))
                     firefox_domains.append(firefox.firefox_domain(tmp_file_path))
@@ -1305,25 +1327,29 @@ class ChromiumConnector(interface.ModuleConnector):
                     firefox_bookmarks.append(firefox.firefox_bookmarks(tmp_file_path))
 
                 if 'cookies.sqlite' in files:
-                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'cookies.sqlite'
+                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[
+                        1] + os.sep + 'cookies.sqlite'
                     firefox_cookies.append(firefox.firefox_cookies(tmp_file_path))
 
                 if 'permissions.sqlite' in files:
-                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'permissions.sqlite'
+                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[
+                        1] + os.sep + 'permissions.sqlite'
                     firefox_permissions.append(firefox.firefox_perms(tmp_file_path))
 
                 if 'formhistory.sqlite' in files:
-                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'formhistory.sqlite'
+                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[
+                        1] + os.sep + 'formhistory.sqlite'
                     firefox_formhistory.append(firefox.firefox_forms(tmp_file_path))
 
                 if 'favicons.sqlite' in files:
-                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'favicons.sqlite'
+                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[
+                        1] + os.sep + 'favicons.sqlite'
                     firefox_favicons.append(firefox.firefox_favicons(tmp_file_path))
 
                 if 'content-prefs.sqlite' in files:
-                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'content-prefs.sqlite'
+                    tmp_file_path = firefox_output_path + file_check[0] + os.sep + file_check[
+                        1] + os.sep + 'content-prefs.sqlite'
                     firefox_content_prefs.append(firefox.firefox_prefs(tmp_file_path))
-
 
             # delete chrome output dir
             shutil.rmtree(firefox_output_path)
@@ -1332,68 +1358,68 @@ class ChromiumConnector(interface.ModuleConnector):
 
             for visit_history, profile_match in zip(firefox_visit_history, os_user_firefox_profile):
                 for row in visit_history:
-
                     table_name = 'lv1_app_web_firefox_visit_history'
                     row = info + list(row) + profile_match
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     # print(query)
                     configuration.cursor.execute_query(query)
 
             for visit_urls, profile_match in zip(firefox_visit_urls, os_user_firefox_profile):
                 for row in visit_urls:
-
                     table_name = 'lv1_app_web_firefox_visit_urls'
                     row = info + list(row) + profile_match
 
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     # print(query)
                     configuration.cursor.execute_query(query)
 
             for domain, profile_match in zip(firefox_domains, os_user_firefox_profile):
                 for row in domain:
-
                     table_name = 'lv1_app_web_firefox_domain'
                     row = info + list(row) + profile_match
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     # print(query)
                     configuration.cursor.execute_query(query)
 
             for download, profile_match in zip(firefox_downloads, os_user_firefox_profile):
                 for row in download:
-
                     table_name = 'lv1_app_web_firefox_download'
                     row = info + list(row) + profile_match
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     configuration.cursor.execute_query(query)
 
             for cookies, profile_match in zip(firefox_cookies, os_user_firefox_profile):
                 for row in cookies:
-
                     table_name = 'lv1_app_web_firefox_cookies'
                     row = info + list(row) + profile_match
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     configuration.cursor.execute_query(query)
 
             for permissions, profile_match in zip(firefox_permissions, os_user_firefox_profile):
                 for row in permissions:
-
                     table_name = 'lv1_app_web_firefox_permissions'
                     row = info + list(row) + profile_match
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     configuration.cursor.execute_query(query)
 
             for forms, profile_match in zip(firefox_formhistory, os_user_firefox_profile):
                 for row in forms:
-
                     table_name = 'lv1_app_web_firefox_formhistory'
                     row = info + list(row) + profile_match
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     configuration.cursor.execute_query(query)
 
@@ -1405,25 +1431,25 @@ class ChromiumConnector(interface.ModuleConnector):
                     query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(
                         row[0:10]) + \
                             "(UNHEX(\'" + row[10].hex() + "\'))" \
-                                                         ", '%s', '%s', '%s');" % tuple(row[11:])
+                                                          ", '%s', '%s', '%s');" % tuple(row[11:])
 
                     configuration.cursor.execute_query(query)
 
             for prefs, profile_match in zip(firefox_content_prefs, os_user_firefox_profile):
                 for row in prefs:
-
                     table_name = 'lv1_app_web_firefox_content_prefs'
                     row = info + list(row) + profile_match
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     configuration.cursor.execute_query(query)
 
             for bookmarks, profile_match in zip(firefox_bookmarks, os_user_firefox_profile):
                 for row in bookmarks:
-
                     table_name = 'lv1_app_web_firefox_bookmarks'
                     row = info + list(row) + profile_match
-                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row)
+                    query = f"Insert into {table_name} values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(
+                        row)
 
                     configuration.cursor.execute_query(query)
 
@@ -1431,5 +1457,6 @@ class ChromiumConnector(interface.ModuleConnector):
 
         else:
             print("[Web] " + "\033[31m" + "No Firefox artifact" + "\033[0m" + " in par_id %s." % (par_id))
+
 
 manager.ModulesManager.RegisterModule(ChromiumConnector)

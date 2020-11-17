@@ -4,15 +4,13 @@ import re
 import datetime
 import binascii
 
+from contextlib import closing
 from utility.res.sqlite_dict import TABLE_INFO, CREATE_HELPER
 
 
 def mysql_to_sqlite(query):
     # (%s, %s, %s) -> (?, ?, ?)
-    if 'insert' in query.lower():
-        return query.replace('%s', '?')
-    else:
-        return query
+    return query.replace('%s', '?') if 'insert' in query.lower() else query
 
 
 def regexp(expr, item):
@@ -78,39 +76,29 @@ class Database:
             if not self.check_table_exist(table_name):
                 self.execute_query(CREATE_HELPER[table_name])
                 if table_name == 'case_info':
-                    # column: case_id, case_name, administrator, create_date, description
-                    query = "insert into case_info values (?, ?, ?, ?, ?)"
-                    values = (self.case_id, self.case_id, 'DFRC', now_time, 'CARPE Demo Case')
-                    self.execute_query(query, values)
+                    query = self.insert_query_builder("case_info")
+                    values = ('DFRC', self.case_id, self.case_id, str(now_time), 'CARPE Demo Case')
+                    query = (query + "\n values " + "%s" % (values,))
+                    self.execute_query(query)
 
                 elif table_name == 'evidence_info':
                     # TODO: Calculate hash value
-                    # Columns
-                    # evd_id, evd_name, evd_path, tmp_path, case_id, main_type, sub_type, timezone,
-                    # acquired_date, md5, sha1, sha3, process_state
-                    query = "insert into evidence_info values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                    query = self.insert_query_builder("evidence_info")
                     evd_path = self.source_path
                     tmp_path = self.output_path
-                    values = (self.evd_id, self.evd_id, evd_path, tmp_path, self.case_id, 'image', 'EWF',
-                              'UTC+9', now_time, '', '', '', 0)
-                    self.execute_query(query, values)
+                    values = (str(now_time), self.case_id, self.evd_id, self.evd_id, evd_path, 'image', '', 0, '', '',
+                              'EWF', 'UTC+9', tmp_path)
+                    query = (query + "\n values " + "%s" % (values,))
+                    self.execute_query(query)
         self.commit()
         self.close()
 
     def bulk_execute(self, query, values):
-        try:
-            cursor = self._conn.cursor()
-        except sqlite3.Error:
-            print("db cursor error")
-            return -1
-        query = mysql_to_sqlite(query)
-        try:
-            cursor.executemany(query, values)
-            cursor.close()
-        except Exception as e:
-            print("db execution error : " + str(e))
-            return -1
-        self.commit()
+        with self._conn as conn:
+            with closing(conn.cursor()) as cursor:
+                query = mysql_to_sqlite(query)
+                cursor.executemany(query, values)
+
 
     def insert_query_builder(self, table_name):
         query = ""
@@ -120,23 +108,13 @@ class Database:
                 TABLE_INFO[table_name].keys())[-1]]() for column in (sorted(TABLE_INFO[table_name].keys())))
         return query
 
-    def execute_query(self, query, values=None):
-        cursor = self._conn.cursor()
-        query = mysql_to_sqlite(query)
-        try:
-            if values:
-                cursor.execute(query, values)
-            else:
+    def execute_query(self, query):
+        with self._conn as conn:
+            with closing(conn.cursor()) as cursor:
+                query = mysql_to_sqlite(query)
                 cursor.execute(query)
-
-            data = cursor.fetchone()
-            cursor.close()
-            self.commit()
-            return data
-        except Exception as e:
-            print(query)
-            print("db execution failed: %s" % e)
-            return -1
+                data = cursor.fetchone()
+        return data
 
     def execute_query_mul(self, query):
         cursor = self._conn.cursor()

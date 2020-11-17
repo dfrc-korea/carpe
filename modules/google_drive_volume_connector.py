@@ -1,10 +1,10 @@
-
 import os
 
 from modules import manager
 from modules import interface
 from modules.Googledrive import google_drive_backsync as gs
 from dfvfs.lib import definitions as dfvfs_definitions
+
 
 class GoogledrivevolConnector(interface.ModuleConnector):
     NAME = 'Google_drive_Volume_Connector'
@@ -40,18 +40,21 @@ class GoogledrivevolConnector(interface.ModuleConnector):
                     continue
                 users.append(hostname.username)
 
-        ########
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
+
         for user in users:
-            user_path = f"/Users/{user}"
-            gs_path = f"/AppData/Local/Google/Drive"
+            user_path = f"{path_separator}Users{path_separator}{user}"
+            gs_path = f"{path_separator}AppData{path_separator}Local" \
+                      f"{path_separator}Google{path_separator}Drive"
 
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                           configuration.evidence_id + os.sep + par_id
 
             self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
-                                                     configuration=configuration,
-                                                     dir_path=user_path + gs_path,
-                                                     output_path=output_path)
+                                        configuration=configuration,
+                                        dir_path=(user_path + gs_path),
+                                        output_path=output_path)
 
             try:
                 v_data = []
@@ -65,8 +68,7 @@ class GoogledrivevolConnector(interface.ModuleConnector):
             except:
                 return False
 
-        configuration.cursor.bulk_execute(query, v_data)
+            configuration.cursor.bulk_execute(query, v_data)
 
 
 manager.ModulesManager.RegisterModule(GoogledrivevolConnector)
-

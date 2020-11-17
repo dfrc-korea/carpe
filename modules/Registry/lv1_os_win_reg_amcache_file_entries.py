@@ -67,7 +67,10 @@ def AMCACHEFILEENTRIES(reg_am):
                     amcache_list[amacache_count].product_version = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'LinkDate':
                     if amcache_subkey_value.data() != '\x00':
-                        amcache_list[amacache_count].link_date = amcache_subkey_value.data().split(' ')[0].split('/')[2] + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[1] + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[0]+'T'+amcache_subkey_value.data().split(' ')[1].replace('\x00','')+'Z'
+                        amcache_list[amacache_count].link_date = amcache_subkey_value.data().split(' ')[0].split('/')[2] \
+                                                                 + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[0] \
+                                                                 + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[1] + 'T' \
+                                                                 + amcache_subkey_value.data().split(' ')[1].replace('\x00', '')+'Z'
                 elif amcache_subkey_value.name() == 'BinProductVersion':
                     amcache_list[amacache_count].binary_product_version = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'Size':

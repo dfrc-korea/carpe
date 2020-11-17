@@ -29,6 +29,8 @@ class AndroidBasicAppsConnector(interface.ModuleConnector):
         """
 
         # Load Schema
+        yaml_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'android' \
+            + os.sep +'lv1_app_google_drive_path.yaml'
         if not self.LoadSchemaFromYaml('../modules/schema/android/lv1_os_and_basic_apps.yaml'):
             logger.error('cannot load schema from yaml: {0:s}'.format(self.NAME))
             return False

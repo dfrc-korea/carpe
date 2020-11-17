@@ -156,7 +156,7 @@ class AdvancedModuleAnalyzer(BaseAnalyzer):
         try:
             find_spec = file_system_searcher.FindSpec(
                 case_sensitive=False, location=file_path,
-                location_separator='/')
+                location_separator=source_path_spec.location)
         except ValueError as exception:
             logger.error(
                 'Unable to build find specification for path: "{0:s}" with '
@@ -204,7 +204,7 @@ class AdvancedModuleAnalyzer(BaseAnalyzer):
         try:
             find_spec = file_system_searcher.FindSpec(
                 case_sensitive=False, location=file_path,
-                location_separator='/')
+                location_separator=source_path_spec.location)
         except ValueError as exception:
             logger.error(
                 'Unable to build find specification for path: "{0:s}" with '

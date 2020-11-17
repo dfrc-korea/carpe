@@ -40,20 +40,11 @@ def Main():
         return True
 
     have_list_option = False
-    """
-  if tool.list_hashers:
-    tool.ListHashers()
-    have_list_option = True
-  """
+
     if tool.list_modules:
         tool.ListModules()
         have_list_option = True
 
-    """
-  if tool.list_profilers:
-    tool.ListProfilers()
-    have_list_option = True
-  """
     if tool.list_timezones:
         tool.ListTimeZones()
         have_list_option = True
@@ -67,7 +58,7 @@ def Main():
         return False
 
     try:
-        tool.ExtractDataFromSources()
+        tool.ExtractDataFromSources(mode='Analyze')
 
     except (KeyboardInterrupt, errors.UserAbort):
         logging.warning('Aborted by user.')

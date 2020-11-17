@@ -42,7 +42,7 @@ def main():
         return False
 
     try:
-        tool.extract_data_from_source()
+        tool.ExtractDataFromSources(mode='Extract')
 
     except (KeyboardInterrupt, errors.UserAbort):
         logging.warning('Aborted by user.')

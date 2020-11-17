@@ -436,7 +436,6 @@ class WindowsTimeZonePlugin(
         knowledge_base.SetTimeZone(time_zone)
       except ValueError:
         # TODO: add and store preprocessing errors.
-        time_zone = value_data
         logger.warning('Unable to map: "{0:s}" to time zone'.format(
             value_data))
 

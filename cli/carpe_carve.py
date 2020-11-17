@@ -8,13 +8,13 @@ from __future__ import unicode_literals
 import logging
 import os
 import sys
-import dependencies
 
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+
+import dependencies
 
 from tools import carpe_tool
 from utility import errors
-
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 
 def main():
@@ -42,7 +42,7 @@ def main():
         return False
 
     try:
-        tool.carve_data_from_source()
+        tool.ExtractDataFromSources(mode='Carve')
 
     except (KeyboardInterrupt, errors.UserAbort):
         logging.warning('Aborted by user.')

@@ -289,13 +289,18 @@ def WINDOWSTIMELINE(filename):
     conn = sqlite3.connect(targetDB)
     cur = conn.cursor()
 
-    #윈도우 버전별로 칼럼이 달라져서 column_name_list를 새롭게 구해야함.
+    # 윈도우 버전별로 칼럼이 달라져서 column_name_list를 새롭게 구해야함.
     sql_command = f"SELECT sql FROM sqlite_master WHERE tbl_name='Activity' AND name = 'Activity'"
 
     cur.execute(sql_command)
 
+    first_row = None
     for row in cur:
         first_row = str(row)
+    if not first_row:
+        # TODO: 이유 찾아야 함
+        return False
+
     first_column = first_row.split('(')
     column_list = first_column[2]
     start = '['
@@ -312,7 +317,6 @@ def WINDOWSTIMELINE(filename):
     sql_command = "SELECT *"
     sql_command += " FROM Activity"
     cur.execute(sql_command)
-
 
     for row in cur:
         rs = divide2column(row,column_name_list)
@@ -345,6 +349,3 @@ def WINDOWSTIMELINE(filename):
         timeline_count = timeline_count + 1
 
     return result
-
-    #print(rs)
-    #sys.stdout = open('output.txt', 'a',-1, "utf-8")

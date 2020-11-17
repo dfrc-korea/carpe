@@ -31,7 +31,9 @@ class DEFA:
         config.read(conf_file)
         _host = config.get('elasticsearch', 'host')
         _port = config.getint('elasticsearch', 'port')
-        es = Elasticsearch(hosts=_host, port=_port)
+        _es_id = config.get('elasticsearch', 'id')
+        _es_passwd = config.get('elasticsearch', 'passwd')
+        es = Elasticsearch(hosts=_host, port=_port, http_auth=(_es_id, _es_passwd))
 
         index_name = 'documents'
         type_name = 'document'

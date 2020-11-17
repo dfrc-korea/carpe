@@ -28,5 +28,7 @@ class FiCATool:
 def main(case_profile):
     image_carver = FiCATool("carving.log")
     result = image_carver.do_carve(case_profile)
-    image_carver.decode(case_profile.get("out"))
+    copier = image_carver.decode(case_profile.get("out"))
     print(result)
+
+    return copier

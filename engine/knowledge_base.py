@@ -216,6 +216,7 @@ class KnowledgeBase(object):
         except (AttributeError, pytz.UnknownTimeZoneError):
             raise ValueError('Unsupported timezone: {0!s}'.format(time_zone))
 
+
     def SetValue(self, identifier, value):
         """Sets a value by identifier.
 

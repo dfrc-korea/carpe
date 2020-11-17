@@ -64,11 +64,12 @@ class EMAILConnector(interface.ModuleConnector):
             _type_name = config.get('email', 'type')
             es = Elasticsearch(hosts=_host, port=_port)
         # tmp = 0
+        path_separator = self.GetPathSeparator(source_path_spec)
         for email in email_files:
             # tmp += 1
             # if tmp == 300:  # 임시
             #     break
-            email_path = email[1][email[1].find('/'):] + '/' + email[0]  # document full path
+            email_path = email[1][email[1].find(path_separator):] + path_separator + email[0]  # document full path
             fileExt = email[2]
             fileName = email[0]
             """

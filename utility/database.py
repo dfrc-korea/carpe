@@ -43,7 +43,9 @@ class Database(object):
                            "cluster_size": "INTEGER"},
         "fs_info": {"fs_id": "VARCHAR", "par_id": "VARCHAR PRIMARY KEY", "block_size": "INTEGER",
                     "block_count": "BIGINT", "root_inum": "INTEGER", "first_inum": "INTEGER", "last_inum": "INTEGER"},
-        "file_info": {"id": "BIGINT PRIMARY KEY", "file_id": "BIGINT", "par_id": "VARCHAR", "inode": "TEXT",
+        #"file_info": {"id": "BIGINT PRIMARY KEY","file_id": "BIGINT", "par_id": "VARCHAR", "inode": "TEXT",
+        #TODO: check Server-Client platform
+        "file_info": {"file_id": "BIGINT", "par_id": "VARCHAR", "inode": "TEXT",
                       "name": "TEXT",
                       "meta_seq": "BIGINT", "type": "INTEGER", "dir_type": "INTEGER", "meta_type": "INTEGER",
                       "meta_flags": "INTEGER",
@@ -82,8 +84,7 @@ class Database(object):
         "block_info": "CREATE TABLE block_info (par_id VARCHAR(100) NOT NULL, start BIGINT, end BIGINT);"
     }
 
-    # To Do
-    # query for select specific file's metadata such as inode by extension
+    # ToDo: query for select specific file's metadata such as inode by extension
     PREPARED_QUERY = {
     }
 

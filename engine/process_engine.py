@@ -46,7 +46,6 @@ class ProcessEngine(object):
             raise errors.BadConfigOption
 
     def Preprocess(self, artifacts_registry_object, source_path_specs, resolver_context=None):
-
         detected_operating_systems = []
         for source_path_spec in source_path_specs:
             if source_path_spec.IsFileSystem():
@@ -64,8 +63,7 @@ class ProcessEngine(object):
                     operating_system = self._DetermineOperatingSystem(searcher)
                     if operating_system != definitions.OPERATING_SYSTEM_FAMILY_UNKNOWN:
                         preprocess_manager.PreprocessPluginsManager.RunPlugins(
-                            artifacts_registry_object, file_system, mount_point,
-                            self.knowledge_base)
+                            artifacts_registry_object, file_system, mount_point, self.knowledge_base)
 
                     detected_operating_systems.append(operating_system)
 
@@ -81,9 +79,7 @@ class ProcessEngine(object):
     def Process(self, configuration):
         and_flag = False
         for source_path_spec in configuration.source_path_specs:
-            if source_path_spec.parent.TYPE_INDICATOR == 'VSHADOW':
-                continue
-            if source_path_spec.IsFileSystem():
+            if source_path_spec.IsFileSystem() or source_path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
                 try:
                     for module_name in self._modules:
                         module = self._modules.get(module_name, None)
@@ -97,12 +93,9 @@ class ProcessEngine(object):
                                                    source_path_spec=source_path_spec,
                                                    knowledge_base=self.knowledge_base)
                                     and_flag = True
-                            elif module_name in ['fica', 'extract',
+                            elif module_name in ['fica_connector', 'extract_connector',
                                                  'image_classification_connector',
-                                                 'mssql_recovery_connector',
-                                                 'mysql_recovery_connector',
                                                  'kakaotalk_mobile_decrypt_connector',
-                                                 'defa_connector',
                                                  'android_basic_apps_connector',
                                                  'android_user_apps_connector']:
                                 pass
@@ -129,41 +122,34 @@ class ProcessEngine(object):
 
     def ProcessAdvancedModules(self, configuration):
         for source_path_spec in configuration.source_path_specs:
-            if source_path_spec.parent.TYPE_INDICATOR == 'VSHADOW':
-                continue
-            if source_path_spec.IsFileSystem():
+            if source_path_spec.IsFileSystem() or source_path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
                 try:
                     for advanced_module_name in self._advanced_modules:
                         advanced_module = self._advanced_modules.get(advanced_module_name, None)
                         if isinstance(advanced_module, advanced_modules_interface.AdvancedModuleAnalyzer):
                             advanced_module.Analyze(configuration=configuration, source_path_spec=source_path_spec)
                 except RuntimeError as exception:
-                    raise errors.BackEndError(('The module cannot be connected: {0!s}').format(exception))
+                    raise errors.BackEndError('The module cannot be connected: {0!s}'.format(exception))
 
     def process_carve(self, configuration, is_partition=False):
+        module = self._modules.get('fica_connector', None)
         if is_partition:
             for source_path_spec in configuration.source_path_specs:
-                if source_path_spec.parent.TYPE_INDICATOR == 'VSHADOW':
-                    continue
                 if source_path_spec.IsFileSystem():
-                    try:
-                        module = self._modules.get('fica', None)
+                    par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
+                    if par_id is None:
+                        return False
+                else:   # file
+                    par_id = configuration.partition_list['p1']
 
-                        par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-                        if par_id is None:
-                            return False
+                module.print_run_info(module.DESCRIPTION, par_id, start=True)
+                module.Connect(par_id=par_id,
+                               configuration=configuration,
+                               source_path_spec=source_path_spec,
+                               knowledge_base=self.knowledge_base)
+                module.print_run_info(module.DESCRIPTION, par_id, start=False)
 
-                        module.print_run_info(module.DESCRIPTION, par_id, start=True)
-                        module.Connect(par_id=par_id,
-                                       configuration=configuration,
-                                       source_path_spec=source_path_spec,
-                                       knowledge_base=self.knowledge_base)
-                        module.print_run_info(module.DESCRIPTION, par_id, start=False)
-
-                    except RuntimeError as exception:
-                        raise errors.BackEndError('The module cannot be connected: {0!s}'.format(exception))
         else:
-            module = self._modules.get('fica', None)
             module.print_run_info(module.DESCRIPTION, start=True)
             module.Connect(configuration=configuration,
                            knowledge_base=self.knowledge_base)

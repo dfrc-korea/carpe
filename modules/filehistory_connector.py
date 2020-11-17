@@ -24,13 +24,12 @@ class FileHistoryConnector(interface.ModuleConnector):
     def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
         """Connector to connect to ESE database modules.
 
-		Args:
+        Args:
 			par_id: partition id.
 			configuration: configuration values.
 			source_path_spec (dfvfs.PathSpec): path specification of the source file.
 			knowledge_base (KnowledgeBase): knowledge base.
-
-		"""
+        """
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
 
@@ -60,7 +59,11 @@ class FileHistoryConnector(interface.ModuleConnector):
         insert_filehistory_string = []
         insert_filehistory_file = []
 
-        filehistory_path = filehistory_file[0][1][filehistory_file[0][1].find('/'):] + '/' + filehistory_file[0][0]
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
+
+        filehistory_path = filehistory_file[0][1][filehistory_file[0][1].find(path_separator):] 
+        + path_separator + filehistory_file[0][0]
 
         file_object = self.LoadTargetFileToMemory(
             source_path_spec=source_path_spec,
@@ -68,7 +71,7 @@ class FileHistoryConnector(interface.ModuleConnector):
             file_path=filehistory_path)
 
         results = filehistory_parser.main(database=file_object)
-        if results == False:
+        if not results:
             file_object.close()
             return False
         file_object.close()
@@ -80,13 +83,15 @@ class FileHistoryConnector(interface.ModuleConnector):
             file_modified = result[6]
 
             try:
-                file_created_time = str(datetime.utcfromtimestamp(file_created / 10000000 - 11644473600)).replace(' ',
-                                                                                                                  'T') + 'Z'
+                file_created_time = str(datetime.utcfromtimestamp(file_created / 10000000 - 11644473600))\
+                                        .replace(' ', 'T') + 'Z'
+                file_created_time = configuration.apply_time_zone(file_created_time, knowledge_base.time_zone)
             except ValueError:
                 file_created_time = None
             try:
-                file_modified_time = str(datetime.utcfromtimestamp(file_modified / 10000000 - 11644473600)).replace(' ',
-                                                                                                                    'T') + 'Z'
+                file_modified_time = str(datetime.utcfromtimestamp(file_modified / 10000000 - 11644473600))\
+                                         .replace(' ', 'T') + 'Z'
+                file_modified_time = configuration.apply_time_zone(file_modified_time, knowledge_base.time_zone)
             except ValueError:
                 file_modified_time = None
 
@@ -119,7 +124,6 @@ class FileHistoryConnector(interface.ModuleConnector):
 
         query = "Insert into lv1_os_win_filehistory_string values (%s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_filehistory_string)
-        pass
 
 
 manager.ModulesManager.RegisterModule(FileHistoryConnector)

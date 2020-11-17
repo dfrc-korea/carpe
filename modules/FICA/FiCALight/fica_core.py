@@ -21,7 +21,6 @@ from structureReader import structureReader as sr
 from .fica_defines import C_defy
 from .fica_defines import _C_defy
 
-
 sys.path.append(os.path.abspath(os.path.dirname(__file__)) + os.sep + "Code")
 
 
@@ -90,7 +89,7 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
 
     def __del__(self):
         try:
-            if (self.__lp != None):
+            if self.__lp is not None:
                 self.__lp.close()
         except:
             pass
@@ -99,9 +98,9 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
         print("Carving Manager")
 
     def __log_open(self):
-        if (self.__out == True):
-            if (os.path.exists(self.__stdout)):
-                if (os.path.getsize(self.__stdout) < self.log_buffer):
+        if self.__out:
+            if os.path.exists(self.__stdout):
+                if os.path.getsize(self.__stdout) < self.log_buffer:
                     self.__lp = open(self.__stdout, 'a+')
                     return
                 else:
@@ -116,12 +115,12 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
             self.__lp = None
 
     def __log_write(self, level, context, always=False, init=False):
-        if ((self.debug == True or always == True) and self.__lp == None):
+        if (self.debug == True or always == True) and self.__lp is None:
             print("[{0}] At:{1} Text:{2}".format(level, time.ctime(), context))
-        elif ((self.debug == True or always == True) and (self.__lp != None and init == True)):
+        elif (self.debug == True or always == True) and (self.__lp is not None and init == True):
             self.__lp.close()
             self.__log_open()
-        elif ((self.debug == True or always == True) and self.__lp != None):
+        elif (self.debug == True or always == True) and self.__lp is not None:
             try:
                 self.__lp.write("[{0}]::At::{1}::Text::{2}\n".format(level, time.ctime(), context))
                 self.__lp.flush()
@@ -144,11 +143,12 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
             return False
         for i in module_list:
             i = i.split(",")
-            if (len(i) != 3): continue
+            if len(i) != 3:
+                continue
             res = actuator.loadModuleClassAs(i[0], i[1], i[2])
             self.__log_write("INFO", "Loader::loading module _result [{0:>2}] name [{1:<16}]".format(res, i[0]),
                              always=True)
-            if (res == False):
+            if res == False:
                 self.__log_write("WARN", "Loader::[{0:<16}] module is not loaded.".format(i[0]), always=True)
         self.__log_write("INFO", "Loader::Completed.", always=True)
         return True
@@ -171,27 +171,27 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
 
     def __call_plugin_module(self, actuator_name, parameter):
         actuator = self.__actuator_tree.get(actuator_name)
-        if (actuator == None):
+        if actuator == None:
             return C_defy.Return.EVOID
 
-        if (isinstance(parameter, dict)):
+        if isinstance(parameter, dict):
             host = parameter.get("host")
             prm = parameter.get("parameter")
             cmd = parameter.get("command")
             for k, v in parameter.items():
-                if (k == "host"):
+                if k == "host":
                     continue
-                elif (k == "parameter"):
+                elif k == "parameter":
                     continue
-                elif (k == "command"):
+                elif k == "command":
                     continue
                 actuator[0].set(host, k, v)
             return actuator[0].call(host, cmd, prm, self.debug)
 
     def __attach_actuator(self, actuator_name, default, config):
         actuator = self.__actuator_tree.get(actuator_name)
-        if (actuator != None):
-            if (type(actuator[0]) == Actuator):
+        if actuator != None:
+            if type(actuator[0]) == Actuator:
                 actuator[0].clear()
                 actuator[0].init()
         else:
@@ -200,8 +200,8 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
 
     def __detach_actuator(self, actuator_name):
         actuator = self.__actuator_tree.get(actuator_name)
-        if (actuator != None):
-            if (type(actuator[0]) == Actuator):
+        if actuator != None:
+            if type(actuator[0]) == Actuator:
                 actuator[0].clear()
                 actuator[0].init()
                 self.__actuator_tree.pop(actuator_name)
@@ -215,12 +215,12 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
         return time.time() - self.__nounce
 
     def __file_open(self, remove):
-        if (os.path.isfile(self.case.get("path", "")) == False):
+        if not os.path.isfile(self.case.get("path", "")):
             return C_defy.Return.EINVAL_FILE
         self.case.update({"size": os.path.getsize(self.case.get("path"))})
         self.case.update({"fp": sr.StructureReader()})
         self.case.get("fp").get_file_handle(self.case.get("path", ""), 0, 1)
-        if (os.path.exists(self.case.get("out", "")) and remove == True):
+        if os.path.exists(self.case.get("out", "")) and remove == True:
             self.__log_write("DBG_", "Extract::clear the current workspace:{0}".format(self.case.get("out")))
             try:
                 shutil.rmtree(self.case.get("out"))
@@ -231,7 +231,7 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
 
     def __file_close(self):
         handle = self.case.get("fp")
-        if (handle != None):
+        if handle != None:
             handle.cleanup()
         self.case.update({"fp": None})
         self.case.update({"size": 0})
@@ -240,7 +240,7 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
     def __cleanup_case(self):
         self.__file_close()
         frame = self.case.get("mem_frame", pd.DataFrame())
-        if (frame.empty):
+        if frame.empty:
             frame = frame.iloc[0:0]
             self.case.update({"mem_frame": frame})
 
@@ -250,16 +250,16 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
     def __create_case(self, case):
         self.__cleanup_case()
         _klist = self.case.keys()
-        if (isinstance(case, dict) == True):
+        if isinstance(case, dict):
             for k, v in case.items():
-                if (k in _klist): self.case.update({k: v})
+                if k in _klist: self.case.update({k: v})
             self.__open = True
 
     def __scan(self, handle, offset, block_size, size=0):
         signature = None
         buffer = handle.bread_raw(offset, block_size, os.SEEK_SET)
-        if (buffer == None):
-            return [offset, signature, 0, 0, None, None]
+        if buffer is None:
+            return [offset, signature, 0, 0, None, None, None, 0, None]
 
         for key in C_defy.SIGNATURE.CSIG:
             temp = C_defy.SIGNATURE.CSIG[key]
@@ -274,30 +274,31 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
                 else:break
                 """
                 break
-        return [offset, signature, 0, 0, None, None]
+        return [offset, signature, 0, 0, None, None, None, 0, None]
 
     def __scan_signature(self):
         # A list is much faster than Dataframe or Database when appending continuous serial works.
         try:
             start = int(self.case.get("off_start", 0))
             block_size = int(self.case.get("cluster", 0))
-            if (block_size == 0):
+            if block_size == 0:
                 return C_defy.Return.EVOID
         except:
             return C_defy.Return.EVOID
 
         handle = self.case.get("fp")
         size = self.case.get("off_end", 0) - start
-        if (size <= 0):
+        if size <= 0:
             size = self.case.get("size") - start
 
-        if (size <= 0): return C_defy.Return.EVOID
+        if size <= 0:
+            return C_defy.Return.EVOID
 
         crafted = list()
 
-        while (start < size):
+        while start < size:
             result = self.__scan(handle, start, block_size)
-            if (result[1] != None):
+            if result[1] is not None:
                 crafted.append(result)
             start += block_size
         self.case.update({"mem_frame": crafted})
@@ -310,17 +311,17 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
         try:
             start = int(self.case.get("off_start", 0))
             block_size = int(self.case.get("cluster", 4096))
-            if (block_size == 0):
+            if block_size == 0:
                 return C_defy.Return.EVOID
         except:
             return C_defy.Return.EVOID
 
         handle = self.case.get("fp")
         size = self.case.get("off_end", 0) - start
-        if (size <= 0):
+        if size <= 0:
             size = self.case.get("size") - start
 
-        if (size <= 0):
+        if size <= 0:
             return C_defy.Return.EVOID
         self.__block_param = [handle, start, block_size, size]
         self.__block_counter = [int(size / block_size), 0]
@@ -328,23 +329,23 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
         return C_defy.Return.SUCCESS
 
     def ___scan_signature_lbl(self):
-        if (self.__count_vector[0] < 2):
-            if (self.__block_param[1] >= self.__block_param[3]):
+        if self.__count_vector[0] < 2:
+            if self.__block_param[1] >= self.__block_param[3]:
                 return C_defy.Return.EVOID
 
             result = self.__scan(*self.__block_param)
-            if (result[1] != None):
+            if result[1] != None:
                 self.__int_mem.append(result)
             self.__block_param[1] += self.__block_param[2]
             self.__block_counter[1] += 1
         else:
             inline = 0
-            while (inline < self.__count_vector[0]):
-                if (self.__block_param[1] >= self.__block_param[3]):
+            while inline < self.__count_vector[0]:
+                if self.__block_param[1] >= self.__block_param[3]:
                     return C_defy.Return.EVOID
 
                 result = self.__scan(*self.__block_param)
-                if (result[1] != None):
+                if result[1] != None:
                     self.__int_mem.append(result)
                 self.__block_param[1] += self.__block_param[2]
                 self.__block_counter[1] += 1
@@ -356,23 +357,26 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
                                  "flag", Offset_Info.EXTRACTED, "less")
 
     def set_token(self, count):
-        if (type(count) == int and count >= 0):
+        if type(count) == int and count >= 0:
             self.__count_vector[0] = count
 
     def __cc_carving(self):
 
         cur_off_t = C_defy.MemSchema.default_columns.get("offset", 0)
-        # sig_off_t  = C_defy.MemSchema.default_columns.get("signature",1)
+        sig_off_t = C_defy.MemSchema.default_columns.get("signature", 1)
         nxt_off_t = C_defy.MemSchema.default_columns.get("next_offset", 2)
         flg_off_t = C_defy.MemSchema.default_columns.get("flag", 3)
         # prop_off_t  = C_defy.MemSchema.default_columns.get("property",4)
         off_info_t = C_defy.MemSchema.default_columns.get("offset_info", -1)
+        file_name_t = C_defy.MemSchema.default_columns.get("file_name", 6)
+        file_size_t = C_defy.MemSchema.default_columns.get("file_size", 7)
+        file_path_t = C_defy.MemSchema.default_columns.get("file_path", 8)
         singular = Offset_Info.VALID | Offset_Info.UNIT
 
         frame = self.case.get("mem_frame", [])
         length = len(frame) - 1
         for i, v in enumerate(frame):
-            if (i == length):
+            if i == length:
                 frame[i][nxt_off_t] = self.case.get("size")
             else:
                 try:
@@ -386,18 +390,25 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
             off_t = self.__get_off_t(*frame[i])
             frame[i][flg_off_t] = off_t.header()[2]
 
-            if (off_t.len > 0):
+            frame[i][file_name_t] = str(hex(frame[i][cur_off_t])) + '.' + frame[i][sig_off_t]
+            frame[i][file_size_t] = frame[i][nxt_off_t] - frame[i][cur_off_t]
+
+            if off_t.len > 0:
                 frame[i][off_info_t] = pickle.dumps(off_t.contents)
-                if (self.case.get("extract", True) and (frame[i][flg_off_t] & singular == singular)):
+                if self.case.get("extract", True) and (frame[i][flg_off_t] & singular == singular):
                     ret = self.__extractor(off_t)
-                    if (type(ret) != int):
+                    if type(ret) != int:
                         frame[i][flg_off_t] |= Offset_Info.EXTRACTED
+                    frame[i][file_path_t] = ret[0]
+            else:
+                frame[i][file_path_t] = None
+
         self.case.update(
             {"mem_frame": pd.DataFrame.from_records(frame, columns=C_defy.MemSchema.default_columns.keys())})
         return C_defy.Return.SUCCESS
 
     def __cc_carving_interactive(self):
-        if (self.__count_vector[0] > 0):
+        if self.__count_vector[0] > 0:
             cur_off_t = C_defy.MemSchema.default_columns.get("offset", 0)
             nxt_off_t = C_defy.MemSchema.default_columns.get("next_offset", 2)
             flg_off_t = C_defy.MemSchema.default_columns.get("flag", 3)
@@ -407,22 +418,22 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
             length = len(frame) - 1
 
             i, j = self.__count_vector[1], 0
-            while (j < self.__count_vector[0]):
-                if (i == length):
+            while j < self.__count_vector[0]:
+                if i == length:
                     frame[i][nxt_off_t] = self.case.get("size")
                     off_t = self.__get_off_t(*frame[i])
                     frame[i][flg_off_t] = off_t.header()[2]
 
-                    if (off_t.len > 0):
+                    if off_t.len > 0:
                         frame[i][off_info_t] = pickle.dumps(off_t.contents)
-                        if (self.case.get("extract", True) and (frame[i][flg_off_t] & singular == singular)):
+                        if self.case.get("extract", True) and (frame[i][flg_off_t] & singular == singular):
                             ret = self.__extractor(off_t)
-                            if (type(ret) != int):
+                            if type(ret) != int:
                                 frame[i][flg_off_t] |= Offset_Info.EXTRACTED
 
                     self.case.update({"mem_frame": pd.DataFrame.from_records(frame,
                                                                              columns=C_defy.MemSchema.default_columns.keys())})
-                    return (C_defy.Return.SUCCESS, 100)
+                    return C_defy.Return.SUCCESS, 100
 
                 try:
                     frame[i][nxt_off_t] = frame[i + 1][cur_off_t]
@@ -430,60 +441,64 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
                     self.__log_write("ERR", "Carving::Exceed length of the frame. Quit current task.", always=True)
                     self.case.update({"mem_frame": pd.DataFrame.from_records(frame,
                                                                              columns=C_defy.MemSchema.default_columns.keys())})
-                    return (C_defy.Return.SUCCESS, int(self.__count_vector[1] / length * 100))
+                    return C_defy.Return.SUCCESS, int(self.__count_vector[1] / length * 100)
 
                 off_t = self.__get_off_t(*frame[i])
                 frame[i][flg_off_t] = off_t.header()[2]
 
-                if (off_t.len > 0):
+                if off_t.len > 0:
                     frame[i][off_info_t] = pickle.dumps(off_t.contents)
-                    if (self.case.get("extract", True) and (frame[i][flg_off_t] & singular == singular)):
+                    if self.case.get("extract", True) and (frame[i][flg_off_t] & singular == singular):
                         ret = self.__extractor(off_t)
-                        if (type(ret) != int):
+                        if type(ret) != int:
                             frame[i][flg_off_t] |= Offset_Info.EXTRACTED
                 i += 1
                 j += 1
             self.__count_vector[1] = i
             self.case.update({"mem_frame": frame})
-            return (C_defy.Return.EVOID, int(self.__count_vector[1] / length * 100))
+            return C_defy.Return.EVOID, int(self.__count_vector[1] / length * 100)
         else:
-            return (self.__cc_carving(), 100)
+            return self.__cc_carving(), 100
 
     def __cc_recarving(self):
         frame = self.case.get("mem_frame", pd.DataFrame(C_defy.MemSchema.default_columns.keys()))
-        if (frame.empty): return
+        if frame.empty:
+            return
         sig_off_t = C_defy.MemSchema.default_columns.get("signature", 1)
         flg_off_t = C_defy.MemSchema.default_columns.get("flag", 3)
         off_info_t = C_defy.MemSchema.default_columns.get("offset_info", -1)
         singular = Offset_Info.VALID | Offset_Info.UNIT
 
         for i in frame.index:
-            if (frame.loc[i][off_info_t] == None): continue
+            if frame.loc[i][off_info_t] == None:
+                continue
             off_t = Offset_Info()
             off_t.__contents = pickle.loads(frame.at[i, "offset_info"])
             off_t.signature = frame.loc[i][sig_off_t]
             off_t.name = off_t.signature
             off_t.size = len(off_t.__contents)
-            if (frame.loc[i][flg_off_t] & Offset_Info.EXTRACTED):
+            if frame.loc[i][flg_off_t] & Offset_Info.EXTRACTED:
                 frame.at[i, "flag"] -= Offset_Info.EXTRACTED
 
-            if (self.case.get("extract", True) and (frame.at[i, "flag"] & singular == singular)):
+            if self.case.get("extract", True) and (frame.at[i, "flag"] & singular == singular):
                 ret = self.__extractor(off_t)
-                if (type(ret) != int):
+                if type(ret) != int:
                     frame.at[i, "flag"] |= Offset_Info.EXTRACTED
 
     def __carving_mergeable(self, frame=None, target=None, flag=0):
-        if (type(frame) != pd.core.frame.DataFrame):
+        if type(frame) != pd.core.frame.DataFrame:
             frame = self.case.get("mem_frame", pd.DataFrame(C_defy.MemSchema.default_columns.keys()))
-        if (frame.empty): return
+        if frame.empty: return
         groupable_mergeable = flag
         flg_off_t = C_defy.MemSchema.default_columns.get("flag", 3)
-        if (target == None):
+        if target == None:
             for k, v in C_defy.SIGNATURE.CSIG.items():
-                if (v[-1] != _C_defy.CATEGORY.RECORD): continue
+                if v[-1] != _C_defy.CATEGORY.RECORD:
+                    continue
                 _iframe = MemFrameTool.contains(frame, "signature", k, True)
                 _iframe = MemFrameTool.drop(_iframe, "flag", groupable_mergeable, "equal")
-                if (_iframe.empty): continue
+                if _iframe.empty:
+                    continue
                 _iframe = _iframe.sort_values(by=["offset"])
                 off_t = Offset_Info()
                 off_t.signature = k
@@ -492,16 +507,17 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
                     _data = pickle.loads(_iframe.loc[i]["offset_info"])
                     frame.at[i, "flag"] = (frame.loc[i][flg_off_t] | Offset_Info.EXTRACTED)
                     for j in _data: off_t.append(*j)
-                if (self.case.get("extract", True)): self.__extractor(off_t)
+                if (self.case.get("extract", True)):
+                    self.__extractor(off_t)
             return
         else:
             off_t = Offset_Info()
             v = C_defy.SIGNATURE.CSIG.get(target)
-            if (v == None):
+            if v is None:
                 return off_t
             _iframe = MemFrameTool.contains(frame, "signature", k, True)
             _iframe = MemFrameTool.drop(_iframe, "flag", groupable_mergeable, "equal")
-            if (_iframe.empty):
+            if _iframe.empty:
                 return off_t
             _iframe = _iframe.sort_values(by=["offset"])
             off_t.signature = k
@@ -544,22 +560,25 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
                                                                                                              value[2],
                                                                                                              extension))
 
-        if (off_t.len > 0 and (off_t.header()[2] & Offset_Info.VALID)):
+        if off_t.len > 0 and (off_t.header()[2] & Offset_Info.VALID):
             hit_count = [hit_count[0], hit_count[1] + 1]
             self.case.get("hit").update({extension: hit_count})
 
         return off_t
 
     def __extractor(self, off_t):
-        if (off_t.size == 0):
+        if off_t.size == 0:
             return 0
 
         _path = C_defy.SIGNATURE.CSIG.get(off_t.signature, (0, 0, 0, None, 0, 0))[3]
-        if (_path == None):
+        if _path is None:
             return 0
-        if (off_t.flag not in (False, None) and type(off_t.flag) == str):
-            if (len(off_t.flag) > 1 and len(off_t.flag) < 256):
-                root = self.case.get("out") + os.sep + _path + os.sep + off_t.flag + os.sep
+        if off_t.flag not in (False, None) and type(off_t.flag) == str:
+            if 1 < len(off_t.flag) < 256:
+                if off_t.flag.find('\\') != -1:
+                    root = self.case.get("out") + off_t.flag[off_t.flag.find('\\'):] + os.sep
+                else:
+                    root = self.case.get("out") + os.sep + off_t.flag + os.sep
             else:
                 root = self.case.get("out") + os.sep + _path + os.sep
         else:
@@ -570,7 +589,7 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
         handle = self.case.get("fp")
         wrtn = 0
 
-        if (not os.path.exists(root)):
+        if not os.path.exists(root):
             os.makedirs(root)
 
         try:
@@ -583,8 +602,8 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
             size = abs(i[1] - i[0])
             handle.bgoto(i[0], os.SEEK_SET)
 
-            while (size > 0):
-                if (size < sector):
+            while size > 0:
+                if size < sector:
                     data = handle.bread_raw(0, size)
                     wrtn += fd.write(data)
                     size -= size
@@ -596,14 +615,14 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
         fd.close()
         self.__log_write("DBG_", "Extract::type:{0} name:{1}: copied:{2} bytes".format(off_t.signature, fname, wrtn))
 
-        return (fname, wrtn)
+        return fname, wrtn
 
     def __save_cc_carving(self, frame=None):
         root = self.case.get("out") + os.sep + ".cache"
-        if (str(type(frame)) == "<class 'NoneType'>"):
+        if str(type(frame)) == "<class 'NoneType'>":
             frame = self.case.get("mem_frame")
-            if (type(frame) == pd.core.frame.DataFrame):
-                if (os.path.exists(root)):
+            if type(frame) == pd.core.frame.DataFrame:
+                if os.path.exists(root):
                     try:
                         shutil.rmtree(root)
                         os.makedirs(root)
@@ -612,24 +631,24 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
                         return
                 else:
                     os.makedirs(root)
-                if (frame.empty == False):
+                if frame.empty is False:
                     frame.to_pickle("{0}{1}{2}".format(root, os.sep, "cc_cache.bin"))
                     # frame.to_csv("{0}{1}{2}".format(root,os.sep,"cc_cache.csv"))
-        elif (type(frame) == pd.core.frame.DataFrame):
-            if (frame.empty == False):
+        elif type(frame) == pd.core.frame.DataFrame:
+            if frame.empty is False:
                 frame.to_pickle("{0}{1}{2}".format(root, os.sep, "cc_cache.bin"))
             # frame.to_csv("{0}{1}{2}".format(root,os.sep,"cc_cache.csv"))
 
     def __save_cc_carving_tape(self, frame=None):
         root = self.case.get("out") + os.sep + ".cache"
-        if (str(type(frame)) == "<class 'NoneType'>"):
+        if str(type(frame)) == "<class 'NoneType'>":
             frame = self.case.get("tape")
-            if (type(frame) == pd.core.frame.DataFrame):
-                if (frame.empty == False):
+            if type(frame) == pd.core.frame.DataFrame:
+                if not frame.empty:
                     frame.to_pickle("{0}{1}{2}".format(root, os.sep, "cc_cache_tape.bin"))
                     # frame.to_csv("{0}{1}{2}".format(root,os.sep,"cc_cache_tape.csv"))
-        elif (type(frame) == pd.core.frame.DataFrame):
-            if (frame.empty == False):
+        elif type(frame) == pd.core.frame.DataFrame:
+            if not frame.empty:
                 frame.to_pickle("{0}{1}{2}".format(root, os.sep, "cc_cache_tape.bin"))
             # frame.to_csv("{0}{1}{2}".format(root,os.sep,"cc_cache_tape.csv"))
 
@@ -643,7 +662,7 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
 
     def __load_cc_carving_tape(self, option=0):
         root = self.case.get("out") + os.sep + ".cache"
-        if (option == 0):
+        if option == 0:
             try:
                 self.case.update({"tape": pd.read_pickle("{0}{1}{2}".format(root, os.sep, "cc_cache_tape.bin"))})
                 return C_defy.Return.SUCCESS
@@ -656,7 +675,7 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
         cur_off_t = C_defy.MemSchema.default_columns.get("offset", 0)
         off_info_t = C_defy.MemSchema.default_columns.get("offset_info", -1)
         frame = self.case.get("mem_frame", pd.DataFrame(C_defy.MemSchema.default_columns.keys()))
-        if (frame.empty):
+        if frame.empty:
             return
         offset_list = list()
 
@@ -665,21 +684,22 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
 
         for i in frame.index:
             offset = pickle.loads(frame.loc[i][off_info_t])
-            if (i + 1 >= frame.shape[0]):
+            if i + 1 >= frame.shape[0]:
                 nxt_offset = [[self.case.get("size"), 0, 0]]
             else:
                 nxt_offset = pickle.loads(frame.iloc[i + 1][off_info_t])
-            if (offset == None or nxt_offset == None): continue
-            if (len(offset) > 1):
+            if offset is None or nxt_offset is None:
+                continue
+            if len(offset) > 1:
                 length = len(offset) - 2
                 for idx, val in enumerate(offset):
-                    if (idx < length):
-                        offset_list.append([val[1], 'default', offset[idx + 1][0], 0, b'\x00', b'\x00'])
-            offset_list.append([offset[-1][1], 'default', nxt_offset[0][0], 0, b'\x00', b'\x00'])
+                    if idx < length:
+                        offset_list.append([val[1], 'default', offset[idx + 1][0], 0, b'\x00', b'\x00', None, 0, None])
+            offset_list.append([offset[-1][1], 'default', nxt_offset[0][0], 0, b'\x00', b'\x00', None, 0, None])
 
-        if (len(offset_list) != 0 and frame.iloc[0][cur_off_t] != 0):
+        if len(offset_list) != 0 and frame.iloc[0][cur_off_t] != 0:
             offset = pickle.loads(frame.loc[0][off_info_t])
-            offset_list = [[0, 'default', offset[0][0], 0, b'\x00', b'\x00']] + offset_list
+            offset_list = [[0, 'default', offset[0][0], 0, b'\x00', b'\x00', None, 0, None]] + offset_list
 
         self.case.update(
             {"tape": pd.DataFrame.from_records(offset_list, columns=C_defy.MemSchema.default_columns.keys())})
@@ -698,64 +718,65 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
         pass
 
     def execute(self, cmd=None, option=None):
-        if (cmd == C_defy.WorkLoad.LOAD_MODULE):
-            if (option == None): option = "cc"
+        if cmd == C_defy.WorkLoad.LOAD_MODULE:
+            if option is None:
+                option = "cc"
             self.__log_write("INFO", "Main::Request to load actuator {0}'s module(s).".format(option), always=True)
             return self.__load_module(option)
 
-        if (cmd == C_defy.WorkLoad.ATTACH_ACTUATOR):
+        if cmd == C_defy.WorkLoad.ATTACH_ACTUATOR:
             self.__log_write("INFO", "Main::Request to add actuator {0}'s module(s).".format(option), always=True)
-            if (option == None):
+            if option is None:
                 self.__log_write("ERR_", "Main::False parameters.", always=True)
                 return False
-            elif (type(option) != list and len(option) != 3):
+            elif type(option) != list and len(option) != 3:
                 self.__log_write("ERR_", "Main::False parameters {0}.".format(option), always=True)
                 return False
-            elif (option[0] == "cc"):
+            elif option[0] == "cc":
                 self.__log_write("ERR_", "Main::Cannot load the default module.", always=True)
                 return False
             return self.__attach_actuator(*option)
 
-        if (cmd == C_defy.WorkLoad.DETACH_ACTUATOR):
+        if cmd == C_defy.WorkLoad.DETACH_ACTUATOR:
             self.__log_write("INFO", "Main::Request to detach actuator {0}'s module(s).".format(option), always=True)
-            if (option == None):
+            if option is None:
                 self.__log_write("ERR_", "Main::False parameters.", always=True)
                 return False
-            elif (type(option) != str):
+            elif type(option) != str:
                 self.__log_write("ERR_", "Main::False parameters {0}.".format(option), always=True)
                 return False
-            elif (option[0] == "cc"):
+            elif option[0] == "cc":
                 self.__log_write("ERR_", "Main::Cannot detach the default module.", always=True)
                 return False
             return self.__detach_actuator(option)
 
-        elif (cmd == C_defy.WorkLoad.NEW_CASE):
+        elif cmd == C_defy.WorkLoad.NEW_CASE:
             self.__cleanup_case()
             self.__create_case(option)
             self.set_token(self.case.get("perf", 0))
             self.__log_write("INFO", "Main::The old case is closed and a new case is now created.", always=True)
 
-        elif (cmd == C_defy.WorkLoad.CLOSE_CASE):
+        elif cmd == C_defy.WorkLoad.CLOSE_CASE:
             self.__cleanup_case()
             self.__log_write("INFO", "Main::The current case is closed.", always=True)
 
-        elif (cmd == C_defy.WorkLoad.MODIFY_PARAMETER):
-            if (str(option[0]) in FiCA.CASE.keys()):
+        elif cmd == C_defy.WorkLoad.MODIFY_PARAMETER:
+            if str(option[0]) in FiCA.CASE.keys():
                 self.case.update({option[0]: option[1]})
                 self.__log_write("INFO", "Main::Parameter is changed.")
 
-        elif (cmd == C_defy.WorkLoad.CARV and option == None):
+        elif cmd == C_defy.WorkLoad.CARV and option is None:
             self.__log_write("", "", always=True, init=True)
             self.__log_write("INFO", "Main::Request to run carving process.", always=True)
             self.case.update({"hit": dict()})
 
-            if (self.__open):
+            if self.__open:
                 self.__file_open(remove=True)
 
                 self.__log_write("INFO", "Carving::Scanning signatures...", always=True)
                 self.__set_perf_counter()
                 ret = self.__scan_signature()
-                if (ret < C_defy.Return.EVOID):
+                if ret < C_defy.Return.EVOID:
                     self.__log_write("INFO", "Carving::Scanning error", always=True)
                     return {}
                 self.__log_write("INFO", "Carving::Scanning processing time:{0}.".format(self.__check_perf_counter()),
@@ -763,7 +784,7 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
 
                 self.__set_perf_counter()
                 self.__cc_carving()
-                if (self.case.get("extract", True)):
+                if self.case.get("extract", True):
                     self.__carving_mergeable(flag=Offset_Info.VALID | Offset_Info.MERGEABLE | Offset_Info.GROUPABLE)
                 self.__log_write("INFO", "Carving::Carving processing time:{0}.".format(self.__check_perf_counter()),
                                  always=True)
@@ -776,7 +797,7 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
                 self.__log_write("INFO", "Carving::Taping is completed:{0}.".format(self.__check_perf_counter()),
                                  always=True)
 
-                if (self.case.get("export", False)):
+                if self.case.get("export", False):
                     self.__log_write("INFO", "Carving::Exporting report files...", always=True)
                     try:
                         self.__save_cc_carving_tape()
@@ -788,27 +809,27 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
                 self.__log_write("INFO", "Carving::There is no case to be handled.", always=True)
             return {}
 
-        elif (cmd == C_defy.WorkLoad.CARV and type(option) == int):
-            if (self.__open):
-                if (option == -1):
+        elif cmd == C_defy.WorkLoad.CARV and type(option) == int:
+            if self.__open:
+                if option == -1:
                     self.__log_write("", "", always=True, init=True)
                     self.__log_write("INFO", "Main::Request to run carving process.", always=True)
                     self.case.update({"hit": dict()})
                     self.__file_open(remove=True)
                     self.__log_write("INFO", "Carving::Scanning signatures...", always=True)
                     return self.__scan_signature_lbl()
-                elif (option == 0):
+                elif option == 0:
                     ret = self.___scan_signature_lbl()
-                    if (ret == C_defy.Return.EVOID):
+                    if ret == C_defy.Return.EVOID:
                         self.case.update({"mem_frame": self.__int_mem})
                         self.__int_mem = list()
                         return ret
                     return int(ret / self.__block_counter[0] * 100)
-                elif (option == 1):
+                elif option == 1:
                     self.__int_mem = list()
                     self.__set_perf_counter()
                     self.__cc_carving()
-                    if (self.case.get("extract", True)):
+                    if self.case.get("extract", True):
                         self.__carving_mergeable(flag=Offset_Info.VALID | Offset_Info.MERGEABLE | Offset_Info.GROUPABLE)
                     self.__log_write("INFO",
                                      "Carving::Carving processing time:{0}.".format(self.__check_perf_counter()),
@@ -817,24 +838,24 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
                     self.__log_write("INFO", "Carving::Result:{0}".format(hit), always=True)
                     self.__save_cc_carving()  # Save Original Data
                     return hit
-                elif (option == 10):
+                elif option == 10:
                     ret = self.__cc_carving_interactive()
-                    if (ret[0] == C_defy.Return.SUCCESS):
+                    if ret[0] == C_defy.Return.SUCCESS:
                         self.__count_vector[1] = 0
                     return ret
-                elif (option == 11):
-                    if (self.case.get("extract", True)):
+                elif option == 11:
+                    if self.case.get("extract", True):
                         self.__carving_mergeable(flag=Offset_Info.VALID | Offset_Info.MERGEABLE | Offset_Info.GROUPABLE)
                     hit = self.case.get("hit")
                     self.__log_write("INFO", "Carving::Result:{0}".format(hit), always=True)
                     self.__save_cc_carving()  # Save Original Data
                     return hit
-                elif (option == 2):
+                elif option == 2:
                     self.__set_perf_counter()
                     self.__concatenate_tape()
                     stamp = self.__check_perf_counter()
                     self.__log_write("INFO", "Carving::Taping is completed:{0}.".format(stamp), always=True)
-                    if (self.case.get("export", False)):
+                    if self.case.get("export", False):
                         self.__log_write("INFO", "Carving::Exporting report files...", always=True)
                         try:
                             self.__save_cc_carving_tape()
@@ -846,12 +867,12 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
                 self.__log_write("INFO", "Carving::There is no case to be handled.", always=True)
             return {}
 
-        elif (cmd == C_defy.WorkLoad.RECARV):
+        elif cmd == C_defy.WorkLoad.RECARV:
             self.__log_write("", "", always=True, init=True)
             self.__log_write("INFO", "Main::Request to run re-carving process.", always=True)
             self.case.update({"hit": dict()})
 
-            if (self.__open):
+            if self.__open:
                 self.__load_cc_carving()
                 self.__file_open(remove=False)
 
@@ -885,7 +906,8 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
                 frame = pd.read_pickle("{0}{1}{2}".format(root, os.sep, "cc_cache.bin"))
             except:
                 return C_defy.Return.EINVAL_FILE
-            if (frame.empty): return
+            if frame.empty:
+                return
             copier = frame.copy(deep=False)
             sig_off_t = C_defy.MemSchema.default_columns.get("signature", 1)
             flg_off_t = C_defy.MemSchema.default_columns.get("flag", 3)
@@ -893,12 +915,14 @@ class FiCA(Process, ModuleComponentInterface, C_defy):
             singular = Offset_Info.VALID | Offset_Info.UNIT
 
             for i in frame.index:
-                if frame.loc[i][off_info_t] == None:
+                if frame.loc[i][off_info_t] is None:
                     copier.at[i, "offset_info"] = "[]"
                 else:
                     copier.at[i, "offset_info"] = "{0}".format(pickle.loads(frame.loc[i][off_info_t]))
 
             copier.to_csv("{0}{1}{2}".format(root, os.sep, "cc_cache.csv"))
+
+            return copier
 
 
 def str2bool(s):
@@ -940,7 +964,7 @@ if __name__ == '__main__':
 
     if args.mode in (1, 2):
         manager = FiCA(debug=args.debug, out=args.log)
-        if manager.execute(FiCA.Instruction.LOAD_MODULE) == False:
+        if not manager.execute(FiCA.Instruction.LOAD_MODULE):
             sys.exit(0)
 
         if args.mode == 1:

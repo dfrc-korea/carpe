@@ -29,33 +29,37 @@ class IconCacheConnector(interface.ModuleConnector):
             return False
         
         try:
-            owner = ''
             query = f"SELECT name, parent_path, extension FROM file_info WHERE par_id='{par_id}' " \
                     f"and extension = 'db' and size > 24 and name regexp 'iconcache_[0-9]' and ("
 
-            for user_accounts in knowledge_base._user_accounts.values():
-                for hostname in user_accounts.values():
-                    if hostname.identifier.find('S-1-5-21') == -1:
-                        continue
-                    query += f"parent_path like '%{hostname.username}%' or "
-            query = query[:-4] + ");"
+            user_list = knowledge_base._user_accounts.values()
+            if user_list:
+                for user_accounts in user_list:
+                    for hostname in user_accounts.values():
+                        if hostname.identifier.find('S-1-5-21') == -1:
+                            continue
+                        query += f"parent_path like '%{hostname.username}%' or "
+                query = query[:-4] + ");"
+            else:
+                print("No user list")
+                return False
 
             iconcache_files = configuration.cursor.execute_query_mul(query)
             if len(iconcache_files) == 0:
+                print("There are no iconcache files")
                 return False
 
             insert_iconcache_info = []
-
+            query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+            path_separator = self.GetPathSeparator(source_path_spec)
             for iconcache in iconcache_files:
-                iconcache_path = iconcache[1][iconcache[1].find('/'):] + '/' + iconcache[0]  # document full path
-                fileExt = iconcache[2]
+                iconcache_path = iconcache[1][iconcache[1].find(path_separator):] + path_separator + iconcache[0]  # document full path
                 fileName = iconcache[0]
-                owner = iconcache[1][iconcache[1].find('/'):].split('/')[2]
+                owner = iconcache[1][iconcache[1].find(path_separator):].split(path_separator)[2]
                 # Windows.old 폴더 체크
                 if 'Windows.old' in iconcache_path:
-                    fileExt = iconcache[2]
                     fileName = iconcache[0]
-                    owner = iconcache[1][iconcache[1].find('/'):].split('/')[3] + "(Windows.old)"
+                    owner = iconcache[1][iconcache[1].find(path_separator):].split(path_separator)[3] + "(Windows.old)"
 
                 output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + configuration.evidence_id + os.sep + par_id
                 img_output_path = output_path + os.sep + "iconcache_img" + os.sep + owner + os.sep + fileName[:-3]

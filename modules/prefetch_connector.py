@@ -35,9 +35,11 @@ class PREFETCHConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
         # extension -> sig_type 변경해야 함
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano FROM file_info WHERE par_id='{par_id}' and " \
-                f"parent_path = 'root/Windows/Prefetch' and extension = 'pf';"
+                f"parent_path like 'root{query_separator}Windows{query_separator}Prefetch' and extension = 'pf';"
 
         prefetch_files = configuration.cursor.execute_query_mul(query)
 
@@ -49,7 +51,7 @@ class PREFETCHConnector(interface.ModuleConnector):
         insert_prefetch_volume_info = []
 
         for prefetch in prefetch_files:
-            prefetch_path = prefetch[1][prefetch[1].find('/'):] + '/' + prefetch[0]  # document full path
+            prefetch_path = prefetch[1][prefetch[1].find(path_separator):] + path_separator + prefetch[0]  # document full path
             fileExt = prefetch[2]
 
             # fileName = "SVCHOST.EXE-36E2D733.pf"
@@ -84,7 +86,7 @@ class PREFETCHConnector(interface.ModuleConnector):
             result = results['PrefetchInfo'][1]
 
             tmp = []
-            last_run_time = result[8].split(',')
+            last_run_times = result[8].split(',')
             prefetch_name = result[1][result[1].rfind(os.path.sep) + 1:]
             tmp.append(par_id)
             tmp.append(configuration.case_id)
@@ -96,46 +98,64 @@ class PREFETCHConnector(interface.ModuleConnector):
             else:
                 tmp.append(result[6])  # program_path
             tmp.append(str(result[7]))  # program_run_count
-            tmp.append(
-                str(datetime(1970, 1, 1) + timedelta(seconds=float(str(prefetch[3]) + '.' + str(prefetch[4])))).replace(
-                    ' ', 'T') + 'Z')  # 생성시간
+            created_time = str(
+                datetime(1970, 1, 1) + timedelta(seconds=float(str(prefetch[3]) + '.' + str(prefetch[4])))).replace(
+                ' ', 'T') + 'Z'
+            created_time = configuration.apply_time_zone(created_time, knowledge_base.time_zone)
+            tmp.append(created_time)  # 생성시간
             tmp.append(' ')  # file_hash
             try:
-                tmp.append(last_run_time[0].replace(' ', 'T') + 'Z')  # last_run_time
+                last_run_time = last_run_times[0].replace(' ', 'T') + 'Z'
+                last_run_time = configuration.apply_time_zone(last_run_time, knowledge_base.time_zone)
+                tmp.append(last_run_time)  # last_run_time
             except IndexError:
                 tmp.append(' ')
             try:
-                tmp.append(last_run_time[1].replace(' ', 'T') + 'Z')  # 2nd_last_run_time
+                second_last_run_time = last_run_times[1].replace(' ', 'T') + 'Z'
+                second_last_run_time = configuration.apply_time_zone(second_last_run_time, knowledge_base.time_zone)
+                tmp.append(second_last_run_time)  # 2nd_last_run_time
             except IndexError:
                 tmp.append(' ')
             try:
-                tmp.append(last_run_time[2].replace(' ', 'T') + 'Z')  # 3rd_last_run_time
+                third_last_run_time = last_run_times[2].replace(' ', 'T') + 'Z'
+                third_last_run_time = configuration.apply_time_zone(third_last_run_time, knowledge_base.time_zone)
+                tmp.append(third_last_run_time)  # 3rd_last_run_time
             except IndexError:
                 tmp.append(' ')
             try:
-                tmp.append(last_run_time[3].replace(' ', 'T') + 'Z')  # 4th_last_run_time
+                fourth_last_run_time = last_run_times[3].replace(' ', 'T') + 'Z'
+                fourth_last_run_time = configuration.apply_time_zone(fourth_last_run_time, knowledge_base.time_zone)
+                tmp.append(fourth_last_run_time)  # 4th_last_run_time
             except IndexError:
                 tmp.append(' ')
             try:
-                tmp.append(last_run_time[4].replace(' ', 'T') + 'Z')  # 5th_last_run_time
+                fifth_last_run_time = last_run_times[4].replace(' ', 'T') + 'Z'
+                fifth_last_run_time = configuration.apply_time_zone(fifth_last_run_time, knowledge_base.time_zone)
+                tmp.append(fifth_last_run_time)  # 5th_last_run_time
             except IndexError:
                 tmp.append(' ')
             try:
-                tmp.append(last_run_time[5].replace(' ', 'T') + 'Z')  # 6th_last_run_time
+                sixth_last_run_time = last_run_times[5].replace(' ', 'T') + 'Z'
+                sixth_last_run_time = configuration.apply_time_zone(sixth_last_run_time, knowledge_base.time_zone)
+                tmp.append(sixth_last_run_time)  # 6th_last_run_time
             except IndexError:
                 tmp.append(' ')
             try:
-                tmp.append(last_run_time[6].replace(' ', 'T') + 'Z')  # 7th_last_run_time
+                seventh_last_run_time = last_run_times[6].replace(' ', 'T') + 'Z'
+                seventh_last_run_time = configuration.apply_time_zone(seventh_last_run_time, knowledge_base.time_zone)
+                tmp.append(seventh_last_run_time)  # 7th_last_run_time
             except IndexError:
                 tmp.append(' ')
             try:
-                tmp.append(last_run_time[7].replace(' ', 'T') + 'Z')  # 8th_last_run_time
+                eightth_last_run_time = last_run_times[5].replace(' ', 'T') + 'Z'
+                eightth_last_run_time = configuration.apply_time_zone(eightth_last_run_time, knowledge_base.time_zone)
+                tmp.append(eightth_last_run_time)  # 8th_last_run_time
             except IndexError:
                 tmp.append(' ')
 
             insert_prefetch_info.append(tuple(tmp))
 
-            ### prefetch_run_info ###
+            # prefetch_run_info
             for idx, result in enumerate(results['RunInfo']):
                 if idx == 0:
                     continue
@@ -143,10 +163,13 @@ class PREFETCHConnector(interface.ModuleConnector):
                     [par_id, configuration.case_id, configuration.evidence_id, prefetch_name, result[1], result[2],
                      result[3], result[4]]))
 
-            ### prefetch_volume_info ###
+            # prefetch_volume_info
             for idx, result in enumerate(results['VolInfo']):
                 if idx == 0:
                     continue
+                if result[2] is not None:
+                    result[2] = str(result[2]).replace(' ', 'T') + 'Z'
+                    result[2] = configuration.apply_time_zone(result[2], knowledge_base.time_zone)  # creation_time
                 insert_prefetch_volume_info.append(tuple(
                     [par_id, configuration.case_id, configuration.evidence_id, prefetch_name, result[1], result[2],
                      result[3], result[4]]))

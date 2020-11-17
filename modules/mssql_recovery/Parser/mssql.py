@@ -11,6 +11,7 @@ from struct import *
 from dataclasses import dataclass, field
 from collections import defaultdict
 
+
 class _MSSQLPageHeader(LittleEndianStructure):
     _fields_ = [
         ('headerversion', c_uint8),
@@ -41,8 +42,10 @@ class _MSSQLPageHeader(LittleEndianStructure):
         ('tornbits', c_uint32)
     ]
 
+
 def _memcpy(buf, fmt):
     return cast(c_char_p(buf), POINTER(fmt)).contents
+
 
 @dataclass(order=True)
 class SchemeInfo:
@@ -59,9 +62,11 @@ class SchemeInfo:
     scaleofnumeric: int = 0
     precisionoftime: int = 0
 
+
 class Columntype(enum.Enum):
     STATIC_COLUMN = 1
     VARIABLE_COLUMN = 2
+
 
 @dataclass(order=True)
 class RowInfo:
@@ -71,6 +76,7 @@ class RowInfo:
     numofvariablecol: int = 0
     checklastcolumn: bool = False
     numofbitcol: int = 0
+
 
 @dataclass(order=True)
 class TableInfo:
@@ -87,6 +93,7 @@ class RowId:
     pageId: int = None
     slotNumber: int = None
 
+
 @dataclass(order=True)
 class LobInfo:
     timestamp: int = None
@@ -99,7 +106,7 @@ class MSSQL():
         self.fHandle = ''
         self.fbuf = ''
         self.pagesize = 8192
-        
+
     def open(self, filepath):
         try:
             self.fHandle = open(filepath, 'rb')
@@ -135,28 +142,27 @@ class MSSQL():
 class MSSQLRecovery():
     def __init__(self, mssql):
         self.mssql = mssql
-        self.pages = defaultdict(lambda : 0) # pageMap
+        self.pages = defaultdict(lambda: 0)  # pageMap
         self.systemschemesmap = defaultdict(list)
         self.userschemesmap = defaultdict(list)
         self.tablelist = []
         self.of = None
-        
 
     def scanPages(self, filename):
-        print('MDF Page Scan')
+        # print('MDF Page Scan')
         pagenumber = 0
         jsonFilename = os.path.abspath(os.path.splitext(filename)[0] + '.json')
 
         if os.path.isfile(jsonFilename):
             pages = json.load(open(jsonFilename))
             for pagenumber, objectid in pages.items():
-                self.pages[int(pagenumber)] = objectid                
+                self.pages[int(pagenumber)] = objectid
         else:
             while True:
                 buf = self.mssql.read(self.mssql.pagesize * pagenumber, self.mssql.pagesize)
                 if not buf:
                     break
-                
+
                 if buf[0x01] != 0x01:
                     pagenumber += 1
                     continue
@@ -170,7 +176,7 @@ class MSSQLRecovery():
             json.dump(self.pages, open(jsonFilename, 'w'))
 
     def getSystemTableColumnInfo(self):
-        print('Get System Table Column Information')
+        # print('Get System Table Column Information')
 
         systemTable = [('sysschobjs', 0x22), ('sysiscols', 0x37), ('sysrowsets', 0x05), ('sysallocunits', 0x07)]
 
@@ -186,24 +192,24 @@ class MSSQLRecovery():
                 rowoffsetarray = sorted(self.mssql.getRowOffsetArray(buf, pageheader))
 
                 for offset in rowoffsetarray:
-                    tboID = unpack('<I', buf[offset + 0x4 : offset + 0x8])[0]
+                    tboID = unpack('<I', buf[offset + 0x4: offset + 0x8])[0]
 
                     if tboID != t_objectID:
                         continue
 
-                    colRecordLen = unpack('<H', buf[offset + 0x33 : offset + 0x35])[0]
+                    colRecordLen = unpack('<H', buf[offset + 0x33: offset + 0x35])[0]
                     if colRecordLen <= 0:
                         continue
 
-                    colData = buf[offset : offset + colRecordLen]
+                    colData = buf[offset: offset + colRecordLen]
 
                     scInfo = SchemeInfo()
                     scInfo.ismax = False
                     scInfo.tobjectid = t_objectID
-                    scInfo.colorder = unpack('<H', colData[0x0A : 0x0C])[0]
+                    scInfo.colorder = unpack('<H', colData[0x0A: 0x0C])[0]
                     scInfo.xtype = colData[0x0E]
-                    scInfo.utype = unpack('<I', colData[0x0F : 0x13])[0]
-                    scInfo.colsize = unpack('<H', colData[0x13 : 0x15])[0]
+                    scInfo.utype = unpack('<I', colData[0x0F: 0x13])[0]
+                    scInfo.colsize = unpack('<H', colData[0x13: 0x15])[0]
                     if scInfo.colsize >= 0xFFFF:
                         scInfo.colsize = 0x10
                         scInfo.ismax = True
@@ -212,19 +218,20 @@ class MSSQLRecovery():
                     if scInfo.datatype == 'numeric' or scInfo.datatype == 'decimal':
                         scInfo.precisionofnumeric = colData[0x15]
                         scInfo.scaleofnumeric = colData[0x16]
-                        scInfo.datatype = scInfo.datatype + '({}, {})'.format(str(scInfo.precisionofnumeric), str(scInfo.scaleofnumeric))
+                        scInfo.datatype = scInfo.datatype + '({}, {})'.format(str(scInfo.precisionofnumeric),
+                                                                              str(scInfo.scaleofnumeric))
                     elif scInfo.datatype == 'time' or scInfo.datatype == 'datetime2' or scInfo.datatype == 'datetimeoffset':
                         scInfo.precisionoftime = colData[0x16]
                         scInfo.datatype = scInfo.datatype + '({})'.format(str(scInfo.precisionoftime))
                     self.systemschemesmap[t_objectID].append(scInfo)
-                
-                del buf
-    
-    def getTableInfo(self):
-        print('Get Table Information')
 
-        sysschobjs_page = defaultdict(list, {k: v for k, v in self.pages.items() if v == 0x22}) # sysschobjs
-        sysschobjs_schemes = self.systemschemesmap[0x22] # sysschobjs
+                del buf
+
+    def getTableInfo(self):
+        # print('Get Table Information')
+
+        sysschobjs_page = defaultdict(list, {k: v for k, v in self.pages.items() if v == 0x22})  # sysschobjs
+        sysschobjs_schemes = self.systemschemesmap[0x22]  # sysschobjs
         sysschobjs_schemes = sorted(sysschobjs_schemes, key=lambda SchemeInfo: SchemeInfo.colorder)
 
         rowinfo = RowInfo()
@@ -233,7 +240,7 @@ class MSSQLRecovery():
             return False
 
         for schema in sysschobjs_schemes:
-            self._tableSchemeAnalyzer(schema, rowinfo)        
+            self._tableSchemeAnalyzer(schema, rowinfo)
 
         if len(sysschobjs_schemes) != rowinfo.numoftotalcol:
             return False
@@ -250,19 +257,20 @@ class MSSQLRecovery():
             recordlen = rowoffsetarray[1:] + [self.mssql.pagesize - len(rowoffsetarray) * 2]
             for offset, length in zip(rowoffsetarray, recordlen):
                 tbinfo = TableInfo()
-                
-                if self._parseTableInfoRecord(buf[offset:], length - offset, tbinfo, sysschobjs_schemes, rowinfo) == True:
+
+                if self._parseTableInfoRecord(buf[offset:], length - offset, tbinfo, sysschobjs_schemes,
+                                              rowinfo) == True:
                     self.tablelist.append(tbinfo)
 
             del buf
-        
+
         if len(self.tablelist) == 0:
             return False
         else:
             return True
-        
+
     def getColumnInfo(self):
-        print('Get Column Information')
+        # print('Get Column Information')
 
         syscolpars_page = defaultdict(list, {k: v for k, v in self.pages.items() if v == 0x29})
 
@@ -282,7 +290,7 @@ class MSSQLRecovery():
                     tboId = unpack('<I', buf[offset + 0x04:offset + 0x08])[0]
                     if tboId != tobjectid:
                         continue
-                    
+
                     colRecordLen = unpack('<H', buf[offset + 0x33:offset + 0x35])[0]
                     if colRecordLen <= 0:
                         continue
@@ -304,7 +312,8 @@ class MSSQLRecovery():
                     if scinfo.datatype == 'numeric' or scinfo.datatype == 'decimal':
                         scinfo.precisionofnumeric = colData[0x15]
                         scinfo.scaleofnumeric = colData[0x16]
-                        scinfo.datatype = scinfo.datatype + '({}, {})'.format(str(scinfo.precisionofnumeric), str(scinfo.scaleofnumeric))
+                        scinfo.datatype = scinfo.datatype + '({}, {})'.format(str(scinfo.precisionofnumeric),
+                                                                              str(scinfo.scaleofnumeric))
                     elif scinfo.datatype == 'time' or scinfo.datatype == 'datetime2' or scinfo.datatype == 'datetimeoffset':
                         scinfo.precisionoftime = colData[0x16]
                         scinfo.datatype = scinfo.datatype + '({})'.format(str(scinfo.precisionoftime))
@@ -313,7 +322,7 @@ class MSSQLRecovery():
                 del buf
 
     def getKeyColumnInfo(self):
-        print('Get Key Column Information')
+        # print('Get Key Column Information')
 
         sysiscols_page = defaultdict(list, {k: v for k, v in self.pages.items() if v == 0x37})
         sysiscols_schemes = self.systemschemesmap[0x37]
@@ -346,16 +355,17 @@ class MSSQLRecovery():
                 for offset, length in zip(rowoffsetarray, recordlen):
                     indexcolumnid = 0
                     columnid = 0
-                    if self._parseIndexInfoRecord(buf[offset:], length - offset, sysiscols_schemes, rowinfo, tobjectid, indexcolumnid, columnid) == True:
+                    if self._parseIndexInfoRecord(buf[offset:], length - offset, sysiscols_schemes, rowinfo, tobjectid,
+                                                  indexcolumnid, columnid) == True:
                         if (indexcolumnid != 0) and (columnid != 0) and (indexcolumnid != columnid):
                             self._changeOrdinal(sysiscols_schemes, indexcolumnid, columnid, '', tobjectid)
 
                 del buf
-        
+
         return True
 
     def getPageObjectId(self):
-        print('Get Page Object Id')
+        # print('Get Page Object Id')
 
         sysrowsets_page = defaultdict(list, {k: v for k, v in self.pages.items() if v == 0x05})
         sysrowsets_schemes = self.systemschemesmap[0x05]
@@ -390,18 +400,19 @@ class MSSQLRecovery():
 
                 recordlen = rowoffsetarray[1:] + [self.mssql.pagesize - len(rowoffsetarray) * 2]
                 for offset, length in zip(rowoffsetarray, recordlen):
-                    tableinfo.partitionid = self._parseObjectInfoRecord(buf[offset:], length - offset, sysrowsets_schemes, rowinfo, tobjectid)
+                    tableinfo.partitionid = self._parseObjectInfoRecord(buf[offset:], length - offset,
+                                                                        sysrowsets_schemes, rowinfo, tobjectid)
                     if tableinfo.partitionid != 0:
                         if (self._searchSysallocunits(tableinfo)):
                             isFindId = True
                             break
 
                 del buf
-        
+
         return True
 
     def recovery(self, output_path):
-        print('Recovery MSSQL')
+        # print('Recovery MSSQL')
 
         for tableinfo in self.tablelist:
             table_scheme = self.userschemesmap[tableinfo.tobjectid]
@@ -422,16 +433,16 @@ class MSSQLRecovery():
             if len(table_scheme) != rowinfo.numoftotalcol:
                 continue
 
-            #print('create table ' + table_scheme.tablename)
             for schema in table_scheme:
                 if schema.datatype == 'varchar' or schema.datatype == 'nvarchar' or \
-                    schema.datatype == 'char' or schema.datatype == 'nchar' or \
-                    schema.datatype == 'binary' or schema.datatype == 'varbinary':
+                        schema.datatype == 'char' or schema.datatype == 'nchar' or \
+                        schema.datatype == 'binary' or schema.datatype == 'varbinary':
                     if schema.ismax:
                         colinfo.append(schema.colname + ' ' + schema.datatype + '(max)')
                     else:
                         if schema.datatype == 'nvarchar' or schema.datatype == 'nchar':
-                            colinfo.append(schema.colname + ' ' + schema.datatype + '(' + str(int(schema.colsize / 2)) + ')')
+                            colinfo.append(
+                                schema.colname + ' ' + schema.datatype + '(' + str(int(schema.colsize / 2)) + ')')
                         else:
                             colinfo.append(schema.colname + ' ' + schema.datatype + '(' + str(schema.colsize) + ')')
                 else:
@@ -454,8 +465,8 @@ class MSSQLRecovery():
                 if pageheader.flagbits & 0x100:
                     self._tornbits(buf)
 
-                print('Carving... PageID : ' + str(k) + ', Table : ' + tableinfo.tablename)
-                
+                # print('Carving... PageID : ' + str(k) + ', Table : ' + tableinfo.tablename)
+
                 rowoffsetarray = sorted(self.mssql.getRowOffsetArray(buf, pageheader))
 
                 startOffsetOfRowOffsetArray = self.mssql.pagesize - len(rowoffsetarray) * 2
@@ -463,13 +474,15 @@ class MSSQLRecovery():
                 nextoffsetarray = rowoffsetarray[1:]
                 nextoffsetarray.append(startOffsetOfRowOffsetArray)
 
-                if len(rowoffsetarray) == 0: # all record data is unallocated
-                    self._scanForUnallocatedArea(buf, 0x60, self.mssql.pagesize - 0x60, rowinfo, tableinfo.tablename, table_scheme)
+                if len(rowoffsetarray) == 0:  # all record data is unallocated
+                    self._scanForUnallocatedArea(buf, 0x60, self.mssql.pagesize - 0x60, rowinfo, tableinfo.tablename,
+                                                 table_scheme)
 
-                if len(rowoffsetarray) != 0 and rowoffsetarray[0] != 0x60: # 1st area
-                    self._scanForUnallocatedArea(buf, 0x60, rowoffsetarray[0] - 0x60, rowinfo, tableinfo.tablename, table_scheme)
+                if len(rowoffsetarray) != 0 and rowoffsetarray[0] != 0x60:  # 1st area
+                    self._scanForUnallocatedArea(buf, 0x60, rowoffsetarray[0] - 0x60, rowinfo, tableinfo.tablename,
+                                                 table_scheme)
 
-                for cur, nxt in zip(rowoffsetarray, nextoffsetarray): # 2nd and 3rd area
+                for cur, nxt in zip(rowoffsetarray, nextoffsetarray):  # 2nd and 3rd area
                     recordLen, isAlive = self._calcRecordLen(buf[cur:], rowinfo)
                     if isAlive:
                         currentoffset = cur + recordLen
@@ -480,10 +493,10 @@ class MSSQLRecovery():
                     if cur + recordLen == nxt:
                         continue
 
-                    self._scanForUnallocatedArea(buf, currentoffset, lenofunalloc, rowinfo, tableinfo.tablename, table_scheme)
+                    self._scanForUnallocatedArea(buf, currentoffset, lenofunalloc, rowinfo, tableinfo.tablename,
+                                                 table_scheme)
 
             self.of.close()
-        
 
     def _getTypeName(self, xtype, utype):
         if xtype == 0x7F:
@@ -565,15 +578,15 @@ class MSSQLRecovery():
 
     def _tableSchemeAnalyzer(self, schema, rowinfo):
         if schema.datatype == 'bigint' or schema.datatype == 'date' or \
-            schema.datatype == 'geography' or schema.datatype == 'geometry' or \
-            schema.datatype == 'real' or schema.datatype == 'int' or \
-            schema.datatype == 'float' or schema.datatype == 'char' or \
-            schema.datatype == 'nchar' or schema.datatype == 'binary' or \
-            schema.datatype == 'tinyint' or schema.datatype == 'smallint' or \
-            schema.datatype == 'rowversion' or schema.datatype == 'money' or \
-            schema.datatype == 'smallmoney' or schema.datatype == 'uniqueidentifier' or \
-            schema.datatype.find('numeric') != -1 or schema.datatype.find('decimal') != -1 or \
-            schema.datatype.find('time') != -1:
+                schema.datatype == 'geography' or schema.datatype == 'geometry' or \
+                schema.datatype == 'real' or schema.datatype == 'int' or \
+                schema.datatype == 'float' or schema.datatype == 'char' or \
+                schema.datatype == 'nchar' or schema.datatype == 'binary' or \
+                schema.datatype == 'tinyint' or schema.datatype == 'smallint' or \
+                schema.datatype == 'rowversion' or schema.datatype == 'money' or \
+                schema.datatype == 'smallmoney' or schema.datatype == 'uniqueidentifier' or \
+                schema.datatype.find('numeric') != -1 or schema.datatype.find('decimal') != -1 or \
+                schema.datatype.find('time') != -1:
             schema.kindofcol = Columntype.STATIC_COLUMN
             rowinfo.numofstaticcol += 1
             rowinfo.staticlength += schema.colsize
@@ -584,37 +597,37 @@ class MSSQLRecovery():
             rowinfo.numofstaticcol += 1
             rowinfo.numofbitcol += 1
         elif schema.datatype == 'varchar' or schema.datatype == 'nvarchar' or \
-            schema.datatype == 'varbinary' or schema.datatype == 'hierarchyid' or \
-            schema.datatype == 'sql_variant' or schema.datatype == 'xml' or \
-            schema.datatype == 'sysname':
+                schema.datatype == 'varbinary' or schema.datatype == 'hierarchyid' or \
+                schema.datatype == 'sql_variant' or schema.datatype == 'xml' or \
+                schema.datatype == 'sysname':
             schema.kindofcol = Columntype.VARIABLE_COLUMN
             rowinfo.numofvariablecol += 1
             rowinfo.checklastcolumn = True
         elif schema.datatype == 'text' or schema.datatype == 'image' or \
-            schema.datatype == 'ntext':
+                schema.datatype == 'ntext':
             schema.kindofcol = Columntype.VARIABLE_COLUMN
             rowinfo.numofvariablecol += 1
             rowinfo.checklastcolumn = False
         rowinfo.numoftotalcol = schema.colorder
 
     def _parseTableInfoRecord(self, buf, recordlen, tableinfo, schemlist, rowinfo):
-        #raise NotImplementedError
-        lenofnullbitmap = math.ceil(rowinfo.numoftotalcol/8)
-        offsetoftotalnumofcol = unpack('<H', buf[0x02 : 0x04])[0]
+        # raise NotImplementedError
+        lenofnullbitmap = math.ceil(rowinfo.numoftotalcol / 8)
+        offsetoftotalnumofcol = unpack('<H', buf[0x02: 0x04])[0]
         totalnumofcol = unpack('<H', buf[offsetoftotalnumofcol:offsetoftotalnumofcol + 0x02])[0]
 
         if rowinfo.numoftotalcol != totalnumofcol:
             return False
 
-        staticoffset = 1 + 1 + 2 # statusBit A + statusBit B + OffsetOfTotalNumOfCol
+        staticoffset = 1 + 1 + 2  # statusBit A + statusBit B + OffsetOfTotalNumOfCol
 
         if rowinfo.numofvariablecol != 0:
             variableoffset = staticoffset + rowinfo.staticlength + 2 + lenofnullbitmap
-            numofvariablecol = unpack('<H', buf[variableoffset : variableoffset + 0x02])[0]
+            numofvariablecol = unpack('<H', buf[variableoffset: variableoffset + 0x02])[0]
             variableoffset += 2
             variableoffset += (2 * numofvariablecol)
             variablecollenoffset = staticoffset + rowinfo.staticlength + 2 + lenofnullbitmap + 2
-        
+
         bitpos = 0
         numberofbitcol = 0
 
@@ -632,9 +645,9 @@ class MSSQLRecovery():
                 else:
                     if (columnlength + staticoffset) > recordlen:
                         break
-                    
+
                     if columnlength < self.mssql.pagesize:
-                        columnbuff = buf[staticoffset : staticoffset + columnlength]
+                        columnbuff = buf[staticoffset: staticoffset + columnlength]
                     else:
                         break
                     staticoffset += columnlength
@@ -650,7 +663,7 @@ class MSSQLRecovery():
                     if (variableoffset + columnlength <= recordlen) and (columnlength < self.mssql.pagesize):
                         columnbuff = buf[variableoffset:variableoffset + columnlength]
                         variableoffset += columnlength
-            
+
             # add nullbit check
 
             if schema.colname == 'id':
@@ -663,29 +676,29 @@ class MSSQLRecovery():
                 tableinfo.numofcolumns = unpack('<I', columnbuff[:4])[0]
 
             del columnbuff
-        
+
         if tableinfo.tobjectid != 0 and tableinfo.tablename != '' and tabletype == 'U':
             return True
         else:
             return False
 
     def _parseIndexInfoRecord(self, buf, recordlen, schemlist, rowinfo, objectid, indexcolumnid, columnid):
-        lenofnullbitmap = math.ceil(rowinfo.numoftotalcol/8)
-        offsetoftotalnumofcol = unpack('<H', buf[0x02 : 0x04])[0]
+        lenofnullbitmap = math.ceil(rowinfo.numoftotalcol / 8)
+        offsetoftotalnumofcol = unpack('<H', buf[0x02: 0x04])[0]
         totalnumofcol = unpack('<H', buf[offsetoftotalnumofcol:offsetoftotalnumofcol + 0x02])[0]
 
         if rowinfo.numoftotalcol != totalnumofcol:
             return False
 
-        staticoffset = 1 + 1 + 2 # statusBit A + statusBit B + OffsetOfTotalNumOfCol
+        staticoffset = 1 + 1 + 2  # statusBit A + statusBit B + OffsetOfTotalNumOfCol
 
         if rowinfo.numofvariablecol != 0:
             variableoffset = staticoffset + rowinfo.staticlength + 2 + lenofnullbitmap
-            numofvariablecol = unpack('<H', buf[variableoffset : variableoffset + 0x02])[0]
+            numofvariablecol = unpack('<H', buf[variableoffset: variableoffset + 0x02])[0]
             variableoffset += 2
             variableoffset += (2 * numofvariablecol)
             variablecollenoffset = staticoffset + rowinfo.staticlength + 2 + lenofnullbitmap + 2
-        
+
         bitpos = 0
         numberofbitcol = 0
 
@@ -703,9 +716,9 @@ class MSSQLRecovery():
                 else:
                     if (columnlength + staticoffset) > recordlen:
                         break
-                    
+
                     if columnlength < self.mssql.pagesize:
-                        columnbuff = buf[staticoffset : staticoffset + columnlength]
+                        columnbuff = buf[staticoffset: staticoffset + columnlength]
                     else:
                         break
                     staticoffset += columnlength
@@ -721,7 +734,7 @@ class MSSQLRecovery():
                     if (variableoffset + columnlength <= recordlen) and (columnlength < self.mssql.pagesize):
                         columnbuff = buf[variableoffset:variableoffset + columnlength]
                         variableoffset += columnlength
-            
+
             # add nullbit check
             if schema.colname == 'idmajor':
                 tboId = unpack('<I', columnbuff[:4])[0]
@@ -738,7 +751,7 @@ class MSSQLRecovery():
             return False
         else:
             return True
-    
+
     def _changeOrdinal(self, schemlist, indexcolumnid, columnid, colname, objectid):
         table_schemes = self.userschemesmap[objectid]
 
@@ -751,29 +764,29 @@ class MSSQLRecovery():
                 if schema.colorder == columnid:
                     tmpOrdinal = columnid
                     schema.colorder = indexcolumnid
-        
+
         for schema in table_schemes:
             if (schema.colorder < tmpOrdinal) and (schema.colData > indexcolumnid):
                 schema.colorder += 1
 
     def _parseObjectInfoRecord(self, buf, recordlen, schemlist, rowinfo, objectid):
-        lenofnullbitmap = math.ceil(rowinfo.numoftotalcol/8)
-        offsetoftotalnumofcol = unpack('<H', buf[0x02 : 0x04])[0]
+        lenofnullbitmap = math.ceil(rowinfo.numoftotalcol / 8)
+        offsetoftotalnumofcol = unpack('<H', buf[0x02: 0x04])[0]
         totalnumofcol = unpack('<H', buf[offsetoftotalnumofcol:offsetoftotalnumofcol + 0x02])[0]
         partitionid = 0
 
         if rowinfo.numoftotalcol != totalnumofcol:
             return False
 
-        staticoffset = 1 + 1 + 2 # statusBit A + statusBit B + OffsetOfTotalNumOfCol
+        staticoffset = 1 + 1 + 2  # statusBit A + statusBit B + OffsetOfTotalNumOfCol
 
         if rowinfo.numofvariablecol != 0:
             variableoffset = staticoffset + rowinfo.staticlength + 2 + lenofnullbitmap
-            numofvariablecol = unpack('<H', buf[variableoffset : variableoffset + 0x02])[0]
+            numofvariablecol = unpack('<H', buf[variableoffset: variableoffset + 0x02])[0]
             variableoffset += 2
             variableoffset += (2 * numofvariablecol)
             variablecollenoffset = staticoffset + rowinfo.staticlength + 2 + lenofnullbitmap + 2
-        
+
         bitpos = 0
         numberofbitcol = 0
 
@@ -791,9 +804,9 @@ class MSSQLRecovery():
                 else:
                     if (columnlength + staticoffset) > recordlen:
                         break
-                    
+
                     if columnlength < self.mssql.pagesize:
-                        columnbuff = buf[staticoffset : staticoffset + columnlength]
+                        columnbuff = buf[staticoffset: staticoffset + columnlength]
                     else:
                         break
                     staticoffset += columnlength
@@ -809,7 +822,7 @@ class MSSQLRecovery():
                     if (variableoffset + columnlength <= recordlen) and (columnlength < self.mssql.pagesize):
                         columnbuff = buf[variableoffset:variableoffset + columnlength]
                         variableoffset += columnlength
-            
+
             # add nullbit check
 
             if schema.colname == 'rowsetid':
@@ -817,8 +830,8 @@ class MSSQLRecovery():
             elif schema.colname == 'idmajor':
                 tboId = unpack('<I', columnbuff[:4])[0]
 
-            #del columnbuff
-        
+            # del columnbuff
+
         if (partitionid == 0) or (tboId != objectid):
             return 0
         else:
@@ -839,7 +852,7 @@ class MSSQLRecovery():
 
         if len(sysallocunits_schemes) != rowinfo.numoftotalcol:
             return False
-        
+
         for k, v in sysallocunits_page.items():
             buf = self.mssql.read(k * self.mssql.pagesize, self.mssql.pagesize)
             pageheader = self.mssql.getPageHeader(buf)
@@ -851,31 +864,31 @@ class MSSQLRecovery():
 
             recordlen = rowoffsetarray[1:] + [self.mssql.pagesize - len(rowoffsetarray) * 2]
             for offset, length in zip(rowoffsetarray, recordlen):
-                allocationid = self._parseAllocUnitInfoRecord(buf[offset:], length - offset, sysallocunits_schemes, rowinfo, tableinfo)
+                allocationid = self._parseAllocUnitInfoRecord(buf[offset:], length - offset, sysallocunits_schemes,
+                                                              rowinfo, tableinfo)
                 if allocationid != 0:
                     tableinfo.pobjectid = ((allocationid) - ((allocationid >> 48) << 48)) >> 16
 
         return True
-                
 
     def _parseAllocUnitInfoRecord(self, buf, recordlen, schemlist, rowinfo, tableinfo):
-        lenofnullbitmap = math.ceil(rowinfo.numoftotalcol/8)
-        offsetoftotalnumofcol = unpack('<H', buf[0x02 : 0x04])[0]
+        lenofnullbitmap = math.ceil(rowinfo.numoftotalcol / 8)
+        offsetoftotalnumofcol = unpack('<H', buf[0x02: 0x04])[0]
         totalnumofcol = unpack('<H', buf[offsetoftotalnumofcol:offsetoftotalnumofcol + 0x02])[0]
         allocationid = 0
 
         if rowinfo.numoftotalcol != totalnumofcol:
             return False
 
-        staticoffset = 1 + 1 + 2 # statusBit A + statusBit B + OffsetOfTotalNumOfCol
+        staticoffset = 1 + 1 + 2  # statusBit A + statusBit B + OffsetOfTotalNumOfCol
 
         if rowinfo.numofvariablecol != 0:
             variableoffset = staticoffset + rowinfo.staticlength + 2 + lenofnullbitmap
-            numofvariablecol = unpack('<H', buf[variableoffset : variableoffset + 0x02])[0]
+            numofvariablecol = unpack('<H', buf[variableoffset: variableoffset + 0x02])[0]
             variableoffset += 2
             variableoffset += (2 * numofvariablecol)
             variablecollenoffset = staticoffset + rowinfo.staticlength + 2 + lenofnullbitmap + 2
-        
+
         bitpos = 0
         numberofbitcol = 0
 
@@ -893,9 +906,9 @@ class MSSQLRecovery():
                 else:
                     if (columnlength + staticoffset) > recordlen:
                         break
-                    
+
                     if columnlength < self.mssql.pagesize:
-                        columnbuff = buf[staticoffset : staticoffset + columnlength]
+                        columnbuff = buf[staticoffset: staticoffset + columnlength]
                     else:
                         break
                     staticoffset += columnlength
@@ -911,7 +924,7 @@ class MSSQLRecovery():
                     if (variableoffset + columnlength <= recordlen) and (columnlength < self.mssql.pagesize):
                         columnbuff = buf[variableoffset:variableoffset + columnlength]
                         variableoffset += columnlength
-            
+
             # add nullbit check
 
             if schema.colname == 'ownerid':
@@ -922,12 +935,12 @@ class MSSQLRecovery():
                 allocationid = unpack('<Q', columnbuff[:8])[0]
 
             del columnbuff
-        
+
         if (pid == 0) or (pid != tableinfo.partitionid) or (flag != 0x01):
             return 0
         else:
             return allocationid
-    
+
     def _tornbits(self, buf):
         tornbit = unpack('<I', buf[0x3c:0x40])[0]
 
@@ -947,7 +960,7 @@ class MSSQLRecovery():
         isAlive = True
         if buf[0] != 0x10 and buf[0] != 0x30 and buf[0] != 0x3c and buf[0] != 0x1c:
             return 0, isAlive
-        
+
         if buf[0] & 0x0C == 0x0C:
             isAlive = False
 
@@ -958,13 +971,12 @@ class MSSQLRecovery():
         if totalNumOfCol != rowinfo.numoftotalcol:
             return 0, isAlive
 
-
-        lenOfNullBitmap = math.ceil(rowinfo.numoftotalcol/8)
+        lenOfNullBitmap = math.ceil(rowinfo.numoftotalcol / 8)
 
         recordLen = 0
 
-        recordLen += 4 # StatusBit A(1 byte) + StatusBit B(1 byte) + Offset of number of column(2 bytes)
-        recordLen += rowinfo.staticlength # Static column length
+        recordLen += 4  # StatusBit A(1 byte) + StatusBit B(1 byte) + Offset of number of column(2 bytes)
+        recordLen += rowinfo.staticlength  # Static column length
         recordLen += (2 + lenOfNullBitmap)
 
         if (rowinfo.numofvariablecol == 0 or buf[0] == 0x10 or buf[0] == 0x1c):
@@ -976,17 +988,17 @@ class MSSQLRecovery():
                 recordLen -= 0x8000
 
             return recordLen, isAlive
-                
+
     def _scanForUnallocatedArea(self, buf, currentoffset, lenofunalloc, rowinfo, tablename, schemlist):
         if currentoffset + lenofunalloc > self.mssql.pagesize:
             return False
 
-        recordsLen = 0 # 미할당 영역에 복구 대상 레코드가 여러 개일 경우
+        recordsLen = 0  # 미할당 영역에 복구 대상 레코드가 여러 개일 경우
 
         while recordsLen < lenofunalloc:
             # 복구
-            print("** Recovery from offset : " + str(currentoffset))
-            recordLen, _ = self._calcRecordLen(buf[currentoffset + recordsLen:], rowinfo) # 복구 대상 레코드 길이
+            # print("** Recovery from offset : " + str(currentoffset))
+            recordLen, _ = self._calcRecordLen(buf[currentoffset + recordsLen:], rowinfo)  # 복구 대상 레코드 길이
             if recordsLen + recordLen > lenofunalloc or recordLen == 0:
                 break
             query = self._parseUnallocatedRecord(buf[currentoffset + recordsLen:], recordLen, rowinfo, schemlist)
@@ -998,18 +1010,18 @@ class MSSQLRecovery():
         return True
 
     def _parseUnallocatedRecord(self, buf, recordlen, rowinfo, schemlist):
-        lenofnullbitmap = math.ceil(rowinfo.numoftotalcol/8)
-        offsetoftotalnumofcol = unpack('<H', buf[0x02 : 0x04])[0]
+        lenofnullbitmap = math.ceil(rowinfo.numoftotalcol / 8)
+        offsetoftotalnumofcol = unpack('<H', buf[0x02:0x04])[0]
         totalnumofcol = unpack('<H', buf[offsetoftotalnumofcol:offsetoftotalnumofcol + 0x02])[0]
 
         if rowinfo.numoftotalcol != totalnumofcol:
             return False
 
-        staticoffset = 1 + 1 + 2 # statusBit A + statusBit B + OffsetOfTotalNumberOfCol
+        staticoffset = 1 + 1 + 2  # statusBit A + statusBit B + OffsetOfTotalNumberOfCol
 
         if rowinfo.numoftotalcol != 0:
             variableoffset = staticoffset + rowinfo.staticlength + 2 + lenofnullbitmap
-            numofvariablecol = unpack('<H', buf[variableoffset : variableoffset + 0x02])[0]
+            numofvariablecol = unpack('<H', buf[variableoffset: variableoffset + 0x02])[0]
             variableoffset += 2
             variableoffset += (2 * numofvariablecol)
             variablecollenoffset = staticoffset + rowinfo.staticlength + 2 + lenofnullbitmap + 2
@@ -1036,7 +1048,7 @@ class MSSQLRecovery():
                         break
 
                     if columnlength < self.mssql.pagesize:
-                        columnbuff = buf[staticoffset : staticoffset + columnlength]
+                        columnbuff = buf[staticoffset: staticoffset + columnlength]
                     else:
                         break
                     staticoffset += columnlength
@@ -1059,9 +1071,9 @@ class MSSQLRecovery():
             isLob = False
 
         query_str = ','.join(query)
-        
+
         return query_str
-                    
+
     def _decodeValue(self, buff, length, schema, numberofbitcol, isLob):
         output = ''
         if schema.datatype == "tinyint":
@@ -1083,26 +1095,28 @@ class MSSQLRecovery():
         elif "time" in schema.datatype:
             output = "cast(0x%02x" % schema.precisionoftime + binascii.b2a_hex(buff).decode('utf8') + " as time)"
         elif "numeric" in schema.datatype or "decimal" in schema.datatype:
-            output = "convert(" + schema.datatype + ",0x%02x%02x0001" % (schema.precisionofnumeric, schema.scaleofnumeric) + \
-                binascii.b2a_hex(buff[1:]).decode('utf8') + ")"
+            output = "convert(" + schema.datatype + ",0x%02x%02x0001" % (
+            schema.precisionofnumeric, schema.scaleofnumeric) + \
+                     binascii.b2a_hex(buff[1:]).decode('utf8') + ")"
         elif schema.datatype == "char":
             output = "'" + buff.decode('utf8') + "'"
         elif schema.datatype == "varchar":
-            if isLob: # Large object
+            if isLob:  # Large object
                 output = "'" + self._parseLobRecord(buff).decode('utf8') + "'"
             else:
                 output = "'" + buff.decode('utf8') + "'"
         elif schema.datatype == "nchar":
-            output = "'" + buff.decode('utf16') + "'" # xml, text, ntext, image
+            output = "'" + buff.decode('utf16') + "'"  # xml, text, ntext, image
         elif schema.datatype == "nvarchar":
-            if isLob: # Large object
+            if isLob:  # Large object
                 output = "'" + self._parseLobRecord(buff).decode('utf16') + "'"
             else:
-                output = "'" + buff.decode('utf16') + "'" # hierarchyid, geometry, geography, uniqueidentifier, sql_variant
+                output = "'" + buff.decode(
+                    'utf16') + "'"  # hierarchyid, geometry, geography, uniqueidentifier, sql_variant
         elif schema.datatype == "binary":
             output = '0x' + (binascii.b2a_hex(buff)).decode('utf8')
         elif schema.datatype == "varbinary":
-            if isLob: # 8bytes => lob header (type(2 byptes) / level(1 byte) / unused(1 byte) / updateseq(4 bytes))              
+            if isLob:  # 8bytes => lob header (type(2 byptes) / level(1 byte) / unused(1 byte) / updateseq(4 bytes))
                 output = '0x' + (binascii.b2a_hex(self._parseLobRecord(buff))).decode('utf8')
             else:
                 output = '0x' + (binascii.b2a_hex(buff)).decode('utf8')
@@ -1182,29 +1196,37 @@ class MSSQLRecovery():
                 row_offset = rowoffsetarray[0]
             else:
                 row_offset = 0x60
-            
-            recordLen = unpack('<H', lob_buf[row_offset + 0x02:row_offset+0x04])[0]
+
+            recordLen = unpack('<H', lob_buf[row_offset + 0x02:row_offset + 0x04])[0]
             blob_timestamp = unpack('<I', lob_buf[row_offset + 0x04:row_offset + 0x08])[0]
             lob_type = unpack('<H', lob_buf[row_offset + 0x0C:row_offset + 0x0E])[0]
-            if blob_timestamp == timestamp: # allocated data
+            if blob_timestamp == timestamp:  # allocated data
                 if lob_type == 0:
                     pass
-                elif lob_type == 2: # internal
+                elif lob_type == 2:  # internal
                     maxlinks = unpack('<H', lob_buf[row_offset + 0x0E:row_offset + 0x10])[0]
                     curlinks = unpack('<H', lob_buf[row_offset + 0x10:row_offset + 0x12])[0]
                     level = unpack('<H', lob_buf[row_offset + 0x12:row_offset + 0x14])[0]
                     link = 0
                     prv_offset = 0
                     while link < curlinks:
-                        blob_offset = unpack('<I', lob_buf[row_offset + 0x14 + 0x10 * link:row_offset + 0x14 + 0x10 * link + 0x04])[0]
-                        pageId = unpack('<I', lob_buf[row_offset + 0x14 + 0x10 * link + 0x08:row_offset + 0x14 + 0x10 * link + 0x0C])[0]
-                        fileId = unpack('<H', lob_buf[row_offset + 0x14 + 0x10 * link + 0x0C:row_offset + 0x14 + 0x10 * link + 0x0E])[0]
-                        slotNumber = unpack('<H', lob_buf[row_offset + 0x14 + 0x10 * link + 0x0E:row_offset + 0x14 + 0x10 * link + 0x10])[0]
+                        blob_offset = \
+                        unpack('<I', lob_buf[row_offset + 0x14 + 0x10 * link:row_offset + 0x14 + 0x10 * link + 0x04])[0]
+                        pageId = unpack('<I', lob_buf[
+                                              row_offset + 0x14 + 0x10 * link + 0x08:row_offset + 0x14 + 0x10 * link + 0x0C])[
+                            0]
+                        fileId = unpack('<H', lob_buf[
+                                              row_offset + 0x14 + 0x10 * link + 0x0C:row_offset + 0x14 + 0x10 * link + 0x0E])[
+                            0]
+                        slotNumber = unpack('<H', lob_buf[
+                                                  row_offset + 0x14 + 0x10 * link + 0x0E:row_offset + 0x14 + 0x10 * link + 0x10])[
+                            0]
                         blob_rowid = RowId(fileId, pageId, slotNumber)
-                        self._reconstructLOBData(length, blob_rowid, timestamp, lobpos, blob_offset, blob_offset - prv_offset)
+                        self._reconstructLOBData(length, blob_rowid, timestamp, lobpos, blob_offset,
+                                                 blob_offset - prv_offset)
                         prv_offset = blob_offset
                         link += 1
-                elif lob_type == 3: # data
+                elif lob_type == 3:  # data
                     lobpos.add((offset, rowid, row_offset))
                 elif lob_type == 5:
                     maxlinks = unpack('<H', lob_buf[row_offset + 0x0E:row_offset + 0x10])[0]
@@ -1213,15 +1235,23 @@ class MSSQLRecovery():
                     link = 0
                     prv_offset = 0
                     while link < curlinks:
-                        blob_offset = unpack('<I', lob_buf[row_offset + 0x18 + 0x0C * link:row_offset + 0x18 + 0x0C * link + 0x04])[0]
-                        pageId = unpack('<I', lob_buf[row_offset + 0x18 + 0x0C * link + 0x04:row_offset + 0x18 + 0x0C * link + 0x08])[0]
-                        fileId = unpack('<H', lob_buf[row_offset + 0x18 + 0x0C * link + 0x08:row_offset + 0x18 + 0x0C * link + 0x0A])[0]
-                        slotNumber = unpack('<H', lob_buf[row_offset + 0x18 + 0x0C * link + 0x0A:row_offset + 0x18 + 0x0C * link + 0x0C])[0]
+                        blob_offset = \
+                        unpack('<I', lob_buf[row_offset + 0x18 + 0x0C * link:row_offset + 0x18 + 0x0C * link + 0x04])[0]
+                        pageId = unpack('<I', lob_buf[
+                                              row_offset + 0x18 + 0x0C * link + 0x04:row_offset + 0x18 + 0x0C * link + 0x08])[
+                            0]
+                        fileId = unpack('<H', lob_buf[
+                                              row_offset + 0x18 + 0x0C * link + 0x08:row_offset + 0x18 + 0x0C * link + 0x0A])[
+                            0]
+                        slotNumber = unpack('<H', lob_buf[
+                                                  row_offset + 0x18 + 0x0C * link + 0x0A:row_offset + 0x18 + 0x0C * link + 0x0C])[
+                            0]
                         blob_rowid = RowId(fileId, pageId, slotNumber)
-                        self._reconstructLOBData(length, blob_rowid, timestamp, lobpos, blob_offset, blob_offset - prv_offset)
+                        self._reconstructLOBData(length, blob_rowid, timestamp, lobpos, blob_offset,
+                                                 blob_offset - prv_offset)
                         prv_offset = blob_offset
                         link += 1
-            else: # unallocated data                
+            else:  # unallocated data
                 row_offset = 0x60
                 while row_offset < self.mssql.pagesize:
                     recordLen = unpack('<H', lob_buf[row_offset + 0x02:row_offset + 0x04])[0]
@@ -1243,12 +1273,21 @@ class MSSQLRecovery():
                             link = 0
                             prv_offset = 0
                             while link < curlinks:
-                                blob_offset = unpack('<I', lob_buf[row_offset + 0x18 + 0x0C * link:row_offset + 0x18 + 0x0C * link + 0x04])[0]
-                                pageId = unpack('<I', lob_buf[row_offset + 0x18 + 0x0C * link + 0x04:row_offset + 0x18 + 0x0C * link + 0x08])[0]
-                                fileId = unpack('<H', lob_buf[row_offset + 0x18 + 0x0C * link + 0x08:row_offset + 0x18 + 0x0C * link + 0x0A])[0]
-                                slotNumber = unpack('<H', lob_buf[row_offset + 0x18 + 0x0C * link + 0x0A:row_offset + 0x18 + 0x0C * link + 0x0C])[0]
+                                blob_offset = unpack('<I', lob_buf[
+                                                           row_offset + 0x18 + 0x0C * link:row_offset + 0x18 + 0x0C * link + 0x04])[
+                                    0]
+                                pageId = unpack('<I', lob_buf[
+                                                      row_offset + 0x18 + 0x0C * link + 0x04:row_offset + 0x18 + 0x0C * link + 0x08])[
+                                    0]
+                                fileId = unpack('<H', lob_buf[
+                                                      row_offset + 0x18 + 0x0C * link + 0x08:row_offset + 0x18 + 0x0C * link + 0x0A])[
+                                    0]
+                                slotNumber = unpack('<H', lob_buf[
+                                                          row_offset + 0x18 + 0x0C * link + 0x0A:row_offset + 0x18 + 0x0C * link + 0x0C])[
+                                    0]
                                 blob_rowid = RowId(fileId, pageId, slotNumber)
-                                self._reconstructLOBData(length, blob_rowid, timestamp, lobpos, blob_offset, blob_offset - prv_offset)
+                                self._reconstructLOBData(length, blob_rowid, timestamp, lobpos, blob_offset,
+                                                         blob_offset - prv_offset)
                                 prv_offset = blob_offset
                                 link += 1
                         break
@@ -1259,4 +1298,3 @@ class MSSQLRecovery():
                             break
 
         return True
-    

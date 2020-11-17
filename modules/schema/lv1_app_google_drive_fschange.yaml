@@ -1,4 +1,4 @@
-Name: GoogleDrive Sync
+Name: GoogleDrive Sync FS
 Desc: GoogleDrive fschange
 Table:
   - TableName: lv1_app_google_drive_fschange

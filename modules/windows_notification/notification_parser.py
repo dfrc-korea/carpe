@@ -1,4 +1,4 @@
-import datetime
+from datetime import timezone, datetime
 import yarp
 import sqlite3
 
@@ -62,9 +62,7 @@ def old_noti_parser(path):
                          xml_content, _remove_tab_new_line(tile.Xml))
             noti_list.append(tile_info)
 
-    noti_tuple = tuple(noti_list)
-
-    return noti_tuple
+    return noti_list
 
 
 def new_noti_parser(path):
@@ -82,7 +80,7 @@ def new_noti_parser(path):
     cur.execute('select * from NotificationHandler')
     for row in cur:
         # 0: RecordId / 1: PrimaryId, 3: HandlerType, 6: CreatedTime, 7: ModifiedTime
-        noti_handler_dict[row[0]]     = [row[1], row[3], row[6], row[7]]
+         noti_handler_dict[row[0]] = [row[1], row[3], _str_to_timestamp(row[6]), _str_to_timestamp(row[7])]
 
     cur.execute('select * from Notification')
     for row in cur:
@@ -94,19 +92,23 @@ def new_noti_parser(path):
     cur.close()
     con.close()
 
-    # convert list_dict to tuple
-    noti_tuple = tuple([(key,) + tuple(val) for dic in [noti_dict] for key, val in dic.items()])
+    # convert list_dict to list
+    noti_list = [[key] + val for dic in [noti_dict] for key, val in dic.items()]
 
-    return noti_tuple
+    return noti_list
 
 
 def _convert_timestamp(from_ts):
     try:
-        to_ts = datetime.datetime.fromtimestamp((from_ts - 116444736000000000) // 10000000) \
-            .strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        to_ts = datetime.fromtimestamp((from_ts - 116444736000000000) // 10000000, tz=timezone.utc).isoformat()
     except OSError:
         to_ts = 0
     return to_ts
+
+
+def _str_to_timestamp(from_ts):
+    to_ts = datetime.strptime(from_ts, '%Y-%m-%d %H:%M:%S').isoformat()
+    return str(to_ts)
 
 
 def _remove_tab_new_line(_str):

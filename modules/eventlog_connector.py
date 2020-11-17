@@ -101,9 +101,14 @@ class EventlogConnector(interface.ModuleConnector):
 
             if not self.check_table_from_yaml(configuration, yaml_list, table_list):
                 return False
-
+ 
+            query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+            path_separator = self.GetPathSeparator(source_path_spec)
             query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
-                    f"and extension = 'evtx' and parent_path = 'root/Windows/System32/winevt/Logs'"
+                    f"and extension = 'evtx' " \
+                    f"and parent_path like 'root{query_separator}Windows{query_separator}" \
+                    f"System32{query_separator}winevt{query_separator}Logs'"
+
             eventlog_files = configuration.cursor.execute_query_mul(query)
 
             if len(eventlog_files) == 0:
@@ -127,8 +132,7 @@ class EventlogConnector(interface.ModuleConnector):
 
             for eventlog in eventlog_files:
                 if eventlog[0] in eventlog_file_list:
-                    eventlog_path = eventlog[1][eventlog[1].find('/'):] + '/' + eventlog[0]  # document full path
-                    fileExt = eventlog[2]
+                    eventlog_path = eventlog[1][eventlog[1].find(path_separator):] + path_separator + eventlog[0]  # document full path
                     fileName = eventlog[0]
 
                     output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
@@ -141,12 +145,14 @@ class EventlogConnector(interface.ModuleConnector):
                         output_path=output_path)
 
                     fn = output_path + os.path.sep + fileName
+
                     # Eventlog Total
-                    print(f'[{self.print_now_time()}] [MODULE]: Eventlog - Total - ' + fn.split('/')[-1])
+                    print(f'[{self.print_now_time()}] [MODULE]: Eventlog - Total - ' + fn.split(os.sep)[-1])
                     for eventlog in et.EventlogTotal(fn):
                         insert_data.append(tuple(
                             [par_id, configuration.case_id, configuration.evidence_id, str(eventlog.event_id),
-                             str(eventlog.time_created), str(eventlog.source), str(eventlog.data),
+                             configuration.apply_time_zone(str(eventlog.time_created), knowledge_base.time_zone),
+                             str(eventlog.source), str(eventlog.data),
                              str(eventlog.user_sid)]))
             query = "Insert into lv1_os_win_evt_total values (%s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
@@ -157,7 +163,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for usb in ud.EVENTLOGUSBDEVICES(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(usb.task), str(usb.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(usb.task),
+                     configuration.apply_time_zone(str(usb.time), knowledge_base.time_zone),
                      str(usb.device_instance_id), str(usb.description), str(usb.manufacturer), str(usb.model),
                      str(usb.revision), str(usb.serial_number), str(usb.parentid), str(usb.user_sid),
                      str(usb.event_id), str(usb.source), str(usb.event_id_description)]))
@@ -171,7 +178,8 @@ class EventlogConnector(interface.ModuleConnector):
             for antiforensics in af.EVENTLOGANTIFORENSICS(configuration):
                 insert_data.append(tuple(
                     [par_id, configuration.case_id, configuration.evidence_id, str(antiforensics.task),
-                     str(antiforensics.time), str(antiforensics.user_sid), str(antiforensics.event_id),
+                     configuration.apply_time_zone(str(antiforensics.time), knowledge_base.time_zone),
+                     str(antiforensics.user_sid), str(antiforensics.event_id),
                      str(antiforensics.source), str(antiforensics.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_antiforensics values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
@@ -183,7 +191,8 @@ class EventlogConnector(interface.ModuleConnector):
             for applications in app.EVENTLOGAPPLICATIONS(configuration):
                 insert_data.append(tuple(
                     [par_id, configuration.case_id, configuration.evidence_id, str(applications.task),
-                     str(applications.time), str(applications.application_name), str(applications.path),
+                     configuration.apply_time_zone(str(applications.time), knowledge_base.time_zone),
+                     str(applications.application_name), str(applications.path),
                      str(applications.resolver_name), str(applications.user_sid), str(applications.event_id),
                      str(applications.source), str(applications.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_applications values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
@@ -195,7 +204,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for dns in dn.EVENTLOGDNS(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(dns.task), str(dns.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(dns.task),
+                     configuration.apply_time_zone(str(dns.time), knowledge_base.time_zone),
                      str(dns.query_name), str(dns.user_sid), str(dns.event_id), str(dns.source),
                      str(dns.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_dns values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
@@ -208,7 +218,8 @@ class EventlogConnector(interface.ModuleConnector):
             for file_handling in fh.EVENTLOGFILEHANDLING(configuration):
                 insert_data.append(tuple(
                     [par_id, configuration.case_id, configuration.evidence_id, str(file_handling.task),
-                     str(file_handling.time), str(file_handling.file_name), str(file_handling.user_sid),
+                     configuration.apply_time_zone(str(file_handling.time), knowledge_base.time_zone),
+                     str(file_handling.file_name), str(file_handling.user_sid),
                      str(file_handling.event_id), str(file_handling.source), str(file_handling.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_file_handling values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
@@ -219,7 +230,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for event in logon.EVENTLOGONOFF(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(event.task), str(event.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(event.task),
+                     configuration.apply_time_zone(str(event.time), knowledge_base.time_zone),
                      str(event.user_sid), str(event.event_id), str(event.source), str(event.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_logonoff values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
@@ -230,7 +242,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for ms_alerts in ms.EVENTLOGMSALERTS(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(ms_alerts.task), str(ms_alerts.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(ms_alerts.task),
+                     configuration.apply_time_zone(str(ms_alerts.time), knowledge_base.time_zone),
                      str(ms_alerts.program_name), str(ms_alerts.message), str(ms_alerts.error_type),
                      str(ms_alerts.program_version), str(ms_alerts.user_sid), str(ms_alerts.event_id),
                      str(ms_alerts.source), str(ms_alerts.event_id_description)]))
@@ -244,7 +257,8 @@ class EventlogConnector(interface.ModuleConnector):
             for msi_installer in msi.EVENTLOGMSIINSTALLER(configuration):
                 insert_data.append(tuple(
                     [par_id, configuration.case_id, configuration.evidence_id, str(msi_installer.task),
-                     str(msi_installer.time), str(msi_installer.product_name), str(msi_installer.product_version),
+                     configuration.apply_time_zone(str(msi_installer.time), knowledge_base.time_zone),
+                     str(msi_installer.product_name), str(msi_installer.product_version),
                      str(msi_installer.manufacturer), str(msi_installer.user_sid), str(msi_installer.event_id),
                      str(msi_installer.source), str(msi_installer.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_msi_installer values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
@@ -256,7 +270,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for network in nt.EVENTLOGNETWORK(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(network.task), str(network.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(network.task),
+                     configuration.apply_time_zone(str(network.time), knowledge_base.time_zone),
                      str(network.network_name), str(network.description), str(network.category), str(network.user_sid),
                      str(network.event_id), str(network.source), str(network.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_network values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
@@ -268,7 +283,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for others in ot.EVENTLOGOTHERS(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(others.task), str(others.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(others.task),
+                     configuration.apply_time_zone(str(others.time), knowledge_base.time_zone),
                      str(others.name), str(others.user_sid), str(others.event_id), str(others.source),
                      str(others.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_others values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
@@ -280,7 +296,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for event in pc.EVENTLOGPCONOFF(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(event.task), str(event.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(event.task),
+                     configuration.apply_time_zone(str(event.time), knowledge_base.time_zone),
                      str(event.user_sid), str(event.event_id), str(event.source), str(event.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_pconoff values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
@@ -291,7 +308,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for printer in pr.EVENTLOGPRINTER(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(printer.task), str(printer.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(printer.task),
+                     configuration.apply_time_zone(str(printer.time), knowledge_base.time_zone),
                      str(printer.location), str(printer.size), str(printer.pages), str(printer.user_sid),
                      str(printer.event_id), str(printer.source), str(printer.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_printer values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
@@ -303,7 +321,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for process in pro.EVENTLOGPROCESS(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(process.task), str(process.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(process.task),
+                     configuration.apply_time_zone(str(process.time), knowledge_base.time_zone),
                      str(process.process_name), str(process.user_sid), str(process.event_id), str(process.source),
                      str(process.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_process values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
@@ -315,7 +334,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for registry in reg.EVENTLOGREGISTRYHANDLING(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(registry.task), str(registry.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(registry.task),
+                     configuration.apply_time_zone(str(registry.time), knowledge_base.time_zone),
                      str(registry.registry_path), str(registry.registry_value_name), str(registry.old_value),
                      str(registry.new_value), str(registry.user_sid), str(registry.event_id), str(registry.source),
                      str(registry.event_id_description)]))
@@ -328,7 +348,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for remote in rem.EVENTLOGREMOTEONOFF(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(remote.task), str(remote.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(remote.task),
+                     configuration.apply_time_zone(str(remote.time), knowledge_base.time_zone),
                      str(remote.connection), str(remote.address), str(remote.user_sid), str(remote.event_id),
                      str(remote.source), str(remote.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_remoteonoff values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
@@ -341,7 +362,8 @@ class EventlogConnector(interface.ModuleConnector):
             for screen_saver in ss.EVENTLOGSCREENSAVER(configuration):
                 insert_data.append(tuple(
                     [par_id, configuration.case_id, configuration.evidence_id, str(screen_saver.task),
-                     str(screen_saver.time), str(screen_saver.user_sid), str(screen_saver.event_id),
+                     configuration.apply_time_zone(str(screen_saver.time), knowledge_base.time_zone),
+                     str(screen_saver.user_sid), str(screen_saver.event_id),
                      str(screen_saver.source), str(screen_saver.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_screen_saver values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
@@ -353,7 +375,8 @@ class EventlogConnector(interface.ModuleConnector):
             for shared_folder in sf.EVENTLOGSHAREDFOLDER(configuration):
                 insert_data.append(tuple(
                     [par_id, configuration.case_id, configuration.evidence_id, str(shared_folder.task),
-                     str(shared_folder.time), str(shared_folder.user_sid), str(shared_folder.event_id),
+                     configuration.apply_time_zone(str(shared_folder.time), knowledge_base.time_zone),
+                     str(shared_folder.user_sid), str(shared_folder.event_id),
                      str(shared_folder.source), str(shared_folder.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_shared_folder values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
@@ -364,8 +387,10 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for sleep in sle.EVENTLOGSLEEPONOFF(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(sleep.task), str(sleep.time_sleep),
-                     str(sleep.time_wake), str(sleep.user_sid), str(sleep.event_id), str(sleep.source),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(sleep.task),
+                     configuration.apply_time_zone(str(sleep.time_sleep), knowledge_base.time_zone),
+                     configuration.apply_time_zone(str(sleep.time_wake), knowledge_base.time_zone),
+                     str(sleep.user_sid), str(sleep.event_id), str(sleep.source),
                      str(sleep.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_sleeponoff values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
@@ -377,7 +402,8 @@ class EventlogConnector(interface.ModuleConnector):
             for task_scheduler in ts.EVENTLOGTASKSCHEDULER(configuration):
                 insert_data.append(tuple(
                     [par_id, configuration.case_id, configuration.evidence_id, str(task_scheduler.task),
-                     str(task_scheduler.time), str(task_scheduler.action_name), str(task_scheduler.user_sid),
+                     configuration.apply_time_zone(str(task_scheduler.time), knowledge_base.time_zone),
+                     str(task_scheduler.action_name), str(task_scheduler.user_sid),
                      str(task_scheduler.event_id), str(task_scheduler.source),
                      str(task_scheduler.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_task_scheduler values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
@@ -389,7 +415,8 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for telemetry in tele.EVENTLOGTELEMETRY(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(telemetry.task), str(telemetry.time),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(telemetry.task),
+                     configuration.apply_time_zone(str(telemetry.time), knowledge_base.time_zone),
                      str(telemetry.program_name), str(telemetry.program_path), str(telemetry.user_sid),
                      str(telemetry.event_id), str(telemetry.source), str(telemetry.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_telemetry values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
@@ -401,8 +428,10 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for time in tc.EVENTLOGTIMECHANGED(configuration):
                 insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, str(time.task), str(time.time_old),
-                     str(time.time_new), str(time.user_sid), str(time.event_id), str(time.source),
+                    [par_id, configuration.case_id, configuration.evidence_id, str(time.task),
+                     configuration.apply_time_zone(str(time.time_old), knowledge_base.time_zone),
+                     configuration.apply_time_zone(str(time.time_new), knowledge_base.time_zone),
+                     str(time.user_sid), str(time.event_id), str(time.source),
                      str(time.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_time_changed values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:

@@ -2,11 +2,9 @@
 """module for shellbags."""
 import os
 
-from modules import logger
 from modules import manager
 from modules import interface
 from modules.OverTheShellbag import OverTheShellbag as shellbag
-from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class ShellbagConnector(interface.ModuleConnector):
@@ -29,7 +27,6 @@ class ShellbagConnector(interface.ModuleConnector):
             return False
 
         # TODO file path list를 뽑아야함
-        filename = 'UsrClass.dat'
         username = list()
         for user_accounts in knowledge_base._user_accounts.values():
             for hostname in user_accounts.values():
@@ -37,8 +34,11 @@ class ShellbagConnector(interface.ModuleConnector):
                     continue
                 username.append(hostname.username)
 
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
         for user in username:
-            filepath = f'root/Users/{user}/AppData/Local/Microsoft/Windows'
+            filepath = f'root{query_separator}Users{query_separator}{user}{query_separator}' \
+                f'AppData{query_separator}Local{query_separator}Microsoft{query_separator}Windows'
             query = f"SELECT name, parent_path FROM file_info WHERE par_id = '{par_id}' and " \
                     f"((name like 'UsrClass.dat' and parent_path like '{filepath}') or " \
                     f"(name like 'UsrClass.dat.LOG1' and parent_path like '{filepath}') or " \
@@ -56,28 +56,35 @@ class ShellbagConnector(interface.ModuleConnector):
             }
 
             for file in results:
-                if file[0] == 'UsrClass.dat':
+                if file[0] == 'UsrClass.dat' or file[0] == 'usrClass.dat':
                     file_objects['primary'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
                                                                           configuration=configuration,
-                                                                          file_path=file[1][4:] + '/' + file[0])
-                elif file[0] == 'UsrClass.dat.LOG1':
+                                                                          file_path=file[1][4:] + path_separator + file[0])
+                elif file[0] == 'UsrClass.dat.LOG1' or file[0] == 'usrClass.dat.LOG1':
                     file_objects['log1'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
                                                                        configuration=configuration,
-                                                                       file_path=file[1][4:] + '/' + file[0])
-                elif file[0] == 'UsrClass.dat.LOG2':
+                                                                       file_path=file[1][4:] + path_separator + file[0])
+                elif file[0] == 'UsrClass.dat.LOG2' or file[0] == 'usrClass.dat.LOG2':
                     file_objects['log2'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
                                                                        configuration=configuration,
-                                                                       file_path=file[1][4:] + '/' + file[0])
+                                                                       file_path=file[1][4:] + path_separator + file[0])
 
             shellbag_results = shellbag.Main(file_objects)
 
-            file_objects['primary'].close()
-            file_objects['log1'].close()
-            file_objects['log2'].close()
+            if file_objects['primary']:
+                file_objects['primary'].close()
+            if file_objects['log1']:
+                file_objects['log1'].close()
+            if file_objects['log2']:
+                file_objects['log2'].close()
 
-            info = tuple([par_id, configuration.case_id, configuration.evidence_id, user])
+            info = [par_id, configuration.case_id, configuration.evidence_id, user]
             insert_shellbag_info = []
             for item in shellbag_results:
+                item[3] = configuration.apply_time_zone(item[3], knowledge_base.time_zone)      # modification_time
+                item[4] = configuration.apply_time_zone(item[4], knowledge_base.time_zone)      # access_time
+                item[5] = configuration.apply_time_zone(item[5], knowledge_base.time_zone)      # creation_time
+                item[6] = configuration.apply_time_zone(item[6], knowledge_base.time_zone)      # last_written_time
                 item = info + item
                 insert_shellbag_info.append(tuple(item))
 

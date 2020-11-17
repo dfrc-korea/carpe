@@ -6,7 +6,7 @@ from modules import interface
 
 
 class Extract(interface.ModuleConnector):
-    NAME = 'fica_connector'
+    NAME = 'extract_connector'
     DESCRIPTION = 'Module for file carving'
 
     def __init__(self):

@@ -32,66 +32,67 @@ class Amcache_Program_Information:
 
 def AMCACHEPROGRAMENTRIES(reg_am):
     amcache_list = []
-    amacache_count = 0
-
-    amcahce_key = reg_am.find_key(r"Root\InventoryApplication")
-    for amcache_subkey in amcahce_key.subkeys():
+    amcache_count = 0
+    amcache_key = reg_am.find_key(r"Root\InventoryApplication")
+    if amcache_key is None:
+        return amcache_list
+    for amcache_subkey in amcache_key.subkeys():
         try:
             amcache_file_information = Amcache_Program_Information()
             amcache_list.append(amcache_file_information)
-            amcache_list[amacache_count].source_location = []
-            amcache_list[amacache_count].source_location.append('AmCache.hve-Root/InventoryApplication')
-            amcache_list[amacache_count].key_last_updated_time = amcache_subkey.last_written_timestamp().isoformat()+'Z'
+            amcache_list[amcache_count].source_location = []
+            amcache_list[amcache_count].source_location.append('AmCache.hve-Root/InventoryApplication')
+            amcache_list[amcache_count].key_last_updated_time = amcache_subkey.last_written_timestamp().isoformat()+'Z'
             for amcache_subkey_value in amcache_subkey.values():
                 if amcache_subkey_value.name() == 'Name':
-                    amcache_list[amacache_count].file_name = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].file_name = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'InstallDate':
                     if amcache_subkey_value.data() != '\x00':
-                        amcache_list[amacache_count].installed_date = amcache_subkey_value.data().split(' ')[0].split('/')[2] + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[1] + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[0]+'T'+amcache_subkey_value.data().split(' ')[1].replace('\x00','')+'Z'
+                        amcache_list[amcache_count].installed_date = amcache_subkey_value.data().split(' ')[0].split('/')[2] + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[0] + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[1]+'T'+amcache_subkey_value.data().split(' ')[1].replace('\x00','')+'Z'
                 elif amcache_subkey_value.name() == 'Version':
-                    amcache_list[amacache_count].version = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].version = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'Publisher':
-                    amcache_list[amacache_count].publisher = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].publisher = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'UninstallDate':
                     if amcache_subkey_value.data() != '\x00':
-                        amcache_list[amacache_count].uninstall_date = amcache_subkey_value.data().split(' ')[0].split('/')[2] + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[1] + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[0]+'T'+amcache_subkey_value.data().split(' ')[1].replace('\x00','')+'Z'
+                        amcache_list[amcache_count].uninstall_date = amcache_subkey_value.data().split(' ')[0].split('/')[2] + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[0] + '-' + amcache_subkey_value.data().split(' ')[0].split('/')[1]+'T'+amcache_subkey_value.data().split(' ')[1].replace('\x00','')+'Z'
                 elif amcache_subkey_value.name() == 'OSVersionAtInstallTime':
-                    amcache_list[amacache_count].os_version_at_install_time = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].os_version_at_install_time = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'BundleManifestPath':
-                    amcache_list[amacache_count].bundle_manifest_path = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
+                    amcache_list[amcache_count].bundle_manifest_path = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
                 elif amcache_subkey_value.name() == 'HiddenArp':
                     # 1: True, 0: False
-                    amcache_list[amacache_count].hide_in_control_panel_flag = amcache_subkey_value.data()
+                    amcache_list[amcache_count].hide_in_control_panel_flag = amcache_subkey_value.data()
                 elif amcache_subkey_value.name() == 'InboxModernApp':
                     # 1: True, 0: False
-                    amcache_list[amacache_count].inboxmodernapp = amcache_subkey_value.data()
+                    amcache_list[amcache_count].inboxmodernapp = amcache_subkey_value.data()
                 elif amcache_subkey_value.name() == 'Language':
-                    amcache_list[amacache_count].language_code = amcache_subkey_value.data()
+                    amcache_list[amcache_count].language_code = amcache_subkey_value.data()
                 elif amcache_subkey_value.name() == 'ManifestPath':
-                    amcache_list[amacache_count].manifest_path = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
+                    amcache_list[amcache_count].manifest_path = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
                 elif amcache_subkey_value.name() == 'MsiPackageCode':
-                    amcache_list[amacache_count].msi_package_code = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].msi_package_code = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'MsiProductCode':
-                    amcache_list[amacache_count].msi_product_code = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].msi_product_code = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'PackageFullName':
-                    amcache_list[amacache_count].package_full_name = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].package_full_name = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'ProgramId':
-                    amcache_list[amacache_count].program_id = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].program_id = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'ProgramInstanceId':
-                    amcache_list[amacache_count].program_instance_id = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].program_instance_id = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'RegistryKeyPath':
-                    amcache_list[amacache_count].uninstall_registry_key_path = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
+                    amcache_list[amcache_count].uninstall_registry_key_path = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
                 elif amcache_subkey_value.name() == 'RootDirPath':
-                    amcache_list[amacache_count].root_dir_path = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
+                    amcache_list[amcache_count].root_dir_path = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
                 elif amcache_subkey_value.name() == 'Type':
-                    amcache_list[amacache_count].type = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].type = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'Source':
-                    amcache_list[amacache_count].program_source = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].program_source = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'StoreAppType':
-                    amcache_list[amacache_count].store_app_type = amcache_subkey_value.data().replace('\x00','')
+                    amcache_list[amcache_count].store_app_type = amcache_subkey_value.data().replace('\x00','')
                 elif amcache_subkey_value.name() == 'UninstallString':
-                    amcache_list[amacache_count].uninstall_string = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
-            amacache_count = amacache_count + 1
+                    amcache_list[amcache_count].uninstall_string = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
+            amcache_count = amcache_count + 1
         except:
             print('-----Amcache program Error')
 

@@ -77,20 +77,18 @@ class PathSpecExtractor():
         try:
             file_entry = path_spec_resolver.Resolver.OpenFileEntry(
                 path_spec, resolver_context=resolver_context)
-        except (
-                dfvfs_errors.AccessError, dfvfs_errors.BackEndError,
+        except (dfvfs_errors.AccessError,
+                dfvfs_errors.BackEndError,
                 dfvfs_errors.PathSpecError) as exception:
-            logger.error('Unable to open file entry with error: {0!s}'.format(
-                exception))
+            logger.error('Unable to open file entry with error: {0!s}'.format(exception))
 
         if not file_entry:
             logger.warning('Unable to open: {0:s}'.format(path_spec.comparable))
 
         elif (not file_entry.IsDirectory() and not file_entry.IsFile() and
               not file_entry.IsDevice()):
-            logger.warning((
-                               'Source path specification not a device, file or directory.\n'
-                               '{0:s}').format(path_spec.comparable))
+            logger.warning('Source path specification not a device, file or directory.\n' '{0:s}'.
+                           format(path_spec.comparable))
 
         elif file_entry.IsFile():
             yield path_spec
@@ -219,32 +217,29 @@ class PathSpecExtractor():
         try:
             file_system = path_spec_resolver.Resolver.OpenFileSystem(
                 path_spec, resolver_context=resolver_context)
-        except (
-                dfvfs_errors.AccessError, dfvfs_errors.BackEndError,
+        except (dfvfs_errors.AccessError,
+                dfvfs_errors.BackEndError,
                 dfvfs_errors.PathSpecError) as exception:
-            logger.error('Unable to open file system with error: {0!s}'.format(
-                exception))
+            logger.error('Unable to open file system with error: {0!s}'.format(exception))
 
         if file_system:
             try:
                 if find_specs:
-                    searcher = file_system_searcher.FileSystemSearcher(
-                        file_system, path_spec)
+                    searcher = file_system_searcher.FileSystemSearcher(file_system, path_spec)
                     for extracted_path_spec in searcher.Find(find_specs=find_specs):
                         yield extracted_path_spec
 
                 elif recurse_file_system:
                     file_entry = file_system.GetFileEntryByPathSpec(path_spec)
                     if file_entry:
-                        for extracted_path_spec in self._ExtractPathSpecsFromDirectory(
-                                file_entry):
+                        for extracted_path_spec in self._ExtractPathSpecsFromDirectory(file_entry):
                             yield extracted_path_spec
 
                 else:
                     yield path_spec
 
-            except (
-                    dfvfs_errors.AccessError, dfvfs_errors.BackEndError,
+            except (dfvfs_errors.AccessError,
+                    dfvfs_errors.BackEndError,
                     dfvfs_errors.PathSpecError) as exception:
                 logger.warning('{0!s}'.format(exception))
 

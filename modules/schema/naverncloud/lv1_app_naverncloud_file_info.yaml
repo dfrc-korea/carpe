@@ -1,0 +1,21 @@
+Name: NAVERNCLOUD
+Desc: Naver N Cloud
+Table:
+  - TableName: lv1_app_naverncloud_file_info
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - file_name
+      - file_size
+      - file_time
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+
+
+

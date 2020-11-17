@@ -17,7 +17,7 @@ def restart_area_parse(restart_area):
     return restart_area_items
 
 
-def log_record_parse(log_record, mft_file):
+def log_record_parse(log_record, mft_file, time_zone):
     target_attribute_name = None
     redo_op = log_record.get_redo_operation()
     undo_op = log_record.get_undo_operation()
@@ -90,8 +90,6 @@ def log_record_parse(log_record, mft_file):
             lcns.append(str(lcn))
     except LogFile.ClientException:
         return log_record_items
-    # output_lines.append('Warning: truncated page')
-    # return '\n'.join(output_lines)
 
     if len(lcns) > 0:
         log_record_items.append(' '.join(lcns))
@@ -102,13 +100,6 @@ def log_record_parse(log_record, mft_file):
     log_record_items.append(undo_data)
 
     attr_items = {}
-
-    if redo_op == LogFile.DeallocateFileRecordSegment:
-        target_number = log_record.calculate_mft_target_number()
-        if target_number is None:
-            target_number = 'unknown'
-
-    # self._deleted_files.append(str(target_number))
 
     if redo_op == LogFile.InitializeFileRecordSegment:
         frs_size = log_record.get_target_block_size() * 512
@@ -131,10 +122,10 @@ def log_record_parse(log_record, mft_file):
                     if type(frs_attr_val) is Attributes.StandardInformation:
                         std_info = {
                             'attr_val': '$STANDARD_INFORMATION',
-                            'm_time': util.format_timestamp(frs_attr_val.get_mtime()),
-                            'a_time': util.format_timestamp(frs_attr_val.get_atime()),
-                            'c_time': util.format_timestamp(frs_attr_val.get_ctime()),
-                            'e_time': util.format_timestamp(frs_attr_val.get_etime()),
+                            'm_time': util.format_timestamp(frs_attr_val.get_mtime(), time_zone),
+                            'a_time': util.format_timestamp(frs_attr_val.get_atime(), time_zone),
+                            'c_time': util.format_timestamp(frs_attr_val.get_ctime(), time_zone),
+                            'e_time': util.format_timestamp(frs_attr_val.get_etime(), time_zone),
                             'file_attributes': Attributes.ResolveFileAttributes(
                                 frs_attr_val.get_file_attributes())
                         }
@@ -143,10 +134,10 @@ def log_record_parse(log_record, mft_file):
                     elif type(frs_attr_val) is Attributes.FileName:
                         file_name = {
                             'attr_val': '$FILE_NAME',
-                            'm_time': util.format_timestamp(frs_attr_val.get_mtime()),
-                            'a_time': util.format_timestamp(frs_attr_val.get_atime()),
-                            'c_time': util.format_timestamp(frs_attr_val.get_ctime()),
-                            'e_time': util.format_timestamp(frs_attr_val.get_etime()),
+                            'm_time': util.format_timestamp(frs_attr_val.get_mtime(), time_zone),
+                            'a_time': util.format_timestamp(frs_attr_val.get_atime(), time_zone),
+                            'c_time': util.format_timestamp(frs_attr_val.get_ctime(), time_zone),
+                            'e_time': util.format_timestamp(frs_attr_val.get_etime(), time_zone),
                             'file_name': frs_attr_val.get_file_name()
                         }
 
@@ -175,7 +166,7 @@ def log_record_parse(log_record, mft_file):
                         object_id = {
                             'attr_val': '$OBJECT_ID',
                             'guid': str(frs_attr_val.get_object_id()),
-                            'timestamp': util.format_timestamp(frs_attr_val.get_timestamp())
+                            'timestamp': util.format_timestamp(frs_attr_val.get_timestamp(), time_zone)
                         }
                         attr_items['object_id'] = object_id
 
@@ -207,10 +198,10 @@ def log_record_parse(log_record, mft_file):
                         attr_si = Attributes.StandardInformation(attr_value_buf)
                         std_info = {
                             'attr_val': '$STANDARD_INFORMATION',
-                            'm_time': util.format_timestamp(attr_si.get_mtime()),
-                            'a_time': util.format_timestamp(attr_si.get_atime()),
-                            'c_time': util.format_timestamp(attr_si.get_ctime()),
-                            'e_time': util.format_timestamp(attr_si.get_etime()),
+                            'm_time': util.format_timestamp(attr_si.get_mtime(), time_zone),
+                            'a_time': util.format_timestamp(attr_si.get_atime(), time_zone),
+                            'c_time': util.format_timestamp(attr_si.get_ctime(), time_zone),
+                            'e_time': util.format_timestamp(attr_si.get_etime(), time_zone),
                             'file_attributes': Attributes.ResolveFileAttributes(
                                 attr_si.get_file_attributes())
                         }
@@ -221,10 +212,10 @@ def log_record_parse(log_record, mft_file):
 
                         file_name = {
                             'attr_val': '$FILE_NAME',
-                            'm_time': util.format_timestamp(attr_fn.get_mtime()),
-                            'a_time': util.format_timestamp(attr_fn.get_atime()),
-                            'c_time': util.format_timestamp(attr_fn.get_ctime()),
-                            'e_time': util.format_timestamp(attr_fn.get_etime()),
+                            'm_time': util.format_timestamp(attr_fn.get_mtime(), time_zone),
+                            'a_time': util.format_timestamp(attr_fn.get_atime(), time_zone),
+                            'c_time': util.format_timestamp(attr_fn.get_ctime(), time_zone),
+                            'e_time': util.format_timestamp(attr_fn.get_etime(), time_zone),
                             'file_name': attr_fn.get_file_name()
                         }
 
@@ -252,7 +243,7 @@ def log_record_parse(log_record, mft_file):
                         object_id = {
                             'attr_val': '$OBJECT_ID',
                             'guid': str(attr_objid.get_object_id()),
-                            'timestamp': util.format_timestamp(attr_objid.get_timestamp())
+                            'timestamp': util.format_timestamp(attr_objid.get_timestamp(), time_zone)
                         }
                         attr_items['object_id'] = object_id
 
@@ -273,10 +264,10 @@ def log_record_parse(log_record, mft_file):
                 'attr_val': '$FILE_NAME in index'
             }
             try:
-                file_name['mtime'] = util.format_timestamp(attr_fn.get_mtime())
-                file_name['atime'] = util.format_timestamp(attr_fn.get_atime())
-                file_name['ctime'] = util.format_timestamp(attr_fn.get_ctime())
-                file_name['etime'] = util.format_timestamp(attr_fn.get_etime())
+                file_name['mtime'] = util.format_timestamp(attr_fn.get_mtime(), time_zone)
+                file_name['atime'] = util.format_timestamp(attr_fn.get_atime(), time_zone)
+                file_name['ctime'] = util.format_timestamp(attr_fn.get_ctime(), time_zone)
+                file_name['etime'] = util.format_timestamp(attr_fn.get_etime(), time_zone)
                 file_name['file_name'] = attr_fn.get_file_name()
             except (ValueError, OverflowError):
                 pass
@@ -318,10 +309,10 @@ def log_record_parse(log_record, mft_file):
 
                     possible_std_info_redo = {
                         'attr_val': 'Possible update to $STANDARD_INFORMATION (redo data)',
-                        'mtime': util.format_timestamp(attr_si.get_mtime()),
-                        'atime': util.format_timestamp(attr_si.get_atime()),
-                        'ctime': util.format_timestamp(attr_si.get_ctime()),
-                        'etime': util.format_timestamp(attr_si.get_etime())
+                        'mtime': util.format_timestamp(attr_si.get_mtime(), time_zone),
+                        'atime': util.format_timestamp(attr_si.get_atime(), time_zone),
+                        'ctime': util.format_timestamp(attr_si.get_ctime(), time_zone),
+                        'etime': util.format_timestamp(attr_si.get_etime(), time_zone)
                     }
                     attr_items['possible_std_info_redo'] = possible_std_info_redo
 
@@ -331,10 +322,10 @@ def log_record_parse(log_record, mft_file):
 
                     possible_std_info_undo = {
                         'attr_val': 'Possible update to $STANDARD_INFORMATION (undo data)',
-                        'mtime': util.format_timestamp(attr_si.get_mtime()),
-                        'atime': util.format_timestamp(attr_si.get_atime()),
-                        'ctime': util.format_timestamp(attr_si.get_ctime()),
-                        'etime': util.format_timestamp(attr_si.get_etime())
+                        'mtime': util.format_timestamp(attr_si.get_mtime(), time_zone),
+                        'atime': util.format_timestamp(attr_si.get_atime(), time_zone),
+                        'ctime': util.format_timestamp(attr_si.get_ctime(), time_zone),
+                        'etime': util.format_timestamp(attr_si.get_etime(), time_zone)
                     }
                     attr_items['possible_std_info_undo'] = possible_std_info_undo
 
@@ -367,7 +358,7 @@ def log_record_parse(log_record, mft_file):
                     usn['parent_file_reference_number'] = usn_record.get_parent_file_reference_number()
 
                     if type(usn_record) is USN.USN_RECORD_V2_OR_V3:
-                        usn['timestamp'] = util.format_timestamp(usn_record.get_timestamp())
+                        usn['timestamp'] = util.format_timestamp(usn_record.get_timestamp(), time_zone)
                         usn['file_name'] = usn_record.get_file_name()
 
                     attr_items['usn'] = usn

@@ -82,7 +82,7 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             configuration.cursor.bulk_execute(query, insert_data)
 
         # Prefetch - reference_file 추후에 추가
-        query = f"SELECT 'program_name', 'program_path', 'program_run_count', 'file_created_time', 'last_run_time', '2nd_last_run_time', '3rd_last_run_time', '4th_last_run_time', '5th_last_run_time', '6th_last_run_time', '7th_last_run_time', '8th_last_run_time' FROM lv1_os_win_prefetch WHERE par_id='{par_id}';"
+        query = f"SELECT program_name, program_path, program_run_count, file_created_time, last_run_time, 2nd_last_run_time, 3rd_last_run_time, 4th_last_run_time, 5th_last_run_time, 6th_last_run_time, 7th_last_run_time, 8th_last_run_time FROM lv1_os_win_prefetch WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
 
         if type(results) == int or len(results) == 0:

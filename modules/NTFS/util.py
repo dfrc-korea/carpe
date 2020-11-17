@@ -1,4 +1,4 @@
-def format_timestamp(timestamp):
+def format_timestamp(timestamp, time_zone):
     if timestamp is None:
-        return 'N/A'
-    return timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        return ''
+    return timestamp.astimezone(time_zone).isoformat()

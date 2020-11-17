@@ -3,6 +3,7 @@
 
 import pyesedb
 import datetime
+import os
 
 from modules import logger
 from modules import manager
@@ -20,6 +21,8 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
     def __init__(self):
         super(ESEDatabaseConnector, self).__init__()
+        self._configuration = None
+        self._time_zone = None
 
     def _format_timestamp(self, timestamp):
         if timestamp is None:
@@ -107,6 +110,7 @@ class ESEDatabaseConnector(interface.ModuleConnector):
                     query += "UNHEX('%s')," % data[i].hex()
                 elif schema[i] in TIME_COLUMNS and data[i] is not 0:
                     datetime = self._format_timestamp(self.DecodeFiletime(data[i]))
+                    datetime = self._configuration.apply_time_zone(datetime, self._time_zone)
                     query += "\"" + str(datetime) + "\", "
                 else:
                     query += "\"" + str(data[i]) + "\", "
@@ -115,6 +119,7 @@ class ESEDatabaseConnector(interface.ModuleConnector):
                     query += "UNHEX('%s'));" % data[i].hex()
                 elif schema[i] in TIME_COLUMNS and data[i] is not 0:
                     datetime = self._format_timestamp(self.DecodeFiletime(data[i]))
+                    datetime = self._configuration.apply_time_zone(datetime, self._time_zone)
                     query += "\"" + str(datetime) + "\");"
                 else:
                     query += "\"" + str(data[i]) + "\");"
@@ -131,8 +136,13 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
 		"""
 
+        self._configuration = configuration
+        self._time_zone = knowledge_base.time_zone
+       
         # Load Schema
-        if not self.LoadSchemaFromYaml('../modules/schema/esedb/lv1_os_win_esedb.yaml'):
+        yaml_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'esedb' \
+            + os.sep + 'lv1_os_win_esedb.yaml'
+        if not self.LoadSchemaFromYaml(yaml_path):
             logger.error('cannot load schema from yaml: {0:s}'.format(self.TABLE_NAME))
             return False
 

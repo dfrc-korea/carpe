@@ -24,8 +24,7 @@ class CaseManager(object):
             name = key
 
             if name in self._investigator_info:
-                raise KeyError('Investigator Info: {0:s} already exists.'.format(
-                    key))
+                raise KeyError('Investigator Info: {0:s} already exists.'.format(key))
 
             self._investigator_info[name] = value
 
@@ -60,19 +59,17 @@ class CaseManager(object):
         # Note the default here is None so we can determine if the time zone option was set.
         argument_group.add_argument(
             '-z', '--zone', '--timezone', dest='timezone', action='store',
-            type=str, default=None, help=(
+            type=str, default='UTC', help=(
                 'explicitly define the timezone. Typically the timezone is '
                 'determined automatically where possible otherwise it will '
                 'default to UTC. Use "-z list" to see a list of available '
                 'timezones.'))
 
     def _ParseTimezoneOption(self, options):
-
         time_zone_string = self.ParseStringOption(options, 'timezone')
         if isinstance(time_zone_string, (str, )):
             if time_zone_string.lower() == 'list':
                 self.list_timezones = True
-
             elif time_zone_string:
                 try:
                     pytz.timezone(time_zone_string)
@@ -81,6 +78,36 @@ class CaseManager(object):
                         'Unknown time zone: {0:s}'.format(time_zone_string))
 
                 self._time_zone = time_zone_string
+
+    def add_extract_option(self, argument_group):
+        argument_group.add_argument(
+            '-e', '--extract', action='store', dest='extract_path', type=str,
+            default=None, help=(
+                'Enter your file path to extract.'
+            )
+        )
+
+        argument_group.add_argument(
+            '--par_id', action='store', dest='par_id', type=str,
+            default=None, help=(
+                'Enter your par_id to extract.'
+            )
+        )
+
+    def add_carve_option(self, argument_group):
+        argument_group.add_argument(
+            '--sector', action='store', dest='sector_size', type=int,
+            default=512, help=(
+                'Enter your sector size of image to carve.'
+            )
+        )
+
+        argument_group.add_argument(
+            '--cluster', action='store', dest='cluster_size', type=int,
+            default=4096, help=(
+                'Enter your cluster size of image to carve.'
+            )
+        )
 
     def ListTimeZones(self):
         """Lists the timezones."""

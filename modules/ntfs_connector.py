@@ -38,16 +38,12 @@ class NTFSConnector(interface.ModuleConnector):
                       'lv1_fs_ntfs_logfile_log_record',
                       'lv1_fs_ntfs_usnjrnl']
 
-        # # Delete table
-        # if configuration.standalone_check:
-        #     configuration.cursor.delete_table('lv1_fs_ntfs_mft')
-
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
         # path, name, ads_name
-        file_list = [['/', '$MFT', None], ['/', '$MFTMirr', None], ['/$Extend/', '$UsnJrnl', '$J'],
-                     ['/', '$LogFile', None]]
+        file_list = [['\\', '$MFT', None], ['\\', '$MFTMirr', None], ['\\$Extend\\', '$UsnJrnl', '$J'],
+                     ['\\', '$LogFile', None]]
 
         output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                       configuration.evidence_id + os.sep + par_id
@@ -64,27 +60,34 @@ class NTFSConnector(interface.ModuleConnector):
         self._logfile_path = output_path + os.sep + '$LogFile'
         self._usnjrnl_path = output_path + os.sep + '$UsnJrnl_$J'
 
+        mft_file = None
         if os.path.exists(self._mft_path):
-            print("Start parsing $MFT")
-            self.process_mft(par_id, configuration, table_list)
+            self.print_run_info('Module for $MFT', par_id, start=True)
+            mft_file = self.process_mft(par_id, configuration, table_list, knowledge_base)
+            self.print_run_info('Module for $MFT', par_id, start=False)
+        else:
+            print("There is no $MFT")
 
         if os.path.exists(self._mft_path) and os.path.exists(self._logfile_path):
-            print("Start parsing $Logfile")
-            self.process_logfile(par_id, configuration, table_list)
+            self.print_run_info('Module for $LogFile', par_id, start=True)
+            self.process_logfile(par_id, configuration, table_list, knowledge_base, mft_file)
+            self.print_run_info('Module for $LogFile', par_id, start=False)
+        else:
+            print("There is no $LogFile")
 
         if os.path.exists(self._mft_path) and os.path.exists(self._usnjrnl_path):
-            print("Start parsing $UsnJrnl")
-            self.process_usnjrnl(par_id, configuration, table_list)
+            self.print_run_info('Module for $UsnJrnl', par_id, start=True)
+            self.process_usnjrnl(par_id, configuration, table_list, knowledge_base, mft_file)
+            self.print_run_info('Module for $UsnJrnl', par_id, start=False)
+        else:
+            print("There is no $UsnJrnl")
 
-    def process_mft(self, par_id, configuration, table_list):
+    def process_mft(self, par_id, configuration, table_list, knowledge_base):
         mft_object = open(self._mft_path, 'rb')
 
         mft_file = MFT.MasterFileTableParser(mft_object)
 
-        info = tuple([par_id, configuration.case_id, configuration.evidence_id])
-
-        query = f"Insert into {table_list[0]} values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
-                f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+        info = [par_id, configuration.case_id, configuration.evidence_id]
 
         mft_list = []
         for idx, file_record in enumerate(mft_file.file_records()):
@@ -94,19 +97,24 @@ class NTFSConnector(interface.ModuleConnector):
                 continue
             # TODO: file_path 중복 수정
             if not file_paths:
-                mft_list.extend(mft_parser.mft_parse(info, mft_file, file_record, file_paths))
+                mft_item = mft_parser.mft_parse(info, mft_file, file_record, file_paths, knowledge_base.time_zone)
+
             else:
-                mft_list.extend(mft_parser.mft_parse(info, mft_file, file_record, [file_paths[0]]))
+                mft_item = mft_parser.mft_parse(info, mft_file, file_record, [file_paths[0]], knowledge_base.time_zone)
 
-        print(f'mft num: {len(mft_list)}')
+            mft_list.extend(mft_item)
+
+        query = f"Insert into {table_list[0]} values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+
         configuration.cursor.bulk_execute(query, mft_list)
+        print(f'mft num: {len(mft_list)}')
 
-    def process_logfile(self, par_id, configuration, table_list):
+        return mft_file
+
+    def process_logfile(self, par_id, configuration, table_list, knowledge_base, mft_file):
         logfile_object = open(self._logfile_path, 'rb')
-        mft_object = open(self._mft_path, 'rb')
-
         log_file = LogFile.LogFileParser(logfile_object)
-        mft_file = MFT.MasterFileTableParser(mft_object)
 
         restart_area_list = []
         log_record_list = []
@@ -119,7 +127,7 @@ class NTFSConnector(interface.ModuleConnector):
                 output_data = logfile_parser.restart_area_parse(log_item)
                 restart_area_list.append(info + tuple(output_data))
             elif type(log_item) is LogFile.NTFSLogRecord:
-                output_data = logfile_parser.log_record_parse(log_item, mft_file)
+                output_data = logfile_parser.log_record_parse(log_item, mft_file, knowledge_base.time_zone)
                 log_record_list.append(info + tuple(output_data))
 
         restart_area_query = f"Insert into {table_list[1]} values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
@@ -130,23 +138,17 @@ class NTFSConnector(interface.ModuleConnector):
         configuration.cursor.bulk_execute(restart_area_query, restart_area_list)
         configuration.cursor.bulk_execute(log_record_query, log_record_list)
 
-        # if len(self._deleted_files) > 0:
-        #     # print('Files and directories with these MFT numbers were deleted (in this order):\n')
-        #     self._deleted_files = ' '.join(self._deleted_files)
-        # # print(self._deleted_files)
-
-    def process_usnjrnl(self, par_id, configuration, table_list):
+    def process_usnjrnl(self, par_id, configuration, table_list, knowledge_base, mft_file):
         usn_object = open(self._usnjrnl_path, 'rb')
-        mft_object = open(self._mft_path, 'rb')
         usn_journal = USN.ChangeJournalParser(usn_object)
-        mft_file = MFT.MasterFileTableParser(mft_object)
 
         query = f"Insert into {table_list[3]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
 
         usnjrnl_list = []
         for idx, usn_record in enumerate(usn_journal.usn_records()):
-            usn_tuple = usnjrnl_parser.usnjrnl_parse(mft_file, usn_record)
-            values = (par_id, configuration.case_id, configuration.evidence_id) + usn_tuple
+            usnjrnl_item = usnjrnl_parser.usnjrnl_parse(mft_file, usn_record, knowledge_base.time_zone)
+            info = [par_id, configuration.case_id, configuration.evidence_id]
+            values = info + usnjrnl_item
             usnjrnl_list.append(values)
 
         print(f'usnjrnl num: {len(usnjrnl_list)}')

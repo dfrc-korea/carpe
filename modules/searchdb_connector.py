@@ -46,43 +46,53 @@ class SearchDBConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
         # extension -> sig_type 변경해야 함
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano FROM file_info WHERE par_id='{par_id}' and " \
-                f"parent_path = 'root/ProgramData/Microsoft/Search/Data/Applications/Windows' and name = 'Windows.edb';"
+                f"parent_path like 'root{query_separator}ProgramData{query_separator}Microsoft{query_separator}" \
+                f"Search{query_separator}Data{query_separator}Applications{query_separator}Windows' and name = 'Windows.edb';"
 
         searchdb_file = configuration.cursor.execute_query_mul(query)
 
         if len(searchdb_file) == 0:
+            print("There are no searchdb files")
             return False
 
         # Search artifact paths
-        path = '/ProgramData/Microsoft/Search/Data/Applications/Windows/Windows.edb'
+        path = f'{path_separator}ProgramData{path_separator}Microsoft{path_separator}Search' \
+               f'{path_separator}Data{path_separator}Applications{path_separator}Windows{path_separator}Windows.edb'
         file_object = self.LoadTargetFileToMemory(
             source_path_spec=source_path_spec,
             configuration=configuration,
             file_path=path)
 
         results = searchdb_parser.main(database=file_object)
+        if results is None:
+            return False
         file_object.close()
         insert_searchdb_gthr = []
         insert_searchdb_gthrpth = []
 
-        for idx, result in enumerate(results['SystemIndex_Gthr']):
-            if idx == 0:
-                continue
-            timestamp = struct.unpack('>Q', result[3])[0]  # last_modified
-            try:
-                time = str(datetime.utcfromtimestamp(timestamp / 10000000 - 11644473600)).replace(' ', 'T') + 'Z'
-            except Exception:
-                time = None
-            insert_searchdb_gthr.append(tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]),
-                                               str(result[1]), str(result[2]), time, str(result[4]), str(result[5]),
-                                               str(result[6]),
-                                               str(result[7]), str(result[8]), str(result[9]), str(None),
-                                               str(result[11]), str(result[12]),  # user_data blob 임시 처리
-                                               str(result[13]), str(result[14]), str(result[15]), str(result[16]),
-                                               str(result[17]), str(result[18]),
-                                               str(result[19])]))
+        try:
+            for idx, result in enumerate(results['SystemIndex_Gthr']):
+                if idx == 0:
+                    continue
+                timestamp = struct.unpack('>Q', result[3])[0]  # last_modified
+                try:
+                    time = str(datetime.utcfromtimestamp(timestamp / 10000000 - 11644473600)).replace(' ', 'T') + 'Z'
+                    time = configuration.apply_time_zone(time, knowledge_base.time_zone)
+                except Exception:
+                    time = None
+                insert_searchdb_gthr.append(
+                    tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]),
+                           str(result[1]), str(result[2]), time, str(result[4]), str(result[5]),
+                           str(result[6]), str(result[7]), str(result[8]), str(result[9]),
+                           str(None), str(result[11]), str(result[12]),  # user_data blob 임시 처리
+                           str(result[13]), str(result[14]), str(result[15]), str(result[16]),
+                           str(result[17]), str(result[18]), str(result[19])]))
+        except Exception as e:
+            print(e)
 
         for idx, result in enumerate(results['SystemIndex_GthrPth']):
             if idx == 0:

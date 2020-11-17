@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """The extraction tool."""
 
-
 from dfvfs.resolver import context as dfvfs_context
 
 from tools import logger
@@ -23,7 +22,6 @@ class ExtractionTool(storage_media_tool.StorageMediaTool,
         self._module_filter_expression = None
         self._advanced_module_filter_expression = None
         self._operating_systems = []
-
 
     def _CreateProcessingConfiguration(self):
 

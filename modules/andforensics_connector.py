@@ -173,7 +173,7 @@ def _convert_timestamp(timestamp):
     if isinstance(timestamp, tuple):
         to_timestamp = []
         for t in timestamp:
-            to_timestamp.append(datetime.fromtimestamp(t).strftime('%Y-%m-%dT %H:%M:%SZ'))
+            to_timestamp.append(datetime.fromtimestamp(t).strftime('%Y-%m-%dT%H:%M:%SZ'))
         return tuple(to_timestamp)
     else:
-        return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%dT %H:%M:%SZ')
+        return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%SZ')

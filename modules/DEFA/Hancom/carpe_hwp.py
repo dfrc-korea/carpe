@@ -51,9 +51,6 @@ class HWP:
                 self.isCompressed = None
                 self.isEncrypted = None
 
-    def __del__(self):
-        self.fp.close()
-
     def parseFileHeader(self):
         fileHeader = self.fp.open('FileHeader').read()
         file_signature = fileHeader[0:0x20]

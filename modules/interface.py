@@ -5,10 +5,15 @@ import abc
 import yaml
 from datetime import datetime
 
+import pytsk3
+import pyewf
+
 from dfvfs.helpers import file_system_searcher
 from dfvfs.resolver import resolver as path_spec_resolver
 from dfvfs.lib import definitions as dfvfs_definitions
 from dfvfs.lib import errors as dfvfs_errors
+from dfvfs.lib import tsk_image
+from dfvfs.path import factory as path_spec_factory
 
 from engine import path_extractors
 from engine import path_helper
@@ -212,14 +217,23 @@ class ModuleConnector(BaseConnector):
 
         return find_specs
 
+    def get_tsk_file_system(self, source_path_spec, configuration):
+        file_object = path_spec_resolver.Resolver.OpenFileObject(
+            source_path_spec.parent, resolver_context=configuration.resolver_context)
+        tsk_image_object = tsk_image.TSKFileSystemImage(file_object)
+        tsk_file_system = pytsk3.FS_Info(tsk_image_object)
+        return tsk_file_system
+
+    def extract_file_object(self, tsk_file_system, inode):
+        f = tsk_file_system.open_meta(inode)
+        return f.read_random(0, f.info.meta.size)
+
     def LoadTargetFileToMemory(self, source_path_spec, configuration,
                                file_path=None, file_spec=None, data_stream_name=None):
-
         try:
             if not file_spec:
                 find_spec = file_system_searcher.FindSpec(
-                    case_sensitive=False, location=file_path,
-                    location_separator='/')
+                    case_sensitive=False, location=file_path, location_separator=source_path_spec.location)
             else:
                 find_spec = file_spec
         except ValueError as exception:
@@ -253,7 +267,6 @@ class ModuleConnector(BaseConnector):
                     return file_object
 
                 elif not data_stream_name:
-
                     file_object = file_entry.GetFileObject()
 
                     if not file_object:
@@ -271,8 +284,7 @@ class ModuleConnector(BaseConnector):
         try:
             if not file_spec:
                 find_spec = file_system_searcher.FindSpec(
-                    case_sensitive=False, location=file_path,
-                    location_separator='/')
+                    case_sensitive=False, location=file_path, location_separator=source_path_spec.location)
             else:
                 find_spec = file_spec
         except ValueError as exception:
@@ -360,7 +372,7 @@ class ModuleConnector(BaseConnector):
             if not file_spec:
                 find_spec = file_system_searcher.FindSpec(
                     case_sensitive=False, location=dir_path,
-                    location_separator='/')
+                    location_separator=source_path_spec.location)
             else:
                 find_spec = file_spec
 
@@ -377,7 +389,6 @@ class ModuleConnector(BaseConnector):
             self.DirectoryTraversal(path_spec, output_path)
 
     def DirectoryTraversal(self, path_spec, output_path):
-
         if not os.path.exists(output_path):
             os.mkdir(output_path)
 
@@ -394,7 +405,7 @@ class ModuleConnector(BaseConnector):
             logger.warning(
                 'Unable to open file entry with path spec: {0:s}'.format(
                     display_name))
-            return
+            return False
 
         if file_entry.IsDirectory():
             if not os.path.exists(output_path + os.sep + file_entry.name):
@@ -424,9 +435,7 @@ class ModuleConnector(BaseConnector):
                 file_object = file_entry.GetFileObject(data_stream_name=data_stream.name)
                 if not file_object:
                     return False
-
                 try:
-
                     buffer_size = 65536
                     file = open(output_path + os.sep + file_entry.name, 'wb')
                     file_object.seek(0, os.SEEK_SET)
@@ -556,3 +565,15 @@ class ModuleConnector(BaseConnector):
             print(f'[{self.print_now_time()}] [MODULE]: {module_name} Start! - partition ID ({par_id})')
         else:
             print(f'[{self.print_now_time()}] [MODULE]: {module_name} End! - partition ID ({par_id})')
+
+    def GetQuerySeparator(self, source_path_spec, configuration):
+        if source_path_spec.location == "/":
+            return "/"
+        if configuration.standalone_check == True:
+            return "\\\\"
+        return "\\\\\\\\"
+    
+    def GetPathSeparator(self, source_path_spec):
+        if source_path_spec.location == "/":
+            return "/"
+        return "\\"

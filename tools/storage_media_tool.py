@@ -7,6 +7,7 @@ import hashlib
 import codecs
 import configparser
 from pyarrow import csv
+import pathlib
 
 from dfvfs.lib import definitions as dfvfs_definitions
 from dfvfs.lib import errors as dfvfs_errors
@@ -74,9 +75,6 @@ class StorageMediaTool(tools.CLITool):
         self._rds = None
         self._rds_set = None
 
-        self.sector_size = None
-        self.cluster_size = None
-
     def _ParseStorageMediaOptions(self, options):
         self._ParseSourcePathOption(options)
         self._ParseOutputPathOption(options)
@@ -90,8 +88,8 @@ class StorageMediaTool(tools.CLITool):
         if self._source_path:
             self._source_path = os.path.abspath(self._source_path)
 
-        #if not self._source_path and not self.case_id and not self.evidence_id:
-        if not self._source_path:
+        if not self._source_path and not self.case_id and not self.evidence_id:
+        #if not self._source_path:
             raise errors.BadConfigOption('Missing source path.')
 
     def _ParseOutputPathOption(self, options):
@@ -154,7 +152,7 @@ class StorageMediaTool(tools.CLITool):
         vss_only = False
         vss_stores = None
 
-        self._process_vss = not getattr(options, 'no_vss', False)
+        self._process_vss = getattr(options, 'process_vss', False)
         if self._process_vss:
             vss_only = getattr(options, 'vss_only', False)
             vss_stores = getattr(options, 'vss_stores', None)
@@ -210,7 +208,7 @@ class StorageMediaTool(tools.CLITool):
     def AddVSSProcessingOptions(self, argument_group):
 
         argument_group.add_argument(
-            '--no_vss', '--no-vss', dest='no_vss', action='store_true',
+            '--process_vss', '--process-vss', dest='process_vss', action='store_true',
             default=False, help=(
                 'Do not scan for Volume Shadow Snapshots (VSS). This means that '
                 'Volume Shadow Snapshots (VSS) are not processed.'))
@@ -647,19 +645,43 @@ class StorageMediaTool(tools.CLITool):
             filesystem_type = None
             bytes_per_cluster = 0
 
+            if path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
+                block_size = 0
+                block_count = 0
+                filesystem = None
+                base_path_spec = path_spec
+
+                disk_info.append({
+                    "base_path_spec": base_path_spec, "type_indicator": path_spec.type_indicator,
+                    "length": block_count * block_size, "bytes_per_sector": block_size, "start_sector": 0,
+                    "bytes_per_cluster": block_size,
+                    "vol_name": 'p1', "identifier": None, "par_label": None, "filesystem": filesystem
+                })
+                self._InsertDiskInfo(disk_info)
+                return disk_info
+
             if not path_spec.parent:
                 return False
 
             if path_spec.parent.IsVolumeSystem():
                 if path_spec.IsFileSystem():
                     fs = dfvfs_resolver.Resolver.OpenFileSystem(path_spec)
-                    fs_info = fs.GetFsInfo()
-                    filesystem_type = getattr(fs_info.info, 'ftype', None)
-                    bytes_per_cluster = getattr(fs_info.info, 'block_size', 0)
+                    if path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_TSK:
+                        fs_info = fs.GetFsInfo()
+                        filesystem_type = getattr(fs_info.info, 'ftype', None)
+                        bytes_per_cluster = getattr(fs_info.info, 'block_size', 0)
+                    elif path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_NTFS:
+                        filesystem_type = fs.type_indicator
+                        bytes_per_cluster = fs._fsntfs_volume.cluster_block_size
                 path_spec = path_spec.parent
 
-            file_system = dfvfs_resolver.Resolver.OpenFileSystem(path_spec)
+            try:
+                file_system = dfvfs_resolver.Resolver.OpenFileSystem(path_spec)
+            except Exception as e:
+                print("No Filesystem")
+                return False
 
+            # VolumeSystem: Partition(gpt, mbr), APFS Container, LVM, VSHADOW
             if path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
 
                 tsk_volumes = file_system.GetTSKVolume()
@@ -685,10 +707,11 @@ class StorageMediaTool(tools.CLITool):
                         "par_label": par_label, "filesystem": filesystem_type
                     })
 
+            # filesystem
             elif path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_TSK:
-                # elif path_spec.IsFileSystem():
                 file_system = dfvfs_resolver.Resolver.OpenFileSystem(path_spec)
                 fs_info = file_system.GetFsInfo()
+                sector_size = getattr(fs_info.info, 'dev_bsize', 0)
                 block_size = getattr(fs_info.info, 'block_size', 0)
                 block_count = getattr(fs_info.info, 'block_count', 0)
                 filesystem = getattr(fs_info.info, 'ftype', None)
@@ -696,12 +719,29 @@ class StorageMediaTool(tools.CLITool):
 
                 disk_info.append({
                     "base_path_spec": base_path_spec, "type_indicator": path_spec.type_indicator,
-                    "length": block_count * block_size, "bytes_per_sector": block_size, "start_sector": 0,
+                    "length": block_count * block_size, "bytes_per_sector": sector_size, "start_sector": 0,
                     "bytes_per_cluster": block_size,
                     "vol_name": 'p1', "identifier": None, "par_label": None, "filesystem": filesystem
                 })
 
-            elif path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_VSHADOW:
+            elif path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_NTFS:
+                file_system = dfvfs_resolver.Resolver.OpenFileSystem(path_spec)
+                sector_size = getattr(file_system._fsntfs_volume, 'bytes_per_sector', 0)
+                block_size = getattr(file_system._fsntfs_volume, 'cluster_block_size', 0)
+                # TODO: there is no block_count in libfsntfs
+                filesystem = 'NTFS'
+                par_label = getattr(file_system._fsntfs_volume, 'name', None)
+                size = getattr(file_system._file_object._file_object, 'cluster_block_size', 0)
+                base_path_spec = path_spec
+
+                disk_info.append({
+                    "base_path_spec": base_path_spec, "type_indicator": path_spec.type_indicator,
+                    "length": size, "bytes_per_sector": sector_size, "start_sector": 0,
+                    "bytes_per_cluster": block_size,
+                    "vol_name": 'p1', "identifier": None, "par_label": par_label, "filesystem": filesystem
+                })
+
+            elif path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_VSHADOW and self._process_vss:
                 vss_volumes = file_system.GetVShadowVolume()
                 store_index = dfvfs_vshadow.VShadowPathSpecGetStoreIndex(path_spec)
 
@@ -718,11 +758,16 @@ class StorageMediaTool(tools.CLITool):
                 })
 
         self._InsertDiskInfo(disk_info)
+        # for V&V test
+        return disk_info
 
     def _InsertDiskInfo(self, disk_info):
 
         for disk in disk_info:
-            par_id = 'p1' + str(uuid.uuid4()).replace('-', '')
+            if str(disk['type_indicator']) == dfvfs_definitions.TYPE_INDICATOR_VSHADOW:
+                par_id = 'v1' + str(uuid.uuid4()).replace('-', '')
+            else:
+                par_id = 'p1' + str(uuid.uuid4()).replace('-', '')
             par_name = str(disk['vol_name'])
             par_type = str(disk['type_indicator'])
             sector_size = str(disk['bytes_per_sector'])
@@ -731,34 +776,24 @@ class StorageMediaTool(tools.CLITool):
             bytes_per_cluster = str(disk['bytes_per_cluster'])
             par_label = str(disk['par_label'])
             filesystem = str(disk['filesystem'])
-            if par_type == 'VSHADOW' and self._process_vss:
-                continue
-            else:
-                try:
-                    query = "INSERT INTO partition_info(par_id, par_name, evd_id, par_type, sector_size, par_size, " \
-                            "start_sector, cluster_size, par_label, filesystem) VALUES('" \
-                            + par_id + "', '" + par_name + "', '" + self.evidence_id + "', '" + par_type + "', '" + \
-                            sector_size + "', '" + par_size + "', '" + start_sector + "', '" + bytes_per_cluster + \
-                            "', '" + par_label + "', '" + filesystem + "');"
-                    self._cursor.execute_query(query)
 
-                    partition_dir = \
-                        self._root_tmp_path + os.sep + self.case_id + os.sep + self.evidence_id + os.sep + par_id
-                    if not os.path.exists(partition_dir):
-                        os.mkdir(partition_dir)
+            try:
+                query = "INSERT INTO partition_info(par_id, par_name, evd_id, par_type, sector_size, par_size, " \
+                        "start_sector, cluster_size, par_label, filesystem) VALUES('" \
+                        + par_id + "', '" + par_name + "', '" + self.evidence_id + "', '" + par_type + "', '" + \
+                        sector_size + "', '" + par_size + "', '" + start_sector + "', '" + bytes_per_cluster + \
+                        "', '" + par_label + "', '" + filesystem + "');"
+                self._cursor.execute_query(query)
 
-                    self._partition_list[par_name] = par_id
+                partition_dir = \
+                    self._root_tmp_path + os.sep + self.case_id + os.sep + self.evidence_id + os.sep + par_id
+                if not os.path.exists(partition_dir):
+                    os.mkdir(partition_dir)
 
-                except Exception as exception:
-                    self._output_writer.Write(exception)
+                self._partition_list[par_name] = par_id
 
-        # Split VSS Partition
-        """VSS는 나중에하자
-        if options['vss'] == 'True':
-            output_writer = split_disk.FileOutputWriter(self._source_path)
-            disk_spliter = split_disk.DiskSpliter(disk_info)
-            disk_spliter.SplitDisk(output_writer)
-        """
+            except Exception as exception:
+                self._output_writer.Write(exception)
 
     def InsertFileInformation(self):
 
@@ -769,32 +804,50 @@ class StorageMediaTool(tools.CLITool):
             resolver_context=self._resolver_context)
 
         for path_spec in path_spec_generator:
-            if not path_spec.parent:
-                return False
-            if path_spec.parent.TYPE_INDICATOR == 'VSHADOW':
-                continue
+
             if path_spec.IsFileSystem():
                 self._RecursiveFileSearch(path_spec)
+            elif path_spec.type_indicator == 'OS':
+                self._RecursiveFileSearchForOS(path_spec)
+            else:
+                logger.warning('{0!s} filesystem was not detected.'.format(path_spec.location))
 
     def _RecursiveFileSearch(self, path_spec):
-        _path_specs = [path_spec]
 
-        self._ProcessFileOrDirectory(_path_specs[0], _path_specs)
+        if path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_TSK and \
+                path_spec.parent.TYPE_INDICATOR != 'VSHADOW':
+            self._ProcessFileOrDirectoryForTSK(path_spec)
+            pass
+        elif path_spec.parent.TYPE_INDICATOR == 'VSHADOW' and self._process_vss:
+            self._ProcessFileOrDirectoryForTSK(path_spec)
+            pass
+        elif path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_NTFS:
+            self._ProcessFileOrDirectoryForNTFS(path_spec)
+        else:
+            logger.warning('{0!s} No filesystem was found.'.format(path_spec.location))
+            return
 
-    def _ProcessFileOrDirectory(self, path_spec, parent_id):
+    def _RecursiveFileSearchForOS(self, path_spec):
+
+        if path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
+            self._ProcessFileOrDirectoryForOS(path_spec, 'root')
+        else:
+            logger.warning('{0!s} No file or directory was found.'.format(path_spec.location))
+            return
+
+    def _ProcessFileOrDirectoryForTSK(self, path_spec, parent_id=None):
 
         current_display_name = path_helper.PathHelper.GetDisplayNameForPathSpec(path_spec)
 
-        file_entry = dfvfs_resolver.Resolver.OpenFileEntry(
-            path_spec)
-        current_id = file_entry._tsk_file.info.meta.addr
+        file_entry = dfvfs_resolver.Resolver.OpenFileEntry(path_spec)
 
         if file_entry is None:
             logger.warning('Unable to open file entry with path spec: {0:s}'.format(current_display_name))
             return
 
-        if file_entry.IsDirectory():
+        current_id = file_entry._tsk_file.info.meta.addr
 
+        if file_entry.IsDirectory():
             for sub_file_entry in file_entry.sub_file_entries:
                 try:
                     if not sub_file_entry.IsAllocated():
@@ -803,20 +856,19 @@ class StorageMediaTool(tools.CLITool):
                 except dfvfs_errors.BackEndError as exception:
                     logger.warning(
                         'Unable to process file: {0:s} with error: {1!s}'.format(
-                            sub_file_entry.path_spec.comparable.replace(
-                                '\n', ';'), exception))
+                            sub_file_entry.path_spec.comparable.replace('\n', ';'), exception))
                     continue
 
                 if sub_file_entry.type_indicator == dfvfs_definitions.TYPE_INDICATOR_TSK:
                     if file_entry.IsRoot() and sub_file_entry.name == '$OrphanFiles':
                         continue
 
-                self._ProcessFileOrDirectory(sub_file_entry.path_spec, current_id)
+                self._ProcessFileOrDirectoryForTSK(sub_file_entry.path_spec, current_id)
 
-        self._InsertFileInfo(file_entry, parent_id=parent_id)
+        self._InsertFileInfoForTSK(file_entry, parent_id=parent_id)
         file_entry = None
 
-    def _InsertFileInfo(self, file_entry, parent_id=0):
+    def _InsertFileInfoForTSK(self, file_entry, parent_id=0):
 
         if file_entry.name in ['', '.', '..']:
             return
@@ -824,38 +876,33 @@ class StorageMediaTool(tools.CLITool):
         files = []
         tsk_file = file_entry.GetTSKFile()
         file = CarpeFile.CarpeFile()
-
-        if self.standalone_check:
-            del file._id
-
         file._name = file_entry.name
 
         if len(self._partition_list) > 1:
             parent_location = getattr(file_entry.path_spec.parent, 'location', None)
             file._p_id = self._partition_list[parent_location[1:]]
         else:
-            file._p_id = self._partition_list['p1']  # check
+            file._p_id = self._partition_list[list(self._partition_list.keys())[0]]  # check
 
         location = getattr(file_entry.path_spec, 'location', None)
 
         if location is None:
             return
         else:
-            file._parent_path = 'root' + os.path.dirname(location)
+            file._parent_path = 'root' + str(pathlib.PurePosixPath(location).parent)
 
         file._parent_id = parent_id
 
         # entry_type
         if file_entry.entry_type == 'file':
             file._dir_type = 5
+            _, file._extension = os.path.splitext(file_entry.name)
+            if file._extension:
+                file._extension = file._extension[1:]
         elif file_entry.entry_type == 'directory':
             file._dir_type = 3
         else:
-            if file_entry.name == '$MBR':
-                file._dir_type = 10
-            elif file_entry.name == '$FAT1':
-                file._dir_type = 10
-            elif file_entry.name == '$FAT2':
+            if file_entry.name == '$MBR' or file_entry.name == '$FAT1' or file_entry.name == '$FAT2':
                 file._dir_type = 10
             elif file_entry.name == '$OrphanFiles':
                 file._dir_type = 11
@@ -864,23 +911,31 @@ class StorageMediaTool(tools.CLITool):
 
         file._meta_type = [lambda: 0, lambda: int(tsk_file.info.meta.type)][tsk_file.info.meta is not None]()
         file._file_id = tsk_file.info.meta.addr
+        stat = file_entry._GetStat()
+        file._size = [lambda: 0, lambda: stat.size][stat.size is not None]()
+        file._mode = [lambda: 0, lambda: stat.mode][stat.mode is not None]()
+        # TODO: meta_seq not found, temporarily set to 0
+        file._meta_seq = 0
+        file._gid = [lambda: 0, lambda: stat.gid][stat.gid is not None]()
+        file._uid = [lambda: 0, lambda: stat.uid][stat.uid is not None]()
+        file._ads = len(file_entry.data_streams)
+        # TODO: temporarily set to ino > {0:d}-{1:d}-{2:d}
+        # file._inode = stat.ino
 
-        for attribute in tsk_file:
-            # NTFS
-            if attribute.info.type in definitions.ATTRIBUTE_TYPES_TO_ANALYZE:
+        for attribute in file_entry.attributes:
 
-                # file._file_id = tsk_file.info.meta.addr
-                # if file._file_id in [129059, 129095, 129232, 129272, 129732, 129762, 138891, 139168, 142751,
-                #                      144116, 151577, 173087, 173346, 176877, 176910, 183408]:
-                #     print("asdf")
-                file._inode = [lambda: "{0:d}".format(tsk_file.info.meta.addr),
-                               lambda: "{0:d}-{1:d}-{2:d}".format(tsk_file.info.meta.addr, int(attribute.info.type),
-                                                                  attribute.info.id)] \
-                    [tsk_file.info.fs_info.ftype in [definitions.TSK_FS_TYPE_NTFS,
-                                                     definitions.TSK_FS_TYPE_NTFS_DETECT]]()
+            if attribute.attribute_type in definitions.ATTRIBUTE_TYPES_TO_ANALYZE:
+                try:
+                    file._inode = [lambda: "{0:d}".format(tsk_file.info.meta.addr),
+                                   lambda: "{0:d}-{1:d}-{2:d}".format(tsk_file.info.meta.addr, int(attribute.info.type),
+                                                                      attribute.info.id)] \
+                        [tsk_file.info.fs_info.ftype in [definitions.TSK_FS_TYPE_NTFS,
+                                                         definitions.TSK_FS_TYPE_NTFS_DETECT]]()
+                except AttributeError:
+                    raise AttributeError
 
                 # $Standard_Information
-                if attribute.info.type in definitions.ATTRIBUTE_TYPES_TO_ANALYZE_TIME:
+                if attribute.attribute_type in definitions.ATTRIBUTE_TYPES_TO_ANALYZE_TIME:
                     file._mtime = [lambda: 0, lambda: tsk_file.info.meta.mtime][
                         tsk_file.info.meta.mtime is not None]()
                     file._atime = [lambda: 0, lambda: tsk_file.info.meta.atime][
@@ -900,7 +955,7 @@ class StorageMediaTool(tools.CLITool):
                         tsk_file.info.meta.crtime_nano is not None]()
 
                 # $FileName
-                if attribute.info.type in definitions.ATTRIBUTE_TYPES_TO_ANALYZE_ADDITIONAL_TIME:
+                if attribute.attribute_type in definitions.ATTRIBUTE_TYPES_TO_ANALYZE_ADDITIONAL_TIME:
                     file._additional_mtime = [lambda: 0, lambda: tsk_file.info.meta.mtime][
                         tsk_file.info.meta.mtime is not None]()
                     file._additional_atime = [lambda: 0, lambda: tsk_file.info.meta.atime][
@@ -918,20 +973,8 @@ class StorageMediaTool(tools.CLITool):
                         tsk_file.info.meta.ctime_nano is not None]()
                     file._additional_etime_nano = [lambda: 0, lambda: tsk_file.info.meta.crtime_nano][
                         tsk_file.info.meta.crtime_nano is not None]()
-
-                if file_entry.IsFile():
-                    _, file._extension = os.path.splitext(file_entry.name)
-                    if file._extension:
-                        file._extension = file._extension[1:]
-
-                file._size = int(tsk_file.info.meta.size)
-                file._mode = int(attribute.info.fs_file.meta.mode)
-                file._meta_seq = int(attribute.info.fs_file.meta.seq)
-                file._uid = int(attribute.info.fs_file.meta.uid)
-                file._gid = int(attribute.info.fs_file.meta.gid)
-                file._ads = len(file_entry.data_streams)
             else:
-                logger.info('TODO: Deal with other attribute types')
+                logger.info('[{0!s}]Deal with other attribute types'.format(file_entry.name))
 
         if file_entry.IsFile():
             for data_stream in file_entry.data_streams:
@@ -975,11 +1018,11 @@ class StorageMediaTool(tools.CLITool):
                     try:
                         hash_result = hashlib.sha1(file_object.read(file._size)).hexdigest().upper()
                     except Exception as exception:
-                        raise errors.HashCalculateError(
-                            'Failed to compute SHA1 hash for file({0:s}): error: {1:s} '.format(file_entry.name,
-                                                                                                exception))
-                        logger.error('Failed to compute SHA1 hash for file: {0:s} '.format(
-                            file_entry.name))
+                        # raise errors.HashCalculateError(
+                        #     'Failed to compute SHA1 hash for file({0:s}): error: {1:s} '.format(file_entry.name,
+                        #                                                                         exception))
+                        print(f'Failed to compute SHA1 hash for file: {file_entry.name}')
+                        print(f'Exception: {exception}')
                         continue
 
                     finally:
@@ -1017,8 +1060,6 @@ class StorageMediaTool(tools.CLITool):
 
             if slack_size > 0:
                 file_slack = CarpeFile.CarpeFile()
-                if self.standalone_check:
-                    del (file_slack._id)
                 file_slack._size = slack_size
                 file_slack._file_id = _temp_file._file_id
                 file_slack._p_id = _temp_file._p_id
@@ -1030,15 +1071,451 @@ class StorageMediaTool(tools.CLITool):
         self._InsertFileInfoRecords(files)
         # print(file._name +":"+ str(file._sha1) + ":"+str(file._sig_type))
 
+    def _ProcessFileOrDirectoryForNTFS(self, path_spec, parent_id=None):
+        current_display_name = path_helper.PathHelper.GetDisplayNameForPathSpec(path_spec)
+
+        file_entry = dfvfs_resolver.Resolver.OpenFileEntry(
+            path_spec)
+
+        if file_entry is None:
+            logger.warning('Unable to open file entry with path spec: {0:s}'.format(current_display_name))
+            return
+
+        if file_entry.IsRoot():
+            current_id = 5
+        else:
+            current_id = file_entry.path_spec.mft_entry
+
+        if file_entry.IsDirectory():
+
+            for sub_file_entry in file_entry.sub_file_entries:
+                try:
+                    if not sub_file_entry.IsAllocated():
+                        continue
+
+                except dfvfs_errors.BackEndError as exception:
+                    logger.warning(
+                        'Unable to process file: {0:s} with error: {1!s}'.format(
+                            sub_file_entry.path_spec.comparable.replace(
+                                '\n', ';'), exception))
+                    continue
+
+                if sub_file_entry.type_indicator == dfvfs_definitions.TYPE_INDICATOR_NTFS:
+                    if file_entry.IsRoot() and sub_file_entry.name == '$OrphanFiles':
+                        continue
+
+                self._ProcessFileOrDirectoryForNTFS(sub_file_entry.path_spec, current_id)
+
+        self._InsertFileInfoForNTFS(file_entry, parent_id=parent_id)
+        file_entry = None
+
+    def _InsertFileInfoForNTFS(self, file_entry, parent_id=0):
+        if file_entry.name in ['', '.', '..']:
+            return
+
+        files = []
+        file = CarpeFile.CarpeFile()
+
+        file._name = file_entry.name
+
+        if len(self._partition_list) > 1:
+            parent_location = getattr(file_entry.path_spec.parent, 'location', None)
+            file._p_id = self._partition_list[parent_location[1:]]
+        else:
+            file._p_id = self._partition_list[list(self._partition_list.keys())[0]]  # check
+
+        location = getattr(file_entry.path_spec, 'location', None)
+
+        if location is None:
+            return
+        else:
+            file._parent_path = 'root' + str(pathlib.PureWindowsPath(location).parent)
+
+        file._parent_id = parent_id
+
+        # entry_type
+        if file_entry.entry_type == 'file':
+            file._dir_type = 5
+            _, file._extension = os.path.splitext(file_entry.name)
+            if file._extension:
+                file._extension = file._extension[1:]
+        elif file_entry.entry_type == 'directory':
+            file._dir_type = 3
+        else:
+            if file_entry.name == '$OrphanFiles':
+                file._dir_type = 11
+            else:
+                file._dir_type = 0
+
+        file._file_id = file_entry.path_spec.mft_entry
+        file._meta_type = [lambda: 0, lambda: int(file_entry.path_spec.mft_attribute)][
+            file_entry.path_spec.mft_attribute is not None]()
+        stat = file_entry._GetStat()
+        file._size = [lambda: 0, lambda: stat.size][stat.size is not None]()
+        file._mode = [lambda: 0, lambda: stat.mode][stat.mode is not None]()
+        # TODO: meta_seq not found, temporarily set to 0
+        file._meta_seq = 0
+        file._gid = [lambda: 0, lambda: stat.gid][stat.gid is not None]()
+        file._uid = [lambda: 0, lambda: stat.uid][stat.uid is not None]()
+        file._ads = len(file_entry.data_streams)
+        # TODO: temporarily set to ino > {0:d}-{1:d}-{2:d}
+        file._inode = stat.ino
+
+        for attribute in file_entry.attributes:
+            # NTFS
+            if attribute.attribute_type in definitions.ATTRIBUTE_TYPES_TO_ANALYZE:
+
+                # file._inode = "{0:d}-{1:d}-{2:d}".format(file_entry.path_spec.mft_entry, int(attribute.info.type),
+                #                                                    attribute.info.id)
+
+                # $Standard_Information
+                if attribute.attribute_type == definitions.TSK_FS_ATTR_TYPE_NTFS_SI:
+                    file._mtime = [lambda: 0, lambda: attribute.modification_time.timestamp // 10000000][
+                        attribute.modification_time is not None]()
+                    file._atime = [lambda: 0, lambda: attribute.access_time.timestamp // 10000000][
+                        attribute.access_time is not None]()
+                    file._ctime = [lambda: 0, lambda: attribute.creation_time.timestamp // 10000000][
+                        attribute.creation_time is not None]()
+                    file._etime = [lambda: 0, lambda: attribute.entry_modification_time.timestamp // 10000000][
+                        attribute.entry_modification_time is not None]()
+
+                    file._mtime_nano = [lambda: 0, lambda: attribute.modification_time.timestamp % 10000000][
+                        attribute.modification_time.timestamp is not None]()
+                    file._atime_nano = [lambda: 0, lambda: attribute.access_time.timestamp % 10000000][
+                        attribute.access_time is not None]()
+                    file._ctime_nano = [lambda: 0, lambda: attribute.creation_time.timestamp % 10000000][
+                        attribute.creation_time is not None]()
+                    file._etime_nano = [lambda: 0, lambda: attribute.entry_modification_time.timestamp % 10000000][
+                        attribute.entry_modification_time is not None]()
+
+                # $FileName
+                if attribute.attribute_type == definitions.TSK_FS_ATTR_TYPE_NTFS_FNAME:
+                    file._additional_mtime = [lambda: 0, lambda: attribute.modification_time.timestamp // 10000000][
+                        attribute.modification_time is not None]()
+                    file._additional_atime = [lambda: 0, lambda: attribute.access_time.timestamp // 10000000][
+                        attribute.access_time is not None]()
+                    file._additional_ctime = [lambda: 0, lambda: attribute.creation_time.timestamp // 10000000][
+                        attribute.creation_time is not None]()
+                    file._additional_etime = \
+                    [lambda: 0, lambda: attribute.entry_modification_time.timestamp // 10000000][
+                        attribute.entry_modification_time is not None]()
+
+                    file._additional_mtime_nano = [lambda: 0, lambda: attribute.modification_time.timestamp % 10000000][
+                        attribute.modification_time.timestamp is not None]()
+                    file._additional_atime_nano = [lambda: 0, lambda: attribute.access_time.timestamp % 10000000][
+                        attribute.access_time is not None]()
+                    file._additional_ctime_nano = [lambda: 0, lambda: attribute.creation_time.timestamp % 10000000][
+                        attribute.creation_time is not None]()
+                    file._additional_etime_nano = \
+                    [lambda: 0, lambda: attribute.entry_modification_time.timestamp % 10000000][
+                        attribute.entry_modification_time is not None]()
+
+            else:
+                logger.info('[{0!s}]Deal with other attribute types'.format(file_entry.name))
+
+        if file_entry.IsFile():
+            for data_stream in file_entry.data_streams:
+                signature_result = ''
+                hash_result = ''
+                rds_result = ''
+
+                if self.signature_check and file._size > 0 and file_entry.IsFile():
+
+                    file_object = file_entry.GetFileObject(data_stream_name=data_stream.name)
+
+                    if not file_object:
+                        return False
+
+                    try:
+                        results = self._signature_tool.ScanFileObject(file_object)
+
+                        if results:
+                            sig = results[0].identifier.split(':')
+                            signature_result = sig[0]
+                        else:
+                            file_object.seek(0, os.SEEK_SET)
+                            file_content = file_object.read(4096)
+                            self._signature_tool.siga.Identify(file_content)
+
+                            if self._signature_tool.siga.ext:
+                                signature_result = self._signature_tool.siga.ext[1:]
+                    except IOError as exception:
+                        raise errors.BackEndError(
+                            'Unable to scan file: error: {0:s}'.format(exception))
+                    finally:
+                        file_object.close()
+
+                if self.rds_check and file._size > 0 and file_entry.IsFile():
+
+                    file_object = file_entry.GetFileObject(data_stream_name=data_stream.name)
+
+                    if not file_object:
+                        return False
+
+                    try:
+                        hash_result = hashlib.sha1(file_object.read(file._size)).hexdigest().upper()
+                    except Exception as exception:
+                        # raise errors.HashCalculateError(
+                        #     'Failed to compute SHA1 hash for file({0:s}): error: {1:s} '.format(file_entry.name,
+                        #                                                                         exception))
+                        print(f'Failed to compute SHA1 hash for file: {file_entry.name}')
+                        print(f'Exception: {exception}')
+                        continue
+
+                    finally:
+                        file_object.close()
+
+                    if file._sha1 in self._rds_set:
+                        rds_result = "Matching"
+                    else:
+                        rds_result = "Not Matching"
+
+                if data_stream.name:
+                    file_ads = CarpeFile.CarpeFile()
+                    file_ads.__dict__ = file.__dict__.copy()
+                    file_ads._name = file._name + ":" + data_stream.name
+                    file_ads._extension = ''
+                    file_ads._size = data_stream._fsntfs_data_stream.size
+                    file_ads._sig_type = signature_result
+                    file_ads._sha1 = hash_result
+                    file_ads._rds_existed = rds_result
+                    files.append(file_ads)
+                else:
+                    file._sig_type = signature_result
+                    file._sha1 = hash_result
+                    file._rds_existed = rds_result
+                    files.append(file)
+        else:
+            files.append(file)
+
+        # for slack
+        _temp_files = copy.deepcopy(files)
+        for _temp_file in _temp_files:
+            slack_size = 0
+            if file._size > 0 and _temp_file._size % file_entry._file_system._fsntfs_volume.cluster_block_size > 0:
+                slack_size = file_entry._file_system._fsntfs_volume.cluster_block_size - (
+                            _temp_file._size % file_entry._file_system._fsntfs_volume.cluster_block_size)
+
+            if slack_size > 0:
+                file_slack = CarpeFile.CarpeFile()
+                file_slack._size = slack_size
+                file_slack._file_id = _temp_file._file_id
+                file_slack._p_id = _temp_file._p_id
+                file_slack._parent_path = _temp_file._parent_path
+                file_slack._type = 7
+                file_slack._name = _temp_file._name + '-slack'
+                files.append(file_slack)
+
+        self._InsertFileInfoRecords(files)
+
+    def _ProcessFileOrDirectoryForOS(self, path_spec, parent_id=None):
+        current_display_name = path_helper.PathHelper.GetDisplayNameForPathSpec(path_spec)
+
+        file_entry = dfvfs_resolver.Resolver.OpenFileEntry(
+            path_spec)
+
+        if file_entry is None:
+            logger.warning('Unable to open file entry with path spec: {0:s}'.format(current_display_name))
+            return
+
+        # TODO: root inode
+        if parent_id == 'root':
+            current_id = 5
+        else:
+            current_id = file_entry._stat_info.st_ino
+
+        try:
+            if file_entry.IsDirectory():
+
+                for sub_file_entry in file_entry.sub_file_entries:
+                    try:
+                        if not sub_file_entry.IsAllocated():
+                            continue
+
+                    except dfvfs_errors.BackEndError as exception:
+                        logger.warning(
+                            'Unable to process file: {0:s} with error: {1!s}'.format(
+                                sub_file_entry.path_spec.comparable.replace(
+                                    '\n', ';'), exception))
+                        continue
+
+                    if sub_file_entry.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
+                        if file_entry.IsRoot() and sub_file_entry.name == '$OrphanFiles':
+                            continue
+
+                    self._ProcessFileOrDirectoryForOS(sub_file_entry.path_spec, current_id)
+
+        except dfvfs_errors.AccessError as exception:
+            logger.warning(
+                'Unable to access file: {0:s} with error: {1!s}'.format(
+                    file_entry.path_spec.comparable.replace(
+                        '\n', ';'), exception))
+
+        self._InsertFileInfoForOS(file_entry, parent_id=parent_id)
+        file_entry = None
+
+    def _InsertFileInfoForOS(self, file_entry, parent_id=0):
+        if file_entry.name in ['', '.', '..']:
+            return
+
+        files = []
+        file = CarpeFile.CarpeFile()
+        file._name = file_entry.name
+
+        if len(self._partition_list) > 1:
+            parent_location = getattr(file_entry.path_spec.parent, 'location', None)
+            file._p_id = self._partition_list[parent_location[1:]]
+        else:
+            file._p_id = self._partition_list[list(self._partition_list.keys())[0]]  # check
+
+        location = getattr(file_entry.path_spec, 'location', None)
+
+        if location is None:
+            return
+        else:
+            file._parent_path = os.path.dirname(location)
+
+        file._parent_id = parent_id
+
+        # entry_type
+        if file_entry.entry_type == 'file':
+            file._dir_type = 5
+            _, file._extension = os.path.splitext(file_entry.name)
+            if file._extension:
+                file._extension = file._extension[1:]
+        elif file_entry.entry_type == 'directory':
+            file._dir_type = 3
+        else:
+            if file_entry.name == '$MBR' or file_entry.name == '$FAT1' or file_entry.name == '$FAT2':
+                file._dir_type = 10
+            elif file_entry.name == '$OrphanFiles':
+                file._dir_type = 11
+            else:
+                file._dir_type = 0
+
+        file._file_id = file_entry._stat_info.st_ino
+        # TODO: meta_type not found, temporarily set to 0
+        file._meta_type = 0
+        stat = file_entry._GetStat()
+        file._size = [lambda: 0, lambda: stat.size][stat.size is not None]()
+        file._mode = [lambda: 0, lambda: stat.mode][stat.mode is not None]()
+        # TODO: meta_seq not found, temporarily set to 0
+        file._meta_seq = 0
+        file._gid = [lambda: 0, lambda: stat.gid][stat.gid is not None]()
+        file._uid = [lambda: 0, lambda: stat.uid][stat.uid is not None]()
+        file._ads = len(file_entry.data_streams)
+        # TODO: temporarily set to ino > {0:d}-{1:d}-{2:d}
+        file._inode = stat.ino
+
+        file._ctime = [lambda: 0, lambda: file_entry.creation_time.timestamp // 10000000] \
+            [file_entry.creation_time.timestamp is not None]()
+        file._ctime_nano = [lambda: 0, lambda: file_entry.creation_time.timestamp % 10000000] \
+            [file_entry.creation_time.timestamp is not None]()
+        file._mtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
+            [file_entry.modification_time.timestamp is not None]()
+        file._mtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
+            [file_entry.modification_time.timestamp is not None]()
+        file._atime = [lambda: 0, lambda: file_entry.access_time.timestamp // 10000000] \
+            [file_entry.access_time.timestamp is not None]()
+        file._atime_nano = [lambda: 0, lambda: file_entry.access_time.timestamp % 10000000] \
+            [file_entry.access_time.timestamp is not None]()
+        # file._crtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
+        #     [file_entry.modification_time.timestamp is not None]()
+        # file._crtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
+        #     [file_entry.modification_time.timestamp is not None]()
+
+        if file_entry.IsFile():
+            for data_stream in file_entry.data_streams:
+                signature_result = ''
+                hash_result = ''
+                rds_result = ''
+                if self.signature_check and file._size > 0 and file_entry.IsFile():
+
+                    file_object = file_entry.GetFileObject(data_stream_name=data_stream.name)
+
+                    if not file_object:
+                        return False
+
+                    try:
+                        results = self._signature_tool.ScanFileObject(file_object)
+
+                        if results:
+                            sig = results[0].identifier.split(':')
+                            signature_result = sig[0]
+                        else:
+                            file_object.seek(0, os.SEEK_SET)
+                            file_content = file_object.read(4096)
+                            self._signature_tool.siga.Identify(file_content)
+
+                            if self._signature_tool.siga.ext:
+                                signature_result = self._signature_tool.siga.ext[1:]
+
+                    except IOError as exception:
+                        raise errors.BackEndError(
+                            'Unable to scan file: error: {0:s}'.format(exception))
+                    finally:
+                        file_object.close()
+
+                if self.rds_check and file._size > 0 and file_entry.IsFile():
+
+                    file_object = file_entry.GetFileObject(data_stream_name=data_stream.name)
+
+                    if not file_object:
+                        return False
+
+                    try:
+                        hash_result = hashlib.sha1(file_object.read(file._size)).hexdigest().upper()
+                    except Exception as exception:
+                        # raise errors.HashCalculateError(
+                        #     'Failed to compute SHA1 hash for file({0:s}): error: {1:s} '.format(file_entry.name,
+                        #                                                                         exception))
+                        print(f'Failed to compute SHA1 hash for file: {file_entry.name}')
+                        print(f'Exception: {exception}')
+                        continue
+
+                    finally:
+                        file_object.close()
+
+                    if file._sha1 in self._rds_set:
+                        rds_result = "Matching"
+                    else:
+                        rds_result = "Not Matching"
+
+                if data_stream.name:
+                    file_ads = CarpeFile.CarpeFile()
+                    file_ads.__dict__ = file.__dict__.copy()
+                    file_ads._name = file._name + ":" + data_stream.name
+                    file_ads._extension = ''
+                    file_ads._size = data_stream._fsntfs_data_stream.size
+                    file_ads._sig_type = signature_result
+                    file_ads._sha1 = hash_result
+                    file_ads._rds_existed = rds_result
+                    files.append(file_ads)
+                else:
+                    file._sig_type = signature_result
+                    file._sha1 = hash_result
+                    file._rds_existed = rds_result
+                    files.append(file)
+        else:
+            files.append(file)
+
+        self._InsertFileInfoRecords(files)
+
     def _InsertFileInfoRecords(self, files):
         file_list = map(lambda f: f.toTuple(), files)
         for file in file_list:
             if file is not None:
                 try:
                     query = self._cursor.insert_query_builder("file_info")
-                    query = (query + "\n values " + "%s" % (file,))
-                    self._cursor.execute_query(query)
+                    query = (query + "values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
+                                     "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
+                                     "%s, %s, %s)")
+                    self._cursor.bulk_execute(query, (file,))
                 except Exception as exception:
                     print(exception)
+        # self._cursor.commit()
 
-        self._cursor.commit()
+    def get_partition_list(self):
+        query = f"SELECT par_name, par_id FROM partition_info"
+        results = self._cursor.execute_query_mul(query)
+        self._partition_list = dict(results)

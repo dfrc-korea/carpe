@@ -10,6 +10,9 @@ Table:
       - file_name
       - file_path
       - file_size
+      - lnk_creation_time
+      - lnk_access_time
+      - lnk_write_time
       - target_creation_time
       - target_access_time
       - target_write_time
@@ -23,6 +26,9 @@ Table:
       - [VARCHAR(100), NOT NULL]
       - [VARCHAR(100), NOT NULL]
       - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
       - [TEXT]
       - [TEXT]
       - [TEXT]

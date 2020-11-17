@@ -16,7 +16,7 @@ def _convert_timestamp(timestamp):
         time = str(time).replace(' ', 'T') + 'Z'
         return time
     else:
-        time = timestamp
+        time = '' # todo: 17자리 넘는 Timestamp 확인 후 수정 - 201113
         return time
 
 def _convert_unixtimestamp(timestamp):

@@ -35,19 +35,22 @@ class SUPERFETCHConnector(interface.ModuleConnector):
             return False
 
         # extension -> sig_type 변경해야 함
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec) 
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano FROM file_info WHERE par_id='{par_id}' and " \
-                f"parent_path = 'root/Windows/Prefetch' and (extension = '7db' or extension = 'db' or extension = 'ebd');"
+                f"parent_path like 'root{query_separator}Windows{query_separator}Prefetch' " \
+                f"and (extension = '7db' or extension = 'db' or extension = 'ebd');"
 
         superfetch_files = configuration.cursor.execute_query_mul(query)
 
         if len(superfetch_files) == 0:
+            print("There are no superfetch files")
             return False
 
         insert_superfetch_info = []
 
         for superfetch in superfetch_files:
-            superfetch_path = superfetch[1][superfetch[1].find('/'):] + '/' + superfetch[0]  # full path
-            fileExt = superfetch[2]
+            superfetch_path = superfetch[1][superfetch[1].find(path_separator):] + path_separator + superfetch[0]  # full path
             fileName = superfetch[0]
 
             output_path = configuration.root_tmp_path + os.path.sep + configuration.case_id \
@@ -64,7 +67,7 @@ class SUPERFETCHConnector(interface.ModuleConnector):
 
             fn = output_path + os.path.sep + fileName
             try:
-                results = sfexport2.main(fn)  # filename, app_path
+                results = sfexport2.main(fn)  # filename
             except Exception:
                 continue
 
@@ -72,9 +75,11 @@ class SUPERFETCHConnector(interface.ModuleConnector):
                 os.remove(output_path + os.sep + fileName)
                 continue
 
-            ### superfetch_info ###
+            # superfetch_info
             for result in results['reference_point']:
-                insert_superfetch_info.append(tuple([par_id, configuration.case_id, configuration.evidence_id, results['file_info']['Name'], results['file_info']['Volume Name'], results['file_info']['Volume ID'], result]))
+                insert_superfetch_info.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
+                                                     results['file_info']['Name'], results['file_info']['Volume Name'],
+                                                     results['file_info']['Volume ID'], result]))
 
             os.remove(output_path + os.sep + fileName)
 

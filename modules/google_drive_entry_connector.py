@@ -40,17 +40,20 @@ class GoogledriveentryConnector(interface.ModuleConnector):
                 if hostname.identifier.find('S-1-5-21') == -1:
                     continue
                 users.append(hostname.username)
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
 
         for user in users:
-            user_path = f"/Users/{user}"
-            gs_path = f"/AppData/Local/Google/Drive"
+            user_path = f"{path_separator}Users{path_separator}{user}"
+            gs_path = f"{path_separator}AppData{path_separator}Local" \
+            f"{path_separator}Google{path_separator}Drive"
 
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                           configuration.evidence_id + os.sep + par_id
 
             self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
                                                      configuration=configuration,
-                                                     dir_path=user_path + gs_path,
+                                                     dir_path=(user_path + gs_path),
                                                      output_path=output_path)
             try:
                 e_data = []

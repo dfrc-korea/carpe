@@ -63,12 +63,15 @@ class C_defy(object):
             "next_offset": 2,
             "flag": 3,
             "property": 4,
-            "offset_info": 5
+            "offset_info": 5,
+            "file_name": 6,
+            "file_size": 7,
+            "file_path": 8
         }
         )
         showcase_columns = OrderedDict({
-            "offset": 0,
             "signature": 1,
+            "offset": 0,
             "next_offset": 2,
             "flag": 3,
             "table": 4,

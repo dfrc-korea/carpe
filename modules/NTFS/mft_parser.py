@@ -2,7 +2,7 @@ from modules.NTFS import util
 from modules.NTFS.dfir_ntfs import WSL, Attributes, MFT
 
 
-def mft_parse(info, mft_file, file_record, file_paths):
+def mft_parse(info, mft_file, file_record, file_paths, time_zone):
     mft_list = []
 
     attr_standard_information = None
@@ -37,9 +37,9 @@ def mft_parse(info, mft_file, file_record, file_paths):
                                 pass
                             else:
                                 wsl_found = True
-                                wsl_atime = util.format_timestamp(lxattrb.get_atime())
-                                wsl_mtime = util.format_timestamp(lxattrb.get_mtime())
-                                wsl_chtime = util.format_timestamp(lxattrb.get_chtime())
+                                wsl_atime = util.format_timestamp(lxattrb.get_atime(), time_zone)
+                                wsl_mtime = util.format_timestamp(lxattrb.get_mtime(), time_zone)
+                                wsl_chtime = util.format_timestamp(lxattrb.get_chtime(), time_zone)
 
             if attribute.type_code == Attributes.ATTR_TYPE_DATA and attribute.name is None:
                 if file_size is None:
@@ -66,13 +66,13 @@ def mft_parse(info, mft_file, file_record, file_paths):
     if objid_time is None:
         objid_time = ''
     else:
-        objid_time = util.format_timestamp(objid_time)
+        objid_time = util.format_timestamp(objid_time, time_zone)
 
     if attr_standard_information is not None:
-        si_mtime = util.format_timestamp(attr_standard_information.get_mtime())
-        si_atime = util.format_timestamp(attr_standard_information.get_atime())
-        si_ctime = util.format_timestamp(attr_standard_information.get_ctime())
-        si_etime = util.format_timestamp(attr_standard_information.get_etime())
+        si_mtime = util.format_timestamp(attr_standard_information.get_mtime(), time_zone)
+        si_atime = util.format_timestamp(attr_standard_information.get_atime(), time_zone)
+        si_ctime = util.format_timestamp(attr_standard_information.get_ctime(), time_zone)
+        si_etime = util.format_timestamp(attr_standard_information.get_etime(), time_zone)
         si_usn = attr_standard_information.get_usn()
     else:
         si_mtime = ''
@@ -97,18 +97,18 @@ def mft_parse(info, mft_file, file_record, file_paths):
 
     if len(file_paths) > 0:
         for file_path, attr_file_name in file_paths:
-            fn_mtime = util.format_timestamp(attr_file_name.get_mtime())
-            fn_atime = util.format_timestamp(attr_file_name.get_atime())
-            fn_ctime = util.format_timestamp(attr_file_name.get_ctime())
-            fn_etime = util.format_timestamp(attr_file_name.get_etime())
+            fn_mtime = util.format_timestamp(attr_file_name.get_mtime(), time_zone)
+            fn_atime = util.format_timestamp(attr_file_name.get_atime(), time_zone)
+            fn_ctime = util.format_timestamp(attr_file_name.get_ctime(), time_zone)
+            fn_etime = util.format_timestamp(attr_file_name.get_etime(), time_zone)
 
-            mft_list.append(info + ('File record', fr_number, fr_in_use, fr_directory, fr_lsn, file_path,
+            mft_list.append(info + ['File record', fr_number, fr_in_use, fr_directory, fr_lsn, file_path,
                             si_mtime, si_atime, si_ctime, si_etime, si_usn, fn_mtime, fn_atime, fn_ctime, fn_etime,
-                            objid_time, file_size, ads_list, wsl_mtime, wsl_atime, wsl_chtime))
+                            objid_time, file_size, ads_list, wsl_mtime, wsl_atime, wsl_chtime])
     else:
-        mft_list.append(info + ('File record', fr_number, fr_in_use, fr_directory, fr_lsn, '',
+        mft_list.append(info + ['File record', fr_number, fr_in_use, fr_directory, fr_lsn, '',
                         si_mtime, si_atime, si_ctime, si_etime, si_usn, '', '', '', '', objid_time, file_size, ads_list,
-                        wsl_mtime, wsl_atime, wsl_chtime))
+                        wsl_mtime, wsl_atime, wsl_chtime])
 
     # Parse a file name index in this file record (if present).
     attr_index_root = None
@@ -147,15 +147,15 @@ def mft_parse(info, mft_file, file_record, file_paths):
                 else:
                     fr_directory = 'N'
 
-                fn_mtime = util.format_timestamp(attr_file_name.get_mtime())
-                fn_atime = util.format_timestamp(attr_file_name.get_atime())
-                fn_ctime = util.format_timestamp(attr_file_name.get_ctime())
-                fn_etime = util.format_timestamp(attr_file_name.get_etime())
+                fn_mtime = util.format_timestamp(attr_file_name.get_mtime(), time_zone)
+                fn_atime = util.format_timestamp(attr_file_name.get_atime(), time_zone)
+                fn_ctime = util.format_timestamp(attr_file_name.get_ctime(), time_zone)
+                fn_etime = util.format_timestamp(attr_file_name.get_etime(), time_zone)
 
                 file_size = attr_file_name.get_file_size()
 
-                mft_list.append(info + ('Index record', fr_number, '?', fr_directory, '', file_path, '', '', '', '',
-                                        '', fn_mtime, fn_atime, fn_ctime, fn_etime, '', file_size, '', '', '', ''))
+                mft_list.append(info + ['Index record', fr_number, '?', fr_directory, '', file_path, '', '', '', '',
+                                        '', fn_mtime, fn_atime, fn_ctime, fn_etime, '', file_size, '', '', '', ''])
 
     # Parse slack space in this file record (if present).
     for slack in file_record.slack():
@@ -188,14 +188,14 @@ def mft_parse(info, mft_file, file_record, file_paths):
             else:
                 fr_directory = 'N'
 
-            fn_mtime = util.format_timestamp(attr_file_name.get_mtime())
-            fn_atime = util.format_timestamp(attr_file_name.get_atime())
-            fn_ctime = util.format_timestamp(attr_file_name.get_ctime())
-            fn_etime = util.format_timestamp(attr_file_name.get_etime())
+            fn_mtime = util.format_timestamp(attr_file_name.get_mtime(), time_zone)
+            fn_atime = util.format_timestamp(attr_file_name.get_atime(), time_zone)
+            fn_ctime = util.format_timestamp(attr_file_name.get_ctime(), time_zone)
+            fn_etime = util.format_timestamp(attr_file_name.get_etime(), time_zone)
 
             file_size = attr_file_name.get_file_size()
 
-            mft_list.append(info + ('Slack', '?', '?', fr_directory, '', file_path, '', '', '', '', '',
-                                    fn_mtime, fn_atime, fn_ctime, fn_etime, '', file_size, '', '', '', ''))
+            mft_list.append(info + ['Slack', '?', '?', fr_directory, '', file_path, '', '', '', '', '',
+                                    fn_mtime, fn_atime, fn_ctime, fn_etime, '', file_size, '', '', '', ''])
 
     return mft_list

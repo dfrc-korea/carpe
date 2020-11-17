@@ -65,7 +65,8 @@ def SYSTEMSERVICE(reg_system):
                         elif reg_subkey_values.data() == 4:
                             system_service_list[system_service_count].start_type = 'Disabled'
                     elif reg_subkey_values.name() == 'DisplayName':
-                        system_service_list[system_service_count].display_name = reg_subkey_values.data().replace("'",'"').replace('\x00','')
+                        system_service_list[system_service_count].display_name = \
+                            str(reg_subkey_values.data()).replace("'", '"').replace('\x00', '')
                     elif reg_subkey_values.name() == 'ImagePath':
                         system_service_list[system_service_count].service_detail_information = reg_subkey_values.data()
                     elif reg_subkey_values.name() == 'ErrorControl':
@@ -109,9 +110,10 @@ def SYSTEMSERVICE(reg_system):
                                         temp_array.append(reg_subkey_subkey_value.name())
                                 else:
                                     try:
-                                        temp_array.append(reg_subkey_subkey_value.name() +': '+ str(int(binascii.b2a_hex(reg_subkey_subkey_value.data()[::-1]).decode(),16)))
+                                        temp_array.append(reg_subkey_subkey_value.name() + ': ' +
+                                                          str(int(binascii.b2a_hex(reg_subkey_subkey_value.data()[::-1]).decode(), 16)))
                                     except:
-                                        None
+                                        pass
                 system_service_list[system_service_count].host_service = ','.join(temp_array).replace('\x00','')
                 system_service_count = system_service_count + 1
     except:

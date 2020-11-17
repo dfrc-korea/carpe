@@ -1,3 +1,6 @@
+#
+# yjDateTime.py, 200506
+#
 from ctypes import *
 from modules.windows_jumplist.lib import Filetimes
 import datetime
@@ -11,7 +14,7 @@ def filetime_to_datetime(filetime, inchour = 0):
     return None
 
 # TFileTime
-class FILETIME(LittleEndianStructure):   
+class FILETIME(LittleEndianStructure):
     _fields_ = [
         ('LowDateTime', c_uint32),
         ('HighDateTime', c_uint32)

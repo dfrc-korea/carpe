@@ -1,7 +1,8 @@
 import sqlite3
 from sqlite3 import Error
 from modules.windows_jumplist.lib.yjSysUtils import debug_mode
- 
+
+
 class TSQLite3:
     def __init__(self, db_file):
         self.conn = None
@@ -29,9 +30,10 @@ class TSQLite3:
             return False
 
     def getInsertSQL(self, tableName, fieldNames):
-        if debug_mode: 
+        if debug_mode:
             assert type(fieldNames) in [list, tuple]
-        return 'insert into %s(%s) Values (%s)' % (tableName, ','.join(fieldNames), ','.join(['?' for i in range(0, len(fieldNames)) if True]))
+        return 'insert into %s(%s) Values (%s)' % (
+        tableName, ','.join(fieldNames), ','.join(['?' for i in range(0, len(fieldNames)) if True]))
 
     def commit(self):
         self.conn.commit()

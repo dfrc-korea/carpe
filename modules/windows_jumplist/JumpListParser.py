@@ -67,7 +67,7 @@ class TDestListEntry(LittleEndianStructure):
 
 class TJumpListParser:
     appids_file = None
-    def __init__(self, srcfile, src_id, fileName=''):
+    def __init__(self, srcfile, src_id):
 
         def getProgramName():
             if not hasattr(TJumpListParser.appids_file, 'read'): return ''
@@ -92,10 +92,7 @@ class TJumpListParser:
             if FileExists(fn): TJumpListParser.appids_file = open(fn, 'rt')
         self.src_id = src_id
         if hasattr(srcfile, 'read'):
-            if fileName == '':
-                self.fileName = srcfile.name
-            else:
-                self.fileName = fileName
+            self.fileName = srcfile.name
             self.fileObject = srcfile
             self.fileCTime = ''
         else:
@@ -178,14 +175,13 @@ class TJumpListParser:
                         if not entry: break
                         try:
                             fileName = data.read(entry.length_of_unicode * 2).decode('utf-16')
-                        except UnicodeDecodeError:
-                            fileName = ''
-                        filePath = ExtractFilePath(fileName) if fileName.find('://') == -1 else fileName
-                        try:
+                            filePath = ExtractFilePath(fileName) if fileName.find('://') == -1 else fileName
                             computerName = entry.NetBIOSName.decode('utf-8')
-                        except UnicodeDecodeError:
-                            fileName = ''
-                        destList.append([sid, filetime_to_datetime(entry.last_recorded_aceess_time, 9), entry.access_count, entry.EntryID, computerName, ExtractFileName(fileName), filePath, ExtractFileExt(fileName).lower()])
+                            destList.append([sid, filetime_to_datetime(entry.last_recorded_aceess_time, 0),
+                                             entry.access_count, entry.EntryID, computerName, ExtractFileName(fileName),
+                                             filePath, ExtractFileExt(fileName).lower()])
+                        except Exception:
+                            pass
                         data.position += 4
                 else:
                     entryid = int(item[0], 16)    # entryid는 entry.EntryID 다.
@@ -267,8 +263,8 @@ def printHelp():
        >python JumpListParser.py c:\jumplist_samples re.db
     """)
 
-def main(file, app_path, fileName):
 
+def main(file, app_path):
     fn = file
     # 처리할 소스 파일(src_files)을 구한다.
     src_files = []
@@ -282,19 +278,18 @@ def main(file, app_path, fileName):
         src_files = get_files(fn, '*.customdestination-ms')
         src_files.extend(get_files(fn, '*.automaticdestinations-ms'))
 
-    #print('Processing...')
+    print('Processing...')
     i = 0
     for fn in src_files:
-        #print(i + 1, fn if type(fn) is str else fn.name)
-        JumpListParser = TJumpListParser(fn, i, fileName)
+        print(i + 1, fn if type(fn) is str else fn.name)
+        JumpListParser = TJumpListParser(fn, i)
         i += 1
         result = JumpListParser.parse()
-        if debug_mode:
-            assert (len(result['RecentFileInfo'][0]) == 8) and (len(result['LnkData'][0]) == 5)
-            if JumpListParser.fileExt == fileext_automaticdestinations: assert len(result['DestList'][0]) == 8 + 5
+        # if debug_mode:
+        #     assert (len(result['RecentFileInfo'][0]) == 8) and (len(result['LnkData'][0]) == 5)
+        #     if JumpListParser.fileExt == fileext_automaticdestinations: assert len(result['DestList'][0]) == 8 + 5
         JumpListParser.fileObject.close()
     return result
-    #print('%d files\r\nFinished. - "%s"' % (i, ExtractFileName(dest_file)))
 
 """
 if sys.version_info < (3, 8):

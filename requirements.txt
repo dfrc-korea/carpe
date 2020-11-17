@@ -1,3 +1,4 @@
+aff4-snappy==0.5.1
 artifacts==20200515
 atomicwrites==1.4.0
 attrs==20.1.0
@@ -9,7 +10,7 @@ compoundfiles==0.3
 coverage==5.2.1
 cryptography==3.1
 dfdatetime==20200824
-dfvfs==20190902
+dfvfs==20201105
 dfwinreg==20200415
 dtfabric==20200621
 elasticsearch==7.9.1
@@ -19,12 +20,14 @@ iniconfig==1.0.1
 libewf-python==20171104
 libesedb-python==20200418
 libfsapfs-python==20200727
+libfsntfs-python==20201027
+libfwnt-python==20200723
 libregf-python==20200805
 libsigscan-python==20191221
-libsmdev-python==20200210
+libsmdev-python==20190315
 libsmraw-python==20191221
-libvshadow-python==20190323
-moduleInterface==2.1.0
+libvshadow-python==20191221
+moduleInterface==2.0.13
 more-itertools==8.5.0
 numpy==1.19.1
 olefile==0.46
@@ -44,6 +47,7 @@ pytest==6.0.1
 pytest-cov==2.10.1
 python-dateutil==2.8.1
 python-evtx==0.6.1
+pytsk3==20200117
 pytz==2020.1
 PyYAML==5.3.1
 sentinel==0.1.2
@@ -54,5 +58,4 @@ toml==0.10.1
 tqdm==4.48.2
 urllib3==1.25.10
 xlrd==1.2.0
-yarp==0.4.0
 zipp==3.1.0
