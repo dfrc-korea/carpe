@@ -93,7 +93,8 @@ class ProcessEngine(object):
                                                    source_path_spec=source_path_spec,
                                                    knowledge_base=self.knowledge_base)
                                     and_flag = True
-                            elif module_name in ['fica_connector', 'extract_connector',
+                            elif module_name in ['andforensics_connector',
+                                                 'fica_connector', 'extract_connector',
                                                  'image_classification_connector',
                                                  'kakaotalk_mobile_decrypt_connector',
                                                  'android_basic_apps_connector',

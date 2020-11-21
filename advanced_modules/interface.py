@@ -9,7 +9,7 @@ from dfvfs.resolver import resolver as path_spec_resolver
 
 from engine import path_extractors
 from engine import path_helper
-from modules import logger
+from advanced_modules import logger
 
 class BaseAnalyzer(object):
 

@@ -221,16 +221,24 @@ class CarpeTool(extraction_tool.ExtractionTool,
             raise errors.BadConfigOption('case_id or evidence_id does not exist.\n')
 
         # Set database connection and make root, tmp path
-        self.set_conn_and_path()
+        try:
+            self.set_conn_and_path()
+        except errors.BadConfigOption as exception:
+            self._output_writer.Write('ERROR: {0!s}\n'.format(exception))
+            return False
 
         # scan source
         scan_context = self.ScanSource(self._source_path)
         self._source_type = scan_context.source_type
 
-        # set partition_list
+        # set partition_list TODO: standalone O server X
         if self.ignore:
             self.get_partition_list()
-
+            
+        self._partition_list = { 'p1':'p18b03e6f077b848188fce2be7538dbc51',
+                                 'p2':'p1690a5ab7b83946b685a2346c6ee1d422',
+                                 'p3':'p1b343ce77e66a4a69a34f927b196d74cc',
+                                 'p4':'p11317e0928ea4460c9e1a2021a88860a1'}
         # set configuration
         configuration = self._CreateProcessingConfiguration()
 
@@ -245,9 +253,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
         self.print_now_time(f'Start {mode} Image')
 
         disk_info = []
-        if not self.ignore:
+        # if not self.ignore:
             # After analyzing of an IMAGE, Put the partition information into the partition_info TABLE.
-            disk_info = self.InsertImageInformation()
+            # disk_info = self.InsertImageInformation()
 
         # check partition_list
         if mode == 'Analyze' and not self._partition_list:
@@ -259,7 +267,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         if mode == 'Analyze' and not self.ignore:
             self.print_now_time(f'Insert File Information')
             # After analyzing of filesystem, Put the block and file information into the block_info and file_info TABLE.
-            self.InsertFileInformation()
+            # self.InsertFileInformation()
 
         # create process
         engine = process_engine.ProcessEngine()
@@ -344,6 +352,8 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         # set root path
         if platform.system() == 'Windows':
+            if self._output_file_path is None:
+                raise errors.BadConfigOption('Missing output file path.')
             self._root_tmp_path = self._output_file_path + os.sep + 'tmp'
             if not os.path.exists(self._root_tmp_path):
                 os.mkdir(self._root_tmp_path)

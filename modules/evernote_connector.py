@@ -56,6 +56,9 @@ class EvernoteConnector(interface.ModuleConnector):
         """
 
         evernote_db_query_results: List = configuration.cursor.execute_query_mul(query)
+        if evernote_db_query_results == -1:
+            logger.error('db execution failed.')
+            return False
 
         if len(evernote_db_query_results) == 0:
             return False

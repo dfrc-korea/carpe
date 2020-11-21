@@ -88,8 +88,9 @@ class StorageMediaTool(tools.CLITool):
         if self._source_path:
             self._source_path = os.path.abspath(self._source_path)
 
-        if not self._source_path and not self.case_id and not self.evidence_id:
-        #if not self._source_path:
+        if not self._source_path and self.standalone_check:
+            raise errors.BadConfigOption('Missing source path.')
+        elif not self.case_id and not self.evidence_id and not self.standalone_check:
             raise errors.BadConfigOption('Missing source path.')
 
     def _ParseOutputPathOption(self, options):

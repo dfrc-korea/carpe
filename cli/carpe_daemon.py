@@ -36,12 +36,12 @@ def do_work(connection, channel, delivery_tag, body):
         tool = carpe_tool.CarpeTool()
         # args = "--modules defa_caller --cid "+case_id+" --eid "+evd_id
         args = []
-        args.append("--modules")
-        args.append("defa_caller")
+        #args.append("--modules")
+        #args.append("defa_caller")
         args.append("--cid")
-        args.append("c1c16a681937b345f1990d10a9d0fdfcc8")
+        args.append(case_id)
         args.append("--eid")
-        args.append("e111111111111111111111111111111111")
+        args.append(evd_id)
         if not tool.ParseArguments(args):
             return False
 
