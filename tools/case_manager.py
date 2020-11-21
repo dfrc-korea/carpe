@@ -13,13 +13,11 @@ class CaseManager(object):
         super(CaseManager, self).__init__()
         self.case_id = None
         self.evidence_id = None
-
         self.list_timezones = False
         self._time_zone = pytz.UTC
         self._investigator_info = {}
 
     def AddInvestigatorInformation(self, investigator_info):
-
         for key, value in investigator_info.items():
             name = key
 
@@ -29,22 +27,18 @@ class CaseManager(object):
             self._investigator_info[name] = value
 
     def GetInvestigatorInformation(self, name):
-
         name = name
         return self._environment_variables.get(name, None)
 
     def GetInvestigatorInformations(self):
-
         return self._investigator_info.values()
 
     def timezone(self):
         return self._time_zone
 
     def SetTimezone(self, timezone):
-
         if not timezone:
             return
-
         try:
             self._time_zone = pytz.timezone(timezone)
         except pytz.UnknownTimeZoneError:

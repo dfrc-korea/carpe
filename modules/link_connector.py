@@ -72,15 +72,9 @@ class LINKConnector(interface.ModuleConnector):
             file_name = ""
             file_path = ""
             file_size = ""
-            lnk_creation_time = str(datetime.utcfromtimestamp(
-                int(str(link_file[3]).zfill(11) + str(link_file[6]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
-                                                                                                                 'T') + 'Z'
-            lnk_access_time = str(datetime.utcfromtimestamp(
-                int(str(link_file[4]).zfill(11) + str(link_file[7]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
-                                                                                                                 'T') + 'Z'
-            lnk_write_time = str(datetime.utcfromtimestamp(
-                int(str(link_file[5]).zfill(11) + str(link_file[8]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
-                                                                                                                 'T') + 'Z'
+            lnk_creation_time = str(datetime.utcfromtimestamp(int(str(link_file[5]).zfill(11) + str(link_file[8]).zfill(7)) / 10000000 - 11644473600)).replace(' ', 'T') + 'Z'
+            lnk_access_time = str(datetime.utcfromtimestamp(int(str(link_file[4]).zfill(11) + str(link_file[7]).zfill(7)) / 10000000 - 11644473600)).replace(' ', 'T') + 'Z'
+            lnk_write_time = str(datetime.utcfromtimestamp(int(str(link_file[3]).zfill(11) + str(link_file[6]).zfill(7)) / 10000000 - 11644473600)).replace(' ', 'T') + 'Z'
             lnk_creation_time = str(configuration.apply_time_zone(lnk_creation_time, knowledge_base.time_zone))
             lnk_access_time = str(configuration.apply_time_zone(lnk_access_time, knowledge_base.time_zone))
             lnk_write_time = str(configuration.apply_time_zone(lnk_write_time, knowledge_base.time_zone))

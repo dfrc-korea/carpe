@@ -54,6 +54,16 @@ Table:
       - trapped
       - version
       - work_dir
+      - mft_st_created_time
+      - mft_st_last_modified_time
+      - mft_st_last_accessed_time
+      - mft_st_entry_modified_time
+      - mft_fn_created_time
+      - mft_fn_last_modified_time
+      - mft_fn_last_accessed_time
+      - mft_fn_entry_modified_time
+      - is_downloaded
+      - is_copied
 
     Types:
       - [VARCHAR(255), NOT NULL]
@@ -107,3 +117,13 @@ Table:
       - [TEXT]
       - [TEXT]
       - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [INT]
+      - [INT]

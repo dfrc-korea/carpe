@@ -60,12 +60,10 @@ class BaseConnector(object):
             plugin_object = plugin_class()
             self._plugins.append(plugin_object)
 
-        """
         if "*" in plugin_includes:
           for _, plugin_class in iter(self._plugin_classes.items()):
             plugin_object = plugin_class()
             self._plugins.append(plugin_object)
-        """
 
     # TODO: move this to a filter.
     # pylint: disable=redundant-returns-doc
@@ -359,7 +357,6 @@ class ModuleConnector(BaseConnector):
                 return False
 
     def ExtractTargetDirToPath(self, source_path_spec, configuration, dir_path=None, file_spec=None, output_path=None):
-        # TODO(jbc): 함수명 변경, 파일 넣어도 됨.
         """Extract target directory to path
 
             Args:
@@ -569,8 +566,8 @@ class ModuleConnector(BaseConnector):
     def GetQuerySeparator(self, source_path_spec, configuration):
         if source_path_spec.location == "/":
             return "/"
-        if configuration.standalone_check == True:
-            return "\\\\"
+        if configuration.standalone_check:
+            return "\\"
         return "\\\\\\\\"
     
     def GetPathSeparator(self, source_path_spec):

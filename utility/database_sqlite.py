@@ -28,7 +28,7 @@ class Database:
 
     def open(self):
         try:
-            path = f'{self.output_path}'+os.sep+f'{self.case_id}.db'
+            path = f'{self.output_path}' + os.sep + f'{self.case_id}.db'
             self._conn = sqlite3.connect(path)
             self._conn.create_function('UNHEX', 1, lambda value: binascii.unhexlify(value))
             self._conn.create_function('regexp', 2, regexp)
@@ -81,13 +81,16 @@ class Database:
                     query = (query + "\n values " + "%s" % (values,))
                     self.execute_query(query)
 
-                elif table_name == 'evidence_info':
+            if table_name == 'evidence_info':
+                query = f'Select evd_id FROM {table_name}'
+                result = self.execute_query_mul(query)
+                if not result or self.evd_id not in [item for t in result for item in t]:
                     # TODO: Calculate hash value
                     query = self.insert_query_builder("evidence_info")
                     evd_path = self.source_path
                     tmp_path = self.output_path
-                    values = (str(now_time), self.case_id, self.evd_id, self.evd_id, evd_path, 'image', '', 0, '', '',
-                              'EWF', 'UTC+9', tmp_path)
+                    values = (str(now_time), self.case_id, self.evd_id, self.evd_id, evd_path, 'image', '', 0, '',
+                              '', 'EWF', 'UTC+9', tmp_path)
                     query = (query + "\n values " + "%s" % (values,))
                     self.execute_query(query)
         self.commit()

@@ -18,74 +18,77 @@ class WindowsTimelineConnector(interface.ModuleConnector):
         super(WindowsTimelineConnector, self).__init__()
 
     def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
-        try:
-            this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
 
-            yaml_list = [this_file_path + 'lv1_os_win_windows_timeline.yaml']
-            table_list = ['lv1_os_win_windows_timeline']
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
+        this_file_path = os.path.dirname(os.path.abspath(__file__)) + path_separator + 'schema' + path_separator
 
-            if not self.check_table_from_yaml(configuration, yaml_list, table_list):
-                return False
-            query_separator = '/' if source_path_spec.location == '/' else source_path_spec.location * 2
-            query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}' " \
-                    f"and name like '%ActivitiesCache.db') and ("
+        yaml_list = [this_file_path + 'lv1_os_win_windows_timeline.yaml']
+        table_list = ['lv1_os_win_windows_timeline']
 
-            for user_accounts in knowledge_base._user_accounts.values():
-                for hostname in user_accounts.values():
-                    if hostname.identifier.find('S-1-5-21') == -1:
-                        continue
-                    query += f"parent_path like 'root{query_separator}Users{query_separator}{hostname.username}{query_separator}AppData{query_separator}Local{query_separator}ConnectedDevicesPlatform%' or "
-            query = query[:-4] + ");"
+        if not self.check_table_from_yaml(configuration, yaml_list, table_list):
+            return False
 
-            windows_timeline_files = configuration.cursor.execute_query_mul(query)
+        query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}' " \
+                f"and name like '%ActivitiesCache.db') and ("
 
-            if len(windows_timeline_files) == 0:
-                print("There are no timeline files")
-                return False
-            query_separator = self.GetQuerySeparator(source_path_spec, configuration)
-            path_separator = self.GetPathSeparator(source_path_spec) 
-            fn = ""
-            for timeline in windows_timeline_files:
-                timeline_path = timeline[1][timeline[1].find(path_separator):] + path_separator + timeline[0]  # document full path
-                file_name = timeline[0]
-                output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + configuration.evidence_id + os.sep + par_id
-                self.ExtractTargetFileToPath(
-                    source_path_spec=source_path_spec,
-                    configuration=configuration,
-                    file_path=timeline_path,
-                    output_path=output_path)
+        for user_accounts in knowledge_base._user_accounts.values():
+            for hostname in user_accounts.values():
+                if hostname.identifier.find('S-1-5-21') == -1:
+                    continue
+                query += f"parent_path like 'root{query_separator}Users{query_separator}{hostname.username}{query_separator}AppData{query_separator}Local{query_separator}ConnectedDevicesPlatform%' or "
+        query = query[:-4] + ");"
 
-                self.ExtractTargetFileToPath(
-                    source_path_spec=source_path_spec,
-                    configuration=configuration,
-                    file_path=timeline_path + '-wal',
-                    output_path=output_path)
+        windows_timeline_files = configuration.cursor.execute_query_mul(query)
 
-                self.ExtractTargetFileToPath(
-                    source_path_spec=source_path_spec,
-                    configuration=configuration,
-                    file_path=timeline_path + '-journal',
-                    output_path=output_path)
+        if len(windows_timeline_files) == 0:
+            print("There are no timeline files")
+            return False
 
-                self.ExtractTargetFileToPath(
-                    source_path_spec=source_path_spec,
-                    configuration=configuration,
-                    file_path=timeline_path + '-shm',
-                    output_path=output_path)
 
-                fn = output_path + os.path.sep + file_name
+        insert_data = []
+        for timeline in windows_timeline_files:
+            timeline_path = timeline[1][timeline[1].find(path_separator):] + path_separator + timeline[0]  # document full path
+            file_name = timeline[0]
+            output_path = configuration.root_tmp_path + path_separator + configuration.case_id + path_separator + configuration.evidence_id + path_separator + par_id
+            if not os.path.exists(output_path):
+                os.mkdir(output_path)
+            self.ExtractTargetFileToPath(
+                source_path_spec=source_path_spec,
+                configuration=configuration,
+                file_path=timeline_path,
+                output_path=output_path)
+
+            self.ExtractTargetFileToPath(
+                source_path_spec=source_path_spec,
+                configuration=configuration,
+                file_path=timeline_path + '-wal',
+                output_path=output_path)
+
+            self.ExtractTargetFileToPath(
+                source_path_spec=source_path_spec,
+                configuration=configuration,
+                file_path=timeline_path + '-journal',
+                output_path=output_path)
+
+            self.ExtractTargetFileToPath(
+                source_path_spec=source_path_spec,
+                configuration=configuration,
+                file_path=timeline_path + '-shm',
+                output_path=output_path)
+
+            fn = output_path + path_separator + file_name
 
             time_zone = knowledge_base.time_zone
 
             # WindowsTimeline
-            insert_data = []
             result = wt.WINDOWSTIMELINE(fn)
             if not result:
                 return False
             for timeline in result:
                 insert_data.append(
                     tuple([par_id, configuration.case_id, configuration.evidence_id,
-                           str(timeline.program_name),
+                           str(timeline.program_name).replace('\\', '/'),
                            str(timeline.display_name), str(timeline.content),
                            str(timeline.activity_type), str(timeline.focus_seconds),
                            str(configuration.apply_time_zone(timeline.start_time, time_zone)),
@@ -98,12 +101,7 @@ class WindowsTimelineConnector(interface.ModuleConnector):
                            str(configuration.apply_time_zone(timeline.original_last_modified_on_client_time, time_zone)),
                            str(timeline.local_only_flag), str(timeline.group),
                            str(timeline.clipboardpayload), str(timeline.timezone)]))
-            query = "Insert into lv1_os_win_windows_timeline " \
-                    "values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
-            configuration.cursor.bulk_execute(query, insert_data)
-
-        except Exception as e:
-            print("WindowsTimeline Connector Error: " + str(e))
-
-
+        query = "Insert into lv1_os_win_windows_timeline " \
+                "values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+        configuration.cursor.bulk_execute(query, insert_data)
 manager.ModulesManager.RegisterModule(WindowsTimelineConnector)

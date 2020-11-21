@@ -46,8 +46,8 @@ class DEFAConnector(interface.ModuleConnector):
         query_separator  = self.GetQuerySeparator(source_path_spec, configuration) 
         path_separator = self.GetPathSeparator(source_path_spec)
         # sig_type -> extension 임시 변경,
-        query = f"SELECT name, parent_path, sig_type, extension FROM file_info WHERE par_id='{par_id}'" \
-                f"and parent_path not like '%{query_separator}Hnc{query_separator}Office%' and parent_path not like '%_damaged%' and parent_path not like '%_encrypted%' and ("  # and parent_path not like '%_damaged/%' 임시
+        query = f"SELECT name, parent_path, sig_type, extension, mtime, atime, ctime, etime, mtime_nano, atime_nano, ctime_nano, etime_nano, additional_mtime, additional_atime, additional_ctime, additional_etime, additional_mtime_nano, additional_atime_nano, additional_ctime_nano, additional_etime_nano FROM file_info WHERE par_id='{par_id}'" \
+                f"and parent_path not like '%{query_separator}Hnc{query_separator}Office%' and parent_path not like '%$Recycle.Bin{query_separator}S-1-5-21%' and name not like '$I%' and ("  # and parent_path not like '%_damaged/%' 임시
 
         for i in range(0, len(self._plugins)):
             if self._plugins[i].plugin_name == 'HWP':
@@ -85,12 +85,22 @@ class DEFAConnector(interface.ModuleConnector):
         if document_files == -1 or len(document_files) == 0:
             return False
 
+        ### Download Check ###
+        query = f"SELECT name, parent_path FROM file_info WHERE par_id='{par_id}'" \
+                f"and name like '%Zone.Identifier';"
+
+        zone_identifier_files = configuration.cursor.execute_query_mul(query)
+        tmp_list = list()
+        for zone in zone_identifier_files:
+            tmp_list.append(zone[1][4:] + path_separator + zone[0][:-16])
+        zone_list = set(tmp_list)
+
         if configuration.standalone_check == True:
             insert_document = list()
         else:
             config = configparser.ConfigParser()
             conf_file = os.path.dirname(
-                os.path.dirname(os.path.abspath(__file__))) + os.sep + 'config' + os.sep + 'carpe.conf'
+                os.path.dirname(os.path.abspath(__file__))) + path_separator + 'config' + path_separator + 'carpe.conf'
             if not os.path.exists(conf_file):
                 raise Exception('%s file does not exist.\n' % conf_file)
             config.read(conf_file)
@@ -105,17 +115,17 @@ class DEFAConnector(interface.ModuleConnector):
         # for test
         total_count = len(document_files)
         error_count = 0
-        # tmp = 0
+        tmp = 0
         for document in document_files:
-            # tmp += 1
-            # if tmp == 15:  # 임시
-            #     break
-            print(document[0])
-            document_path = document[1][document[1].find(path_separator):] + path_separator + document[0]  # document full path
-            output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
-                          configuration.evidence_id + os.sep + par_id + os.sep + hashlib.sha1(
+            tmp += 1
+            if tmp == 10:  # 임시
+                break
+            document_path = document[1][document[1].find(path_separator):] + path_separator + document[
+                0]  # document full path
+            output_path = configuration.root_tmp_path + path_separator + configuration.case_id + path_separator + \
+                          configuration.evidence_id + path_separator + par_id + path_separator + hashlib.sha1(
                 document_path.encode('utf-8')).hexdigest()
-            ole_path = output_path + os.sep + "ole"
+            ole_path = output_path + path_separator + "ole"
 
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
@@ -127,7 +137,7 @@ class DEFAConnector(interface.ModuleConnector):
                 file_path=document_path,
                 output_path=output_path)
 
-            file_path = output_path + os.sep + document[0]
+            file_path = output_path + path_separator + document[0]
             extension = document[3].lower()
 
             try:
@@ -157,12 +167,58 @@ class DEFAConnector(interface.ModuleConnector):
             result.download_path = file_path
             result.full_path = document_path  # 이미지 내 full_path
             result.path_with_ext = document_path  # 이미지 내 full_path
-            result.parent_full_path = document_path[:document_path.rfind(os.path.sep)]
+            result.parent_full_path = document_path[:document_path.rfind('/')]
             result.name = document[0]
             result.original_size = os.path.getsize(file_path)
             result.ole_path = ole_path
             result.content_size = len(result.content)
-            # print(result.__dict__)
+
+            result.mft_st_created_time = str(datetime.utcfromtimestamp(
+                int(str(document[6]).zfill(11) + str(document[10]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                'T') + 'Z'
+            result.mft_st_last_modified_time = str(datetime.utcfromtimestamp(
+                int(str(document[4]).zfill(11) + str(document[8]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                               'T') + 'Z'
+            result.mft_st_last_accessed_time = str(datetime.utcfromtimestamp(
+                int(str(document[5]).zfill(11) + str(document[9]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                               'T') + 'Z'
+            result.mft_st_entry_modified_time = str(datetime.utcfromtimestamp(
+                int(str(document[7]).zfill(11) + str(document[11]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                'T') + 'Z'
+            result.mft_st_created_time = str(
+                configuration.apply_time_zone(result.mft_st_created_time, knowledge_base.time_zone))
+            result.mft_st_last_modified_time = str(
+                configuration.apply_time_zone(result.mft_st_last_modified_time, knowledge_base.time_zone))
+            result.mft_st_last_accessed_time = str(
+                configuration.apply_time_zone(result.mft_st_last_accessed_time, knowledge_base.time_zone))
+            result.mft_st_entry_modified_time = str(
+                configuration.apply_time_zone(result.mft_st_entry_modified_time, knowledge_base.time_zone))
+
+            result.mft_fn_created_time = str(datetime.utcfromtimestamp(
+                int(str(document[14]).zfill(11) + str(document[18]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                 'T') + 'Z'
+            result.mft_fn_last_modified_time = str(datetime.utcfromtimestamp(
+                int(str(document[12]).zfill(11) + str(document[16]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                 'T') + 'Z'
+            result.mft_fn_last_accessed_time = str(datetime.utcfromtimestamp(
+                int(str(document[13]).zfill(11) + str(document[17]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                 'T') + 'Z'
+            result.mft_fn_entry_modified_time = str(datetime.utcfromtimestamp(
+                int(str(document[15]).zfill(11) + str(document[19]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                 'T') + 'Z'
+            result.mft_fn_created_time = str(
+                configuration.apply_time_zone(result.mft_fn_created_time, knowledge_base.time_zone))
+            result.mft_fn_last_modified_time = str(
+                configuration.apply_time_zone(result.mft_fn_last_modified_time, knowledge_base.time_zone))
+            result.mft_fn_last_accessed_time = str(
+                configuration.apply_time_zone(result.mft_fn_last_accessed_time, knowledge_base.time_zone))
+            result.mft_fn_entry_modified_time = str(
+                configuration.apply_time_zone(result.mft_fn_entry_modified_time, knowledge_base.time_zone))
+
+            result.is_downloaded = 1 if document_path in zone_list else 0  # check Zone.Identifier, 1 = True, 0 = False
+            result.is_copied = 1 if int(str(document[4]).zfill(11) + str(document[8]).zfill(7)) < int(
+                str(document[6]).zfill(11) + str(document[10]).zfill(
+                    7)) else 0  # check Mtime > Ctime, 1 = True, 0 = False
 
             if configuration.standalone_check == True:
                 if result.has_content == True:
@@ -190,7 +246,11 @@ class DEFAConnector(interface.ModuleConnector):
                      result.lastsavedby, result.lastsavedtime, result.manager, result.name, result.ole_path,
                      result.original_size, result.parent_full_path, result.path_with_ext, result.programname,
                      result.revisionnumber, result.sha1_hash, result.subject, result.tags, result.title,
-                     result.totaltime, result.trapped, result.version, result.work_dir]))
+                     result.totaltime, result.trapped, result.version, result.work_dir, result.mft_st_created_time,
+                     result.mft_st_last_modified_time, result.mft_st_last_accessed_time,
+                     result.mft_st_entry_modified_time, result.mft_fn_created_time, result.mft_fn_last_modified_time,
+                     result.mft_fn_last_accessed_time, result.mft_fn_entry_modified_time, result.is_downloaded,
+                     result.is_copied]))
 
             else:
                 try:
@@ -199,16 +259,7 @@ class DEFAConnector(interface.ModuleConnector):
                     print(f"Error : {str(e)}")
                     continue
         if configuration.standalone_check == True:
-            query = "Insert into lv1_file_document values (%s, %s, %s, %s, %s, " \
-                    "%s, %s, %s, %s, %s, " \
-                    "%s, %s, %s, %s, %s, " \
-                    "%s, %s, %s, %s, %s, " \
-                    "%s, %s, %s, %s, %s, " \
-                    "%s, %s, %s, %s, %s, " \
-                    "%s, %s, %s, %s, %s, " \
-                    "%s, %s, %s, %s, %s, " \
-                    "%s, %s, %s, %s, %s, " \
-                    "%s, %s, %s, %s, %s, %s);"
+            query = "Insert into lv1_file_document values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_document)
 
             # print(f"Total Count : {total_count}, Error Count : {error_count}")
