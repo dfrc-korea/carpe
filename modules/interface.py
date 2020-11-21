@@ -60,10 +60,12 @@ class BaseConnector(object):
             plugin_object = plugin_class()
             self._plugins.append(plugin_object)
 
+        """
         if "*" in plugin_includes:
           for _, plugin_class in iter(self._plugin_classes.items()):
             plugin_object = plugin_class()
             self._plugins.append(plugin_object)
+        """
 
     # TODO: move this to a filter.
     # pylint: disable=redundant-returns-doc
