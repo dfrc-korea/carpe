@@ -15,7 +15,7 @@ class Eventlog_Total_Information:
 ns = ''
 tag = lambda v: ns + v if ns else v
 
-def EventlogTotal(filename):
+def EventlogTotal(real_file_path, filename):
     result = []
     eventlog_count = 0
     with evtx.Evtx(filename) as log:
@@ -38,7 +38,7 @@ def EventlogTotal(filename):
             else:
                 result[eventlog_count].time_created = root[0][7].get('SystemTime').replace(' ', 'T') + 'Z'
             result[eventlog_count].user_sid = root[0][-1].get('UserID')
-            result[eventlog_count].source = filename.split('/')[-1]
+            result[eventlog_count].source = real_file_path
             result[eventlog_count].data = html.unescape(xml_str)
             eventlog_count = eventlog_count + 1
 

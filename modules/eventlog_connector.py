@@ -148,7 +148,7 @@ class EventlogConnector(interface.ModuleConnector):
 
                     # Eventlog Total
                     print(f'[{self.print_now_time()}] [MODULE]: Eventlog - Total - ' + fn.split(os.sep)[-1])
-                    for eventlog in et.EventlogTotal(fn):
+                    for eventlog in et.EventlogTotal(eventlog_path, fn):
                         insert_data.append(tuple(
                             [par_id, configuration.case_id, configuration.evidence_id, str(eventlog.event_id),
                              configuration.apply_time_zone(str(eventlog.time_created), knowledge_base.time_zone),

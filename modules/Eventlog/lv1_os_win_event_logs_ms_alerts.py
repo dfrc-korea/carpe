@@ -5,6 +5,7 @@ import os, sys, re
 from datetime import datetime
 
 from utility import database
+from xml.etree import ElementTree
 
 class MS_Alerts_Information:
     par_id = ''
@@ -40,11 +41,22 @@ def EVENTLOGMSALERTS(configuration):
             ms_alerts_list[ms_alerts_count].user_sid = result_data[4]
             ms_alerts_list[ms_alerts_count].task = 'Alert'
             ms_alerts_list[ms_alerts_count].event_id_description = 'MS office program usage alert'
+
             try:
-                ms_alerts_list[ms_alerts_count].program_name = result_data[0].split('<Data>')[1].replace('<string>', '').split('</string>')[0]
-                ms_alerts_list[ms_alerts_count].message = result_data[0].split('<Data>')[1].replace('<string>', '').split('</string>')[1]
-                ms_alerts_list[ms_alerts_count].error_type = result_data[0].split('<Data>')[1].replace('<string>', '').split('</string>')[2]
-                ms_alerts_list[ms_alerts_count].program_version = result_data[0].split('<Data>')[1].replace('<string>', '').split('</string>')[3]
+                root = ElementTree.fromstring(result_data[0])
+                results = root.iter('{http://schemas.microsoft.com/win/2004/08/events/event}Data')
+                data = []
+                message = ''
+                for result in results:
+                    for txt in result.iter('{http://schemas.microsoft.com/win/2004/08/events/event}string'):
+                        if txt.text != '\n':
+                            data.append(txt.text)
+                ms_alerts_list[ms_alerts_count].program_name = data[0]
+                for i in range(1, len(data)-2):
+                     message += data[i]
+                ms_alerts_list[ms_alerts_count].message = message
+                ms_alerts_list[ms_alerts_count].error_type = data[len(data)-2]
+                ms_alerts_list[ms_alerts_count].program_version = data[len(data)-1]
             except:
                 print("Eventlog_ms_alerts_parsing_error")
             ms_alerts_count = ms_alerts_count + 1
