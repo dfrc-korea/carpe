@@ -2,6 +2,7 @@ import Evtx.Evtx as evtx
 import xml.etree.ElementTree as XML
 import html.parser
 
+
 class Eventlog_Total_Information:
     par_id = ''
     case_id = ''
@@ -12,8 +13,10 @@ class Eventlog_Total_Information:
     data = ''
     user_sid = ''
 
+
 ns = ''
 tag = lambda v: ns + v if ns else v
+
 
 def EventlogTotal(real_file_path, filename):
     result = []
@@ -27,8 +30,6 @@ def EventlogTotal(real_file_path, filename):
 
             root = XML.fromstring(xml_str)  # Event Tag
             assert len(XML._namespaces(root)) == 2
-            ns = list(XML._namespaces(root)[1])
-            ns = '{%s}' % ns[0] if len(ns) > 0 else ''
 
             event_total_information = Eventlog_Total_Information()
             result.append(event_total_information)

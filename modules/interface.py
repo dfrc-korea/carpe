@@ -6,14 +6,12 @@ import yaml
 from datetime import datetime
 
 import pytsk3
-import pyewf
 
 from dfvfs.helpers import file_system_searcher
 from dfvfs.resolver import resolver as path_spec_resolver
 from dfvfs.lib import definitions as dfvfs_definitions
 from dfvfs.lib import errors as dfvfs_errors
 from dfvfs.lib import tsk_image
-from dfvfs.path import factory as path_spec_factory
 
 from engine import path_extractors
 from engine import path_helper
@@ -556,8 +554,7 @@ class ModuleConnector(BaseConnector):
         return True
 
     def print_now_time(self):
-        now = datetime.now()
-        return f'{now.year}-{now.month:02}-{now.day:02} {now.hour:02}:{now.minute:02}:{now.second:02}'
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
     def print_run_info(self, module_name, par_id='None', start=True):
         if start:
@@ -571,7 +568,7 @@ class ModuleConnector(BaseConnector):
         if configuration.standalone_check:
             return "\\"
         return "\\\\\\\\"
-    
+
     def GetPathSeparator(self, source_path_spec):
         if source_path_spec.location == "/":
             return "/"

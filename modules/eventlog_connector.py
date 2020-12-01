@@ -101,7 +101,7 @@ class EventlogConnector(interface.ModuleConnector):
 
             if not self.check_table_from_yaml(configuration, yaml_list, table_list):
                 return False
- 
+
             query_separator = self.GetQuerySeparator(source_path_spec, configuration)
             path_separator = self.GetPathSeparator(source_path_spec)
             query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
@@ -132,7 +132,8 @@ class EventlogConnector(interface.ModuleConnector):
 
             for eventlog in eventlog_files:
                 if eventlog[0] in eventlog_file_list:
-                    eventlog_path = eventlog[1][eventlog[1].find(path_separator):] + path_separator + eventlog[0]  # document full path
+                    # document full path
+                    eventlog_path = eventlog[1][eventlog[1].find(path_separator):] + path_separator + eventlog[0]
                     fileName = eventlog[0]
 
                     output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \

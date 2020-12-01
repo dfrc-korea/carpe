@@ -136,7 +136,7 @@ class ESEDBInternetExplorerParser(esedb_parser.ESEDBParser):
         Raises:
             ValueError: if the database or table value is  missing.
         """
-        print("-[ESEDB_Parser]: InternetExplorer Parser Started.")
+        print("-[ESEDB_Parser]: Internet Explorer Parser Started.")
 
         if database is None:
             raise ValueError('Missing database value.')

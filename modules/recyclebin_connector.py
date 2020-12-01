@@ -12,7 +12,7 @@ from modules.windows_recyclebin import RecycleBinParser
 class RecycleBinConnector(interface.ModuleConnector):
 
     NAME = 'recyclebin_connector'
-    DESCRIPTION = 'Module for RecycleBin'
+    DESCRIPTION = 'Module for Recycle Bin'
 
     _plugin_classes = {}
 
@@ -39,7 +39,8 @@ class RecycleBinConnector(interface.ModuleConnector):
 
         recyclebin_files = configuration.cursor.execute_query_mul(query)
 
-        if len(recyclebin_files) == 0:
+        if recyclebin_files == -1 or len(recyclebin_files) == 0:
+            print("There are no recylce bin files")
             return False
 
         insert_recyclebin_info = []

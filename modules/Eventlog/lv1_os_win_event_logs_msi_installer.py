@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-import os, sys, re
-from datetime import datetime
 
-from utility import database
 
 class MSI_Installer_Information:
     par_id = ''
@@ -20,15 +17,14 @@ class MSI_Installer_Information:
     source = ''
     event_id_description = ''
 
-def EVENTLOGMSIINSTALLER(configuration):
 
-    #db = database.Database()
-    #db.open()
+def EVENTLOGMSIINSTALLER(configuration):
 
     msi_installer_list = []
     msi_installer_count = 0
-    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id = '1033' or event_id = '11707' or event_id = '11724')"
-    #result_query = db.execute_query_mul(query)
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total " \
+            f"WHERE (evd_id='{configuration.evidence_id}') " \
+            f"and (event_id = '1033' or event_id = '11707' or event_id = '11724')"
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:
         msi_installer_information = MSI_Installer_Information()
@@ -76,7 +72,5 @@ def EVENTLOGMSIINSTALLER(configuration):
                     msi_installer_count = msi_installer_count + 1
         except:
             print("EVENT LOG EVENTLOGMSIINSTALLER ERROR")
-
-    #db.close()
 
     return msi_installer_list

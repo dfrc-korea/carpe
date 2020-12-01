@@ -14,7 +14,7 @@ from utility import errors
 
 class ESEDatabaseConnector(interface.ModuleConnector):
     NAME = 'esedb_connector'
-    DESCRIPTION = 'Module for esedb'
+    DESCRIPTION = 'Module for ESEDB'
     TABLE_NAME = 'lv1_os_win_esedb'
 
     _plugin_classes = {}
@@ -138,10 +138,10 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
         self._configuration = configuration
         self._time_zone = knowledge_base.time_zone
-       
+
         # Load Schema
         yaml_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'esedb' \
-            + os.sep + 'lv1_os_win_esedb.yaml'
+                    + os.sep + 'lv1_os_win_esedb.yaml'
         if not self.LoadSchemaFromYaml(yaml_path):
             logger.error('cannot load schema from yaml: {0:s}'.format(self.TABLE_NAME))
             return False
