@@ -28,7 +28,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
     """
     NAME = 'CARPE Forensics'
-    VERSION = '20200903'
+    VERSION = '1.0'
     DESCRIPTION = textwrap.dedent('\n'.join([
         '',
         'CARPE Forensics',

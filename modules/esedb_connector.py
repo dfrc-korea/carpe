@@ -153,6 +153,7 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
         find_specs = self.BuildFindSpecs(paths, separator, environment_variables)
         if len(find_specs) < 0:
+            print("There are no esedb files")
             return False
 
         esedb_file = pyesedb.file()
@@ -172,7 +173,6 @@ class ESEDatabaseConnector(interface.ModuleConnector):
                 table_names = frozenset(esedb_parser.ESEDBParser.GetTableNames(esedb_file))
 
                 for parser in esedb_parsers.values():
-
                     if not parser.required_tables.issubset(table_names):
                         continue
 

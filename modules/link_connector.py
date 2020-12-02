@@ -45,6 +45,7 @@ class LINKConnector(interface.ModuleConnector):
         lnk_files = configuration.cursor.execute_query_mul(query)
 
         if len(lnk_files) == 0:
+            print("There are no lnk files")
             return False
 
         insert_link_file = []

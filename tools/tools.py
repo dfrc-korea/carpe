@@ -14,6 +14,7 @@ class CLITool(object):
     _PREFERRED_ENCODING = 'utf-8'
 
     NAME = ''
+    VERSION = ''
 
     def __init__(self, input_reader=None, output_writer=None):
         super(CLITool, self).__init__()
@@ -42,8 +43,7 @@ class CLITool(object):
         self.show_troubleshooting = False
 
     def GetVersionInformation(self):
-        # TODO: 나중에 버전 추가해야함
-        return 'carpe - {0:s} version {1:s}'.format(self.NAME, "2020-02-20")
+        return '{0:s} v{1:s}'.format(self.NAME, self.VERSION)
 
     def AddBasicOptions(self, argument_group):
         version_string = self.GetVersionInformation()
