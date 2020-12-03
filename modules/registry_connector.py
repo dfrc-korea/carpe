@@ -121,13 +121,12 @@ class RegistryConnector(interface.ModuleConnector):
                 f"(name = 'Amcache.hve.LOG1' and parent_path like '{appcompat_path}') or " \
                 f"(name = 'Amcache.hve.LOG2' and parent_path like '{appcompat_path}'))"
 
-        
         # query = query.replace('/', query_separator)
 
         registry_files = configuration.cursor.execute_query_mul(query)
 
         if len(registry_files) == 0:
-            print("No registry files")
+            print("There are no registry files")
             return False
 
         registry_files2 = []
@@ -175,7 +174,7 @@ class RegistryConnector(interface.ModuleConnector):
         # query4 = query4.replace('/', query_separator)
 
         old_regback_path = f"root{query_separator}Windows.old{query_separator}Windows{query_separator}System32{query_separator}config{query_separator}RegBack"
-        
+
         query5 = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') and " \
                  f"((name = 'SYSTEM' and parent_path like '{old_regback_path}') or " \
                  f"(name = 'SOFTWARE' and parent_path like '{old_regback_path}') or " \
@@ -251,13 +250,15 @@ class RegistryConnector(interface.ModuleConnector):
                     reg_am = Registry.RegistryHive(file_object)
                     for registry in registry_files:
                         if registry[0] == 'Amcache.hve.LOG1':
-                            registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                            registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[
+                                0]
                             reg_am_log1 = self.LoadTargetFileToMemory(
                                 source_path_spec=source_path_spec,
                                 configuration=configuration,
                                 file_path=registry_path)
                         elif registry[0] == 'Amcache.hve.LOG2':
-                            registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                            registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[
+                                0]
                             reg_am_log2 = self.LoadTargetFileToMemory(
                                 source_path_spec=source_path_spec,
                                 configuration=configuration,
@@ -273,13 +274,15 @@ class RegistryConnector(interface.ModuleConnector):
                     if reg_system != '':
                         for registry in registry_files:
                             if registry[0] == 'SYSTEM.LOG1':
-                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + \
+                                                registry[0]
                                 reg_system_log1 = self.LoadTargetFileToMemory(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
                                     file_path=registry_path)
                             elif registry[0] == 'SYSTEM.LOG2':
-                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + \
+                                                registry[0]
                                 reg_system_log2 = self.LoadTargetFileToMemory(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
@@ -295,13 +298,15 @@ class RegistryConnector(interface.ModuleConnector):
                     if reg_software != '':
                         for registry in registry_files:
                             if registry[0] == 'SOFTWARE.LOG1':
-                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + \
+                                                registry[0]
                                 reg_software_log1 = self.LoadTargetFileToMemory(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
                                     file_path=registry_path)
                             elif registry[0] == 'SOFTWARE.LOG2':
-                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + \
+                                                registry[0]
                                 reg_software_log2 = self.LoadTargetFileToMemory(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
@@ -317,13 +322,15 @@ class RegistryConnector(interface.ModuleConnector):
                     if reg_sam != '':
                         for registry in registry_files:
                             if registry[0] == 'SAM.LOG1':
-                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + \
+                                                registry[0]
                                 reg_sam_log1 = self.LoadTargetFileToMemory(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
                                     file_path=registry_path)
                             elif registry[0] == 'SAM.LOG2':
-                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                                registry_path = registry[1][registry[1].find(path_separator):] + path_separator + \
+                                                registry[0]
                                 reg_sam_log2 = self.LoadTargetFileToMemory(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
@@ -352,13 +359,15 @@ class RegistryConnector(interface.ModuleConnector):
                             reg_usr = Registry.RegistryHive(file_object)
                             for registry in registry2:
                                 if registry[0] == 'UsrClass.dat.LOG1':
-                                    registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                                    registry_path = registry[1][registry[1].find(path_separator):] + path_separator + \
+                                                    registry[0]
                                     reg_usr_log1 = self.LoadTargetFileToMemory(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,
                                         file_path=registry_path)
                                 elif registry[0] == 'UsrClass.dat.LOG2':
-                                    registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                                    registry_path = registry[1][registry[1].find(path_separator):] + path_separator + \
+                                                    registry[0]
                                     reg_usr_log2 = self.LoadTargetFileToMemory(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,
@@ -373,13 +382,15 @@ class RegistryConnector(interface.ModuleConnector):
                             reg_nt = Registry.RegistryHive(file_object)
                             for registry in registry2:
                                 if registry[0] == 'ntuser.dat.LOG1':
-                                    registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                                    registry_path = registry[1][registry[1].find(path_separator):] + path_separator + \
+                                                    registry[0]
                                     reg_nt_log1 = self.LoadTargetFileToMemory(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,
                                         file_path=registry_path)
                                 elif registry[0] == 'ntuser.dat.LOG2':
-                                    registry_path = registry[1][registry[1].find(path_separator):] + path_separator + registry[0]
+                                    registry_path = registry[1][registry[1].find(path_separator):] + path_separator + \
+                                                    registry[0]
                                     reg_nt_log2 = self.LoadTargetFileToMemory(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,
@@ -395,7 +406,8 @@ class RegistryConnector(interface.ModuleConnector):
                 print(f'[{self.print_now_time()}] [MODULE]: Registry - Amcache File')
                 insert_data = []
                 for amcache in afe.AMCACHEFILEENTRIES(reg_am):
-                    key_last_updated_time = configuration.apply_time_zone(str(amcache.key_last_updated_time), knowledge_base.time_zone)
+                    key_last_updated_time = configuration.apply_time_zone(str(amcache.key_last_updated_time),
+                                                                          knowledge_base.time_zone)
                     link_date = configuration.apply_time_zone(str(amcache.link_date), knowledge_base.time_zone)
                     insert_data.append(
                         tuple([par_id, configuration.case_id, configuration.evidence_id, str(amcache.file_name),
@@ -420,10 +432,12 @@ class RegistryConnector(interface.ModuleConnector):
                     key_last_updated_time = configuration.apply_time_zone(str(amcache.key_last_updated_time),
                                                                           knowledge_base.time_zone)
                     try:
-                        installed_date = configuration.apply_time_zone(str(amcache.installed_date), knowledge_base.time_zone)
+                        installed_date = configuration.apply_time_zone(str(amcache.installed_date),
+                                                                       knowledge_base.time_zone)
                     except Exception:
                         installed_date = None
-                    uninstall_date = configuration.apply_time_zone(str(amcache.uninstall_date), knowledge_base.time_zone)
+                    uninstall_date = configuration.apply_time_zone(str(amcache.uninstall_date),
+                                                                   knowledge_base.time_zone)
                     insert_data.append(
                         tuple([par_id, configuration.case_id, configuration.evidence_id, str(amcache.file_name),
                                key_last_updated_time, installed_date, str(amcache.version),
@@ -434,7 +448,8 @@ class RegistryConnector(interface.ModuleConnector):
                                str(amcache.msi_package_code), str(amcache.msi_product_code),
                                str(amcache.package_full_name), str(amcache.program_id),
                                str(amcache.program_instance_id), str(amcache.uninstall_registry_key_path),
-                               str(amcache.root_dir_path), str(amcache.type), str(amcache.program_source), str(amcache.store_app_type),
+                               str(amcache.root_dir_path), str(amcache.type), str(amcache.program_source),
+                               str(amcache.store_app_type),
                                str(amcache.uninstall_string), backup_flag, ', '.join(amcache.source_location)]))
                 query = "Insert into lv1_os_win_reg_amcache_program values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
                 if len(insert_data) > 0:
@@ -481,14 +496,17 @@ class RegistryConnector(interface.ModuleConnector):
                 insert_data = []
                 for op_system in oi.OSINFO(reg_software, reg_system):
                     install_time = configuration.apply_time_zone(str(op_system.install_time), knowledge_base.time_zone)
-                    last_shutdown_time = configuration.apply_time_zone(str(op_system.last_shutdown_time), knowledge_base.time_zone)
+                    last_shutdown_time = configuration.apply_time_zone(str(op_system.last_shutdown_time),
+                                                                       knowledge_base.time_zone)
                     insert_data.append(
                         tuple([par_id, configuration.case_id, configuration.evidence_id,
                                str(op_system.operating_system),
                                str(op_system.release_id), str(op_system.version_number),
                                install_time, str(op_system.product_key), str(op_system.owner),
-                               str(op_system.display_computer_name), str(op_system.computer_name), str(op_system.dhcp_dns_server),
-                               str(op_system.operating_system_version), str(op_system.build_number), str(op_system.product_id),
+                               str(op_system.display_computer_name), str(op_system.computer_name),
+                               str(op_system.dhcp_dns_server),
+                               str(op_system.operating_system_version), str(op_system.build_number),
+                               str(op_system.product_id),
                                str(op_system.last_service_pack), str(op_system.organization), last_shutdown_time,
                                str(op_system.system_root), str(op_system.path), str(op_system.last_access_time_flag),
                                str(op_system.timezone_utc), str(op_system.display_timezone_name), backup_flag,
@@ -506,8 +524,9 @@ class RegistryConnector(interface.ModuleConnector):
                                                                         knowledge_base.time_zone)
                     first_connected_time = configuration.apply_time_zone(str(usb.first_connected_time),
                                                                          knowledge_base.time_zone)
-                    first_connected_since_reboot_time = configuration.apply_time_zone(str(usb.first_connected_since_reboot_time),
-                                                                                      knowledge_base.time_zone)
+                    first_connected_since_reboot_time = configuration.apply_time_zone(
+                        str(usb.first_connected_since_reboot_time),
+                        knowledge_base.time_zone)
                     driver_install_time = configuration.apply_time_zone(str(usb.driver_install_time),
                                                                         knowledge_base.time_zone)
                     first_install_time = configuration.apply_time_zone(str(usb.first_install_time),
@@ -535,10 +554,13 @@ class RegistryConnector(interface.ModuleConnector):
                 print(f'[{self.print_now_time()}] [MODULE]: Registry - User Account')
                 insert_data = []
                 for user in ua.USERACCOUNTS(reg_sam, reg_software):
-                    account_created_time = configuration.apply_time_zone(str(user.account_created_time), knowledge_base.time_zone)
+                    account_created_time = configuration.apply_time_zone(str(user.account_created_time),
+                                                                         knowledge_base.time_zone)
                     last_login_time = configuration.apply_time_zone(str(user.last_login_time), knowledge_base.time_zone)
-                    last_password_change_time = configuration.apply_time_zone(str(user.last_password_change_time), knowledge_base.time_zone)
-                    last_incorrect_password_login_time = configuration.apply_time_zone(str(user.last_incorrect_password_login_time), knowledge_base.time_zone)
+                    last_password_change_time = configuration.apply_time_zone(str(user.last_password_change_time),
+                                                                              knowledge_base.time_zone)
+                    last_incorrect_password_login_time = configuration.apply_time_zone(
+                        str(user.last_incorrect_password_login_time), knowledge_base.time_zone)
                     insert_data.append(
                         tuple([par_id, configuration.case_id, configuration.evidence_id, str(user.user_name),
                                str(user.full_name), str(user.type_of_user), str(user.account_description),
@@ -597,8 +619,10 @@ class RegistryConnector(interface.ModuleConnector):
                 print(f'[{self.print_now_time()}] [MODULE]: Registry - Network Interface')
                 insert_data = []
                 for network in ni.NETWORKINTERFACE(reg_system):
-                    lease_obtained_time = configuration.apply_time_zone(str(network.lease_obtained_time), knowledge_base.time_zone)
-                    lease_terminate_time = configuration.apply_time_zone(str(network.lease_terminate_time), knowledge_base.time_zone)
+                    lease_obtained_time = configuration.apply_time_zone(str(network.lease_obtained_time),
+                                                                        knowledge_base.time_zone)
+                    lease_terminate_time = configuration.apply_time_zone(str(network.lease_terminate_time),
+                                                                         knowledge_base.time_zone)
                     t1 = configuration.apply_time_zone(str(network.t1), knowledge_base.time_zone)
                     t2 = configuration.apply_time_zone(str(network.t2), knowledge_base.time_zone)
                     insert_data.append(
@@ -624,7 +648,8 @@ class RegistryConnector(interface.ModuleConnector):
                 insert_data = []
                 for network in np.NETWORKPROFILE(reg_software):
                     date_created = configuration.apply_time_zone(str(network.datecreated), knowledge_base.time_zone)
-                    date_lst_connected = configuration.apply_time_zone(str(network.datelstconnected), knowledge_base.time_zone)
+                    date_lst_connected = configuration.apply_time_zone(str(network.datelstconnected),
+                                                                       knowledge_base.time_zone)
                     insert_data.append(
                         tuple([par_id, configuration.case_id, configuration.evidence_id, str(network.profile_name),
                                str(network.profile_guid), str(network.description),
@@ -703,7 +728,8 @@ class RegistryConnector(interface.ModuleConnector):
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for drive in nd.NETWORKDRIVE(reg_nt[0]):
-                        modified_time = configuration.apply_time_zone(str(drive.modified_time), knowledge_base.time_zone)
+                        modified_time = configuration.apply_time_zone(str(drive.modified_time),
+                                                                      knowledge_base.time_zone)
                         insert_data.append(
                             tuple([par_id, configuration.case_id, configuration.evidence_id,
                                    str(drive.network_drive_name), modified_time, str(drive.ordering), str(reg_nt[1]),
@@ -733,7 +759,8 @@ class RegistryConnector(interface.ModuleConnector):
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for command in rc.RUNCOMMAND(reg_nt[0]):
-                        modified_time = configuration.apply_time_zone(str(command.modified_time), knowledge_base.time_zone)
+                        modified_time = configuration.apply_time_zone(str(command.modified_time),
+                                                                      knowledge_base.time_zone)
                         insert_data.append(
                             tuple([par_id, configuration.case_id, configuration.evidence_id, str(command.command),
                                    modified_time, str(command.ordering), str(reg_nt[1]), backup_flag,
@@ -748,7 +775,8 @@ class RegistryConnector(interface.ModuleConnector):
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for keyword in sk.SEARCHKEYWORD(reg_nt[0]):
-                        modified_time = configuration.apply_time_zone(str(keyword.modified_time), knowledge_base.time_zone)
+                        modified_time = configuration.apply_time_zone(str(keyword.modified_time),
+                                                                      knowledge_base.time_zone)
                         insert_data.append(
                             tuple([par_id, configuration.case_id, configuration.evidence_id, str(keyword.keyword),
                                    modified_time, str(keyword.ordering), str(reg_nt[1]), backup_flag,
@@ -860,5 +888,6 @@ class RegistryConnector(interface.ModuleConnector):
                 reg_nt_log1.close()
             if reg_nt_log2 is not '':
                 reg_nt_log2.close()
+
 
 manager.ModulesManager.RegisterModule(RegistryConnector)

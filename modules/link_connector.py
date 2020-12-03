@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """module for Link."""
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
-from modules import logger
 from modules import manager
 from modules import interface
 from modules.windows_jumplist import LNKFileParser
@@ -32,7 +31,8 @@ class LINKConnector(interface.ModuleConnector):
             return False
 
         # extension -> sig_type 변경해야 함
-        query = f"SELECT name, parent_path, extension, mtime, atime, ctime, mtime_nano, atime_nano, ctime_nano, inode FROM file_info WHERE par_id like '{par_id}' and " \
+        query = f"SELECT name, parent_path, extension, mtime, atime, ctime, mtime_nano, atime_nano, ctime_nano, inode " \
+                f"FROM file_info WHERE par_id like '{par_id}' and " \
                 f"extension like 'lnk' and ("
 
         for user_accounts in knowledge_base._user_accounts.values():
@@ -43,8 +43,12 @@ class LINKConnector(interface.ModuleConnector):
         query = query[:-4] + ");"
 
         lnk_files = configuration.cursor.execute_query_mul(query)
+        if lnk_files == -1:
+            print("There are no lnk files")
+            return False
 
         if len(lnk_files) == 0:
+            print("There are no lnk files")
             return False
 
         insert_link_file = []

@@ -28,7 +28,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
     """
     NAME = 'CARPE Forensics'
-    VERSION = '20201118'
+    VERSION = '1.0'
     DESCRIPTION = textwrap.dedent('\n'.join([
         '',
         'CARPE Forensics',
@@ -181,6 +181,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
             BadConfigOption: if the options are invalid.
         """
         # Check the list options first otherwise required options will raise.
+
         argument_helper_names = ['artifact_definitions', 'modules', 'advanced_modules']
         helpers_manager.ArgumentHelperManager.ParseOptions(
             options, self, names=argument_helper_names)
@@ -231,14 +232,10 @@ class CarpeTool(extraction_tool.ExtractionTool,
         scan_context = self.ScanSource(self._source_path)
         self._source_type = scan_context.source_type
 
-        # set partition_list TODO: standalone O server X
+        # set partition_list
         if self.ignore:
             self.get_partition_list()
-            
-        self._partition_list = { 'p1':'p18b03e6f077b848188fce2be7538dbc51',
-                                 'p2':'p1690a5ab7b83946b685a2346c6ee1d422',
-                                 'p3':'p1b343ce77e66a4a69a34f927b196d74cc',
-                                 'p4':'p11317e0928ea4460c9e1a2021a88860a1'}
+
         # set configuration
         configuration = self._CreateProcessingConfiguration()
 
@@ -253,29 +250,31 @@ class CarpeTool(extraction_tool.ExtractionTool,
         self.print_now_time(f'Start {mode} Image')
 
         disk_info = []
-        # if not self.ignore:
+        if not self.ignore:
             # After analyzing of an IMAGE, Put the partition information into the partition_info TABLE.
-            # disk_info = self.InsertImageInformation()
+            disk_info = self.InsertImageInformation()
 
         # check partition_list
         if mode == 'Analyze' and not self._partition_list:
             raise errors.BadConfigObject('partition does not exist.\n')
 
         # print partition_list
-        print(self._partition_list)
+        print('partition_list = ' + str(self._partition_list))
 
         if mode == 'Analyze' and not self.ignore:
             self.print_now_time(f'Insert File Information')
             # After analyzing of filesystem, Put the block and file information into the block_info and file_info TABLE.
-            # self.InsertFileInformation()
+            self.InsertFileInformation()
 
         # create process
         engine = process_engine.ProcessEngine()
 
         # determine operating system
+        self.print_now_time(f'Determine Operation System')
         self._Preprocess(engine)
 
         # set timezone
+        self.print_now_time(f'Set Timezone')
         if self._time_zone is not pytz.UTC:
             engine.knowledge_base.SetTimeZone(self._time_zone)
 
@@ -288,12 +287,12 @@ class CarpeTool(extraction_tool.ExtractionTool,
             # parse Artifacts
             engine.Process(configuration)
 
-            # set advanced modules
-            engine.SetProcessAdvancedModules(
-                  advanced_module_filter_expression=configuration.advanced_module_filter_expression)
-
-            # parse advanced modules
-            engine.ProcessAdvancedModules(configuration)
+            # # set advanced modules
+            # engine.SetProcessAdvancedModules(
+            #      advanced_module_filter_expression=configuration.advanced_module_filter_expression)
+            #
+            # # parse advanced modules
+            # engine.ProcessAdvancedModules(configuration)
 
         # carpe_carve.py
         elif mode == 'Carve':
@@ -426,7 +425,5 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         return return_dict
 
-
     def print_now_time(self, phrase=""):
-        now = datetime.now()
-        print(f'[{now.year}-{now.month:02}-{now.day:02} {now.hour:02}:{now.minute:02}:{now.second:02}] {phrase}')
+        print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + '] ' + phrase)

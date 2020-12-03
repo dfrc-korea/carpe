@@ -85,7 +85,12 @@ class ProcessEngine(object):
                         module = self._modules.get(module_name, None)
                         if isinstance(module, modules_interface.ModuleConnector):
                             if module_name == 'andforensics_connector':
-                                par_id = configuration.partition_list['p1']
+                                if len(configuration.partition_list) > 1:
+                                    parent_location = getattr(source_path_spec.parent, 'location', None)
+                                    par_id = configuration.partition_list[parent_location[1:]]
+                                else:
+                                    par_id = configuration.partition_list[configuration.partition_list.keys()[0]]
+
                                 if par_id is None:
                                     return False
                                 if not and_flag:
@@ -101,13 +106,12 @@ class ProcessEngine(object):
                                                  'android_user_apps_connector']:
                                 pass
                             else:
-                                if source_path_spec.parent.TYPE_INDICATOR \
-                                        != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-                                    par_id = configuration.partition_list['p1']
+                                if len(configuration.partition_list) > 1:
+                                    parent_location = getattr(source_path_spec.parent, 'location', None)
+                                    par_id = configuration.partition_list[parent_location[1:]]
                                 else:
-                                    par_id = configuration.partition_list[
-                                        getattr(source_path_spec.parent, 'location', None)[1:]
-                                    ]
+                                    par_id = configuration.partition_list[configuration.partition_list.keys()[0]]
+
                                 if par_id is None:
                                     return False
 

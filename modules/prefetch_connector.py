@@ -43,7 +43,8 @@ class PREFETCHConnector(interface.ModuleConnector):
 
         prefetch_files = configuration.cursor.execute_query_mul(query)
 
-        if len(prefetch_files) == 0:
+        if prefetch_files == -1 or len(prefetch_files) == 0:
+            print("There are no prefetch files")
             return False
 
         insert_prefetch_info = []
@@ -51,14 +52,14 @@ class PREFETCHConnector(interface.ModuleConnector):
         insert_prefetch_volume_info = []
 
         for prefetch in prefetch_files:
-            prefetch_path = prefetch[1][prefetch[1].find(path_separator):] + path_separator + prefetch[0]  # document full path
-            fileExt = prefetch[2]
+            # document full path
+            prefetch_path = prefetch[1][prefetch[1].find(path_separator):] + path_separator + prefetch[0]
 
-            # fileName = "SVCHOST.EXE-36E2D733.pf"
-            fileName = prefetch[0]
+            # file_name = "SVCHOST.EXE-36E2D733.pf"
+            file_name = prefetch[0]
 
             # Ignore ReadyBoot directory and slack
-            if fileName.find("-slack") != -1 or fileName.find("ReadyBoot") != -1:
+            if file_name.find("-slack") != -1 or file_name.find("ReadyBoot") != -1:
                 continue
 
             output_path = configuration.root_tmp_path + os.path.sep + configuration.case_id \
@@ -73,13 +74,13 @@ class PREFETCHConnector(interface.ModuleConnector):
                 file_path=prefetch_path,
                 output_path=output_path)
 
-            fn = output_path + os.path.sep + fileName
+            fn = output_path + os.path.sep + file_name
             app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_prefetch"
             # TODO: slack 처리해야 함
             results = PFExport2.main(fn, app_path)  # filename, app_path
 
             if not results:
-                os.remove(output_path + os.sep + fileName)
+                os.remove(output_path + os.sep + file_name)
                 continue
 
             ### prefetch_info ###
@@ -174,7 +175,7 @@ class PREFETCHConnector(interface.ModuleConnector):
                     [par_id, configuration.case_id, configuration.evidence_id, prefetch_name, result[1], result[2],
                      result[3], result[4]]))
 
-            os.remove(output_path + os.sep + fileName)
+            os.remove(output_path + os.sep + file_name)
 
         query = "Insert into lv1_os_win_prefetch values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_prefetch_info)

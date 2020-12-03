@@ -41,6 +41,10 @@ class WindowsTimelineConnector(interface.ModuleConnector):
 
         windows_timeline_files = configuration.cursor.execute_query_mul(query)
 
+        if windows_timeline_files == -1:
+            print("There are no timeline files")
+            return False
+
         if len(windows_timeline_files) == 0:
             print("There are no timeline files")
             return False

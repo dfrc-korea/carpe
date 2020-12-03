@@ -14,7 +14,7 @@ from utility import errors
 
 class ESEDatabaseConnector(interface.ModuleConnector):
     NAME = 'esedb_connector'
-    DESCRIPTION = 'Module for esedb'
+    DESCRIPTION = 'Module for ESEDB'
     TABLE_NAME = 'lv1_os_win_esedb'
 
     _plugin_classes = {}
@@ -138,10 +138,10 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
         self._configuration = configuration
         self._time_zone = knowledge_base.time_zone
-       
+
         # Load Schema
         yaml_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'esedb' \
-            + os.sep + 'lv1_os_win_esedb.yaml'
+                    + os.sep + 'lv1_os_win_esedb.yaml'
         if not self.LoadSchemaFromYaml(yaml_path):
             logger.error('cannot load schema from yaml: {0:s}'.format(self.TABLE_NAME))
             return False
@@ -153,6 +153,7 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
         find_specs = self.BuildFindSpecs(paths, separator, environment_variables)
         if len(find_specs) < 0:
+            print("There are no esedb files")
             return False
 
         esedb_file = pyesedb.file()
@@ -172,7 +173,6 @@ class ESEDatabaseConnector(interface.ModuleConnector):
                 table_names = frozenset(esedb_parser.ESEDBParser.GetTableNames(esedb_file))
 
                 for parser in esedb_parsers.values():
-
                     if not parser.required_tables.issubset(table_names):
                         continue
 

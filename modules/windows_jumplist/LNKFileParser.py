@@ -1,4 +1,4 @@
-import os.path, sys
+import os.path
 from modules.windows_jumplist.consts import *
 from modules.windows_jumplist.lib.yjSysUtils import *
 from modules.windows_jumplist.lib.yjDateTime import *
@@ -399,8 +399,7 @@ class TLNKFileParser:
 
 def main(file, file_name):
     LNKFileParser = TLNKFileParser(file, 0, fileName=file_name)
-    print(file_name)
-    if LNKFileParser.data == None:
+    if LNKFileParser.data is None:
         return False
     if LNKFileParser.header.HeaderSize != 76:
         return False
