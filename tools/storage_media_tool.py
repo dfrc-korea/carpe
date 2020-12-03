@@ -848,23 +848,30 @@ class StorageMediaTool(tools.CLITool):
 
         current_id = file_entry._tsk_file.info.meta.addr
 
-        if file_entry.IsDirectory():
-            for sub_file_entry in file_entry.sub_file_entries:
-                try:
-                    if not sub_file_entry.IsAllocated():
+        try:
+            if file_entry.IsDirectory():
+                for sub_file_entry in file_entry.sub_file_entries:
+                    try:
+                        if not sub_file_entry.IsAllocated():
+                            continue
+
+                    except dfvfs_errors.BackEndError as exception:
+                        logger.warning(
+                            'Unable to process file: {0:s} with error: {1!s}'.format(
+                                sub_file_entry.path_spec.comparable.replace('\n', ';'), exception))
                         continue
 
-                except dfvfs_errors.BackEndError as exception:
-                    logger.warning(
-                        'Unable to process file: {0:s} with error: {1!s}'.format(
-                            sub_file_entry.path_spec.comparable.replace('\n', ';'), exception))
-                    continue
+                    if sub_file_entry.type_indicator == dfvfs_definitions.TYPE_INDICATOR_TSK:
+                        if file_entry.IsRoot() and sub_file_entry.name == '$OrphanFiles':
+                            continue
 
-                if sub_file_entry.type_indicator == dfvfs_definitions.TYPE_INDICATOR_TSK:
-                    if file_entry.IsRoot() and sub_file_entry.name == '$OrphanFiles':
-                        continue
+                    self._ProcessFileOrDirectoryForTSK(sub_file_entry.path_spec, current_id)
 
-                self._ProcessFileOrDirectoryForTSK(sub_file_entry.path_spec, current_id)
+        except dfvfs_errors.AccessError as exception:
+            logger.warning(
+                'Unable to access file: {0:s} with error: {1!s}'.format(
+                    file_entry.path_spec.comparable.replace(
+                        '\n', ';'), exception))
 
         self._InsertFileInfoForTSK(file_entry, parent_id=parent_id)
         file_entry = None
@@ -1087,25 +1094,32 @@ class StorageMediaTool(tools.CLITool):
         else:
             current_id = file_entry.path_spec.mft_entry
 
-        if file_entry.IsDirectory():
+        try:
+            if file_entry.IsDirectory():
 
-            for sub_file_entry in file_entry.sub_file_entries:
-                try:
-                    if not sub_file_entry.IsAllocated():
+                for sub_file_entry in file_entry.sub_file_entries:
+                    try:
+                        if not sub_file_entry.IsAllocated():
+                            continue
+
+                    except dfvfs_errors.BackEndError as exception:
+                        logger.warning(
+                            'Unable to process file: {0:s} with error: {1!s}'.format(
+                                sub_file_entry.path_spec.comparable.replace(
+                                    '\n', ';'), exception))
                         continue
 
-                except dfvfs_errors.BackEndError as exception:
-                    logger.warning(
-                        'Unable to process file: {0:s} with error: {1!s}'.format(
-                            sub_file_entry.path_spec.comparable.replace(
-                                '\n', ';'), exception))
-                    continue
+                    if sub_file_entry.type_indicator == dfvfs_definitions.TYPE_INDICATOR_NTFS:
+                        if file_entry.IsRoot() and sub_file_entry.name == '$OrphanFiles':
+                            continue
 
-                if sub_file_entry.type_indicator == dfvfs_definitions.TYPE_INDICATOR_NTFS:
-                    if file_entry.IsRoot() and sub_file_entry.name == '$OrphanFiles':
-                        continue
+                    self._ProcessFileOrDirectoryForNTFS(sub_file_entry.path_spec, current_id)
 
-                self._ProcessFileOrDirectoryForNTFS(sub_file_entry.path_spec, current_id)
+        except dfvfs_errors.AccessError as exception:
+            logger.warning(
+                'Unable to access file: {0:s} with error: {1!s}'.format(
+                    file_entry.path_spec.comparable.replace(
+                        '\n', ';'), exception))
 
         self._InsertFileInfoForNTFS(file_entry, parent_id=parent_id)
         file_entry = None
