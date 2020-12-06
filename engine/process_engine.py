@@ -132,10 +132,16 @@ class ProcessEngine(object):
                     for advanced_module_name in self._advanced_modules:
                         advanced_module = self._advanced_modules.get(advanced_module_name, None)
                         if isinstance(advanced_module, advanced_modules_interface.AdvancedModuleAnalyzer):
-                            advanced_module.Analyze(configuration=configuration, source_path_spec=source_path_spec)
-                except RuntimeError as exception:
-                    raise errors.BackEndError('The module cannot be connected: {0!s}'.format(exception))
+                            if len(configuration.partition_list) > 1:
+                                parent_location = getattr(source_path_spec.parent, 'location', None)
+                                par_id = configuration.partition_list[parent_location[1:]]
+                            else:
+                                par_id = configuration.partition_list[configuration.partition_list.keys()[0]]
 
+                            advanced_module.Analyze(par_id=par_id, configuration=configuration, source_path_spec=source_path_spec,
+                                                    knowledge_base=self.knowledge_base)
+                except RuntimeError as exception:
+                    raise errors.BackEndError(('The module cannot be connected: {0!s}').format(exception))
     def process_carve(self, configuration, is_partition=False):
         module = self._modules.get('fica_connector', None)
         if is_partition:

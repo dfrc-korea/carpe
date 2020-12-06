@@ -53,14 +53,6 @@ class GoogledrivefscConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id is None:
-            return False
-
         # users = []
         # for user_accounts in knowledge_base._user_accounts.values():
         #    for hostname in user_accounts.values():
