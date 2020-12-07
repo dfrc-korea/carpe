@@ -102,11 +102,11 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         argument_parser.add_argument(
             '--cid', '--case_id', action='store', dest='case_id', type=str,
-            default='case01', help='Enter your case id')
+            help='Enter your case id')
 
         argument_parser.add_argument(
             '--eid', '--evdnc_id', '--evidence_id', action='store', dest='evidence_id', type=str,
-            default='evd01', help='Enter your evidence id')
+            help='Enter your evidence id')
 
         # check standalone mode
         argument_parser.add_argument(
