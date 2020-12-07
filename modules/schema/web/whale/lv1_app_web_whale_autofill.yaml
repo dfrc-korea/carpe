@@ -12,11 +12,13 @@ Table:
       - count
       - os_account
       - whale_profile
+      - source
 
     Types:
       - [VARCHAR(255), NOT NULL]
       - [VARCHAR(255), NOT NULL]
       - [VARCHAR(255), NOT NULL]
+      - [TEXT]
       - [TEXT]
       - [TEXT]
       - [TEXT]

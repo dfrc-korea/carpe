@@ -31,6 +31,7 @@ Table:
       - date_last_used
       - os_account
       - edge_profile
+      - source
 
     Types:
       - [VARCHAR(100), NOT NULL]
@@ -44,18 +45,20 @@ Table:
       - [BLOB]
       - [TEXT]
       - [TEXT]
-      - [BLOB]
-      - [TEXT]
-      - [TEXT]
-      - [TEXT]
-      - [TEXT]
-      - [TEXT]
-      - [TEXT]
-      - [TEXT]
-      - [TEXT]
-      - [TEXT]
       - [TEXT]
       - [BLOB]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [BLOB]
+      - [TEXT]
       - [TEXT]
       - [TEXT]
       - [TEXT]

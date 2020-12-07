@@ -1,13 +1,14 @@
-import io, sqlite3
+import sqlite3
 import datetime
 import json
 
+
 def _count_microseconds(microseconds):
     time = datetime.timedelta(microseconds=microseconds)
-    return time
+    return str(time)
+
 
 def _convert_strdate_to_datetime(strdate):
-    #day_of_week = strdate[0:3]
     month_dic = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
                  'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
 
@@ -18,6 +19,7 @@ def _convert_strdate_to_datetime(strdate):
 
     time = year+'-'+month+'-'+day+'T'+timestamp+'Z'
     return time
+
 
 def _convert_timestamp(timestamp):
 
@@ -36,7 +38,7 @@ def _convert_unixtimestamp(timestamp):
     time = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%S.%f')+'Z'
     return time
 
-def _bookmark_dir_tree (row, path, bookmark_result):
+def _bookmark_dir_tree(row, path, bookmark_result):
 
     if row['type'] == 'folder':
         path = path + '/' + row['name']
@@ -83,6 +85,7 @@ def _bookmark_dir_tree (row, path, bookmark_result):
 
         except KeyError:
             print('KeyError')
+
 
 def edge_search_terms(file):
     if isinstance(file, str):
@@ -133,7 +136,7 @@ def edge_search_terms(file):
         else:
             search_site = "others"
 
-        outputformat = (url, search_word, date, search_site)
+        outputformat = [url, search_word, date, search_site]
 
         search_terms.append(outputformat)
 
@@ -173,7 +176,7 @@ def edge_visit_urls(file):
         visit_count = row[3]
         typed_count = row[4]
 
-        outputformat = (url, last_visited_time, title, visit_count, typed_count)
+        outputformat = [url, last_visited_time, title, visit_count, typed_count]
 
         visit_urls.append(outputformat)
 
@@ -317,9 +320,9 @@ def edge_visit_history(file):
         except:
             transition_decimal = row[3]
             unknown_qualifiers = "{0:x}".format(transition_decimal & qualifiers_mask)
-            qualifiers = 'Unknown : %s' %unknown_qualifiers
+            qualifiers = 'Unknown : %s' % unknown_qualifiers
 
-        outputformat = (from_url, url, segment_url, title, visit_time, visit_duration, transition, qualifiers)
+        outputformat = [from_url, url, segment_url, title, visit_time, visit_duration, transition, qualifiers]
         visit_history.append(outputformat)
 
     conn.close()
@@ -390,12 +393,9 @@ def edge_download(file):
         mime_type = row[14]
         original_mime_type = row[15]
 
-        outputformat = (
-        file_name, download_path, received_bytes, total_bytes, state, interrupt_reason, opened, start_time, end_time,
-        file_last_access_time,
-        file_last_modified_time, download_tab_url, download_tab_refer_url, site_url, refer_url, mime_type,
-        original_mime_type)
-
+        outputformat = [file_name, download_path, received_bytes, total_bytes, state, interrupt_reason, opened,
+                        start_time, end_time, file_last_access_time, file_last_modified_time, download_tab_url,
+                        download_tab_refer_url, site_url, refer_url, mime_type, original_mime_type]
         download_list.append(outputformat)
 
     conn.close()
@@ -433,7 +433,7 @@ def edge_top_sites(file):
 
         url_rank = row[2]
 
-        outputformat = (url, title, url_rank)
+        outputformat = [url, title, url_rank]
 
         top_sites.append(outputformat)
 
@@ -450,7 +450,8 @@ def edge_shortcuts(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits from omni_box_shortcuts order by last_access_time asc ')
+        cur.execute('select text, fill_into_edit, url, contents, description, keyword, last_access_time, '
+                    'number_of_hits from omni_box_shortcuts order by last_access_time asc ')
         result = cur.fetchall()
     except:
         print("[Web/Chromium Edge] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -479,7 +480,7 @@ def edge_shortcuts(file):
         last_access_time = _convert_timestamp(row[6])
         number_of_hits = row[7]
 
-        outputformat = (text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits)
+        outputformat = [text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits]
 
         shortcuts.append(outputformat)
 
@@ -523,7 +524,7 @@ def edge_favicons(file):
         width = row[6]
         height = row[7]
 
-        outputformat = (id, icon_id, icon_url, last_updated, last_requested, image_data, width, height)
+        outputformat = [id, icon_id, icon_url, last_updated, last_requested, image_data, width, height]
 
         favicons.append(outputformat)
 
@@ -565,7 +566,8 @@ def edge_cookies(file):
         encrypted_value = row[11]
         samesite = row[12]
 
-        outputformat = (creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc, has_expires, is_persistent, priority, encrypted_value, samesite)
+        outputformat = [creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc,
+                        has_expires, is_persistent, priority, encrypted_value, samesite]
 
         cookies.append(outputformat)
 
@@ -599,7 +601,7 @@ def edge_autofill(file):
         date_last_used = _convert_unixtimestamp(row[4])
         count = row[5]
 
-        outputformat = (name, value, value_lower, date_created, date_last_used, count)
+        outputformat = [name, value, value_lower, date_created, date_last_used, count]
 
         autofill.append(outputformat)
 
@@ -626,33 +628,30 @@ def edge_logindata(file):
     for row in result:
         column_list.append(row[1])
 
-    if 'date_last_used' in column_list:
-        try:
-            cur.execute(
-                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
-                'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used from logins')
-            result = cur.fetchall()
-        except:
-            print("[Web/Chromium Edge] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
-            result = []
+    query = 'select origin_url, action_url, username_element, username_value, password_element, password_value, ' \
+            'signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, ' \
+            'date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, ' \
+            'possible_username_pairs, submit_element'
 
+    if 'date_last_used' and 'preferred' in column_list:
+        query += ', preferred, date_last_used'
+    elif 'preferred' not in column_list:
+        query += ', date_last_used'
     else:
-        try:
-            cur.execute(
-                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
-                'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred from logins')
-            result = cur.fetchall()
-        except:
-            print("[Web/Chromium Edge] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
-            result = []
+        query += ', preferred'
 
-    logindatas = []
+    query += ' from logins'
+
+    try:
+        cur.execute(query)
+        result = cur.fetchall()
+    except:
+        print("[Web/Chromium Edge] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
+        result = []
+
+    login_datas = []
 
     for row in result:
-
-        #id = row[0]
         origin_url = row[0]
         if type(origin_url) == str and ("\'" or "\"") in origin_url:
             origin_url = origin_url.replace("\'", "\'\'").replace('\"', '\"\"')
@@ -676,8 +675,9 @@ def edge_logindata(file):
         scheme = row[10]
         password_type = row[11]
         times_used = row[12]
-        date_synced = row[13]
+        date_synced = _convert_timestamp(row[13])
         display_name = row[14]
+
         icon_url = row[15]
         if type(icon_url) == str and ("\'" or "\"") in icon_url:
             icon_url = icon_url.replace("\'", "\'\'").replace('\"', '\"\"')
@@ -694,20 +694,31 @@ def edge_logindata(file):
         generation_upload_status = row[18]
         possible_username_pairs = row[19]
         submit_element = row[20]
-        preferred = row[21]
 
-        if len(row) == 23:
+        if len(row) == 22:
+            if row[21] < 10000000000000000:  # row[21]이 preferred일 경우
+                preferred = row[21]
+                date_last_used = ''
+            else:                               # row[21]이 date_last_used일 경우
+                preferred = ''
+                date_last_used = _convert_timestamp(row[21])
+        elif len(row) == 23:
+            preferred = row[21]
             date_last_used = _convert_timestamp(row[22])
         else:
+            preferred = ''
             date_last_used = ''
 
-        outputformat = (origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used)
+        output_format = [origin_url, action_url, username_element, username_value, password_element, password_value,
+                         signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used,
+                         date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status,
+                         possible_username_pairs, submit_element, preferred, date_last_used]
 
-        logindatas.append(outputformat)
+        login_datas.append(output_format)
 
     conn.close()
 
-    return logindatas
+    return login_datas
 
 def edge_bookmarks(file):
 

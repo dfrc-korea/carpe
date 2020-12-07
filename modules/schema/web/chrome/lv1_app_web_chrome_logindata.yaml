@@ -31,6 +31,7 @@ Table:
       - date_last_used
       - os_account
       - chrome_profile
+      - source
 
     Types:
       - [VARCHAR(100), NOT NULL]
@@ -56,6 +57,7 @@ Table:
       - [TEXT]
       - [TEXT]
       - [BLOB]
+      - [TEXT]
       - [TEXT]
       - [TEXT]
       - [TEXT]

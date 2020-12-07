@@ -25,11 +25,13 @@ Table:
       - original_mime_type
       - os_account
       - edge_profile
+      - source
 
     Types:
       - [VARCHAR(100), NOT NULL]
       - [VARCHAR(100), NOT NULL]
       - [VARCHAR(100), NOT NULL]
+      - [TEXT]
       - [TEXT]
       - [TEXT]
       - [TEXT]

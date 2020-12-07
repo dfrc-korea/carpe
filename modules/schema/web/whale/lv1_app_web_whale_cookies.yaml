@@ -16,6 +16,7 @@ Table:
       - last_access_utc
       - os_account
       - whale_profile
+      - source
 
     Types:
       - [VARCHAR(255), NOT NULL]
@@ -26,6 +27,7 @@ Table:
       - [TEXT]
       - [TEXT]
       - [BLOB]
+      - [TEXT]
       - [TEXT]
       - [TEXT]
       - [TEXT]
