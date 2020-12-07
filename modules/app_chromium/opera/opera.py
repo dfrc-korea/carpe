@@ -1,11 +1,12 @@
-import io, sqlite3
+import sqlite3
 import datetime
 import json
 
+
 def _count_microseconds(microseconds):
     time = datetime.timedelta(microseconds=microseconds)
-    #print(time)
-    return time
+    return str(time)
+
 
 def _convert_timestamp(timestamp):
     if timestamp == 0:
@@ -17,12 +18,13 @@ def _convert_timestamp(timestamp):
         time = ''
     return time
 
+
 def _convert_unixtimestamp(timestamp):
-    time = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%S.%f')+'Z'
+    time = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%S.%f') + 'Z'
     return time
 
+
 def _convert_strdate_to_datetime(strdate):
-    #day_of_week = strdate[0:3]
     month_dic = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
                  'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
 
@@ -31,11 +33,11 @@ def _convert_strdate_to_datetime(strdate):
     year = strdate[12:16]
     timestamp = strdate[17:25]
 
-    time = year+'-'+month+'-'+day+'T'+timestamp+'Z'
+    time = year + '-' + month + '-' + day + 'T' + timestamp + 'Z'
     return time
 
-def _bookmark_dir_tree (row, path, bookmark_result):
 
+def _bookmark_dir_tree(row, path, bookmark_result):
     if row['type'] == 'folder':
         path = path + '/' + row['name']
 
@@ -76,12 +78,12 @@ def _bookmark_dir_tree (row, path, bookmark_result):
                 if column == 'url':
                     url = row['url']
 
-            # bookmark = [date_added, guid, id, last_visited_desktop, name, type, url, path]
             bookmark = [date_added, guid, id, name, type, url, path]
             bookmark_result.append(bookmark)
 
         except KeyError:
             print('KeyError')
+
 
 def opera_search_terms(file):
     if isinstance(file, str):
@@ -91,7 +93,8 @@ def opera_search_terms(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select urls.last_visit_time, urls.url, keyword_search_terms.term from keyword_search_terms, urls where keyword_search_terms.url_id = urls.id order by last_visit_time asc')
+        cur.execute('select urls.last_visit_time, urls.url, keyword_search_terms.term from keyword_search_terms, '
+                    'urls where keyword_search_terms.url_id = urls.id order by last_visit_time asc')
         result = cur.fetchall()
     except:
         print("[Web/Opera] Search Terms " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -132,13 +135,14 @@ def opera_search_terms(file):
         else:
             search_site = "others"
 
-        outputformat = (url, search_word, date, search_site)
+        outputformat = [url, search_word, date, search_site]
 
         search_terms.append(outputformat)
 
     conn.close()
 
     return search_terms
+
 
 def opera_visit_urls(file):
     if isinstance(file, str):
@@ -148,7 +152,9 @@ def opera_visit_urls(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select url, title, visit_count, typed_count, last_visit_time, hidden, activity_time, display_time, open_time, last_display, display_count, links_clicked_count from urls order by last_visit_time asc')
+        cur.execute('select url, title, visit_count, typed_count, last_visit_time, hidden, activity_time, '
+                    'display_time, open_time, last_display, display_count, links_clicked_count from urls '
+                    'order by last_visit_time asc')
         result = cur.fetchall()
     except:
         print("[Web/Opera] Visit Urls " + "\033[31m" + "Query Error" + "\033[0m")
@@ -179,13 +185,15 @@ def opera_visit_urls(file):
         display_count = row[10]
         links_clicked_count = row[11]
 
-        outputformat = (url, title, visit_count, typed_count, display_count, links_clicked_count, hidden, activity_time, display_time, open_time, last_visit_time, last_display_time)
+        outputformat = [url, title, visit_count, typed_count, display_count, links_clicked_count, hidden,
+                        activity_time, display_time, open_time, last_visit_time, last_display_time]
 
         visit_urls.append(outputformat)
 
     conn.close()
 
     return visit_urls
+
 
 def opera_visit_history(file):
     if isinstance(file, str):
@@ -235,21 +243,21 @@ def opera_visit_history(file):
         print("[Web/Opera] Visit History " + "\033[31m" + "id-name-seg query error" + "\033[0m")
         id_name_seg_dict = {}
 
+    transition_mask = 255  # 0xFF
+    transition_dict = {'0': 'LINK', '1': 'TYPED', '2': 'AUTO_BOOKMARK', '3': 'AUTO_SUBFRAME', '4': 'MANUAL_SUBFRAME',
+                       '5': 'GENERATED', '6': 'START_PAGE', '7': 'FORM_SUBMIT', '8': 'RELOAD', '9': 'KEYWORD',
+                       '10': 'KEYWORD_GENERATED'}
 
-    transition_mask = 255 #0xFF
-    transition_dict = {'0':'LINK', '1':'TYPED', '2':'AUTO_BOOKMARK', '3':'AUTO_SUBFRAME', '4':'MANUAL_SUBFRAME',
-                       '5':'GENERATED', '6':'START_PAGE', '7':'FORM_SUBMIT', '8':'RELOAD', '9':'KEYWORD',
-                       '10':'KEYWORD_GENERATED'}
-
-    qualifiers_mask = 4294967040 #0x
-    qualifiers_first_dict = {'1':'CHAIN_START', '2':'CHAIN_END', '4':'CLIENT_REDIRECT',
-                             '8':'SERVER_REDIRECT', 'c':'IS_REDIRECT_MASK',
-                             '6':'CHAIN_END, CLIENT_REDIRECT', 'a':'CHAIN_END, SERVER_REDIRECT',
-                             '3':'CHAIN_START, CHAIN_END'}
-    qualifiers_second_dict = {'1':'FORWARD_BACK', '2':'FROM_ADDRESS_BAR', '3':'FORWARD_BACK, FROM_ADDRESS_BAR',
-                              '4':'HOME_PAGE'}
+    qualifiers_mask = 4294967040  # 0x
+    qualifiers_first_dict = {'1': 'CHAIN_START', '2': 'CHAIN_END', '4': 'CLIENT_REDIRECT',
+                             '8': 'SERVER_REDIRECT', 'c': 'IS_REDIRECT_MASK',
+                             '6': 'CHAIN_END, CLIENT_REDIRECT', 'a': 'CHAIN_END, SERVER_REDIRECT',
+                             '3': 'CHAIN_START, CHAIN_END'}
+    qualifiers_second_dict = {'1': 'FORWARD_BACK', '2': 'FROM_ADDRESS_BAR', '3': 'FORWARD_BACK, FROM_ADDRESS_BAR',
+                              '4': 'HOME_PAGE'}
     try:
-        cur.execute('select url, visit_time, from_visit, transition, segment_id, visit_duration from visits order by id asc')
+        cur.execute('select url, visit_time, from_visit, transition, segment_id, visit_duration from visits '
+                    'order by id asc')
         result = cur.fetchall()
     except:
         print("[Web/Opera] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -308,7 +316,7 @@ def opera_visit_history(file):
         except:
             transition_decimal = row[3]
             unknown_transition = "{0:x}".format(transition_decimal & transition_mask)
-            transition = 'Unknown : %s' %unknown_transition
+            transition = 'Unknown : %s' % unknown_transition
 
         try:
             transition_decimal = row[3]
@@ -324,14 +332,15 @@ def opera_visit_history(file):
         except:
             transition_decimal = row[3]
             unknown_qualifiers = "{0:x}".format(transition_decimal & qualifiers_mask)
-            qualifiers = 'Unknown : %s' %unknown_qualifiers
+            qualifiers = 'Unknown : %s' % unknown_qualifiers
 
-        outputformat = (from_url, url, segment_url, title, visit_time, visit_duration, transition, qualifiers)
+        outputformat = [from_url, url, segment_url, title, visit_time, visit_duration, transition, qualifiers]
         visit_history.append(outputformat)
 
     conn.close()
 
     return visit_history
+
 
 def opera_download(file):
     if isinstance(file, str):
@@ -341,8 +350,9 @@ def opera_download(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select target_path, start_time, received_bytes, total_bytes, state, interrupt_reason, end_time, opened, last_access_time,'
-                    ' referrer, site_url, tab_url, tab_referrer_url, last_modified, mime_type, original_mime_type from downloads order by start_time asc')
+        cur.execute('select target_path, start_time, received_bytes, total_bytes, state, interrupt_reason, end_time, '
+                    'opened, last_access_time, referrer, site_url, tab_url, tab_referrer_url, last_modified, '
+                    'mime_type, original_mime_type from downloads order by start_time asc')
         result = cur.fetchall()
     except:
         print("[Web/Opera] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -396,8 +406,9 @@ def opera_download(file):
         mime_type = row[14]
         original_mime_type = row[15]
 
-        outputformat = (file_name, download_path, received_bytes, total_bytes, state, interrupt_reason, opened, start_time, end_time, file_last_access_time,
-                        file_last_modified_time, download_tab_url, download_tab_refer_url, site_url, refer_url, mime_type, original_mime_type)
+        outputformat = [file_name, download_path, received_bytes, total_bytes, state, interrupt_reason, opened,
+                        start_time, end_time, file_last_access_time, file_last_modified_time, download_tab_url,
+                        download_tab_refer_url, site_url, refer_url, mime_type, original_mime_type]
 
         download_list.append(outputformat)
 
@@ -405,12 +416,12 @@ def opera_download(file):
 
     return download_list
 
-def opera_top_sites(file):
 
+def opera_top_sites(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
-        #conn = sqlite3.connect(":file:")
+        # conn = sqlite3.connect(":file:")
         conn = sqlite3.connect(file.read())
     cur = conn.cursor()
 
@@ -435,10 +446,10 @@ def opera_top_sites(file):
             title = row[1].replace("\'", "\'\'").replace('\"', '\"\"')
         else:
             title = row[1]
-            
+
         url_rank = row[2]
 
-        outputformat = (url, title, url_rank)
+        outputformat = [url, title, url_rank]
 
         top_sites.append(outputformat)
 
@@ -446,8 +457,8 @@ def opera_top_sites(file):
 
     return top_sites
 
-def opera_shortcuts(file):
 
+def opera_shortcuts(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
@@ -455,7 +466,8 @@ def opera_shortcuts(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits from omni_box_shortcuts order by last_access_time asc ')
+        cur.execute('select text, fill_into_edit, url, contents, description, keyword, last_access_time, '
+                    'number_of_hits from omni_box_shortcuts order by last_access_time asc ')
         result = cur.fetchall()
     except:
         print("[Web/Opera] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -464,15 +476,14 @@ def opera_shortcuts(file):
     shortcuts = []
 
     for row in result:
-
         text = row[0]
         fill_into_edit = row[1]
-        
+
         if type(row[2]) == str and ("\'" or "\"") in row[2]:
             url = row[2].replace("\'", "\'\'").replace('\"', '\"\"')
         else:
             url = row[2]
-        
+
         contents = row[3]
 
         if type(row[4]) == str and ("\'" or "\"") in row[4]:
@@ -484,7 +495,7 @@ def opera_shortcuts(file):
         last_access_time = _convert_timestamp(row[6])
         number_of_hits = row[7]
 
-        outputformat = (text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits)
+        outputformat = [text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits]
 
         shortcuts.append(outputformat)
 
@@ -492,8 +503,8 @@ def opera_shortcuts(file):
 
     return shortcuts
 
-def opera_favicons(file):
 
+def opera_favicons(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
@@ -502,8 +513,9 @@ def opera_favicons(file):
 
     try:
         cur.execute('select favicon_bitmaps.id, favicon_bitmaps.icon_id, favicons.url, favicon_bitmaps.last_updated, '
-                    'favicon_bitmaps.last_requested, favicon_bitmaps.image_data, favicon_bitmaps.width, favicon_bitmaps.height'
-                    ' from favicons, favicon_bitmaps where favicons.id = favicon_bitmaps.icon_id order by favicon_bitmaps.id asc')
+                    'favicon_bitmaps.last_requested, favicon_bitmaps.image_data, favicon_bitmaps.width, '
+                    'favicon_bitmaps.height from favicons, favicon_bitmaps where favicons.id = favicon_bitmaps.icon_id '
+                    'order by favicon_bitmaps.id asc')
         result = cur.fetchall()
     except:
         print("[Web/Opera] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -515,19 +527,19 @@ def opera_favicons(file):
 
         id = row[0]
         icon_id = row[1]
-        
+
         if type(row[2]) == str and ("\'" or "\"") in row[2]:
             icon_url = row[2].replace("\'", "\'\'").replace('\"', '\"\"')
         else:
             icon_url = row[2]
-            
+
         last_updated = _convert_timestamp(row[3])
         last_requested = _convert_timestamp(row[4])
         image_data = row[5]
         width = row[6]
         height = row[7]
 
-        outputformat = (id, icon_id, icon_url, last_updated, last_requested, image_data, width, height)
+        outputformat = [id, icon_id, icon_url, last_updated, last_requested, image_data, width, height]
 
         favicons.append(outputformat)
 
@@ -535,8 +547,8 @@ def opera_favicons(file):
 
     return favicons
 
-def opera_cookies(file):
 
+def opera_cookies(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
@@ -545,7 +557,8 @@ def opera_cookies(file):
 
     try:
         cur.execute('select creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc,'
-                    'has_expires, is_persistent, priority, encrypted_value, samesite from cookies order by creation_utc asc')
+                    'has_expires, is_persistent, priority, encrypted_value, samesite from cookies '
+                    'order by creation_utc asc')
         result = cur.fetchall()
     except:
         print("[Web/Opera] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -554,7 +567,6 @@ def opera_cookies(file):
     cookies = []
 
     for row in result:
-
         creation_utc = _convert_timestamp(row[0])
         host_key = row[1]
         name = row[2]
@@ -569,7 +581,8 @@ def opera_cookies(file):
         encrypted_value = row[11]
         samesite = row[12]
 
-        outputformat = (creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc, has_expires, is_persistent, priority, encrypted_value, samesite)
+        outputformat = [creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc,
+                        has_expires, is_persistent, priority, encrypted_value, samesite]
 
         cookies.append(outputformat)
 
@@ -577,8 +590,8 @@ def opera_cookies(file):
 
     return cookies
 
-def opera_autofill(file):
 
+def opera_autofill(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
@@ -586,7 +599,8 @@ def opera_autofill(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select name, value, value_lower, date_created, date_last_used, count from autofill order by rowid asc')
+        cur.execute('select name, value, value_lower, date_created, date_last_used, count from autofill '
+                    'order by rowid asc')
         result = cur.fetchall()
     except:
         print("[Web/Opera] Autofill " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -612,14 +626,14 @@ def opera_autofill(file):
         date_last_used = _convert_unixtimestamp(row[4])
         count = row[5]
 
-        outputformat = (name, value, value_lower, date_created, date_last_used, count)
+        outputformat = [name, value, value_lower, date_created, date_last_used, count]
 
         autofill.append(outputformat)
 
     return autofill
 
-def opera_logindata(file):
 
+def opera_logindata(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
@@ -640,9 +654,10 @@ def opera_logindata(file):
     if 'date_last_used' in column_list:
         try:
             cur.execute(
-                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
-                'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used from logins')
+                'select origin_url, action_url, username_element, username_value, password_element, password_value, '
+                'signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, '
+                'date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, '
+                'possible_username_pairs, submit_element, preferred, date_last_used from logins')
             result = cur.fetchall()
         except:
             print("[Web/Opera] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -651,9 +666,10 @@ def opera_logindata(file):
     else:
         try:
             cur.execute(
-                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
-                'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred from logins')
+                'select origin_url, action_url, username_element, username_value, password_element, password_value, '
+                'signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, '
+                'date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, '
+                'possible_username_pairs, submit_element, preferred from logins')
             result = cur.fetchall()
         except:
             print("[Web/Opera] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -662,20 +678,18 @@ def opera_logindata(file):
     logindatas = []
 
     for row in result:
-
-        #id = row[0]
         origin_url = row[0]
         if type(origin_url) == str and ("\'" or "\"") in origin_url:
             origin_url = origin_url.replace("\'", "\'\'").replace('\"', '\"\"')
         else:
             pass
-        
+
         action_url = row[1]
         if type(action_url) == str and ("\'" or "\"") in action_url:
             action_url = action_url.replace("\'", "\'\'").replace('\"', '\"\"')
         else:
             pass
-        
+
         username_element = row[2]
         username_value = row[3]
         password_element = row[4]
@@ -694,7 +708,7 @@ def opera_logindata(file):
             icon_url = icon_url.replace("\'", "\'\'").replace('\"', '\"\"')
         else:
             pass
-        
+
         federation_url = row[16]
         if type(federation_url) == str and ("\'" or "\"") in federation_url:
             federation_url = federation_url.replace("\'", "\'\'").replace('\"', '\"\"')
@@ -712,7 +726,10 @@ def opera_logindata(file):
         else:
             date_last_used = ''
 
-        outputformat = (origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used)
+        outputformat = [origin_url, action_url, username_element, username_value, password_element, password_value,
+                        signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used,
+                        date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status,
+                        possible_username_pairs, submit_element, preferred, date_last_used]
 
         logindatas.append(outputformat)
 
@@ -720,8 +737,8 @@ def opera_logindata(file):
 
     return logindatas
 
-def opera_bookmarks (file):
 
+def opera_bookmarks(file):
     with open(file, 'r', encoding='UTF-8') as f:
         json_data = json.load(f)
 
@@ -733,7 +750,6 @@ def opera_bookmarks (file):
             try:
                 # path = '/roots'
                 for row in json_data["roots"][dir]['children']:
-
                     path = '/roots' + '/' + dir
 
                     _bookmark_dir_tree(row, path, bookmark_result)

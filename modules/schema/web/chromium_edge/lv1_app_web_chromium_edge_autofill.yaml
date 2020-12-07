@@ -14,6 +14,7 @@ Table:
       - count
       - os_account
       - edge_profile
+      - source
 
     Types:
       - [VARCHAR(100), NOT NULL]
@@ -22,6 +23,7 @@ Table:
       - [TEXT]
       - [BLOB]
       - [BLOB]
+      - [TEXT]
       - [TEXT]
       - [TEXT]
       - [TEXT]

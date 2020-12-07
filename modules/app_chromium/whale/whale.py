@@ -1,9 +1,9 @@
-import io, sqlite3
+import sqlite3
 import datetime
 import json
 
+
 def _convert_strdate_to_datetime(strdate):
-    #day_of_week = strdate[0:3]
     month_dic = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
                  'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
 
@@ -12,16 +12,18 @@ def _convert_strdate_to_datetime(strdate):
     year = strdate[12:16]
     timestamp = strdate[17:25]
 
-    time = year+'-'+month+'-'+day+'T'+timestamp+'Z'
+    time = year + '-' + month + '-' + day + 'T' + timestamp + 'Z'
     return time
+
 
 def _count_microseconds(microseconds):
     time = datetime.timedelta(microseconds=microseconds)
-    #print(time)
-    return time
+    return str(time)
+
 
 def _list_dict_to_list(_dict):
     return [(key,) + tuple(val) for dic in [_dict] for key, val in dic.items()]
+
 
 def _convert_timestamp(timestamp):
 
@@ -36,9 +38,11 @@ def _convert_timestamp(timestamp):
         time = timestamp
         return time
 
+
 def _convert_unixtimestamp(timestamp):
     time = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%S.%f')+'Z'
     return time
+
 
 def _bookmark_dir_tree(row, path, bookmark_result):
 
@@ -118,8 +122,9 @@ def whale_download(file):
 
     try:
         cur.execute(
-            'select target_path, start_time, received_bytes, total_bytes, state, interrupt_reason, end_time, opened, last_access_time,'
-            ' referrer, site_url, tab_url, tab_referrer_url, last_modified, mime_type, original_mime_type from downloads order by start_time asc')
+            'select target_path, start_time, received_bytes, total_bytes, state, interrupt_reason, end_time, opened, '
+            'last_access_time, referrer, site_url, tab_url, tab_referrer_url, last_modified, mime_type, '
+            'original_mime_type from downloads order by start_time asc')
         result = cur.fetchall()
     except:
         print("[Web/Whale] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -172,17 +177,16 @@ def whale_download(file):
         mime_type = row[14]
         original_mime_type = row[15]
 
-        outputformat = (
-        file_name, download_path, received_bytes, total_bytes, state, interrupt_reason, opened, start_time, end_time,
-        file_last_access_time,
-        file_last_modified_time, download_tab_url, download_tab_refer_url, site_url, refer_url, mime_type,
-        original_mime_type)
+        outputformat = [file_name, download_path, received_bytes, total_bytes, state, interrupt_reason, opened,
+                        start_time, end_time, file_last_access_time, file_last_modified_time, download_tab_url,
+                        download_tab_refer_url, site_url, refer_url, mime_type, original_mime_type]
 
         download_list.append(outputformat)
 
     conn.close()
 
     return download_list
+
 
 def whale_visit_urls(file):
 
@@ -218,6 +222,7 @@ def whale_visit_urls(file):
     conn.close()
 
     return url_list
+
 
 def whale_visit_history(file):
     if isinstance(file, str):
@@ -281,7 +286,8 @@ def whale_visit_history(file):
                               '4':'HOME_PAGE'}
 
     try:
-        cur.execute('select url, visit_time, from_visit, transition, segment_id, visit_duration from visits order by id asc')
+        cur.execute('select url, visit_time, from_visit, transition, segment_id, visit_duration '
+                    'from visits order by id asc')
         result = cur.fetchall()
     except:
         print("[Web/Whale] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -351,14 +357,15 @@ def whale_visit_history(file):
         except:
             transition_decimal = row[3]
             unknown_qualifiers = "{0:x}".format(transition_decimal & qualifiers_mask)
-            qualifiers = 'Unknown : %s' %unknown_qualifiers
+            qualifiers = 'Unknown : %s' % unknown_qualifiers
 
-        outputformat = (from_url, url, segment_url, title, visit_time, visit_duration, transition, qualifiers)
+        outputformat = [from_url, url, segment_url, title, visit_time, visit_duration, transition, qualifiers]
         visit_history.append(outputformat)
 
     conn.close()
 
     return visit_history
+
 
 def whale_search_terms(file):
 
@@ -436,6 +443,7 @@ def whale_cookies(file):
 
     return cookies_list
 
+
 def whale_top_sites(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
@@ -466,12 +474,13 @@ def whale_top_sites(file):
 
         url_rank = row[2]
 
-        outputformat = (url, title, url_rank)
+        outputformat = [url, title, url_rank]
         top_site_list.append(outputformat)
 
     conn.close()
 
     return top_site_list
+
 
 def whale_autofill (file):
 
@@ -491,7 +500,6 @@ def whale_autofill (file):
         result = []
 
     for row in result:
-
         if type(row[0]) == str and ("\'" or "\"") in row[0]:
             value = row[0].replace("\'", "\'\'").replace('\"', '\"\"')
         else:
@@ -525,9 +533,10 @@ def whale_logindata(file):
     if 'date_last_used' in column_list:
         try:
             cur.execute(
-                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
-                'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used from logins')
+                'select origin_url, action_url, username_element, username_value, password_element, password_value, '
+                'signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, '
+                'date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, '
+                'possible_username_pairs, submit_element, preferred, date_last_used from logins')
             result = cur.fetchall()
         except:
             print("[Web/Whale] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -536,9 +545,10 @@ def whale_logindata(file):
     else:
         try:
             cur.execute(
-                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
-                'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred from logins')
+                'select origin_url, action_url, username_element, username_value, password_element, password_value, '
+                'signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, '
+                'date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, '
+                'possible_username_pairs, submit_element, preferred from logins')
             result = cur.fetchall()
         except:
             print("[Web/Whale] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -547,8 +557,6 @@ def whale_logindata(file):
     logindatas = []
 
     for row in result:
-
-        #id = row[0]
         origin_url = row[0]
         if type(origin_url) == str and ("\'" or "\"") in origin_url:
             origin_url = origin_url.replace("\'", "\'\'").replace('\"', '\"\"')
@@ -597,13 +605,16 @@ def whale_logindata(file):
         else:
             date_last_used = ''
 
-        outputformat = (origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used)
-
+        outputformat = [origin_url, action_url, username_element, username_value, password_element, password_value,
+                        signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used,
+                        date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status,
+                        possible_username_pairs, submit_element, preferred, date_last_used]
         logindatas.append(outputformat)
 
     conn.close()
 
     return logindatas
+
 
 def whale_shortcuts(file):
 
@@ -614,7 +625,8 @@ def whale_shortcuts(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits from omni_box_shortcuts order by last_access_time asc ')
+        cur.execute('select text, fill_into_edit, url, contents, description, keyword, last_access_time, '
+                    'number_of_hits from omni_box_shortcuts order by last_access_time asc ')
         result = cur.fetchall()
     except:
         print("[Web/Whale] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -643,13 +655,14 @@ def whale_shortcuts(file):
         last_access_time = _convert_timestamp(row[6])
         number_of_hits = row[7]
 
-        outputformat = (text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits)
+        outputformat = [text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits]
 
         shortcuts.append(outputformat)
 
     conn.close()
 
     return shortcuts
+
 
 def whale_favicons(file):
 
@@ -660,7 +673,10 @@ def whale_favicons(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select favicon_bitmaps.id, favicon_bitmaps.icon_id, favicons.url, favicon_bitmaps.last_updated, favicon_bitmaps.last_requested, favicon_bitmaps.image_data, favicon_bitmaps.width, favicon_bitmaps.height from favicons, favicon_bitmaps where favicons.id = favicon_bitmaps.icon_id order by favicon_bitmaps.id asc')
+        cur.execute('select favicon_bitmaps.id, favicon_bitmaps.icon_id, favicons.url, favicon_bitmaps.last_updated, '
+                    'favicon_bitmaps.last_requested, favicon_bitmaps.image_data, favicon_bitmaps.width, '
+                    'favicon_bitmaps.height from favicons, favicon_bitmaps where favicons.id = favicon_bitmaps.icon_id '
+                    'order by favicon_bitmaps.id asc')
         result = cur.fetchall()
     except:
         print("[Web/Whale] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -683,7 +699,7 @@ def whale_favicons(file):
         width = row[6]
         height = row[7]
 
-        outputformat = (id, icon_id, icon_url, last_updated, last_requested, image_data, width, height)
+        outputformat = [id, icon_id, icon_url, last_updated, last_requested, image_data, width, height]
 
         favicons.append(outputformat)
 
