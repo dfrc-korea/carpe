@@ -152,7 +152,7 @@ class AdvancedModuleAnalyzer(BaseAnalyzer):
         self._path_spec_extractor = path_extractors.PathSpecExtractor()
 
     @abc.abstractmethod
-    def Analyze(self, configuration, source_path_spec):
+    def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
         """
         Analyze
         """

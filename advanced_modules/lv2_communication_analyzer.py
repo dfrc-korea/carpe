@@ -16,12 +16,8 @@ class LV2COMMUNICATIONAnalyzer(interface.AdvancedModuleAnalyzer):
     def __init__(self):
         super(LV2COMMUNICATIONAnalyzer, self).__init__()
 
-    def Analyze(self, configuration, source_path_spec):
-        #print('[MODULE]: LV2 Communication Analyzer Connect')
-        #par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-        par_id = configuration.partition_list['p1']
-        if par_id == None:
-            return False
+    def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
+        print('[MODULE]: LV2 Communication Analyzer Connect')
 
         #임시로 한번만 돌게 하자
         if par_id == 'p1947b3cd4f3c143b98b009eeeb4e966ef':

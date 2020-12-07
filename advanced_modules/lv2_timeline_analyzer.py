@@ -28,7 +28,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
     def __init__(self):
         super(LV2TIMELINEAnalyzer, self).__init__()
 
-    def Analyze(self, configuration, source_path_spec):
+    def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
         print('[MODULE]: LV2 Timeline Analyzer')
 
         if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:

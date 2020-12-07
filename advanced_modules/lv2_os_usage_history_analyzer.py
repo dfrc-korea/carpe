@@ -21,16 +21,10 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
     def __init__(self):
         super(LV2OSUSAGEHISTORYAnalyzer, self).__init__()
 
-    def Analyze(self, configuration, source_path_spec):
-        #print('[MODULE]: LV2 OS Usage History Analyzer')
+    def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
+        print('[MODULE]: LV2 OS Usage History Analyzer')
         try:
-            if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-                par_id = configuration.partition_list['p1']
-            else:
-                par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
 
-            if par_id == None:
-                return False
             query_separator = self.GetQuerySeparator(source_path_spec, configuration)
             query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') and extension = 'evtx' and " \
                 f"parent_path = 'root{query_separator}Windows{query_separator}System32{query_separator}winevt{query_separator}Logs'"

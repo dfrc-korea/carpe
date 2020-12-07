@@ -45,14 +45,8 @@ def do_work(connection, channel, delivery_tag, body):
         if not tool.ParseArguments(args):
             return False
 
-        tool.ExtractDataFromSources()
+        tool.ExtractDataFromSources(mode='Analyze')
 
-        # carpe_am = carpe_am_module.CARPE_AM()
-        # carpe_am.SetModule(case_id, evd_id)
-        # pdb.set_trace()
-        # carpe_am.ParseImage(options)
-        # carpe_am.ParseFilesystem()
-        # carpe_am.SysLogAndUserData_Analysis()
         print('[' + datetime.today().strftime("%Y-%m-%d %H:%M:%S") + '] Complete Evidence File Analysis !')
 
     cb = functools.partial(ack_message, channel, delivery_tag)
