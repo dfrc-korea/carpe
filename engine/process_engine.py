@@ -110,7 +110,7 @@ class ProcessEngine(object):
                                     parent_location = getattr(source_path_spec.parent, 'location', None)
                                     par_id = configuration.partition_list[parent_location[1:]]
                                 else:
-                                    par_id = configuration.partition_list[configuration.partition_list.keys()[0]]
+                                    par_id = configuration.partition_list[list(configuration.partition_list.keys())[0]]
 
                                 if par_id is None:
                                     return False
@@ -136,7 +136,7 @@ class ProcessEngine(object):
                                 parent_location = getattr(source_path_spec.parent, 'location', None)
                                 par_id = configuration.partition_list[parent_location[1:]]
                             else:
-                                par_id = configuration.partition_list[configuration.partition_list.keys()[0]]
+                                par_id = configuration.partition_list[list(configuration.partition_list.keys())[0]]
 
                             advanced_module.Analyze(par_id=par_id, configuration=configuration, source_path_spec=source_path_spec,
                                                     knowledge_base=self.knowledge_base)
