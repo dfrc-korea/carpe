@@ -1,10 +1,10 @@
-import io, sqlite3
+import sqlite3
 import datetime
 import json
 
-def _convert_unixtimestamp(timestamp):
 
-    if timestamp == None:
+def _convert_unixtimestamp(timestamp):
+    if timestamp is None:
         time = ''
         return time
 
@@ -25,6 +25,7 @@ def _convert_unixtimestamp(timestamp):
         timestamp = int(str(timestamp)[:-3])
         time = datetime.datetime.fromtimestamp(timestamp/1000.0).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         return time
+
 
 def _visit_type(type):
     if type == 1:
@@ -58,6 +59,7 @@ def _visit_type(type):
         visit_type = "type error"
         return visit_type
 
+
 def _visit_type_description(type):
     if type == 1:
         description = "The user followed a link and got a new toplevel window."
@@ -90,6 +92,7 @@ def _visit_type_description(type):
         description = "description error"
         return description
 
+
 def _bookmark_dir_tree(row, bookmark_id_title, bookmark_id_parent):
 
     if row[1] == 1: # CASE : parent is root
@@ -101,6 +104,7 @@ def _bookmark_dir_tree(row, bookmark_id_title, bookmark_id_parent):
         new_row = (row[0], bookmark_id_parent[row[1]], mod_path)
         mod_path = _bookmark_dir_tree(new_row, bookmark_id_title, bookmark_id_parent)
         return mod_path
+
 
 def firefox_visit_history(file):
     if isinstance(file, str):
@@ -171,12 +175,13 @@ def firefox_visit_history(file):
         visit_type = _visit_type(row[4])
         visit_type_desc = _visit_type_description(row[4])
 
-        outputformat = (id, from_visit, place_id, visit_date, visit_type, visit_type_desc)
+        outputformat = [id, from_visit, place_id, visit_date, visit_type, visit_type_desc]
         result.append(outputformat)
 
     conn.close()
 
     return result
+
 
 def firefox_visit_urls(file):
     if isinstance(file, str):
@@ -224,12 +229,14 @@ def firefox_visit_urls(file):
 
         preview_image_url = row[11]
 
-        outputformat = (url, title, rev_host, visit_count, hidden, typed, frecency, last_visit_date, guid, foreign_count, description, preview_image_url)
+        outputformat = [url, title, rev_host, visit_count, hidden, typed, frecency, last_visit_date, guid,
+                        foreign_count, description, preview_image_url]
         result.append(outputformat)
 
     conn.close()
 
     return result
+
 
 def firefox_domain(file):
     if isinstance(file, str):
@@ -254,12 +261,13 @@ def firefox_domain(file):
         host = row[1]
         frecency = row[2]
 
-        outputformat = (prefix, host, frecency)
+        outputformat = [prefix, host, frecency]
         result.append(outputformat)
 
     conn.close()
 
     return result
+
 
 def firefox_downloads(file):
     if isinstance(file, str):
@@ -277,7 +285,8 @@ def firefox_downloads(file):
         url_dict = {}
 
     try:
-        cur.execute('select place_id, anno_attribute_id, content, flags, expiration, type, dateAdded, lastModified from moz_annos order by place_id asc')
+        cur.execute('select place_id, anno_attribute_id, content, flags, expiration, type, dateAdded, '
+                    'lastModified from moz_annos order by place_id asc')
         download_record = cur.fetchall()
     except:
         print("[Web/Firefox] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -288,7 +297,6 @@ def firefox_downloads(file):
     result = []
 
     for row in download_record:
-
         if row[2][0:4] == 'file':
 
             place_id = row[0]
@@ -303,7 +311,6 @@ def firefox_downloads(file):
             file_path_record.append(record_format)
 
         elif row[2][2:7] == 'state':
-
             place_id = row[0]
             meta_json = json.loads(row[2])
             try:
@@ -327,12 +334,11 @@ def firefox_downloads(file):
             pass
 
     if len(file_path_record) != len(meta_record):
-        print("[Web/Firefox] Downloads " + "\033[31m" + "There is record mismatch" + "\033[0m" + ". Check \"place.sqlite\" file.")
+        print("[Web/Firefox] Downloads " + "\033[31m" + "There is record mismatch" + "\033[0m" +
+              ". Check \"place.sqlite\" file.")
 
         for file_path_row in file_path_record:
-
             for meta_row in meta_record:
-
                 if file_path_row[0] == meta_row[0]:
                     url = file_path_row[1]
                     if type(url) == str and ("\'" or "\"") in url:
@@ -396,12 +402,14 @@ def firefox_downloads(file):
             expiration = file_path_row[4]
             download_type = file_path_row[5]
 
-            outputformat = (url, download_path, download_file_size, state, start_time, end_time, flags, expiration, download_type)
+            outputformat = [url, download_path, download_file_size, state, start_time, end_time, flags, expiration,
+                            download_type]
             result.append(outputformat)
 
     conn.close()
 
     return result
+
 
 def firefox_cookies(file):
     if isinstance(file, str):
@@ -460,12 +468,14 @@ def firefox_cookies(file):
         except IndexError:
             scheme_map = ''
 
-        outputformat = (name, value, host, path, expire_time, last_accessed_time, created_time, is_secure, is_http_only, inbrowser_element, same_site, raw_same_site, scheme_map)
+        outputformat = [name, value, host, path, expire_time, last_accessed_time, created_time, is_secure,
+                        is_http_only, inbrowser_element, same_site, raw_same_site, scheme_map]
         result.append(outputformat)
 
     conn.close()
 
     return result
+
 
 def firefox_perms(file):
     if isinstance(file, str):
@@ -474,7 +484,8 @@ def firefox_perms(file):
         conn = sqlite3.connect(file.read())
     cur = conn.cursor()
     try:
-        cur.execute('select origin, type, permission, expireType, expireTime, modificationTime from moz_perms order by id asc')
+        cur.execute('select origin, type, permission, expireType, expireTime, modificationTime from moz_perms '
+                    'order by id asc')
         perms = cur.fetchall()
     except:
         print("[Web/Firefox] Permissions " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -490,12 +501,13 @@ def firefox_perms(file):
         expire_time = _convert_unixtimestamp(row[4])
         modified_time = _convert_unixtimestamp(row[5])
 
-        outputformat = (url, type, permissions, expire_type, expire_time, modified_time)
+        outputformat = [url, type, permissions, expire_type, expire_time, modified_time]
         result.append(outputformat)
 
     conn.close()
 
     return result
+
 
 def firefox_forms(file):
     if isinstance(file, str):
@@ -505,7 +517,8 @@ def firefox_forms(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select fieldname, value, timesUsed, firstUsed, lastUsed, guid from moz_formhistory order by id asc')
+        cur.execute('select fieldname, value, timesUsed, firstUsed, lastUsed, guid from moz_formhistory '
+                    'order by id asc')
         forms = cur.fetchall()
     except:
         print("[Web/Firefox] Form History " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -526,12 +539,13 @@ def firefox_forms(file):
         last_used_time = _convert_unixtimestamp(row[4])
         guid = row[5]
 
-        outputformat = (fieldname, value, times_used, first_used_time, last_used_time, guid)
+        outputformat = [fieldname, value, times_used, first_used_time, last_used_time, guid]
         result.append(outputformat)
 
     conn.close()
 
     return result
+
 
 def firefox_favicons(file):
     if isinstance(file, str):
@@ -602,24 +616,26 @@ def firefox_favicons(file):
 
                     page_url_list = row
 
-                    outputformat = (icon_id, icon_url, icon_url_hash, width, root, color, expired_time, data, page_url_list)
+                    outputformat = [icon_id, icon_url, icon_url_hash, width, root, color, expired_time, data,
+                                    page_url_list]
                     result.append(outputformat)
 
             else:
                 page_url_list = icon_page_dict[row[0]]
 
-                outputformat = (icon_id, icon_url, icon_url_hash, width, root, color, expired_time, data, page_url_list)
+                outputformat = [icon_id, icon_url, icon_url_hash, width, root, color, expired_time, data, page_url_list]
                 result.append(outputformat)
 
         except KeyError:
             page_url_list = ''
 
-            outputformat = (icon_id, icon_url, icon_url_hash, width, root, color, expired_time, data, page_url_list)
+            outputformat = [icon_id, icon_url, icon_url_hash, width, root, color, expired_time, data, page_url_list]
             result.append(outputformat)
 
     conn.close()
 
     return result
+
 
 def firefox_prefs(file):
     if isinstance(file, str):
@@ -658,12 +674,13 @@ def firefox_prefs(file):
         value = row[3]
         time = _convert_unixtimestamp(int(row[4]*(10**3)))
 
-        outputformat = (url, setting, value, time)
+        outputformat = [url, setting, value, time]
         result.append(outputformat)
 
     conn.close()
 
     return result
+
 
 def firefox_bookmarks(file):
     if isinstance(file, str):
@@ -721,7 +738,8 @@ def firefox_bookmarks(file):
     id_path_dict = dict(bookmark_dir_tree)
 
     try:
-        cur.execute('select id, type, fk, parent, title, dateAdded, lastModified, syncStatus, syncChangeCounter from moz_bookmarks')
+        cur.execute('select id, type, fk, parent, title, dateAdded, lastModified, syncStatus, syncChangeCounter '
+                    'from moz_bookmarks')
         bookmarks = cur.fetchall()
     except:
         print("[Web/Firefox] Bookmarks " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -762,7 +780,7 @@ def firefox_bookmarks(file):
         else:
             pass
 
-        outputformat = (type, url, title, bookmark_path, added_time, last_modified_time, sync_status, sync_change_count)
+        outputformat = [type, url, title, bookmark_path, added_time, last_modified_time, sync_status, sync_change_count]
         result.append(outputformat)
 
     conn.close()

@@ -3,7 +3,6 @@
 
 import os
 
-from tqdm import tqdm
 from modules import manager
 from modules import interface
 from modules.NTFS import mft_parser, logfile_parser, usnjrnl_parser

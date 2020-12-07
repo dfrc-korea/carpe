@@ -1,13 +1,14 @@
-import io, sqlite3
+import sqlite3
 import datetime
 import json
 
+
 def _count_microseconds(microseconds):
     time = datetime.timedelta(microseconds=microseconds)
-    return time
+    return str(time)
+
 
 def _convert_timestamp(timestamp):
-
     if timestamp == 0:
         time = ''
         return time
@@ -16,15 +17,17 @@ def _convert_timestamp(timestamp):
         time = str(time).replace(' ', 'T') + 'Z'
         return time
     else:
-        time = '' # todo: 17자리 넘는 Timestamp 확인 후 수정 - 201113
+        time = timestamp
         return time
 
+
 def _convert_unixtimestamp(timestamp):
-    time = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%S.%f')+'Z'
+    time = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%S.%f') + 'Z'
     return time
 
+
 def _convert_strdate_to_datetime(strdate):
-    #day_of_week = strdate[0:3]
+    # day_of_week = strdate[0:3]
     month_dic = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
                  'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
 
@@ -33,11 +36,11 @@ def _convert_strdate_to_datetime(strdate):
     year = strdate[12:16]
     timestamp = strdate[17:25]
 
-    time = year+'-'+month+'-'+day+'T'+timestamp+'Z'
+    time = year + '-' + month + '-' + day + 'T' + timestamp + 'Z'
     return time
 
-def _bookmark_dir_tree(row, path, bookmark_result):
 
+def _bookmark_dir_tree(row, path, bookmark_result):
     if row['type'] == 'folder':
         path = path + '/' + row['name']
 
@@ -87,6 +90,7 @@ def _bookmark_dir_tree(row, path, bookmark_result):
         except KeyError:
             print('KeyError')
 
+
 def chrome_search_terms(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
@@ -95,7 +99,9 @@ def chrome_search_terms(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select urls.last_visit_time, urls.url, keyword_search_terms.term from keyword_search_terms, urls where keyword_search_terms.url_id = urls.id order by last_visit_time asc')
+        cur.execute(
+            'select urls.last_visit_time, urls.url, keyword_search_terms.term '
+            'from keyword_search_terms, urls where keyword_search_terms.url_id = urls.id order by last_visit_time asc')
         result = cur.fetchall()
     except:
         print("[Web/Chrome] Search Terms " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -124,26 +130,23 @@ def chrome_search_terms(file):
 
         if google_search in url:
             search_site = "Google"
-
         elif naver_search in url:
             search_site = "Naver"
-
         elif daum_search in url:
             search_site = "Daum"
-
         elif youtube_search in url:
             search_site = "Youtube"
-
         else:
             search_site = "others"
 
-        outputformat = (url, search_word, date, search_site)
+        outputformat = [url, search_word, date, search_site]
 
         search_terms.append(outputformat)
 
     conn.close()
 
     return search_terms
+
 
 def chrome_visit_urls(file):
     if isinstance(file, str):
@@ -153,7 +156,9 @@ def chrome_visit_urls(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select urls.url, urls.last_visit_time, urls.title, urls.visit_count, urls.typed_count  from urls order by last_visit_time asc')
+        cur.execute(
+            'select urls.url, urls.last_visit_time, urls.title, urls.visit_count, urls.typed_count '
+            'from urls order by last_visit_time asc')
         result = cur.fetchall()
     except:
         print("[Web/Chrome] Visit Urls " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -178,13 +183,14 @@ def chrome_visit_urls(file):
         visit_count = row[3]
         typed_count = row[4]
 
-        outputformat = (url, last_visited_time, title, visit_count, typed_count)
+        outputformat = [url, last_visited_time, title, visit_count, typed_count]
 
         visit_urls.append(outputformat)
 
     conn.close()
 
     return visit_urls
+
 
 def chrome_visit_history(file):
     if isinstance(file, str):
@@ -234,21 +240,21 @@ def chrome_visit_history(file):
         print("[Web/Chrome] Visit History " + "\033[31m" + "id-name-seg query error" + "\033[0m")
         id_name_seg_dict = {}
 
+    transition_mask = 255  # 0xFF
+    transition_dict = {'0': 'LINK', '1': 'TYPED', '2': 'AUTO_BOOKMARK', '3': 'AUTO_SUBFRAME', '4': 'MANUAL_SUBFRAME',
+                       '5': 'GENERATED', '6': 'START_PAGE', '7': 'FORM_SUBMIT', '8': 'RELOAD', '9': 'KEYWORD',
+                       '10': 'KEYWORD_GENERATED'}
 
-    transition_mask = 255 #0xFF
-    transition_dict = {'0':'LINK', '1':'TYPED', '2':'AUTO_BOOKMARK', '3':'AUTO_SUBFRAME', '4':'MANUAL_SUBFRAME',
-                       '5':'GENERATED', '6':'START_PAGE', '7':'FORM_SUBMIT', '8':'RELOAD', '9':'KEYWORD',
-                       '10':'KEYWORD_GENERATED'}
-
-    qualifiers_mask = 4294967040 #0x
-    qualifiers_first_dict = {'1':'CHAIN_START', '2':'CHAIN_END', '4':'CLIENT_REDIRECT',
-                             '8':'SERVER_REDIRECT', 'c':'IS_REDIRECT_MASK',
-                             '6':'CHAIN_END, CLIENT_REDIRECT', 'a':'CHAIN_END, SERVER_REDIRECT',
-                             '3':'CHAIN_START, CHAIN_END'}
-    qualifiers_second_dict = {'1':'FORWARD_BACK', '2':'FROM_ADDRESS_BAR', '3':'FORWARD_BACK, FROM_ADDRESS_BAR',
-                              '4':'HOME_PAGE'}
+    qualifiers_mask = 4294967040  # 0x
+    qualifiers_first_dict = {'1': 'CHAIN_START', '2': 'CHAIN_END', '4': 'CLIENT_REDIRECT',
+                             '8': 'SERVER_REDIRECT', 'c': 'IS_REDIRECT_MASK',
+                             '6': 'CHAIN_END, CLIENT_REDIRECT', 'a': 'CHAIN_END, SERVER_REDIRECT',
+                             '3': 'CHAIN_START, CHAIN_END'}
+    qualifiers_second_dict = {'1': 'FORWARD_BACK', '2': 'FROM_ADDRESS_BAR', '3': 'FORWARD_BACK, FROM_ADDRESS_BAR',
+                              '4': 'HOME_PAGE'}
     try:
-        cur.execute('select url, visit_time, from_visit, transition, segment_id, visit_duration from visits order by id asc')
+        cur.execute(
+            'select url, visit_time, from_visit, transition, segment_id, visit_duration from visits order by id asc')
         result = cur.fetchall()
     except:
         print("[Web/Chrome] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -256,7 +262,6 @@ def chrome_visit_history(file):
 
     visit_history = []
     for row in result:
-
         try:
             from_url = id_url_visits_dict[row[2]]
         except:
@@ -307,7 +312,7 @@ def chrome_visit_history(file):
         except:
             transition_decimal = row[3]
             unknown_transition = "{0:x}".format(transition_decimal & transition_mask)
-            transition = 'Unknown : %s' %unknown_transition
+            transition = 'Unknown : %s' % unknown_transition
 
         try:
             transition_decimal = row[3]
@@ -323,14 +328,15 @@ def chrome_visit_history(file):
         except:
             transition_decimal = row[3]
             unknown_qualifiers = "{0:x}".format(transition_decimal & qualifiers_mask)
-            qualifiers = 'Unknown : %s' %unknown_qualifiers
+            qualifiers = 'Unknown : %s' % unknown_qualifiers
 
-        outputformat = (from_url, url, segment_url, title, visit_time, visit_duration, transition, qualifiers)
+        outputformat = [from_url, url, segment_url, title, visit_time, visit_duration, transition, qualifiers]
         visit_history.append(outputformat)
 
     conn.close()
 
     return visit_history
+
 
 def chrome_download(file):
     if isinstance(file, str):
@@ -341,8 +347,9 @@ def chrome_download(file):
 
     try:
         cur.execute(
-            'select target_path, start_time, received_bytes, total_bytes, state, interrupt_reason, end_time, opened, last_access_time,'
-            ' referrer, site_url, tab_url, tab_referrer_url, last_modified, mime_type, original_mime_type from downloads order by start_time asc')
+            'select target_path, start_time, received_bytes, total_bytes, state, interrupt_reason, end_time, opened, '
+            'last_access_time, referrer, site_url, tab_url, tab_referrer_url, last_modified, mime_type, '
+            'original_mime_type from downloads order by start_time asc')
         result = cur.fetchall()
     except:
         print("[Web/Chrome] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -395,11 +402,9 @@ def chrome_download(file):
         mime_type = row[14]
         original_mime_type = row[15]
 
-        outputformat = (
-        file_name, download_path, received_bytes, total_bytes, state, interrupt_reason, opened, start_time, end_time,
-        file_last_access_time,
-        file_last_modified_time, download_tab_url, download_tab_refer_url, site_url, refer_url, mime_type,
-        original_mime_type)
+        outputformat = [file_name, download_path, received_bytes, total_bytes, state, interrupt_reason, opened,
+                        start_time, end_time, file_last_access_time, file_last_modified_time, download_tab_url,
+                        download_tab_refer_url, site_url, refer_url, mime_type, original_mime_type]
 
         download_list.append(outputformat)
 
@@ -407,8 +412,8 @@ def chrome_download(file):
 
     return download_list
 
-def chrome_top_sites(file):
 
+def chrome_top_sites(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
@@ -452,7 +457,7 @@ def chrome_top_sites(file):
 
         url_rank = row[2]
 
-        outputformat = (url, title, url_rank)
+        outputformat = [url, title, url_rank]
 
         top_sites.append(outputformat)
 
@@ -460,8 +465,8 @@ def chrome_top_sites(file):
 
     return top_sites
 
-def chrome_shortcuts(file):
 
+def chrome_shortcuts(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
@@ -469,8 +474,9 @@ def chrome_shortcuts(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits '
-                    'from omni_box_shortcuts order by last_access_time asc ')
+        cur.execute(
+            'select text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits '
+            'from omni_box_shortcuts order by last_access_time asc ')
         result = cur.fetchall()
     except:
         print("[Web/Chrome] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -499,7 +505,7 @@ def chrome_shortcuts(file):
         last_access_time = _convert_timestamp(row[6])
         number_of_hits = row[7]
 
-        outputformat = (text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits)
+        outputformat = [text, fill_into_edit, url, contents, description, keyword, last_access_time, number_of_hits]
 
         shortcuts.append(outputformat)
 
@@ -507,8 +513,8 @@ def chrome_shortcuts(file):
 
     return shortcuts
 
-def chrome_favicons(file):
 
+def chrome_favicons(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
@@ -543,7 +549,7 @@ def chrome_favicons(file):
         width = row[6]
         height = row[7]
 
-        outputformat = (id, icon_id, icon_url, last_updated, last_requested, image_data, width, height)
+        outputformat = [id, icon_id, icon_url, last_updated, last_requested, image_data, width, height]
 
         favicons.append(outputformat)
 
@@ -551,8 +557,8 @@ def chrome_favicons(file):
 
     return favicons
 
-def chrome_cookies(file):
 
+def chrome_cookies(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
@@ -572,16 +578,18 @@ def chrome_cookies(file):
 
     if 'samestie' in column_list:
         try:
-            cur.execute('select creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc, '
-                        'has_expires, is_persistent, priority, encrypted_value, samesite from cookies order by creation_utc asc')
+            cur.execute(
+                'select creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc, '
+                'has_expires, is_persistent, priority, encrypted_value, samesite from cookies order by creation_utc asc')
             result = cur.fetchall()
         except:
             print("[Web/Chrome] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
             result = []
     else:
         try:
-            cur.execute('select creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc, '
-                        'has_expires, is_persistent, priority, encrypted_value from cookies order by creation_utc asc')
+            cur.execute(
+                'select creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc, '
+                'has_expires, is_persistent, priority, encrypted_value from cookies order by creation_utc asc')
             result = cur.fetchall()
         except:
             print("[Web/Chrome] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -609,7 +617,8 @@ def chrome_cookies(file):
         else:
             samesite = ''
 
-        outputformat = (creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc, has_expires, is_persistent, priority, encrypted_value, samesite)
+        outputformat = [creation_utc, host_key, name, path, expires_utc, is_secure, is_httponly, last_access_utc,
+                        has_expires, is_persistent, priority, encrypted_value, samesite]
 
         cookies.append(outputformat)
 
@@ -617,8 +626,8 @@ def chrome_cookies(file):
 
     return cookies
 
-def chrome_autofill(file):
 
+def chrome_autofill(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
@@ -626,7 +635,8 @@ def chrome_autofill(file):
     cur = conn.cursor()
 
     try:
-        cur.execute('select name, value, value_lower, date_created, date_last_used, count from autofill order by rowid asc')
+        cur.execute(
+            'select name, value, value_lower, date_created, date_last_used, count from autofill order by rowid asc')
         result = cur.fetchall()
     except:
         print("[Web/Chrome] Autofill " + "\033[31m" + "Main Query Error" + "\033[0m")
@@ -652,7 +662,7 @@ def chrome_autofill(file):
         date_last_used = _convert_unixtimestamp(row[4])
         count = row[5]
 
-        outputformat = (name, value, value_lower, date_created, date_last_used, count)
+        outputformat = [name, value, value_lower, date_created, date_last_used, count]
 
         autofill.append(outputformat)
 
@@ -660,8 +670,8 @@ def chrome_autofill(file):
 
     return autofill
 
-def chrome_logindata(file):
 
+def chrome_logindata(file):
     if isinstance(file, str):
         conn = sqlite3.connect(file)
     else:
@@ -679,32 +689,30 @@ def chrome_logindata(file):
     for row in result:
         column_list.append(row[1])
 
-    if 'date_last_used' in column_list:
-        try:
-            cur.execute(
-                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
-                'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred, date_last_used from logins')
-            result = cur.fetchall()
-        except:
-            print("[Web/Chrome] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
-            result = []
+    query = 'select origin_url, action_url, username_element, username_value, password_element, password_value, ' \
+            'signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, ' \
+            'date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status, ' \
+            'possible_username_pairs, submit_element'
 
+    if 'date_last_used' and 'preferred' in column_list:
+        query += ', preferred, date_last_used'
+    elif 'preferred' not in column_list:
+        query += ', date_last_used'
     else:
-        try:
-            cur.execute(
-                'select origin_url, action_url, username_element, username_value, password_element, password_value, signon_realm, '
-                'date_created, form_data, blacklisted_by_user, scheme, password_type, times_used, date_synced, display_name,'
-                'icon_url, federation_url, skip_zero_click, generation_upload_status, possible_username_pairs, submit_element, preferred from logins')
-            result = cur.fetchall()
-        except:
-            print("[Web/Chrome] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
-            result = []
+        query += ', preferred'
 
-    logindatas = []
+    query += ' from logins'
+
+    try:
+        cur.execute(query)
+        result = cur.fetchall()
+    except:
+        print("[Web/Chrome] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
+        result = []
+
+    login_datas = []
 
     for row in result:
-
         origin_url = row[0]
         if type(origin_url) == str and ("\'" or "\"") in origin_url:
             origin_url = origin_url.replace("\'", "\'\'").replace('\"', '\"\"')
@@ -747,27 +755,34 @@ def chrome_logindata(file):
         generation_upload_status = row[18]
         possible_username_pairs = row[19]
         submit_element = row[20]
-        preferred = row[21]
 
-        if len(row) == 23:
+        if len(row) == 22:
+            if row[21] < 10000000000000000:             # row[21]이 preferred일 경우
+                preferred = row[21]
+                date_last_used = ''
+            else:                                       # row[21]이 date_last_used일 경우
+                preferred = ''
+                date_last_used = _convert_timestamp(row[21])
+        elif len(row) == 23:
+            preferred = row[21]
             date_last_used = _convert_timestamp(row[22])
         else:
+            preferred = ''
             date_last_used = ''
 
-        outputformat = (origin_url, action_url, username_element, username_value, password_element, password_value,
-                        signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used,
-                        date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status,
-                        possible_username_pairs, submit_element, preferred, date_last_used)
+        output_format = [origin_url, action_url, username_element, username_value, password_element, password_value,
+                         signon_realm, date_created, form_data, blacklisted_by_user, scheme, password_type, times_used,
+                         date_synced, display_name, icon_url, federation_url, skip_zero_click, generation_upload_status,
+                         possible_username_pairs, submit_element, preferred, date_last_used]
 
-        logindatas.append(outputformat)
+        login_datas.append(output_format)
 
     conn.close()
 
-    return logindatas
+    return login_datas
 
 
 def chrome_bookmarks(file):
-
     with open(file, 'r', encoding='UTF-8') as f:
         json_data = json.load(f)
 
@@ -781,7 +796,6 @@ def chrome_bookmarks(file):
                 if "children" in json_data["roots"][dir].keys():
 
                     for row in json_data["roots"][dir]['children']:
-
                         path = '/roots' + '/' + dir
 
                         _bookmark_dir_tree(row, path, bookmark_result)
@@ -792,8 +806,8 @@ def chrome_bookmarks(file):
 
     return bookmark_result
 
-def chrome_domain_analysis(file):
 
+def chrome_domain_analysis(file):
     with open(file, 'r', encoding='UTF-8') as f:
         json_data = json.load(f)
         preferences_list = list(json_data.keys())
@@ -802,7 +816,7 @@ def chrome_domain_analysis(file):
 
         if 'profile' in preferences_list:
 
-            try: # todo : temporary fix 201021
+            try:  # todo : temporary fix 201021
                 urls = json_data['profile']['content_settings']['exceptions']['site_engagement']
 
                 for url in urls:
@@ -830,15 +844,15 @@ def chrome_domain_analysis(file):
                     points_added = urls[url]['setting']['pointsAddedToday']
                     raw_score = urls[url]['setting']['rawScore']
 
-                    output_format = (
-                    domain, expiration, last_modified, model, last_engagement_time, last_shortcut_launch_time,
-                    points_added, raw_score)
+                    output_format = [domain, expiration, last_modified, model, last_engagement_time,
+                                     last_shortcut_launch_time, points_added, raw_score]
                     domain_result.append(output_format)
 
             except:
                 domain_result = []
 
     return domain_result
+
 
 def chrome_google_account(file):
     with open(file, 'r', encoding='UTF-8') as f:
@@ -896,13 +910,14 @@ def chrome_google_account(file):
                     else:
                         picture_url = ''
 
-                    outputformat = (account_id, email, full_name, first_name, locale, host_domain, is_child_account,
-                                    is_under_advanced_protection, last_download_image_url, picture_url)
+                    outputformat = [account_id, email, full_name, first_name, locale, host_domain, is_child_account,
+                                    is_under_advanced_protection, last_download_image_url, picture_url]
                     account_list.append(outputformat)
 
                 return account_list
         else:
             return account_list
+
 
 def chrome_zoom_level(file):
     with open(file, 'r', encoding='UTF-8') as f:
@@ -929,7 +944,7 @@ def chrome_zoom_level(file):
                         zoom_level = record['zoom_level']
                         last_modified_time = _convert_timestamp(int(record['last_modified']))
 
-                        outputformat = (url, zoom_level, last_modified_time)
+                        outputformat = [url, zoom_level, last_modified_time]
                         zoom_level_list.append(outputformat)
                     return zoom_level_list
 
