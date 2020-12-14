@@ -288,12 +288,12 @@ class CarpeTool(extraction_tool.ExtractionTool,
             # parse Artifacts
             engine.Process(configuration)
 
-            # # set advanced modules
-            # engine.SetProcessAdvancedModules(
-            #      advanced_module_filter_expression=configuration.advanced_module_filter_expression)
-            #
-            # # parse advanced modules
-            # engine.ProcessAdvancedModules(configuration)
+            # set advanced modules
+            engine.SetProcessAdvancedModules(
+               advanced_module_filter_expression=configuration.advanced_module_filter_expression)
+
+            # parse advanced modules
+            engine.ProcessAdvancedModules(configuration)
 
         # carpe_carve.py
         elif mode == 'Carve':
