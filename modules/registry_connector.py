@@ -26,6 +26,8 @@ from modules.Registry import lv1_os_win_reg_mac_address as ma
 from modules.Registry import lv1_os_win_reg_network_drive as nd
 from modules.Registry import lv1_os_win_reg_network_interface as ni
 from modules.Registry import lv1_os_win_reg_network_profile as np
+from modules.Registry import lv1_os_win_reg_msoffice_recent as mr
+from modules.Registry import lv1_os_win_reg_bluetooth as bt
 
 
 class RegistryConnector(interface.ModuleConnector):
@@ -44,6 +46,7 @@ class RegistryConnector(interface.ModuleConnector):
         # 모든 yaml 파일 리스트
         yaml_list = [this_file_path + 'lv1_os_win_reg_amcache_file_entries.yaml',
                      this_file_path + 'lv1_os_win_reg_amcache_program_entries.yaml',
+                     this_file_path + 'lv1_os_win_reg_bluetooth.yaml',
                      this_file_path + 'lv1_os_win_reg_installed_programs.yaml',
                      this_file_path + 'lv1_os_win_reg_os_info.yaml',
                      this_file_path + 'lv1_os_win_reg_usb_devices.yaml',
@@ -63,11 +66,13 @@ class RegistryConnector(interface.ModuleConnector):
                      this_file_path + 'lv1_os_win_reg_start_list.yaml',
                      this_file_path + 'lv1_os_win_reg_system_service.yaml',
                      this_file_path + 'lv1_os_win_reg_mru_folder.yaml',
-                     this_file_path + 'lv1_os_win_reg_mru_file.yaml']
+                     this_file_path + 'lv1_os_win_reg_mru_file.yaml',
+                     this_file_path + 'lv1_os_win_reg_msoffice_recent.yaml']
 
         # 모든 테이블 리스트
         table_list = ['lv1_os_win_reg_amcache_file',
                       'lv1_os_win_reg_amcache_program',
+                      'lv1_os_win_reg_bluetooth',
                       'lv1_os_win_reg_installed_program',
                       'lv1_os_win_reg_os_information',
                       'lv1_os_win_reg_usb_device',
@@ -87,7 +92,8 @@ class RegistryConnector(interface.ModuleConnector):
                       'lv1_os_win_reg_start_list',
                       'lv1_os_win_reg_system_service',
                       'lv1_os_win_reg_mru_folder',
-                      'lv1_os_win_reg_mru_file']
+                      'lv1_os_win_reg_mru_file',
+                      'lv1_os_win_reg_msoffice_recent']
 
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
@@ -106,6 +112,7 @@ class RegistryConnector(interface.ModuleConnector):
         config_path = f"root{query_separator}Windows{query_separator}System32{query_separator}config"
         appcompat_path = f"root{query_separator}Windows{query_separator}appcompat{query_separator}Programs"
         INF_path = f"root{query_separator}Windows{query_separator}INF"
+
         query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') and " \
                 f"((name = 'SYSTEM' and parent_path like '{config_path}') or " \
                 f"(name = 'SOFTWARE' and parent_path like '{config_path}') or " \
@@ -120,8 +127,6 @@ class RegistryConnector(interface.ModuleConnector):
                 f"(name = 'SAM.LOG2' and parent_path like '{config_path}') or " \
                 f"(name = 'Amcache.hve.LOG1' and parent_path like '{appcompat_path}') or " \
                 f"(name = 'Amcache.hve.LOG2' and parent_path like '{appcompat_path}'))"
-
-        # query = query.replace('/', query_separator)
 
         registry_files = configuration.cursor.execute_query_mul(query)
 
@@ -401,6 +406,37 @@ class RegistryConnector(interface.ModuleConnector):
                             wow.append(registry[1].split(path_separator)[2])
                             reg_nt_list.append(wow)
 
+            # Bluetooth
+            if reg_system != '':
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - Bluetooth')
+                insert_data = []
+                for bluetooth in bt.Bluetooth(reg_system):
+                    last_updated_time = configuration.apply_time_zone(str(bluetooth.key_last_updated_time),
+                                                                      knowledge_base.time_zone)
+                    last_connected_time = configuration.apply_time_zone(str(bluetooth.lastconnectedtime),
+                                                                        knowledge_base.time_zone)
+                    insert_data.append(
+                        tuple([par_id, configuration.case_id, configuration.evidence_id, str(bluetooth.name),
+                               last_updated_time, last_connected_time, backup_flag, str(bluetooth.source)]))
+                query = "Insert into lv1_os_win_reg_bluetooth values (%s, %s, %s, %s, %s, %s, %s, %s);"
+                if len(insert_data) > 0:
+                    configuration.cursor.bulk_execute(query, insert_data)
+
+            # MSOFFICE RECENT
+            if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
+                print(f'[{self.print_now_time()}] [MODULE]: Registry - MSOFFICE RECENT')
+                for reg_nt in reg_nt_list:
+                    insert_data = []
+                    for docs in mr.MSOFFICERECENT(reg_nt[0]):
+                        modified_time = configuration.apply_time_zone(str(docs.modified_time), knowledge_base.time_zone)
+                        insert_data.append(
+                            tuple([par_id, configuration.case_id, configuration.evidence_id, str(docs.file_name),
+                                   str(docs.file_path), modified_time, str(reg_nt[1]),
+                                   backup_flag, ', '.join(docs.source_location)]))
+                    query = "Insert into lv1_os_win_reg_msoffice_recent values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    if len(insert_data) > 0:
+                        configuration.cursor.bulk_execute(query, insert_data)
+
             # Amcache File
             if backup_flag != 'Backup-RegBack' and reg_am != '':
                 print(f'[{self.print_now_time()}] [MODULE]: Registry - Amcache File')
@@ -435,7 +471,7 @@ class RegistryConnector(interface.ModuleConnector):
                         installed_date = configuration.apply_time_zone(str(amcache.installed_date),
                                                                        knowledge_base.time_zone)
                     except Exception:
-                        installed_date = None
+                        installed_date = ''
                     uninstall_date = configuration.apply_time_zone(str(amcache.uninstall_date),
                                                                    knowledge_base.time_zone)
                     insert_data.append(
@@ -748,7 +784,7 @@ class RegistryConnector(interface.ModuleConnector):
                         insert_data.append(
                             tuple([par_id, configuration.case_id, configuration.evidence_id, str(doc.file_folder_name),
                                    str(doc.file_folder_link), modified_time, str(doc.registry_order), str(doc.value),
-                                   str(reg_nt[1]), backup_flag, ', '.join(doc.source_location)]))
+                                   str(reg_nt[1]), backup_flag, doc.source_location]))
                     query = "Insert into lv1_os_win_reg_recent_docs values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
                     if len(insert_data) > 0:
                         configuration.cursor.bulk_execute(query, insert_data)

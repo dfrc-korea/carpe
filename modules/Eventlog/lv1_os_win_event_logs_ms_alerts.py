@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-from lxml import etree
+import os, sys, re
+from datetime import datetime
 
+from utility import database
+from xml.etree import ElementTree
 
 class MS_Alerts_Information:
     par_id = ''
@@ -19,14 +22,15 @@ class MS_Alerts_Information:
     source = ''
     event_id_description = ''
 
-
 def EVENTLOGMSALERTS(configuration):
+    #db = database.Database()
+    #db.open()
+
     ms_alerts_list = []
     ms_alerts_count = 0
-    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total " \
-            f"WHERE (evd_id='{configuration.evidence_id}') and (event_id like '300' and source like '%OAlerts.evtx%')"
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id like '300' and source like '%OAlerts.evtx%')"
+    #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
-    parser = etree.XMLParser(recover=True)
     for result_data in result_query:
         ms_alerts_information = MS_Alerts_Information()
         try:
@@ -39,7 +43,7 @@ def EVENTLOGMSALERTS(configuration):
             ms_alerts_list[ms_alerts_count].event_id_description = 'MS office program usage alert'
 
             try:
-                root = etree.fromstring(result_data[0], parser=parser)
+                root = ElementTree.fromstring(result_data[0])
                 results = root.iter('{http://schemas.microsoft.com/win/2004/08/events/event}Data')
                 data = []
                 message = ''
@@ -48,15 +52,17 @@ def EVENTLOGMSALERTS(configuration):
                         if txt.text != '\n':
                             data.append(txt.text)
                 ms_alerts_list[ms_alerts_count].program_name = data[0]
-                for i in range(1, len(data) - 2):
-                    message += data[i]
+                for i in range(1, len(data)-2):
+                     message += data[i]
                 ms_alerts_list[ms_alerts_count].message = message
-                ms_alerts_list[ms_alerts_count].error_type = data[len(data) - 2]
-                ms_alerts_list[ms_alerts_count].program_version = data[len(data) - 1]
-            except Exception:
-                print("Eventlog_ms_alerts_parsing_error")
+                ms_alerts_list[ms_alerts_count].error_type = data[len(data)-2]
+                ms_alerts_list[ms_alerts_count].program_version = data[len(data)-1]
+            except Exception as e:
+                print("Eventlog_ms_alerts_parsing_error: {0:s}".format(e))
             ms_alerts_count = ms_alerts_count + 1
         except:
             print("EVENT LOG MS ALERTS ERROR")
+
+    #db.close()
 
     return ms_alerts_list

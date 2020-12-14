@@ -235,7 +235,8 @@ class CarpeTool(extraction_tool.ExtractionTool,
         # set partition_list
         if self.ignore:
             self.get_partition_list()
-
+        #self._partition_list = {'p1': 'p11deb42a41af54d74ad52dfa009a276e6', 'p2': 'p1e53bc2316f8944469f1a33664706dec9',
+         #                 'p3': 'p1cd8baf44b2e241c1af0372eea2e1843b'}
         # set configuration
         configuration = self._CreateProcessingConfiguration()
 

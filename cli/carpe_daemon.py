@@ -34,10 +34,7 @@ def do_work(connection, channel, delivery_tag, body):
 
     if req_type == 'analyze':
         tool = carpe_tool.CarpeTool()
-        # args = "--modules defa_caller --cid "+case_id+" --eid "+evd_id
         args = []
-        #args.append("--modules")
-        #args.append("defa_caller")
         args.append("--cid")
         args.append(case_id)
         args.append("--eid")

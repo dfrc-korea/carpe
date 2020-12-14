@@ -6,12 +6,13 @@ Table:
       - par_id
       - case_id
       - evd_id
-      - Modified date
-      - Viewed by me date
-      - File size
-      - Filename
-      - Extension
-      - Is_deleted
+      - modified_date
+      - viewed_by_me_date
+      - file_size
+      - filename
+      - extension
+      - is_deleted
+      - source
 
     Types:
       - [VARCHAR(100), NOT NULL]
@@ -22,4 +23,5 @@ Table:
       - [VARCHAR(255), NOT NULL]
       - [TEXT, NOT NULL]
       - [TEXT, NOT NULL]
+      - [TEXT]
       - [TEXT]

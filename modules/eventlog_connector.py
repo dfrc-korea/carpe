@@ -102,11 +102,13 @@ class EventlogConnector(interface.ModuleConnector):
             if not self.check_table_from_yaml(configuration, yaml_list, table_list):
                 return False
 
+            # query_separator = "/" if source_path_spec.location == "/" else source_path_spec.location * 2
             query_separator = self.GetQuerySeparator(source_path_spec, configuration)
             path_separator = self.GetPathSeparator(source_path_spec)
+
             query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
                     f"and extension = 'evtx' " \
-                    f"and parent_path like 'root{query_separator}Windows{query_separator}" \
+                    f"and parent_path = 'root{query_separator}Windows{query_separator}" \
                     f"System32{query_separator}winevt{query_separator}Logs'"
 
             eventlog_files = configuration.cursor.execute_query_mul(query)
@@ -132,8 +134,8 @@ class EventlogConnector(interface.ModuleConnector):
 
             for eventlog in eventlog_files:
                 if eventlog[0] in eventlog_file_list:
-                    # document full path
-                    eventlog_path = eventlog[1][eventlog[1].find(path_separator):] + path_separator + eventlog[0]
+                    eventlog_path = eventlog[1][eventlog[1].find(query_separator):] + query_separator + eventlog[
+                        0]  # document full path
                     fileName = eventlog[0]
 
                     output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \

@@ -809,7 +809,10 @@ def chrome_bookmarks(file):
 
 def chrome_domain_analysis(file):
     with open(file, 'r', encoding='UTF-8') as f:
-        json_data = json.load(f)
+        try:
+            json_data = json.load(f)
+        except ValueError:
+            return []
         preferences_list = list(json_data.keys())
 
         domain_result = []

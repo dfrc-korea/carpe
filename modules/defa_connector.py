@@ -120,12 +120,12 @@ class DEFAConnector(interface.ModuleConnector):
             tmp += 1
             if tmp == 10:  # 임시
                 break
-            document_path = document[1][document[1].find(path_separator):] + path_separator + document[
+            document_path = document[1][document[1].find(path_separator):] + os.sep + document[
                 0]  # document full path
-            output_path = configuration.root_tmp_path + path_separator + configuration.case_id + path_separator + \
-                          configuration.evidence_id + path_separator + par_id + path_separator + hashlib.sha1(
+            output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
+                          configuration.evidence_id + os.sep + par_id + os.sep + hashlib.sha1(
                 document_path.encode('utf-8')).hexdigest()
-            ole_path = output_path + path_separator + "ole"
+            ole_path = output_path + os.sep + "ole"
 
             if not os.path.exists(output_path):
                 os.makedirs(output_path)

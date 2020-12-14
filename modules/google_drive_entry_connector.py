@@ -32,20 +32,19 @@ class GoogledriveentryConnector(interface.ModuleConnector):
                 if hostname.identifier.find('S-1-5-21') == -1:
                     continue
                 users.append(hostname.username)
-        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
-        path_separator = self.GetPathSeparator(source_path_spec)
+        query_separator = '/' if source_path_spec.location == '/' else source_path_spec.location * 2
 
         for user in users:
-            user_path = f"{path_separator}Users{path_separator}{user}"
-            gs_path = f"{path_separator}AppData{path_separator}Local" \
-            f"{path_separator}Google{path_separator}Drive"
+            user_path = f"{query_separator}Users{query_separator}{user}"
+            gs_path = f"{query_separator}AppData{query_separator}Local" \
+            f"{query_separator}Google{query_separator}Drive"
 
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                           configuration.evidence_id + os.sep + par_id
 
             self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
                                                      configuration=configuration,
-                                                     dir_path=(user_path + gs_path),
+                                                     dir_path=user_path + gs_path,
                                                      output_path=output_path)
             try:
                 e_data = []
@@ -53,9 +52,9 @@ class GoogledriveentryConnector(interface.ModuleConnector):
                 entry_data = gs.snapshot_local(output_path + os.sep + "Drive" + os.sep + 'user_default' + os.sep)
 
                 for d in entry_data:
-                    e_data.append(info + d)
+                    e_data.append(info + d + [user_path + gs_path])
 
-                query = f"INSERT INTO lv1_app_google_drive_snapshot_local_entry values (%s, %s, %s, %s, %s, %s)"
+                query = f"INSERT INTO lv1_app_google_drive_snapshot_local_entry values (%s, %s, %s, %s, %s, %s, %s)"
 
                 configuration.cursor.bulk_execute(query, e_data)
             except:

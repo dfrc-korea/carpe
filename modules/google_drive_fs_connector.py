@@ -40,11 +40,23 @@ class GoogledrivefscConnector(interface.ModuleConnector):
         if not os.path.exists(output_path):
             os.mkdir(output_path)
 
+        google_drive_fs_path = ''
         for spec in find_specs:
             self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
                                         configuration=configuration,
                                         file_spec=spec,
                                         output_path=output_path)
+            path_spec_generator = self._path_spec_extractor.ExtractPathSpecs(
+                [source_path_spec], find_specs=[spec], recurse_file_system=False,
+                resolver_context=configuration.resolver_context)
+
+            for path_spec in path_spec_generator:
+                google_drive_fs_path = path_spec.location
+
+        if not os.path.exists(output_path):
+            print("There are no google drive files")
+            return False
+
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
         yaml_list = [this_file_path + 'lv1_app_google_drive_fschange.yaml']
@@ -53,16 +65,6 @@ class GoogledrivefscConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
-        # users = []
-        # for user_accounts in knowledge_base._user_accounts.values():
-        #    for hostname in user_accounts.values():
-        #        if hostname.identifier.find('S-1-5-21') == -1:
-        #            continue
-        #        users.append(hostname.username)
-
-        # for user in users:
-        #    user_path = f"/Users/{user}"
-        #    gs_path = f"/AppData/Local/Google/Drive"
         try:
             f_data = []
             file_list = os.listdir(output_path)
@@ -71,9 +73,9 @@ class GoogledrivefscConnector(interface.ModuleConnector):
             for db in file_list:
                 fs_data = gs.fschange_parse(output_path + os.sep, db)
                 for d in fs_data:
-                    f_data.append(info + d)
+                    f_data.append(info + d + [google_drive_fs_path])
 
-            query = f"INSERT INTO lv1_app_google_drive_fschange values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            query = f"INSERT INTO lv1_app_google_drive_fschange values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         except:
             return False
 

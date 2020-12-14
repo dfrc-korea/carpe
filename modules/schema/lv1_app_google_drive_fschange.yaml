@@ -6,17 +6,19 @@ Table:
       - par_id
       - case_id
       - evd_id
-      - Action
-      - Filepath
-      - Filename
+      - action
+      - filepath
+      - filename
       - is_folder
-      - Modified Date
-      - Size
+      - modified_date
+      - size
+      - source
 
     Types:
       - [VARCHAR(100), NOT NULL]
       - [VARCHAR(100), NOT NULL]
       - [VARCHAR(100), NOT NULL]
+      - [TEXT]
       - [TEXT]
       - [TEXT]
       - [TEXT]
