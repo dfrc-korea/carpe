@@ -35,7 +35,7 @@ class ChromiumConnector(interface.ModuleConnector):
         query_sep = self.GetQuerySeparator(source_path_spec, configuration)
         if not knowledge_base._user_accounts:
             return False
-
+        query_sep = query_sep.replace('\\\\', '\\')
         for user_accounts in knowledge_base._user_accounts.values():
             for hostname in user_accounts.values():
                 if hostname.identifier.find('S-1-5-21') == -1:
@@ -53,7 +53,7 @@ class ChromiumConnector(interface.ModuleConnector):
         chromium_edge_query = chromium_edge_query[:-4] + ")and not type='7';"
         opera_query = opera_query[:-4] + ")and not type='7';"
         firefox_query = firefox_query[:-4] + ")and not type='7';"
-
+        print(chrome_query)
         chrome_artifact = configuration.cursor.execute_query_mul(chrome_query)
         whale_artifact = configuration.cursor.execute_query_mul(whale_query)
         chromium_edge_artifact = configuration.cursor.execute_query_mul(chromium_edge_query)

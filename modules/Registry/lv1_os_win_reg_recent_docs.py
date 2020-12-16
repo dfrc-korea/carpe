@@ -12,7 +12,7 @@ class Recent_Docs_Information:
     value = ''
     useraccount = ''
     backup_flag = ''
-    source_location = []
+    source_location = ''
 
 def RECENTDOCS(reg_nt):
     recent_docs_list = []
@@ -40,6 +40,7 @@ def RECENTDOCS(reg_nt):
                             recent_docs_list[recent_docs_count].modified_time = reg_key.last_written_timestamp().isoformat()+'Z'
                             recent_docs_list[recent_docs_count].registry_order = recent_docs_count + 1
                             recent_docs_list[recent_docs_count].value = reg_value.name()
+                            recent_docs_list[recent_docs_count].source_location = "NTUSER-SOFTWARE/Microsoft/Windows/CurrentVersion/Explorer/RecentDocs/"
                             recent_docs_count = recent_docs_count + 1
 
             for reg_subkey in reg_key.subkeys():
@@ -63,6 +64,7 @@ def RECENTDOCS(reg_nt):
                                 recent_docs_list[recent_docs_count].modified_time = reg_subkey.last_written_timestamp().isoformat()+'Z'
                             recent_docs_list[recent_docs_count].registry_order = recent_docs_count+1
                             recent_docs_list[recent_docs_count].value = reg_value.name()
+                            recent_docs_list[recent_docs_count].source_location = "NTUSER-SOFTWARE/Microsoft/Windows/CurrentVersion/Explorer/RecentDocs/"
                             recent_docs_count = recent_docs_count + 1
     except:
         print('-----Recent Documents Error')
