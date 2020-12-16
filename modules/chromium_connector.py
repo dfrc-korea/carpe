@@ -53,7 +53,6 @@ class ChromiumConnector(interface.ModuleConnector):
         chromium_edge_query = chromium_edge_query[:-4] + ")and not type='7';"
         opera_query = opera_query[:-4] + ")and not type='7';"
         firefox_query = firefox_query[:-4] + ")and not type='7';"
-        print(chrome_query)
         chrome_artifact = configuration.cursor.execute_query_mul(chrome_query)
         whale_artifact = configuration.cursor.execute_query_mul(whale_query)
         chromium_edge_artifact = configuration.cursor.execute_query_mul(chromium_edge_query)

@@ -226,6 +226,19 @@ class ModuleConnector(BaseConnector):
         f = tsk_file_system.open_meta(inode)
         return f.read_random(0, f.info.meta.size)
 
+    def extract_file_to_path(self, tsk_file_system, inode, file_name, output_path):
+        file_object = tsk_file_system.open_meta(inode)
+        try:
+            output_file = open(output_path + os.sep + file_name, 'wb')
+            file_size = file_object.info.meta.size
+            if file_size > 0:
+                data = file_object.read_random(0, file_object.info.meta.size)
+                output_file.write(data)
+            output_file.close()
+        except Exception:
+            print('Extract Error')
+            return False
+
     def LoadTargetFileToMemory(self, source_path_spec, configuration,
                                file_path=None, file_spec=None, data_stream_name=None):
         try:
@@ -556,11 +569,11 @@ class ModuleConnector(BaseConnector):
     def print_now_time(self):
         return datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
-    def print_run_info(self, module_name, par_id='None', start=True):
+    def print_run_info(self, module_name, start=True):
         if start:
-            print(f'[{self.print_now_time()}] [MODULE]: {module_name} Start! - partition ID ({par_id})')
+            print(f'[{self.print_now_time()}] [MODULE] {module_name} Start')
         else:
-            print(f'[{self.print_now_time()}] [MODULE]: {module_name} End! - partition ID ({par_id})')
+            print(f'[{self.print_now_time()}] [MODULE] {module_name} End')
 
     def GetQuerySeparator(self, source_path_spec, configuration):
         if source_path_spec.location == "/":

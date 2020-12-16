@@ -33,9 +33,11 @@ class JumpListConnector(interface.ModuleConnector):
             return False
 
         # extension -> sig_type 변경해야 함
+        # query_separator = '/' if source_path_spec.location == '/' else source_path_spec.location * 2
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         path_separator = self.GetPathSeparator(source_path_spec)
-        query = f"SELECT name, parent_path, extension FROM file_info WHERE par_id like '{par_id}' and " \
+
+        query = f"SELECT name, parent_path, extension, inode FROM file_info WHERE par_id like '{par_id}' and " \
                 f"extension like 'automaticDestinations-ms' and " \
                 f"parent_path like 'root{query_separator}Users{query_separator}%{query_separator}" \
                 f"AppData{query_separator}Roaming{query_separator}Microsoft{query_separator}Windows" \
@@ -43,7 +45,7 @@ class JumpListConnector(interface.ModuleConnector):
 
         jumplist_automatic_files = configuration.cursor.execute_query_mul(query)
 
-        query = f"SELECT name, parent_path, extension FROM file_info WHERE par_id like '{par_id}' and " \
+        query = f"SELECT name, parent_path, extension, inode FROM file_info WHERE par_id like '{par_id}' and " \
                 f"extension like 'customDestinations-ms' and " \
                 f"parent_path like 'root{query_separator}Users{query_separator}%{query_separator}" \
                 f"AppData{query_separator}Roaming{query_separator}Microsoft{query_separator}Windows" \
@@ -61,17 +63,24 @@ class JumpListConnector(interface.ModuleConnector):
         if not os.path.exists(output_path):
             os.mkdir(output_path)
 
+        tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
         insert_jumplist_automatic_file = []
         insert_jumplist_custom_file = []
         for jumplist_automatic_file in jumplist_automatic_files:
             file_name = jumplist_automatic_file[0]
-            file_path = jumplist_automatic_file[1][jumplist_automatic_file[1].find(path_separator):] + path_separator + file_name     # document full path
+            # file_path = jumplist_automatic_file[1][jumplist_automatic_file[1].find(query_separator):] \
+            #             + query_separator + file_name  # document full path
 
-            self.ExtractTargetFileToPath(
-                source_path_spec=source_path_spec,
-                configuration=configuration,
-                file_path=file_path,
-                output_path=output_path)
+            self.extract_file_to_path(tsk_file_system=tsk_file_system,
+                                      inode=int(jumplist_automatic_file[3]),
+                                      file_name=file_name,
+                                      output_path=output_path)
+
+            # self.ExtractTargetFileToPath(
+            #     source_path_spec=source_path_spec,
+            #     configuration=configuration,
+            #     file_path=file_path,
+            #     output_path=output_path)
 
             fn = output_path + os.path.sep + file_name
             app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_jumplist"
@@ -87,31 +96,36 @@ class JumpListConnector(interface.ModuleConnector):
             for idx, result in enumerate(results['DestList']):
                 if idx == 0:
                     continue
-                if result[1] == None:
+                if result[1] is None:
                     record_time = None
                 else:
                     record_time = str(configuration.apply_time_zone(
-                                                                 str(result[1]).replace(' ', 'T') + 'Z',
-                                                                 knowledge_base.time_zone))
+                        str(result[1]).replace(' ', 'T') + 'Z',
+                        knowledge_base.time_zone))
 
-                insert_jumplist_automatic_file.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                             result[5],
-                                                             (result[6]+result[5]).replace('\\', '/'),
-                                                             record_time, result[2],
-                                                             result[3], result[7], result[11], result[12], app_id,
-                                                             application_name]))
+                insert_jumplist_automatic_file.append([par_id, configuration.case_id, configuration.evidence_id,
+                                                       result[5], (result[6] + result[5]).replace('\\', '/'),
+                                                       record_time, result[2], result[3], result[7], result[11],
+                                                       result[12], app_id, application_name,
+                                                       '/' + '/'.join(jumplist_automatic_file[1].replace('\\', '/').split('/')[1:]) + '/' + jumplist_automatic_file[0]])
 
             os.remove(output_path + os.sep + file_name)
 
         for jumplist_custom_file in jumplist_custom_files:
             file_name = jumplist_custom_file[0]
-            file_path = jumplist_custom_file[1][jumplist_custom_file[1].find(path_separator):] + path_separator + file_name  # document full path
+            # file_path = jumplist_custom_file[1][jumplist_custom_file[1].find(
+            #     query_separator):] + query_separator + file_name  # document full path
 
-            self.ExtractTargetFileToPath(
-                source_path_spec=source_path_spec,
-                configuration=configuration,
-                file_path=file_path,
-                output_path=output_path)
+            self.extract_file_to_path(tsk_file_system=tsk_file_system,
+                                      inode=int(jumplist_custom_file[3]),
+                                      file_name=file_name,
+                                      output_path=output_path)
+
+            # self.ExtractTargetFileToPath(
+            #     source_path_spec=source_path_spec,
+            #     configuration=configuration,
+            #     file_path=file_path,
+            #     output_path=output_path)
 
             fn = output_path + os.path.sep + file_name
             app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_jumplist"
@@ -123,12 +137,12 @@ class JumpListConnector(interface.ModuleConnector):
             for idx, result in enumerate(results['LnkData']):
                 if idx == 0:
                     continue
-                insert_jumplist_custom_file.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                          file_name, result[0], result[1], result[2], result[3], result[4]]))
+                insert_jumplist_custom_file.append([par_id, configuration.case_id, configuration.evidence_id,
+                                                    file_name, result[0], result[1], result[2], result[3], result[4]])
 
             os.remove(output_path + os.sep + file_name)
 
-        query = "Insert into lv1_os_win_jumplist_automatics values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+        query = "Insert into lv1_os_win_jumplist_automatics values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_jumplist_automatic_file)
 
         query = "Insert into lv1_os_win_jumplist_custom values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"

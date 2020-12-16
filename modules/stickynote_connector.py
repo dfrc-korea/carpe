@@ -33,13 +33,13 @@ class StickyNoteConnector(interface.ModuleConnector):
         stickynote_files = configuration.cursor.execute_query_mul(query)
 
         if len(stickynote_files) == 0:
+            print("There are no sticky note files")
             return False
 
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         path_separator = self.GetPathSeparator(source_path_spec) 
         for stickynote in stickynote_files:
             stickynote_path = stickynote[1][stickynote[1].find(path_separator):] + path_separator + stickynote[0]  # document full path
-            fileExt = stickynote[2]
             fileName = stickynote[0]
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + configuration.evidence_id + os.sep + par_id
             self.ExtractTargetFileToPath(

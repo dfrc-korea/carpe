@@ -53,17 +53,18 @@ class FileHistoryConnector(interface.ModuleConnector):
         filehistory_file = configuration.cursor.execute_query_mul(query)
 
         if len(filehistory_file) == 0:
+            print("There are no file history files")
             return False
 
         insert_filehistory_namespace = []
         insert_filehistory_string = []
         insert_filehistory_file = []
 
+        #query_separator = '/' if source_path_spec.location == '/' else source_path_spec.location * 2
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         path_separator = self.GetPathSeparator(source_path_spec)
 
-        filehistory_path = filehistory_file[0][1][filehistory_file[0][1].find(path_separator):] 
-        + path_separator + filehistory_file[0][0]
+        filehistory_path = filehistory_file[0][1][filehistory_file[0][1].find(query_separator):] + query_separator + filehistory_file[0][0]
 
         file_object = self.LoadTargetFileToMemory(
             source_path_spec=source_path_spec,
@@ -114,7 +115,7 @@ class FileHistoryConnector(interface.ModuleConnector):
                 continue
             insert_filehistory_string.append(
                 tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]),
-                       str(result[1])]))
+                       str(result[1]), filehistory_path]))
 
         query = "Insert into lv1_os_win_filehistory_namespace values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_filehistory_namespace)
@@ -122,7 +123,7 @@ class FileHistoryConnector(interface.ModuleConnector):
         query = "Insert into lv1_os_win_filehistory_file values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_filehistory_file)
 
-        query = "Insert into lv1_os_win_filehistory_string values (%s, %s, %s, %s, %s);"
+        query = "Insert into lv1_os_win_filehistory_string values (%s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_filehistory_string)
 
 

@@ -48,9 +48,8 @@ class XLSPlugin(interface.DEFAPlugin):
             data.has_content = compound.has_content
             data.is_damaged = compound.is_damaged
 
-            #print(f"{data.__dict__['name']}")
-
-            #es.index(index=index_name, doc_type=type_name, body=data.__dict__)
+            # print(f"{data.__dict__['name']}")
+            # es.index(index=index_name, doc_type=type_name, body=data.__dict__)
             # print(data.__dict__)
             return data
         except Exception as ex:

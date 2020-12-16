@@ -64,6 +64,8 @@ Table:
       - mft_fn_entry_modified_time
       - is_downloaded
       - is_copied
+      - is_created
+      - rsid
 
     Types:
       - [VARCHAR(255), NOT NULL]
@@ -127,3 +129,5 @@ Table:
       - [TEXT]
       - [INT]
       - [INT]
+      - [TEXT]
+      - [TEXT]

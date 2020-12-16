@@ -16,8 +16,6 @@ class Lv2OSLogHistoryAnalyzer(interface.AdvancedModuleAnalyzer):
         super(Lv2OSLogHistoryAnalyzer, self).__init__()
 
     def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
-        print('[MODULE]: LV2 OS Log History Analyzer')
-
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
 
         # 모든 yaml 파일 리스트

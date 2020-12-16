@@ -12,7 +12,7 @@ from modules import interface
 class EMAILConnector(interface.ModuleConnector):
 
     NAME = 'email_connector'
-    DESCRIPTION = 'Moudle for E-mail'
+    DESCRIPTION = 'Module for E-mail'
 
     _plugin_classes = {}
 

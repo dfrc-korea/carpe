@@ -13,7 +13,6 @@ class BasePlugin(object):
     def Process(self, **kwargs):
         """Evaluates if this is the correct plugin and processes data accordingly.
         """
-
         if kwargs:
             raise ValueError('Unused keyword arguments: {0:s}.'.format(
                 ', '.join(kwargs.keys())))

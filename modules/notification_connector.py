@@ -10,7 +10,7 @@ from modules.windows_notification import notification_parser as noti
 
 class NotificationConnector(interface.ModuleConnector):
     NAME = 'notification_connector'
-    DESCRIPTION = 'Module for notification'
+    DESCRIPTION = 'Module for Notification'
 
     _plugin_classes = {}
 

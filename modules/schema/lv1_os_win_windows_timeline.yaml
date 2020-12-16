@@ -24,11 +24,13 @@ Table:
       - group_type
       - clipboardpayload
       - timezone
+      - source
 
     Types:
       - [VARCHAR(255), NOT NULL]
       - [VARCHAR(255), NOT NULL]
       - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
       - [TEXT, NOT NULL]
       - [TEXT, NOT NULL]
       - [TEXT, NOT NULL]

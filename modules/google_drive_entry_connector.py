@@ -36,8 +36,7 @@ class GoogledriveentryConnector(interface.ModuleConnector):
 
         for user in users:
             user_path = f"{query_separator}Users{query_separator}{user}"
-            gs_path = f"{query_separator}AppData{query_separator}Local" \
-            f"{query_separator}Google{query_separator}Drive"
+            gs_path = f"{query_separator}AppData{query_separator}Local{query_separator}Google{query_separator}Drive"
 
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                           configuration.evidence_id + os.sep + par_id
@@ -59,5 +58,6 @@ class GoogledriveentryConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, e_data)
             except:
                 return False
+
 
 manager.ModulesManager.RegisterModule(GoogledriveentryConnector)

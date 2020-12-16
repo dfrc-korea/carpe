@@ -10,7 +10,7 @@ from modules.windows_timeline import lv1_windows_timeline as wt
 class WindowsTimelineConnector(interface.ModuleConnector):
 
     NAME = 'windows_timeline_connector'
-    DESCRIPTION = 'Module for windows_timeline'
+    DESCRIPTION = 'Module for Windows_timeline'
 
     _plugin_classes = {}
 
@@ -36,24 +36,24 @@ class WindowsTimelineConnector(interface.ModuleConnector):
             for hostname in user_accounts.values():
                 if hostname.identifier.find('S-1-5-21') == -1:
                     continue
-                query += f"parent_path like 'root{query_separator}Users{query_separator}{hostname.username}{query_separator}AppData{query_separator}Local{query_separator}ConnectedDevicesPlatform%' or "
+                query += f"parent_path like 'root{query_separator}Users{query_separator}{hostname.username}" \
+                         f"{query_separator}AppData{query_separator}Local{query_separator}ConnectedDevicesPlatform%' or "
         query = query[:-4] + ");"
 
         windows_timeline_files = configuration.cursor.execute_query_mul(query)
 
-        if windows_timeline_files == -1:
-            print("There are no timeline files")
-            return False
-
-        if len(windows_timeline_files) == 0:
-            print("There are no timeline files")
+        if type(windows_timeline_files) != int:
+            if len(windows_timeline_files) == 0:
+                print("There are no timeline files")
+                return False
+        else:
             return False
 
 
         insert_data = []
-        for timeline in windows_timeline_files:
-            timeline_path = timeline[1][timeline[1].find(path_separator):] + path_separator + timeline[0]  # document full path
-            file_name = timeline[0]
+        for tl_file in windows_timeline_files:
+            timeline_path = tl_file[1][tl_file[1].find(path_separator):] + path_separator + tl_file[0]  # document full path
+            file_name = tl_file[0]
             output_path = configuration.root_tmp_path + path_separator + configuration.case_id + path_separator + configuration.evidence_id + path_separator + par_id
             if not os.path.exists(output_path):
                 os.mkdir(output_path)
@@ -104,8 +104,9 @@ class WindowsTimelineConnector(interface.ModuleConnector):
                            str(configuration.apply_time_zone(timeline.last_modified_on_client_time, time_zone)),
                            str(configuration.apply_time_zone(timeline.original_last_modified_on_client_time, time_zone)),
                            str(timeline.local_only_flag), str(timeline.group),
-                           str(timeline.clipboardpayload), str(timeline.timezone)]))
+                           str(timeline.clipboardpayload), str(timeline.timezone),
+                           '/'+'/'.join(tl_file[1].replace('\\','/').split('/')[1:])+'/'+tl_file[0]]))
         query = "Insert into lv1_os_win_windows_timeline " \
-                "values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                "values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_data)
 manager.ModulesManager.RegisterModule(WindowsTimelineConnector)

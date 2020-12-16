@@ -7,7 +7,6 @@ from modules import interface
 from modules import logger
 from modules.Evernote import evernote_parser
 from typing import List
-from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class EvernoteConnector(interface.ModuleConnector):
@@ -44,24 +43,22 @@ class EvernoteConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yamls, tables):
             return False
 
-        print("[MODULE]: Evernote Connector Call - partition ID(%s)" % par_id)
-
         # extension -> sig_type 변경해야 함
         query = f"""
             SELECT name, parent_path, extension 
             FROM file_info 
             WHERE par_id = '{par_id}' 
             AND extension = 'exb'
-            AND parent_path like '%Evernote%') > 0; 
+            AND parent_path like '%Evernote%' > 0; 
         """
-
         evernote_db_query_results: List = configuration.cursor.execute_query_mul(query)
+
         if evernote_db_query_results == -1:
             logger.error('db execution failed.')
             return False
-
         if len(evernote_db_query_results) == 0:
             return False
+
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         path_separator = self.GetPathSeparator(source_path_spec)
 

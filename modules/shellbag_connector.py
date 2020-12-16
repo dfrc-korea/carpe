@@ -9,7 +9,7 @@ from modules.OverTheShellbag import OverTheShellbag as shellbag
 
 class ShellbagConnector(interface.ModuleConnector):
     NAME = 'shellbag_connector'
-    DESCRIPTION = 'Module for shellbag'
+    DESCRIPTION = 'Module for Shellbag'
 
     _plugin_classes = {}
 
@@ -47,6 +47,7 @@ class ShellbagConnector(interface.ModuleConnector):
             results = configuration.cursor.execute_query_mul(query)
 
             if len(results) == 0 or results == -1:
+                print("There are no shellbag files")
                 return False
 
             file_objects = {

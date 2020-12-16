@@ -235,8 +235,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         # set partition_list
         if self.ignore:
             self.get_partition_list()
-        #self._partition_list = {'p1': 'p11deb42a41af54d74ad52dfa009a276e6', 'p2': 'p1e53bc2316f8944469f1a33664706dec9',
-         #                 'p3': 'p1cd8baf44b2e241c1af0372eea2e1843b'}
+
         # set configuration
         configuration = self._CreateProcessingConfiguration()
 
@@ -260,7 +259,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
             raise errors.BadConfigObject('partition does not exist.\n')
 
         # print partition_list
-        print('partition_list = ' + str(self._partition_list))
+        print('partition_list: ' + str(self._partition_list))
 
         if mode == 'Analyze' and not self.ignore:
             self.print_now_time(f'Insert File Information')

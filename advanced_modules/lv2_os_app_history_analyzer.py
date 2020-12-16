@@ -11,7 +11,7 @@ from dfvfs.lib import definitions as dfvfs_definitions
 
 class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
     NAME = 'lv2_os_app_history_analyzer'
-    DESCRIPTION = 'Moudle for LV2 OS APP History'
+    DESCRIPTION = 'Module for LV2 OS APP History'
 
     _plugin_classes = {}
 
@@ -19,7 +19,6 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         super(LV2OSAPPHISTORYAnalyzer, self).__init__()
 
     def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
-        print('[MODULE]: LV2 OS APP History Analyzer')
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
         # 모든 yaml 파일 리스트
@@ -74,7 +73,10 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             configuration.cursor.bulk_execute(query, insert_data)
 
         # Prefetch - reference_file 추후에 추가
-        query = f"SELECT program_name, program_path, program_run_count, file_created_time, last_run_time, 2nd_last_run_time, 3rd_last_run_time, 4th_last_run_time, 5th_last_run_time, 6th_last_run_time, 7th_last_run_time, 8th_last_run_time FROM lv1_os_win_prefetch WHERE par_id='{par_id}';"
+        query = f"SELECT program_name, program_path, program_run_count, file_created_time, last_run_time, " \
+                f"\2nd_last_run_time, \3rd_last_run_time, \4th_last_run_time, \5th_last_run_time, " \
+                f"\6th_last_run_time, \7th_last_run_time, \8th_last_run_time " \
+                f"FROM lv1_os_win_prefetch WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
 
         if type(results) == int or len(results) == 0:
@@ -156,7 +158,8 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             configuration.cursor.bulk_execute(query, insert_data)
 
         # Jumplist - automatics
-        query = f"SELECT file_name, file_path, record_time, application_name FROM lv1_os_win_jumplist_automatics WHERE par_id='{par_id}';"
+        query = f"SELECT file_name, file_path, record_time, application_name " \
+                f"FROM lv1_os_win_jumplist_automatics WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
 
         if type(results) == int or len(results) == 0:

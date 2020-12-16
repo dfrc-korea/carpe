@@ -557,11 +557,11 @@ class AdvancedModuleAnalyzer(BaseAnalyzer):
         now = datetime.now()
         return f'{now.year}-{now.month:02}-{now.day:02} {now.hour:02}:{now.minute:02}:{now.second:02}'
 
-    def print_run_info(self, module_name, par_id='None', start=True):
+    def print_run_info(self, module_name, start=True):
         if start:
-            print(f'[{self.print_now_time()}] [MODULE]: {module_name} Start! - partition ID ({par_id})')
+            print(f'[{self.print_now_time()}] [MODULE] {module_name} Start')
         else:
-            print(f'[{self.print_now_time()}] [MODULE]: {module_name} End! - partition ID ({par_id})')
+            print(f'[{self.print_now_time()}] [MODULE] {module_name} End')
 
     def GetQuerySeparator(self, source_path_spec, configuration):
         if source_path_spec.location == "/":

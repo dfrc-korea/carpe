@@ -12,7 +12,7 @@ from modules.windows_recyclebin import RecycleBinParser
 class RecycleBinConnector(interface.ModuleConnector):
 
     NAME = 'recyclebin_connector'
-    DESCRIPTION = 'Module for Recycle Bin'
+    DESCRIPTION = 'Module for RecycleBin'
 
     _plugin_classes = {}
 
@@ -32,22 +32,21 @@ class RecycleBinConnector(interface.ModuleConnector):
             return False
 
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
-        path_separator = self.GetPathSeparator(source_path_spec)
         # extension -> sig_type 변경해야 함
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano FROM file_info WHERE par_id like '{par_id}' and " \
                 f"parent_path like 'root{query_separator}$Recycle.Bin{query_separator}S-1-5-21%' and name like '$I%';"
 
         recyclebin_files = configuration.cursor.execute_query_mul(query)
 
-        if recyclebin_files == -1 or len(recyclebin_files) == 0:
-            print("There are no recylce bin files")
+        if len(recyclebin_files) == 0:
+            print("There are no recycle bin files")
             return False
 
         insert_recyclebin_info = []
 
         for recyclebin_file in recyclebin_files:
-            recyclebin_file_path = recyclebin_file[1][recyclebin_file[1].find(path_separator):] + \
-                path_separator + recyclebin_file[0]  # document full path
+            recyclebin_file_path = recyclebin_file[1][recyclebin_file[1].find(query_separator):] + \
+                query_separator + recyclebin_file[0]  # document full path
             fileName = recyclebin_file[0]
 
             if fileName.find("-slack") != -1:
@@ -75,11 +74,12 @@ class RecycleBinConnector(interface.ModuleConnector):
 
             deleted_time = configuration.apply_time_zone(results[0]['Deleted_Time'], knowledge_base.time_zone)
             insert_recyclebin_info.append([par_id, configuration.case_id, configuration.evidence_id,
-                                           results[0]['Name'], results[0]['Size'], deleted_time, results[0]['$I']])
+                                           results[0]['Name'], results[0]['Size'], deleted_time, results[0]['$I'],
+                                           '/$Recycle.Bin/S-1-5-21/'])
 
             os.remove(output_path + os.sep + fileName)
 
-        query = "Insert into lv1_os_win_recyclebin values (%s, %s, %s, %s, %s, %s, %s);"
+        query = "Insert into lv1_os_win_recyclebin values (%s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_recyclebin_info)
 
 

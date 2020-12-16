@@ -8,11 +8,13 @@ Table:
       - evd_id
       - id
       - string
+      - source
 
 
     Types:
       - [VARCHAR(100), NOT NULL]
       - [VARCHAR(100), NOT NULL]
       - [VARCHAR(100), NOT NULL]
+      - [TEXT]
       - [TEXT]
       - [TEXT]

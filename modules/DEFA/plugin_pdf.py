@@ -18,7 +18,7 @@ class PDFPlugin(interface.DEFAPlugin):
         with PDF(kwargs['fp']) as pdf:
             pdf.parse_content()
             pdf.parse_metadata()
-            #pdf.extract_multimedia(data.ole_path)
+            # pdf.extract_multimedia(data.ole_path)
 
             data.content = pdf.content
             try:
@@ -185,5 +185,6 @@ class PDFPlugin(interface.DEFAPlugin):
                 data.is_damaged = pdf.is_damaged
 
             return data
+
 
 defa_connector.DEFAConnector.RegisterPlugin(PDFPlugin)

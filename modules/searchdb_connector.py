@@ -14,7 +14,7 @@ from utility import errors
 
 class SearchDBConnector(interface.ModuleConnector):
     NAME = 'searchdb_connector'
-    DESCRIPTION = 'Module for searchdb'
+    DESCRIPTION = 'Module for SearchDB'
     TABLE_NAME = 'lv1_os_win_searchdb'
 
     _plugin_classes = {}
@@ -47,10 +47,9 @@ class SearchDBConnector(interface.ModuleConnector):
             return False
 
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
-        path_separator = self.GetPathSeparator(source_path_spec)
         # extension -> sig_type 변경해야 함
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano FROM file_info WHERE par_id='{par_id}' and " \
-                f"parent_path like 'root{query_separator}ProgramData{query_separator}Microsoft{query_separator}" \
+                f"parent_path = 'root{query_separator}ProgramData{query_separator}Microsoft{query_separator}" \
                 f"Search{query_separator}Data{query_separator}Applications{query_separator}Windows' and name = 'Windows.edb';"
 
         searchdb_file = configuration.cursor.execute_query_mul(query)
@@ -60,14 +59,18 @@ class SearchDBConnector(interface.ModuleConnector):
             return False
 
         # Search artifact paths
-        path = f'{path_separator}ProgramData{path_separator}Microsoft{path_separator}Search' \
-               f'{path_separator}Data{path_separator}Applications{path_separator}Windows{path_separator}Windows.edb'
+        path = f'{query_separator}ProgramData{query_separator}Microsoft{query_separator}Search' \
+               f'{query_separator}Data{query_separator}Applications{query_separator}Windows{query_separator}Windows.edb'
         file_object = self.LoadTargetFileToMemory(
             source_path_spec=source_path_spec,
             configuration=configuration,
             file_path=path)
-
-        results = searchdb_parser.main(database=file_object)
+        try:
+            results = searchdb_parser.main(database=file_object)
+        except Exception as e:
+            logger.error(str(e))
+            print(str(e))
+            return False
         if results is None:
             return False
         file_object.close()
@@ -98,15 +101,15 @@ class SearchDBConnector(interface.ModuleConnector):
             if idx == 0:
                 continue
             insert_searchdb_gthrpth.append(
-                tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]),
-                       str(result[1]), str(result[2])]))
+                tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]), str(result[1]),
+                       str(result[2]), '/ProgramData/Microsoft/Search/Data/Applications/Windows/Windows.edb']))
 
-        query = "Insert into lv1_os_win_searchdb_gthr values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+        query = "Insert into lv1_os_win_searchdb_gthr values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_searchdb_gthr)
 
-        query = "Insert into lv1_os_win_searchdb_gthrpth values (%s, %s, %s, %s, %s, %s);"
+        query = "Insert into lv1_os_win_searchdb_gthrpth values (%s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_searchdb_gthrpth)
-        pass
 
 
 manager.ModulesManager.RegisterModule(SearchDBConnector)

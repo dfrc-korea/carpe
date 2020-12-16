@@ -10,7 +10,7 @@ from modules.mssql_recovery import main as mssql
 
 class MssqlRecoveryConnector(interface.ModuleConnector):
     NAME = 'mssql_recovery_connector'
-    DESCRIPTION = 'Module for mssql'
+    DESCRIPTION = 'Module for Mssql'
 
     def __init__(self):
         super(MssqlRecoveryConnector, self).__init__()

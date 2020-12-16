@@ -18,6 +18,8 @@ class LINKConnector(interface.ModuleConnector):
         super(LINKConnector, self).__init__()
 
     def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
 
@@ -56,6 +58,7 @@ class LINKConnector(interface.ModuleConnector):
         tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
         for link_file in lnk_files:
             file_name = link_file[0]
+            source = '/' + '/'.join(link_file[1].split(path_separator)[1:]) + '/' + file_name
             inode = int(link_file[9])
 
             file_object = self.extract_file_object(
@@ -122,9 +125,9 @@ class LINKConnector(interface.ModuleConnector):
                 [par_id, configuration.case_id, configuration.evidence_id, machine_id, file_name, file_path,
                  file_size, lnk_creation_time, lnk_access_time, lnk_write_time,
                  target_creation_time, target_access_time, target_write_time, drive_type, volume_label,
-                 drive_serial_number, mac_address]))
+                 drive_serial_number, mac_address, source]))
 
-        query = "Insert into lv1_os_win_link values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+        query = "Insert into lv1_os_win_link values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_link_file)
 
 

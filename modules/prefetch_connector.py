@@ -3,7 +3,6 @@
 import os
 from datetime import datetime, timedelta
 
-from modules import logger
 from modules import manager
 from modules import interface
 from modules.windows_prefetch import PFExport2
@@ -36,14 +35,14 @@ class PREFETCHConnector(interface.ModuleConnector):
             return False
 
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
-        path_separator = self.GetPathSeparator(source_path_spec)
         # extension -> sig_type 변경해야 함
-        query = f"SELECT name, parent_path, extension, ctime, ctime_nano FROM file_info WHERE par_id='{par_id}' and " \
-                f"parent_path like 'root{query_separator}Windows{query_separator}Prefetch' and extension = 'pf';"
+        query = f"SELECT name, parent_path, extension, ctime, ctime_nano, inode FROM file_info " \
+                f"WHERE par_id='{par_id}' and parent_path = 'root{query_separator}Windows{query_separator}Prefetch' " \
+                f"and extension = 'pf';"
 
         prefetch_files = configuration.cursor.execute_query_mul(query)
 
-        if prefetch_files == -1 or len(prefetch_files) == 0:
+        if len(prefetch_files) == 0:
             print("There are no prefetch files")
             return False
 
@@ -51,10 +50,9 @@ class PREFETCHConnector(interface.ModuleConnector):
         insert_prefetch_run_info = []
         insert_prefetch_volume_info = []
 
+        tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
         for prefetch in prefetch_files:
-            # document full path
-            prefetch_path = prefetch[1][prefetch[1].find(path_separator):] + path_separator + prefetch[0]
-
+            # prefetch_path = prefetch[1][prefetch[1].find(query_separator):] + query_separator + prefetch[0]
             # file_name = "SVCHOST.EXE-36E2D733.pf"
             file_name = prefetch[0]
 
@@ -68,16 +66,24 @@ class PREFETCHConnector(interface.ModuleConnector):
             if not os.path.exists(output_path):
                 os.mkdir(output_path)
 
-            self.ExtractTargetFileToPath(
-                source_path_spec=source_path_spec,
-                configuration=configuration,
-                file_path=prefetch_path,
-                output_path=output_path)
+            self.extract_file_to_path(tsk_file_system=tsk_file_system,
+                                      inode=int(prefetch[5]),
+                                      file_name=file_name,
+                                      output_path=output_path)
+
+            # self.ExtractTargetFileToPath(
+            #     source_path_spec=source_path_spec,
+            #     configuration=configuration,
+            #     file_path=prefetch_path,
+            #     output_path=output_path)
 
             fn = output_path + os.path.sep + file_name
             app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_prefetch"
             # TODO: slack 처리해야 함
-            results = PFExport2.main(fn, app_path)  # filename, app_path
+            try:
+                results = PFExport2.main(fn, app_path)  # filename, app_path
+            except Exception:
+                continue
 
             if not results:
                 os.remove(output_path + os.sep + file_name)
@@ -160,9 +166,10 @@ class PREFETCHConnector(interface.ModuleConnector):
             for idx, result in enumerate(results['RunInfo']):
                 if idx == 0:
                     continue
-                insert_prefetch_run_info.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, prefetch_name, result[1], result[2],
-                     result[3], result[4]]))
+                insert_prefetch_run_info.append([par_id, configuration.case_id, configuration.evidence_id,
+                                                 prefetch_name, result[1], result[2], result[3], result[4],
+                                                 '/' + '/'.join(prefetch[1].replace('\\', '/').split('/')[1:]) + '/' +
+                                                 prefetch[0]])
 
             # prefetch_volume_info
             for idx, result in enumerate(results['VolInfo']):
@@ -171,16 +178,16 @@ class PREFETCHConnector(interface.ModuleConnector):
                 if result[2] is not None:
                     result[2] = str(result[2]).replace(' ', 'T') + 'Z'
                     result[2] = configuration.apply_time_zone(result[2], knowledge_base.time_zone)  # creation_time
-                insert_prefetch_volume_info.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, prefetch_name, result[1], result[2],
-                     result[3], result[4]]))
+                insert_prefetch_volume_info.append([par_id, configuration.case_id, configuration.evidence_id,
+                                                    prefetch_name, result[1], result[2], result[3], result[4]])
 
             os.remove(output_path + os.sep + file_name)
 
-        query = "Insert into lv1_os_win_prefetch values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+        query = "Insert into lv1_os_win_prefetch values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                "%s, %s);"
         configuration.cursor.bulk_execute(query, insert_prefetch_info)
 
-        query = "Insert into lv1_os_win_prefetch_run_info values (%s, %s, %s, %s, %s, %s, %s, %s);"
+        query = "Insert into lv1_os_win_prefetch_run_info values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_prefetch_run_info)
 
         query = "Insert into lv1_os_win_prefetch_volume_info values (%s, %s, %s, %s, %s, %s, %s, %s);"

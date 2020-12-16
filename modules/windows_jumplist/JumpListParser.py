@@ -278,10 +278,9 @@ def main(file, app_path):
         src_files = get_files(fn, '*.customdestination-ms')
         src_files.extend(get_files(fn, '*.automaticdestinations-ms'))
 
-    print('Processing...')
     i = 0
     for fn in src_files:
-        print(i + 1, fn if type(fn) is str else fn.name)
+        # print(i + 1, fn if type(fn) is str else fn.name)
         JumpListParser = TJumpListParser(fn, i)
         i += 1
         result = JumpListParser.parse()

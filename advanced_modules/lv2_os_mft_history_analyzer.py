@@ -10,7 +10,7 @@ from advanced_modules import logger
 class LV2OSMFTHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
 
     NAME = 'lv2_os_mft_history_analyzer'
-    DESCRIPTION = 'Moudle for LV2 OS MFT History'
+    DESCRIPTION = 'Module for LV2 OS MFT History'
 
     _plugin_classes = {}
 
@@ -22,8 +22,6 @@ class LV2OSMFTHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         super(LV2OSMFTHISTORYAnalyzer, self).__init__()
 
     def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
-        print('[MODULE]: LV2 OS APP History Analyzer')
-
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
         # 모든 yaml 파일 리스트
         yaml_list = [this_file_path+'lv2_os_mft_history.yaml']
