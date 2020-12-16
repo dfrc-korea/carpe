@@ -41,15 +41,13 @@ class EMAILConnector(interface.ModuleConnector):
                 f"extension = 'ost' or " \
                 f"extension = 'pst');"
 
-        # query = f"SELECT name, parent_path, extension FROM file_info WHERE par_id='{par_id}' and " \
-        #        f"(extension = 'mbox');"
-
         email_files = configuration.cursor.execute_query_mul(query)
 
         if type(email_files) == int or len(email_files) == 0:
+            print("There are no email files")
             return False
 
-        if configuration.standalone_check == True:
+        if configuration.standalone_check:
             insert_email = list()
         else:
             config = configparser.ConfigParser()
@@ -63,12 +61,8 @@ class EMAILConnector(interface.ModuleConnector):
             _index_name = config.get('email', 'index')
             _type_name = config.get('email', 'type')
             es = Elasticsearch(hosts=_host, port=_port)
-        # tmp = 0
         path_separator = self.GetPathSeparator(source_path_spec)
         for email in email_files:
-            # tmp += 1
-            # if tmp == 300:  # 임시
-            #     break
             email_path = email[1][email[1].find(path_separator):] + path_separator + email[0]  # document full path
             fileExt = email[2]
             fileName = email[0]
@@ -140,8 +134,7 @@ class EMAILConnector(interface.ModuleConnector):
             if not result:
                 continue
 
-            # print(result)
-            if configuration.standalone_check == True:
+            if configuration.standalone_check:
                 if fileExt == "mbox" or fileExt == "pst" or fileExt == "ost":
                     for r in result:
                         received_lines = ''

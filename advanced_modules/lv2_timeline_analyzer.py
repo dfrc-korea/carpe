@@ -11,7 +11,7 @@ from dfvfs.lib import definitions as dfvfs_definitions
 class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
 
     NAME = 'lv2_timeline_analyzer'
-    DESCRIPTION = 'Moudle for LV2 Timeline'
+    DESCRIPTION = 'Module for LV2 Timeline'
 
     _plugin_classes = {}
 
@@ -29,7 +29,6 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
         super(LV2TIMELINEAnalyzer, self).__init__()
 
     def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
-        print('[MODULE]: LV2 Timeline Analyzer')
 
         if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
             par_id = configuration.partition_list['p1']
@@ -124,7 +123,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                             description = "from:%s, to:%s, call_type:%s" % (value[2], value[3], value[4])
 
                             insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                      event_type, event_time, duration, description]))
+                                                      event_type, str(event_time), duration, description]))
 
                     if row[0] == 'lv1_os_and_basic_app_mms':
                         for value in result:
@@ -134,7 +133,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                             description = "from:%s, to:%s, content:%s" % (value[8], value[9], value[12])
 
                             insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                      event_type, event_time, duration, description]))
+                                                      event_type, str(event_time), duration, description]))
 
                     if row[0] == 'lv1_os_and_basic_app_sms':
                         for value in result:
@@ -152,7 +151,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                             description = "from:%s, to:%s, content:%s" % (from_num, to_num, value[2])
 
                             insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                      event_type, event_time, duration, description]))
+                                                      event_type, str(event_time), duration, description]))
 
                     if row[0] == 'lv1_os_and_basic_app_usagestats_0':
                         for value in result:
@@ -162,7 +161,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                             description = "package:%s, source:%s" % (value[2], value[3])
 
                             insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                      event_type, event_time, duration, description]))
+                                                      event_type, str(event_time), duration, description]))
 
                     if row[0] == 'lv1_app_web_chrome_download':
                         for value in result:
@@ -172,7 +171,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                             if len(value[1]) != 0:
                                 start_time = datetime.datetime.strptime(value[0][:-6], '%Y-%m-%dT%H:%M:%S.%f')
                                 end_time = datetime.datetime.strptime(value[1][:-6], '%Y-%m-%dT%H:%M:%S.%f')
-                                duration = end_time - start_time
+                                duration = str(end_time - start_time)
                             else:
                                 duration = "00:00:00"
 
@@ -180,7 +179,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                                           % (value[2], value[3]+value[4], value[5], value[6])
 
                             insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                      event_type, event_time, duration, description]))
+                                                      event_type, str(event_time), duration, description]))
 
                     if row[0] == 'lv1_app_web_chromium_edge_download':
                         for value in result:
@@ -190,7 +189,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                             if len(value[1]) != 0:
                                 start_time = datetime.datetime.strptime(value[0][:-6], '%Y-%m-%dT%H:%M:%S.%f')
                                 end_time = datetime.datetime.strptime(value[1][:-6], '%Y-%m-%dT%H:%M:%S.%f')
-                                duration = end_time - start_time
+                                duration = str(end_time - start_time)
                             else:
                                 duration = "00:00:00"
 
@@ -198,7 +197,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                                           "edge profile:%s" % (value[2], value[3]+value[4], value[5], value[6])
 
                             insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                      event_type, event_time, duration, description]))
+                                                      event_type, str(event_time), duration, description]))
 
                     if row[0] == 'lv1_app_web_whale_download':
                         for value in result:
@@ -208,7 +207,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                             if len(value[1]) != 0:
                                 start_time = datetime.datetime.strptime(value[0][:-6], '%Y-%m-%dT%H:%M:%S.%f')
                                 end_time = datetime.datetime.strptime(value[1][:-6], '%Y-%m-%dT%H:%M:%S.%f')
-                                duration = end_time - start_time
+                                duration = str(end_time - start_time)
                             else:
                                 duration = "00:00:00"
 
@@ -216,7 +215,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                                           % (value[2], value[3]+value[4], value[5], value[6])
 
                             insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                      event_type, event_time, duration, description]))
+                                                      event_type, str(event_time), duration, description]))
 
                     if row[0] == 'lv1_app_web_opera_download':
                         for value in result:
@@ -226,7 +225,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                             if len(value[1]) != 0:
                                 start_time = datetime.datetime.strptime(value[0][:-6], '%Y-%m-%dT%H:%M:%S.%f')
                                 end_time = datetime.datetime.strptime(value[1][:-6], '%Y-%m-%dT%H:%M:%S.%f')
-                                duration = end_time - start_time
+                                duration = str(end_time - start_time)
                             else:
                                 duration = "00:00:00"
 
@@ -234,7 +233,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                                           % (value[2], value[3]+value[4], value[5], value[6])
 
                             insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                      event_type, event_time, duration, description]))
+                                                      event_type, str(event_time), duration, description]))
 
                     if row[0] == 'lv1_app_web_firefox_download':
                         for value in result:
@@ -244,7 +243,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                             if len(value[1]) != 0:
                                 start_time = datetime.datetime.strptime(value[0][:-6], '%Y-%m-%dT%H:%M:%S.%f')
                                 end_time = datetime.datetime.strptime(value[1][:-6], '%Y-%m-%dT%H:%M:%S.%f')
-                                duration = end_time - start_time
+                                duration = str(end_time - start_time)
                             else:
                                 duration = "00:00:00"
 
@@ -252,7 +251,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                                           "firefox profile:%s" % (value[2], value[3], value[4], value[5])
 
                             insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                      event_type, event_time, duration, description]))
+                                                      event_type, str(event_time), duration, description]))
 
                     if row[0] == 'lv1_os_win_reg_usb_device':
                         for value in result:
@@ -265,7 +264,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                                           % (value[1], value[2], value[3], value[4], value[5])
 
                             insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                      event_type, event_time, duration, description]))
+                                                      event_type, str(event_time), duration, description]))
 
                     if row[0] == 'lv1_os_win_event_logs_usb_devices':
                         for value in result:
@@ -278,7 +277,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                                           % (value[1], value[2], value[3], value[4], value[5], value[6])
 
                             insert_data.append(tuple([par_id, configuration.case_id, configuration.evidence_id,
-                                                      event_type, event_time, duration, description]))
+                                                      event_type, str(event_time), duration, description]))
                     else:
                         pass
                 else:
@@ -287,10 +286,8 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
                 pass
 
         query = "Insert into lv2_timeline values (%s, %s, %s, %s, %s, %s, %s);"
-        try:
-            configuration.cursor.bulk_execute(query, insert_data)
-        except:
-            print('hi')
+        configuration.cursor.bulk_execute(query, insert_data)
+
 
 
 manager.AdvancedModulesManager.RegisterModule(LV2TIMELINEAnalyzer)

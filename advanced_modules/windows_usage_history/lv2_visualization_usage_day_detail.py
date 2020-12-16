@@ -21,7 +21,11 @@ def USAGEDAYDETAIL(configuration):
     par_list = []
     for i in (configuration.partition_list.values()):
         # 문서파일 생성
-        query = f"SELECT name, from_unixtime(ctime,'%Y-%m-%d %H:%i:%s') as created_time, from_unixtime(mtime,'%Y-%m-%d %H:%i:%s') as modified_time, from_unixtime(atime,'%Y-%m-%d %H:%i:%s') as accessed_time FROM file_info where (extension like 'doc%' or extension like 'ppt%' or extension like 'xls%' or extension like 'pdf' or extension like 'hwp') AND (par_id='{i}')"
+        query = f"SELECT name, from_unixtime(ctime,'%Y-%m-%d %H:%i:%s') as created_time, " \
+                f"from_unixtime(mtime,'%Y-%m-%d %H:%i:%s') as modified_time, " \
+                f"from_unixtime(atime,'%Y-%m-%d %H:%i:%s') as accessed_time " \
+                f"FROM file_info " \
+                f"where (extension like 'doc%' or extension like 'ppt%' or extension like 'xls%' or extension like 'pdf' or extension like 'hwp') AND (par_id='{i}')"
         result_query = db.execute_query_mul(query)
         if len(result_query) != 0:
             for result_data in result_query:

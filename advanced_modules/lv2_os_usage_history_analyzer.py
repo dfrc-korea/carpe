@@ -24,14 +24,13 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         try:
 
             query_separator = self.GetQuerySeparator(source_path_spec, configuration)
-            query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') and extension = 'evtx' and " \
-                f"parent_path = 'root{query_separator}Windows{query_separator}System32{query_separator}winevt{query_separator}Logs'"
+            query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
+                    f"and extension = 'evtx' and parent_path = 'root{query_separator}Windows{query_separator}" \
+                    f"System32{query_separator}winevt{query_separator}Logs'"
             eventlog_files = configuration.cursor.execute_query_mul(query)
 
             if len(eventlog_files) == 0:
                 return False
-
-            print('[MODULE]: LV2 OS Win Usage History Analyzer Connect')
 
             this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'visualization' + os.sep
             # 모든 yaml 파일 리스트
@@ -69,9 +68,8 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
                     ))
                 except:
                     insert_data.append(tuple(
-                        [result.regdate,
-                         result.evdnc_type, result.artifact_type, result.information, configuration.case_id,
-                         configuration.evidence_id]
+                        [result.regdate, result.evdnc_type, result.artifact_type, result.information,
+                         configuration.case_id, configuration.evidence_id]
                     ))
             query = "Insert into usage_day_detail values (%s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
@@ -98,11 +96,13 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             query = "Insert into usage_day_stat values (%s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
+
             '''
             #Timeline_month
             print('[MODULE]: LV2 OS Win Usage History Analyzer - TIMELINE MONTH')
             insert_data = []
-            query = "Insert into timeline_month values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+            query = "Insert into timeline_month values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             for result in tm.TIMELINEMONTH(configuration):
                 for i in result:
                     insert_data.append(tuple(i))
