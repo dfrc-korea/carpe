@@ -74,8 +74,8 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
 
         # Prefetch - reference_file 추후에 추가
         query = f"SELECT program_name, program_path, program_run_count, file_created_time, last_run_time, " \
-                f"2nd_last_run_time, 3rd_last_run_time, 4th_last_run_time, 5th_last_run_time, " \
-                f"6th_last_run_time, 7th_last_run_time, 8th_last_run_time " \
+                f"`2nd_last_run_time`, `3rd_last_run_time`, `4th_last_run_time`, `5th_last_run_time`, " \
+                f"`6th_last_run_time`, `7th_last_run_time`, `8th_last_run_time` " \
                 f"FROM lv1_os_win_prefetch WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
 
