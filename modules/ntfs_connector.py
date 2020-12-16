@@ -15,13 +15,14 @@ class NTFSConnector(interface.ModuleConnector):
 
     _plugin_classes = {}
 
+
     def __init__(self):
         super(NTFSConnector, self).__init__()
         self._mft_path = None
         self._mftmirr_path = None
         self._usnjrnl_path = None
         self._logfile_path = None
-        self._deleted_files = []
+        self.path_dict = {}
 
     def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
@@ -61,23 +62,23 @@ class NTFSConnector(interface.ModuleConnector):
 
         mft_file = None
         if os.path.exists(self._mft_path):
-            self.print_run_info('Module for $MFT', par_id, start=True)
+            self.print_run_info('Module for $MFT', start=True)
             mft_file = self.process_mft(par_id, configuration, table_list, knowledge_base)
-            self.print_run_info('Module for $MFT', par_id, start=False)
+            self.print_run_info('Module for $MFT', start=False)
         else:
             print("There is no $MFT")
 
         if os.path.exists(self._mft_path) and os.path.exists(self._logfile_path):
-            self.print_run_info('Module for $LogFile', par_id, start=True)
+            self.print_run_info('Module for $LogFile', start=True)
             self.process_logfile(par_id, configuration, table_list, knowledge_base, mft_file)
-            self.print_run_info('Module for $LogFile', par_id, start=False)
+            self.print_run_info('Module for $LogFile', start=False)
         else:
             print("There is no $LogFile")
 
         if os.path.exists(self._mft_path) and os.path.exists(self._usnjrnl_path):
-            self.print_run_info('Module for $UsnJrnl', par_id, start=True)
+            self.print_run_info('Module for $UsnJrnl', start=True)
             self.process_usnjrnl(par_id, configuration, table_list, knowledge_base, mft_file)
-            self.print_run_info('Module for $UsnJrnl', par_id, start=False)
+            self.print_run_info('Module for $UsnJrnl', start=False)
         else:
             print("There is no $UsnJrnl")
 
@@ -89,9 +90,10 @@ class NTFSConnector(interface.ModuleConnector):
         info = [par_id, configuration.case_id, configuration.evidence_id]
 
         mft_list = []
-        for idx, file_record in enumerate(mft_file.file_records()):
+        for file_record in mft_file.file_records():
             try:
                 file_paths = mft_file.build_full_paths(file_record, True)
+                self.path_dict[file_record] = [e[0] for e in file_paths]
             except MFT.MasterFileTableException:
                 continue
             # TODO: file_path 중복 수정
@@ -107,7 +109,7 @@ class NTFSConnector(interface.ModuleConnector):
                 f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
 
         configuration.cursor.bulk_execute(query, mft_list)
-        print(f'mft num: {len(mft_list)}')
+        # print(f'mft num: {len(mft_list)}')
 
         return mft_file
 
@@ -117,23 +119,26 @@ class NTFSConnector(interface.ModuleConnector):
 
         restart_area_list = []
         log_record_list = []
-        info = tuple([par_id, configuration.case_id, configuration.evidence_id])
+        info = [par_id, configuration.case_id, configuration.evidence_id]
 
-        for idx, log_item in enumerate(log_file.parse_ntfs_records()):
+        for log_item in log_file.parse_ntfs_records():
             if not type(log_item):
                 continue
             elif type(log_item) is LogFile.NTFSRestartArea:
                 output_data = logfile_parser.restart_area_parse(log_item)
-                restart_area_list.append(info + tuple(output_data))
+                restart_area_list.append(info + output_data)
             elif type(log_item) is LogFile.NTFSLogRecord:
-                output_data = logfile_parser.log_record_parse(log_item, mft_file, knowledge_base.time_zone)
-                log_record_list.append(info + tuple(output_data))
+                output_data = logfile_parser.log_record_parse(log_item, mft_file, self.path_dict,
+                                                              knowledge_base.time_zone)
+                log_record_list.append(info + output_data)
 
-        restart_area_query = f"Insert into {table_list[1]} values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
-        log_record_query = f"Insert into {table_list[2]} values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+        restart_area_query = f"Insert into {table_list[1]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s," \
+                             f" %s, %s);"
+        log_record_query = f"Insert into {table_list[2]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                           f"%s, %s, %s);"
 
-        print(f'restart area num: {len(restart_area_list)}')
-        print(f'log record num: {len(log_record_list)}')
+        # print(f'restart area num: {len(restart_area_list)}')
+        # print(f'log record num: {len(log_record_list)}')
         configuration.cursor.bulk_execute(restart_area_query, restart_area_list)
         configuration.cursor.bulk_execute(log_record_query, log_record_list)
 
@@ -144,13 +149,13 @@ class NTFSConnector(interface.ModuleConnector):
         query = f"Insert into {table_list[3]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
 
         usnjrnl_list = []
-        for idx, usn_record in enumerate(usn_journal.usn_records()):
-            usnjrnl_item = usnjrnl_parser.usnjrnl_parse(mft_file, usn_record, knowledge_base.time_zone)
+        for usn_record in usn_journal.usn_records():
+            usnjrnl_item = usnjrnl_parser.usnjrnl_parse(mft_file, usn_record, self.path_dict, knowledge_base.time_zone)
             info = [par_id, configuration.case_id, configuration.evidence_id]
             values = info + usnjrnl_item
             usnjrnl_list.append(values)
 
-        print(f'usnjrnl num: {len(usnjrnl_list)}')
+        # print(f'usnjrnl num: {len(usnjrnl_list)}')
         configuration.cursor.bulk_execute(query, usnjrnl_list)
 
 

@@ -1,6 +1,5 @@
 import os
 
-
 # MFT entry history class
 class MFTEntryHistory:
     def __init__(self, mft_object):

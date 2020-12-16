@@ -2,7 +2,7 @@ from modules.NTFS import util
 from modules.NTFS.dfir_ntfs import USN, MFT
 
 
-def usnjrnl_parse(mft_file, usn_record, time_zone):
+def usnjrnl_parse(mft_file, usn_record, path_dict, time_zone):
     r_usn = usn_record.get_usn()
     r_source = USN.ResolveSourceCodes(usn_record.get_source_info())
     r_reason = USN.ResolveReasonCodes(usn_record.get_reason())
@@ -20,7 +20,10 @@ def usnjrnl_parse(mft_file, usn_record, time_zone):
 
     try:
         file_record = mft_file.get_file_record_by_number(fr_number, fr_sequence)
-        file_paths = mft_file.build_full_paths(file_record)
+        if file_record in path_dict.keys():
+            file_paths = path_dict[file_record]
+        else:
+            file_paths = mft_file.build_full_paths(file_record)
     except MFT.MasterFileTableException:
         fr_file_path = ''
     else:

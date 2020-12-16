@@ -8,16 +8,16 @@ def restart_area_parse(restart_area):
     restart_area_version = f"{restart_area.get_major_version()}.{restart_area.get_minor_version()}"
 
     # lsn, version, checkpoint, attribute_table, attribute_name, dirty_page_table, transaction_table
-    restart_area_items = (restart_area.lsn, restart_area_version, restart_area.get_start_of_checkpoint_lsn(),
+    restart_area_items = [restart_area.lsn, restart_area_version, restart_area.get_start_of_checkpoint_lsn(),
                           restart_area.get_open_attribute_table_lsn(), restart_area.get_open_attribute_table_length(),
                           restart_area.get_attribute_names_lsn(), restart_area.get_attribute_names_length(),
                           restart_area.get_dirty_page_table_lsn(), restart_area.get_dirty_page_table_length(),
-                          restart_area.get_transaction_table_lsn(), restart_area.get_transaction_table_length())
+                          restart_area.get_transaction_table_lsn(), restart_area.get_transaction_table_length()]
 
     return restart_area_items
 
 
-def log_record_parse(log_record, mft_file, time_zone):
+def log_record_parse(log_record, mft_file, path_dict, time_zone):
     target_attribute_name = None
     redo_op = log_record.get_redo_operation()
     undo_op = log_record.get_undo_operation()
@@ -33,7 +33,10 @@ def log_record_parse(log_record, mft_file, time_zone):
 
         try:
             file_record = mft_file.get_file_record_by_number(target)
-            file_paths = mft_file.build_full_paths(file_record)
+            if file_record in path_dict.keys():
+                file_paths = path_dict[file_record]
+            else:
+                file_paths = mft_file.build_full_paths(file_record)
         except MFT.MasterFileTableException:
             fr_file_path = None
         else:
@@ -61,7 +64,10 @@ def log_record_parse(log_record, mft_file, time_zone):
 
             try:
                 file_record = mft_file.get_file_record_by_number(fr_number, fr_sequence)
-                file_paths = mft_file.build_full_paths(file_record)
+                if file_record in path_dict.keys():
+                    file_paths = path_dict[file_record]
+                else:
+                    file_paths = mft_file.build_full_paths(file_record)
             except MFT.MasterFileTableException:
                 fr_file_path = None
             else:
@@ -74,9 +80,6 @@ def log_record_parse(log_record, mft_file, time_zone):
             log_record_items.append(None)  # target_reference
             log_record_items.append(None)  # target_attribute_name
             log_record_items.append(None)  # file_path
-
-        # current lsn 필드로부터 target vcn 필드 사이의 거리, 필요없어서 뺌
-        # log_record_items.append(log_record.get_target_attribute())
 
     offset_in_target = log_record.calculate_offset_in_target()
     if offset_in_target is not None:
@@ -148,7 +151,10 @@ def log_record_parse(log_record, mft_file, time_zone):
 
                         try:
                             file_record = mft_file.get_file_record_by_number(fr_number, fr_sequence)
-                            file_paths = mft_file.build_full_paths(file_record)
+                            if file_record in path_dict.keys():
+                                file_paths = path_dict[file_record]
+                            else:
+                                file_paths = mft_file.build_full_paths(file_record)
                         except MFT.MasterFileTableException:
                             fr_file_path = None
                         else:
@@ -226,7 +232,10 @@ def log_record_parse(log_record, mft_file, time_zone):
 
                         try:
                             file_record = mft_file.get_file_record_by_number(fr_number, fr_sequence)
-                            file_paths = mft_file.build_full_paths(file_record)
+                            if file_record in path_dict.keys():
+                                file_paths = path_dict[file_record]
+                            else:
+                                file_paths = mft_file.build_full_paths(file_record)
                         except MFT.MasterFileTableException:
                             fr_file_path = None
                         else:
@@ -279,7 +288,10 @@ def log_record_parse(log_record, mft_file, time_zone):
 
             try:
                 file_record = mft_file.get_file_record_by_number(fr_number, fr_sequence)
-                file_paths = mft_file.build_full_paths(file_record)
+                if file_record in path_dict.keys():
+                    file_paths = path_dict[file_record]
+                else:
+                    file_paths = mft_file.build_full_paths(file_record)
             except MFT.MasterFileTableException:
                 fr_file_path = None
             else:

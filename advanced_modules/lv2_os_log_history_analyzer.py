@@ -3,7 +3,6 @@
 from advanced_modules import manager
 from advanced_modules import interface
 from advanced_modules.NTFS.combine import collect_mft, collect_usnjrnl, combine_usnjrnl, UsnJrnl, preprocess_mft
-from dfvfs.lib import definitions as dfvfs_definitions
 import os
 
 

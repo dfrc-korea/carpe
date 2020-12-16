@@ -5,7 +5,6 @@ import os
 from advanced_modules import manager
 from advanced_modules import interface
 from advanced_modules import logger
-from dfvfs.lib import definitions as dfvfs_definitions
 
 
 class LV2OSMFTHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
