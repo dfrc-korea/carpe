@@ -18,6 +18,14 @@ def regexp(expr, item):
     return reg.search(item) is not None
 
 
+def from_unixtime(time, fmt):
+    if time == 0:
+        return ''
+    fmt = fmt.replace("%i", "%M").replace("%s", "%S")
+    time = datetime.datetime.fromtimestamp(time/1000)
+    return time.strftime(fmt)
+
+
 class Database:
     def __init__(self, case_id, evd_id, source_path, output_path):
         self._conn = None
@@ -32,6 +40,7 @@ class Database:
             self._conn = sqlite3.connect(path)
             self._conn.create_function('UNHEX', 1, lambda value: binascii.unhexlify(value))
             self._conn.create_function('regexp', 2, regexp)
+            self._conn.create_function('from_unixtime', 2, from_unixtime)
             cursor = self._conn.cursor()
             cursor.execute("""PRAGMA synchronous = OFF""")
             cursor.execute("""PRAGMA journal_mode = WAL""")
