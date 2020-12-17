@@ -79,40 +79,47 @@ class ProcessEngine(object):
 
     def Process(self, configuration):
         and_flag = False
-        for source_path_spec in configuration.source_path_specs:
-            if source_path_spec.IsFileSystem() \
-                    or source_path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
-                try:
-                    par_id = self.get_partition_id(source_path_spec, configuration)
-                    for module_name in self._modules:
-                        module = self._modules.get(module_name, None)
-                        if isinstance(module, modules_interface.ModuleConnector):
-                            # Android Forensic Module
-                            if module_name == 'andforensics_connector':
-                                if not and_flag:
-                                    module.Connect(par_id=par_id, configuration=configuration,
+        if configuration.source_path_specs[0].TYPE_INDICATOR == 'APFS':
+            module = self._modules.get('macos_connector', None)
+            module.Connect(par_id='', configuration=configuration,
+                           source_path_spec=configuration.source_path_specs[0],
+                           knowledge_base=self.knowledge_base)
+
+        else:
+            for source_path_spec in configuration.source_path_specs:
+                if source_path_spec.IsFileSystem() \
+                        or source_path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
+                    try:
+                        par_id = self.get_partition_id(source_path_spec, configuration)
+                        for module_name in self._modules:
+                            module = self._modules.get(module_name, None)
+                            if isinstance(module, modules_interface.ModuleConnector):
+                                # Android Forensic Module
+                                if module_name == 'andforensics_connector':
+                                    if not and_flag:
+                                        module.Connect(par_id=par_id, configuration=configuration,
+                                                       source_path_spec=source_path_spec,
+                                                       knowledge_base=self.knowledge_base)
+                                        and_flag = True
+                                # Skip these modules
+                                elif module_name in ['andforensics_connector',
+                                                     'fica_connector', 'extract_connector',
+                                                     'image_classification_connector',
+                                                     'kakaotalk_mobile_decrypt_connector',
+                                                     'android_basic_apps_connector',
+                                                     'android_user_apps_connector']:
+                                    pass
+                                # Other modules
+                                else:
+                                    module.print_run_info(module.DESCRIPTION, start=True)
+                                    module.Connect(par_id=par_id,
+                                                   configuration=configuration,
                                                    source_path_spec=source_path_spec,
                                                    knowledge_base=self.knowledge_base)
-                                    and_flag = True
-                            # Skip these modules
-                            elif module_name in ['andforensics_connector',
-                                                 'fica_connector', 'extract_connector',
-                                                 'image_classification_connector',
-                                                 'kakaotalk_mobile_decrypt_connector',
-                                                 'android_basic_apps_connector',
-                                                 'android_user_apps_connector']:
-                                pass
-                            # Other modules
-                            else:
-                                module.print_run_info(module.DESCRIPTION, start=True)
-                                module.Connect(par_id=par_id,
-                                               configuration=configuration,
-                                               source_path_spec=source_path_spec,
-                                               knowledge_base=self.knowledge_base)
-                                module.print_run_info(module.DESCRIPTION, start=False)
+                                    module.print_run_info(module.DESCRIPTION, start=False)
 
-                except RuntimeError as exception:
-                    raise errors.BackEndError('The module cannot be connected: {0!s}'.format(exception))
+                    except RuntimeError as exception:
+                        raise errors.BackEndError('The module cannot be connected: {0!s}'.format(exception))
 
     def ProcessAdvancedModules(self, configuration):
         for source_path_spec in configuration.source_path_specs:
@@ -259,6 +266,8 @@ class ProcessEngine(object):
         if len(configuration.partition_list) > 1:
             parent_location = getattr(source_path_spec.parent, 'location', None)
             par_id = configuration.partition_list[parent_location[1:]]
+        elif len(configuration.partition_list) == 0:
+            par_id = ''
         else:
             par_id = configuration.partition_list[list(configuration.partition_list.keys())[0]]
         print(f'\n[{self.print_now_time()}] Partition ID: {par_id}')

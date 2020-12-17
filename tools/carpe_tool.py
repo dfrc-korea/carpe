@@ -256,7 +256,10 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         # check partition_list
         if mode == 'Analyze' and not self._partition_list:
-            raise errors.BadConfigObject('partition does not exist.\n')
+            if configuration.source_path_specs[0].TYPE_INDICATOR == 'APFS':
+                pass
+            else:
+                raise errors.BadConfigObject('partition does not exist.\n')
 
         # print partition_list
         print('partition_list: ' + str(self._partition_list))

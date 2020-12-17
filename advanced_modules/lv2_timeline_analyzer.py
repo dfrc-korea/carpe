@@ -30,13 +30,13 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
 
     def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
 
-        if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
-            par_id = configuration.partition_list['p1']
-        else:
-            par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-
-        if par_id == None:
+        if par_id == None or par_id == '':
             return False
+        else:
+            if source_path_spec.parent.type_indicator != dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION:
+                par_id = configuration.partition_list['p1']
+            else:
+                par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
         # 모든 yaml 파일 리스트
