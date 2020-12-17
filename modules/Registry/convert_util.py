@@ -30,4 +30,4 @@ def convert_timestamp(timestamp):
 
 
 def from_unix_timestamp(timestamp):
-    return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat() + 'Z'
+    return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat()

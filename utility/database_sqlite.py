@@ -137,8 +137,7 @@ class Database:
             cursor.close()
             self.commit()
         except Exception as e:
-            print(query)
-            print("db execution failed: %s" % e)
+            print("[DB Execution Failed] %s" % e)
             return -1
         return data
 

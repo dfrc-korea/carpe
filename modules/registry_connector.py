@@ -165,7 +165,7 @@ class RegistryConnector(interface.ModuleConnector):
                  f"(name = 'Amcache.hve.LOG1' and parent_path like '{old_appcompat_path}') or " \
                  f"(name = 'Amcache.hve.LOG2' and parent_path like '{old_appcompat_path}'))"
         # query3 = query3.replace('/', query_sep)
-        
+
         regback_path = f"root{query_sep}Windows{query_sep}System32{query_sep}config{query_sep}RegBack"
         query4 = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') and " \
                  f"((name = 'SYSTEM' and parent_path like '{regback_path}') or " \
@@ -241,8 +241,8 @@ class RegistryConnector(interface.ModuleConnector):
                 backup_flag = 'Backup-Windows.old, Backup-RegBack'
 
             for registry in registry_files:
-                registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                 file_name = registry[0]
+                registry_path = registry[1][registry[1].find(path_sep):] + path_sep + file_name
 
                 file_object = self.LoadTargetFileToMemory(
                     source_path_spec=source_path_spec,
@@ -349,8 +349,8 @@ class RegistryConnector(interface.ModuleConnector):
             if backup_flag != 'Backup-RegBack':
                 for registry2 in registry_files2:
                     for registry in registry2:
-                        registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                         file_name = registry[0]
+                        registry_path = registry[1][registry[1].find(path_sep):] + path_sep + file_name
 
                         file_object = self.LoadTargetFileToMemory(
                             source_path_spec=source_path_spec,
@@ -365,15 +365,13 @@ class RegistryConnector(interface.ModuleConnector):
                             reg_usr = Registry.RegistryHive(file_object)
                             for registry in registry2:
                                 if registry[0] == 'UsrClass.dat.LOG1':
-                                    registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
-                                                    registry[0]
+                                    registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                     reg_usr_log1 = self.LoadTargetFileToMemory(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,
                                         file_path=registry_path)
                                 elif registry[0] == 'UsrClass.dat.LOG2':
-                                    registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
-                                                    registry[0]
+                                    registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                     reg_usr_log2 = self.LoadTargetFileToMemory(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,
@@ -389,15 +387,13 @@ class RegistryConnector(interface.ModuleConnector):
                             reg_nt = Registry.RegistryHive(file_object)
                             for registry in registry2:
                                 if registry[0] == 'ntuser.dat.LOG1':
-                                    registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
-                                                    registry[0]
+                                    registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                     reg_nt_log1 = self.LoadTargetFileToMemory(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,
                                         file_path=registry_path)
                                 elif registry[0] == 'ntuser.dat.LOG2':
-                                    registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
-                                                    registry[0]
+                                    registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                     reg_nt_log2 = self.LoadTargetFileToMemory(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,

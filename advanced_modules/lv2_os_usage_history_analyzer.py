@@ -33,16 +33,19 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
                 return False
 
             this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'visualization' + os.sep
+
             # 모든 yaml 파일 리스트
-            yaml_list = [this_file_path+'lv2_visualization_usage_day_detail.yaml',
-                         this_file_path+'lv2_visualization_usage_year.yaml',
-                         this_file_path+'lv2_visualization_usage_day_stat.yaml',
-                         this_file_path+'lv2_visualization_timeline_month.yaml']
+            yaml_list = [this_file_path + 'lv2_visualization_usage_day_detail.yaml',
+                         this_file_path + 'lv2_visualization_usage_year.yaml',
+                         this_file_path + 'lv2_visualization_usage_day_stat.yaml',
+                         this_file_path + 'lv2_visualization_timeline_month.yaml']
+
             # 모든 테이블 리스트
             table_list = ['usage_day_detail',
                           'usage_year',
                           'usage_day_stat',
                           'timeline_month']
+
             # 모든 테이블 생성
             for count in range(0, len(yaml_list)):
                 if not self.LoadSchemaFromYaml(yaml_list[count]):
@@ -56,13 +59,13 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
                         logger.error('cannot create database table name: {0:s}'.format(table_list[count]))
                         return False
 
-            #USAGE_DAY_DETAIL
+            # USAGE_DAY_DETAIL
             print('[MODULE]: LV2 OS Win Usage History Analyzer - USAGE_DAY_DETAIL')
             insert_data = []
             for result in udd.USAGEDAYDETAIL(configuration):
                 try:
                     insert_data.append(tuple(
-                        [datetime.strptime(result.regdate, '%Y-%m-%d %H:%M:%S.%f')+timedelta(hours=9),
+                        [datetime.strptime(result.regdate, '%Y-%m-%d %H:%M:%S.%f') + timedelta(hours=9),
                          result.evdnc_type, result.artifact_type, result.information, configuration.case_id,
                          configuration.evidence_id]
                     ))
@@ -110,5 +113,6 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             '''
         except:
             print("LV2 OS Win Usage History Analyzer Error")
+
 
 manager.AdvancedModulesManager.RegisterModule(LV2OSUSAGEHISTORYAnalyzer)

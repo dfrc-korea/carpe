@@ -25,7 +25,8 @@ def USAGEDAYDETAIL(configuration):
                 f"from_unixtime(mtime,'%Y-%m-%d %H:%i:%s') as modified_time, " \
                 f"from_unixtime(atime,'%Y-%m-%d %H:%i:%s') as accessed_time " \
                 f"FROM file_info " \
-                f"where (extension like 'doc%' or extension like 'ppt%' or extension like 'xls%' or extension like 'pdf' or extension like 'hwp') AND (par_id='{i}')"
+                f"where (extension like 'doc%' or extension like 'ppt%' or extension like 'xls%' or extension like 'pdf' or extension like 'hwp') " \
+                f"AND (par_id='{i}')"
         result_query = db.execute_query_mul(query)
         if len(result_query) != 0:
             for result_data in result_query:
@@ -35,21 +36,21 @@ def USAGEDAYDETAIL(configuration):
                     else:
                         usage_day_detail_information = Usage_Day_Detail_Information()
                         usage_history_list.append(usage_day_detail_information)
-                        usage_history_list[usage_history_count].regdate = datetime.strptime(result_data[1], '%Y-%m-%d %H:%M:%S')-timedelta(hours=9)
+                        usage_history_list[usage_history_count].regdate = datetime.strptime(result_data[1], '%Y-%m-%d %H:%M:%S') - timedelta(hours=9)
                         usage_history_list[usage_history_count].evdnc_type = 'Created Time'
                         usage_history_list[usage_history_count].artifact_type = 'File Info'
                         usage_history_list[usage_history_count].information = result_data[0]
                         usage_history_count = usage_history_count + 1
                         usage_day_detail_information = Usage_Day_Detail_Information()
                         usage_history_list.append(usage_day_detail_information)
-                        usage_history_list[usage_history_count].regdate = datetime.strptime(result_data[2], '%Y-%m-%d %H:%M:%S')-timedelta(hours=9)
+                        usage_history_list[usage_history_count].regdate = datetime.strptime(result_data[2], '%Y-%m-%d %H:%M:%S') - timedelta(hours=9)
                         usage_history_list[usage_history_count].evdnc_type = 'Modified Time'
                         usage_history_list[usage_history_count].artifact_type = 'File Info'
                         usage_history_list[usage_history_count].information = result_data[0]
                         usage_history_count = usage_history_count + 1
                         usage_day_detail_information = Usage_Day_Detail_Information()
                         usage_history_list.append(usage_day_detail_information)
-                        usage_history_list[usage_history_count].regdate = datetime.strptime(result_data[3], '%Y-%m-%d %H:%M:%S')-timedelta(hours=9)
+                        usage_history_list[usage_history_count].regdate = datetime.strptime(result_data[3], '%Y-%m-%d %H:%M:%S') - timedelta(hours=9)
                         usage_history_list[usage_history_count].evdnc_type = 'Accessed Time'
                         usage_history_list[usage_history_count].artifact_type = 'File Info'
                         usage_history_list[usage_history_count].information = result_data[0]
@@ -106,7 +107,8 @@ def USAGEDAYDETAIL(configuration):
             print('-----System On/Off Error')
 
     # 이벤트로그 -  외부 저장 장치 연결 / 연결 해제
-    query = f"SELECT task, time, device_instance_id, description, manufacturer, model, revision, serial_number, user_sid FROM lv1_os_win_event_logs_usb_devices  WHERE (evd_id='{configuration.evidence_id}')"
+    query = f"SELECT task, time, device_instance_id, description, manufacturer, model, revision, serial_number, user_sid " \
+            f"FROM lv1_os_win_event_logs_usb_devices  WHERE (evd_id='{configuration.evidence_id}')"
     result_query = db.execute_query_mul(query)
 
     for result_data in result_query:
@@ -130,7 +132,11 @@ def USAGEDAYDETAIL(configuration):
             print('-----EVT - USB Connected/Disconneccted Error')
 
     # 레지스트리 -  외부 저장 장치 연결 / 연결 해제 등
-    query = f"SELECT last_connected_time, first_connected_time, first_connected_since_reboot_time, driver_install_time, first_install_time, last_insertion_time, last_removal_time, device_class_id, serial_number, device_description, friendly_name, manufacturer, last_assigned_drive_letter, volume_GUID FROM lv1_os_win_reg_usb_device WHERE (evd_id='{configuration.evidence_id}')"
+    query = f"SELECT last_connected_time, first_connected_time, first_connected_since_reboot_time, " \
+            f"driver_install_time, first_install_time, last_insertion_time, last_removal_time, " \
+            f"device_class_id, serial_number, device_description, friendly_name, manufacturer, " \
+            f"last_assigned_drive_letter, volume_GUID " \
+            f"FROM lv1_os_win_reg_usb_device WHERE (evd_id='{configuration.evidence_id}')"
     result_query = db.execute_query_mul(query)
 
     for result_data in result_query:
@@ -198,7 +204,7 @@ def USAGEDAYDETAIL(configuration):
     query = f"SELECT AccessedTime, Url FROM lv1_os_win_esedb_ie_content WHERE (evd_id='{configuration.evidence_id}')"
     result_query = db.execute_query_mul(query)
     if result_query == -1:
-        print('-----WEB - IE - Cache Error')
+        pass
     else:
         for result_data in result_query:
             try:
@@ -215,7 +221,7 @@ def USAGEDAYDETAIL(configuration):
     query = f"SELECT AccessedTime, Url FROM lv1_os_win_esedb_ie_cookies WHERE (evd_id='{configuration.evidence_id}')"
     result_query = db.execute_query_mul(query)
     if result_query == -1:
-        print('-----WEB - IE - Cookie Error')
+        pass
     else:
         for result_data in result_query:
             try:
@@ -232,7 +238,7 @@ def USAGEDAYDETAIL(configuration):
     query = f"SELECT AccessedTime, Url FROM lv1_os_win_esedb_ie_download WHERE (evd_id='{configuration.evidence_id}')"
     result_query = db.execute_query_mul(query)
     if result_query == -1:
-        print('-----WEB - IE - Download Error')
+        pass
     else:
         for result_data in result_query:
             try:
@@ -249,7 +255,7 @@ def USAGEDAYDETAIL(configuration):
     query = f"SELECT AccessedTime, Url FROM lv1_os_win_esedb_ie_history WHERE (evd_id='{configuration.evidence_id}')"
     result_query = db.execute_query_mul(query)
     if result_query == -1:
-        print('-----WEB - IE - History Error')
+        pass
     else:
         for result_data in result_query:
             try:
