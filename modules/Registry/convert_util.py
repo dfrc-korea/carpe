@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta, timezone
+
+
 def convertbe(bytes):
     result = bytes
     return result
@@ -20,3 +23,11 @@ def convert2mixedendian(data):
         be1).hex() + "-" + convertbe(be2).hex()
 
     return guid.upper()
+
+
+def convert_timestamp(timestamp):
+    return (datetime(1601, 1, 1) + timedelta(microseconds=timestamp)).isoformat() + 'Z'
+
+
+def from_unix_timestamp(timestamp):
+    return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat() + 'Z'

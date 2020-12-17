@@ -5,6 +5,7 @@ import modules.Registry.convert_util as cu
 import re
 import os
 
+
 class MRU_Folder_Information:
     par_id = ''
     case_id = ''

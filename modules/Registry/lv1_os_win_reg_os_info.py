@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
 import binascii
 
+import modules.Registry.convert_util as cu
+
+
 class OS_Information:
     par_id = ''
     case_id = ''
@@ -28,6 +31,7 @@ class OS_Information:
     backup_flag = ''
     source_location = []
 
+
 def OSINFO(reg_software, reg_system):
     os_list = []
     os_count = 0
@@ -53,7 +57,7 @@ def OSINFO(reg_software, reg_system):
         for os_key in os_key_list:
             for os_value in os_key.values():
                 if os_value.name() == 'ProductName':
-                    os_list[os_count].operating_system = os_value.data().replace('\x00','')
+                    os_list[os_count].operating_system = os_value.data().replace('\x00', '')
                     if os_value.data()[:-1] == 'Windows 10 Pro':
                         os_list[os_count].product_key = 'W269N-WFGWX-YVC9B-4J6C9-T83GX'
                     elif os_value.data()[:-1] == 'Windows 10 Pro N':
@@ -79,49 +83,49 @@ def OSINFO(reg_software, reg_system):
                     elif os_value.data()[:-1] == 'Windows 10 Enterprise G N':
                         os_list[os_count].product_key = '44RPN-FTY23-9VTTB-MP9BX-T84FV'
                 elif os_value.name() == 'ReleaseId':
-                    os_list[os_count].release_id = os_value.data().replace('\x00','')
+                    os_list[os_count].release_id = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'CSDVersion':
                     os_list[os_count].last_service_pack = os_value.data()
                 elif os_value.name() == 'SystemRoot':
-                    os_list[os_count].system_root = os_value.data().replace('\x00','')
+                    os_list[os_count].system_root = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'PathName':
-                    os_list[os_count].path = os_value.data().replace('\x00','')
+                    os_list[os_count].path = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'EditionID':
-                    os_list[os_count].operating_system_version = os_value.data().replace('\x00','')
+                    os_list[os_count].operating_system_version = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'RegisteredOrganization':
-                    os_list[os_count].organization = os_value.data().replace('\x00','')
+                    os_list[os_count].organization = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'ReleaseId':
                     os_list[os_count].release_id = os_value.data()
                 elif os_value.name() == 'CurrentVersion':
-                    os_list[os_count].version_number = os_value.data().replace('\x00','')
+                    os_list[os_count].version_number = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'CurrentBuildNumber':
-                    os_list[os_count].build_number = os_value.data().replace('\x00','')
+                    os_list[os_count].build_number = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'ProductId':
-                    os_list[os_count].product_id = os_value.data().replace('\x00','')
+                    os_list[os_count].product_id = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'RegisteredOwner':
-                    os_list[os_count].owner = os_value.data().replace('\x00','')
+                    os_list[os_count].owner = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'InstallDate':
-                    os_list[os_count].install_time = datetime.fromtimestamp(os_value.data()).isoformat()+'Z'
+                    os_list[os_count].install_time = cu.from_unix_timestamp(os_value.data())
                 elif os_value.name() == 'ComputerName':
-                    os_list[os_count].computer_name = os_value.data().replace('\x00','')
+                    os_list[os_count].computer_name = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'NtfsDisableLastAccessUpdate':
                     # 0: True, 1: False
                     os_list[os_count].last_access_time_flag = os_value.data()
                 elif os_value.name() == 'TimeZoneKeyName':
-                    os_list[os_count].display_timezone_name = os_value.data().replace('\x00','')
+                    os_list[os_count].display_timezone_name = os_value.data().replace('\x00', '')
                     for j in reg_software.find_key(r"Microsoft\Windows NT\CurrentVersion\Time Zones").subkeys():
                         if j.name() == os_list[os_count].display_timezone_name:
                             for k in j.values():
                                 if k.name() == 'Display':
-                                    os_list[os_count].timezone_utc = k.data().replace('\x00','')
+                                    os_list[os_count].timezone_utc = k.data().replace('\x00', '')
                 elif os_value.name() == 'HostName':
-                    os_list[os_count].display_computer_name = os_value.data().replace('\x00','')
+                    os_list[os_count].display_computer_name = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'Hostname':
-                    os_list[os_count].display_computer_name = os_value.data().replace('\x00','')
+                    os_list[os_count].display_computer_name = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'DhcpNameServer':
-                    os_list[os_count].dhcp_dns_server = os_value.data().replace('\x00','')
+                    os_list[os_count].dhcp_dns_server = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'ShutdownTime':
-                    os_list[os_count].last_shutdown_time = (datetime(1601, 1, 1) + timedelta(microseconds=int(binascii.b2a_hex(os_value.data()[::-1]),16)/10)).isoformat()+'Z'
+                    os_list[os_count].last_shutdown_time = (datetime(1601, 1, 1) + timedelta(microseconds=int(binascii.b2a_hex(os_value.data()[::-1]), 16) / 10)).isoformat()+'Z'
     except:
         print('-----OS Information Error')
     return os_list

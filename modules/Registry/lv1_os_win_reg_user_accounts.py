@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
 import binascii
 
+import modules.Registry.convert_util as cu
+
+
 class User_Information:
     par_id = ''
     case_id = ''
@@ -26,6 +29,7 @@ class User_Information:
     backup_flag = ''
     source_location = []
 
+
 def USERACCOUNTS(reg_sam, reg_software):
     user_list = []
     user_count = 0
@@ -44,9 +48,9 @@ def USERACCOUNTS(reg_sam, reg_software):
                 user_list[user_count].type_of_user = 'Local User'
                 for same_subkey_value in sam_subkey.values():
                     if same_subkey_value.name() == 'F':
-                        user_list[user_count].last_login_time = (datetime(1601, 1, 1) + timedelta(microseconds=int(binascii.b2a_hex(same_subkey_value.data()[8:16][::-1]),16)/10)).isoformat()+'Z'
-                        user_list[user_count].last_password_change_time = (datetime(1601, 1, 1) + timedelta(microseconds=int(binascii.b2a_hex(same_subkey_value.data()[24:32][::-1]), 16)/10)).isoformat()+'Z'
-                        user_list[user_count].last_incorrect_password_login_time = (datetime(1601, 1, 1) + timedelta(microseconds=int(binascii.b2a_hex(same_subkey_value.data()[40:48][::-1]), 16)/10)).isoformat()+'Z'
+                        user_list[user_count].last_login_time = (datetime(1601, 1, 1) + timedelta(microseconds=int(binascii.b2a_hex(same_subkey_value.data()[8:16][::-1]), 16)/10)).isoformat() + 'Z'
+                        user_list[user_count].last_password_change_time = (datetime(1601, 1, 1) + timedelta(microseconds=int(binascii.b2a_hex(same_subkey_value.data()[24:32][::-1]), 16)/10)).isoformat() + 'Z'
+                        user_list[user_count].last_incorrect_password_login_time = (datetime(1601, 1, 1) + timedelta(microseconds=int(binascii.b2a_hex(same_subkey_value.data()[40:48][::-1]), 16)/10)).isoformat() + 'Z'
                         if bin(same_subkey_value.data()[56])[-1] == '0':
                             # 0 : Enabled, pw_required - Yes
                             # 1: Disabled, pw_required - No
@@ -55,17 +59,17 @@ def USERACCOUNTS(reg_sam, reg_software):
                         elif bin(same_subkey_value.data()[56])[-1] == '1':
                             user_list[user_count].account_disabled = 1
                             user_list[user_count].password_required = 1
-                        user_list[user_count].login_count = int(binascii.b2a_hex(same_subkey_value.data()[66:67]),16)
+                        user_list[user_count].login_count = int(binascii.b2a_hex(same_subkey_value.data()[66:67]), 16)
                     elif same_subkey_value.name() == 'V':
-                        user_list[user_count].user_name = same_subkey_value.data()[204 + int(binascii.b2a_hex(same_subkey_value.data()[12:16][::-1]),16):204 + int(binascii.b2a_hex(same_subkey_value.data()[12:16][::-1]),16)+ int(binascii.b2a_hex(same_subkey_value.data()[16:20][::-1]),16)].decode('utf-16')
-                        user_list[user_count].full_name = same_subkey_value.data()[204 + int(binascii.b2a_hex(same_subkey_value.data()[24:28][::-1]),16):204 + int(binascii.b2a_hex(same_subkey_value.data()[24:28][::-1]),16)+ int(binascii.b2a_hex(same_subkey_value.data()[28:32][::-1]),16)].decode('utf-16')
-                        user_list[user_count].account_description = same_subkey_value.data()[204 + int(binascii.b2a_hex(same_subkey_value.data()[36:40][::-1]),16):204 + int(binascii.b2a_hex(same_subkey_value.data()[36:40][::-1]),16)+ int(binascii.b2a_hex(same_subkey_value.data()[40:44][::-1]),16)].decode('utf-16')
+                        user_list[user_count].user_name = same_subkey_value.data()[204 + int(binascii.b2a_hex(same_subkey_value.data()[12:16][::-1]), 16):204 + int(binascii.b2a_hex(same_subkey_value.data()[12:16][::-1]), 16) + int(binascii.b2a_hex(same_subkey_value.data()[16:20][::-1]), 16)].decode('utf-16')
+                        user_list[user_count].full_name = same_subkey_value.data()[204 + int(binascii.b2a_hex(same_subkey_value.data()[24:28][::-1]), 16):204 + int(binascii.b2a_hex(same_subkey_value.data()[24:28][::-1]), 16) + int(binascii.b2a_hex(same_subkey_value.data()[28:32][::-1]), 16)].decode('utf-16')
+                        user_list[user_count].account_description = same_subkey_value.data()[204 + int(binascii.b2a_hex(same_subkey_value.data()[36:40][::-1]), 16):204 + int(binascii.b2a_hex(same_subkey_value.data()[36:40][::-1]), 16) + int(binascii.b2a_hex(same_subkey_value.data()[40:44][::-1]), 16)].decode('utf-16')
                         if user_list[user_count].password_required == 'Yes':
                             #user_list[user_count].ntlm_hash = str(binascii.b2a_hex(same_subkey_value.data()[204 + int(binascii.b2a_hex(same_subkey_value.data()[168:172][::-1]),16):204 + int(binascii.b2a_hex(same_subkey_value.data()[168:172][::-1]),16) + int(binascii.b2a_hex(same_subkey_value.data()[172:176][::-1]),16)]))[1:]
                             user_list[user_count].ntlm_hash = ''
                     elif same_subkey_value.name() == 'UserPasswordHint':
                         try:
-                            user_list[user_count].password_hint = same_subkey_value.data().decode().replace('\x00','')
+                            user_list[user_count].password_hint = same_subkey_value.data().decode().replace('\x00', '')
                         except UnicodeDecodeError:
                             user_list[user_count].password_hint = ''
                 user_count = user_count + 1
@@ -86,7 +90,7 @@ def USERACCOUNTS(reg_sam, reg_software):
                         user_list[user_count].source_location = []
                         user_list[user_count].source_location.append('SOFTWARE-Microsoft/Windows NT/CurrentVersion/ProfileList')
                         user_list[user_count].security_identifier = user_subkey.name()
-                        user_list[user_count].profile_path = user_subkey_value.data().replace('\\', '/').replace('\x00','')
+                        user_list[user_count].profile_path = user_subkey_value.data().replace('\\', '/').replace('\x00', '')
                         user_list[user_count].type_of_user = 'Built-in'
                         user_count = user_count + 1
                     else:
@@ -102,8 +106,8 @@ def USERACCOUNTS(reg_sam, reg_software):
                                 user_list[user_count].source_location.append('SOFTWARE-Microsoft/Windows NT/CurrentVersion/ProfileList')
                                 user_list[user_count].type_of_user = 'Domain User'
                                 user_list[user_count].security_identifier = user_subkey.name()
-                                user_list[user_count].user_name = (user_subkey_value.data().replace('\\','/').replace('\x00', '')).split('/')[-1]
-                                user_list[user_count].profile_path = user_subkey_value.data().replace('\\','/').replace('\x00', '')
+                                user_list[user_count].user_name = (user_subkey_value.data().replace('\\', '/').replace('\x00', '')).split('/')[-1]
+                                user_list[user_count].profile_path = user_subkey_value.data().replace('\\', '/').replace('\x00', '')
                                 user_count = user_count + 1
                                 break
 
