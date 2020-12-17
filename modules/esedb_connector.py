@@ -1,265 +1,306 @@
 # -*- coding: utf-8 -*-
+"""module for ESE database."""
 
 import pyesedb
+import datetime
+import os
 
-from . import logger
+from modules import logger
+from modules import manager
+from modules import interface
+from modules.ESEDB_Parser import esedb_parser
+from utility import errors
 
-class ESEDBParser(object):
-    """ESE database Parser Interface."""
 
-    NAME = 'esedb'
-    DESCRIPTION = 'The ESE database parser.'
+class ESEDatabaseConnector(interface.ModuleConnector):
+    NAME = 'esedb_connector'
+    DESCRIPTION = 'Module for ESEDB'
+    TABLE_NAME = 'lv1_os_win_esedb'
 
-    _esedb_parser_classes = {}
-
-    BINARY_DATA_COLUMN_TYPES = frozenset([
-        pyesedb.column_types.BINARY_DATA,
-        pyesedb.column_types.LARGE_BINARY_DATA])
-
-    FLOATING_POINT_COLUMN_TYPES = frozenset([
-        pyesedb.column_types.FLOAT_32BIT,
-        pyesedb.column_types.DOUBLE_64BIT])
-
-    INTEGER_COLUMN_TYPES = frozenset([
-        pyesedb.column_types.CURRENCY,
-        pyesedb.column_types.DATE_TIME,
-        pyesedb.column_types.INTEGER_8BIT_UNSIGNED,
-        pyesedb.column_types.INTEGER_16BIT_SIGNED,
-        pyesedb.column_types.INTEGER_16BIT_UNSIGNED,
-        pyesedb.column_types.INTEGER_32BIT_SIGNED,
-        pyesedb.column_types.INTEGER_32BIT_UNSIGNED,
-        pyesedb.column_types.INTEGER_64BIT_SIGNED])
-
-    STRING_COLUMN_TYPES = frozenset([
-        pyesedb.column_types.TEXT,
-        pyesedb.column_types.LARGE_TEXT])
-
-    REQUIRED_TABLES = {}
-    OPTIONAL_TABLES = {}
+    _plugin_classes = {}
 
     def __init__(self):
-        super(ESEDBParser, self).__init__()
-        self._tables = {}
-        self._tables.update(self.REQUIRED_TABLES)
-        self._tables.update(self.OPTIONAL_TABLES)
+        super(ESEDatabaseConnector, self).__init__()
+        self._configuration = None
+        self._time_zone = None
 
-    @property
-    def required_tables(self):
-        """set[str]: required table names."""
-        return frozenset(self.REQUIRED_TABLES.keys())
+    def _format_timestamp(self, timestamp):
+        if timestamp is None:
+            return 'N/A'
 
-    @classmethod
-    def RegisterParser(cls, esedb_parser_class):
-        """Registers a esedb parser class.
+        return timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
-        The esedb parser classes are identified based on their lower case name.
+    def DecodeFiletime(self, timestamp, DoNotRaise=True):
+        """Decode the FILETIME timestamp and return the datetime object."""
+        try:
+            return datetime.datetime(1601, 1, 1) + datetime.timedelta(microseconds=timestamp / 10)
+        except Exception:  # Allow a caller to handle an invalid timestamp.
+            if not DoNotRaise:
+                raise
+            return
+
+    def CreateTableWithSchema(self, _cursor, table_name=None, schema=None):
+        """Create table with schema.
 
         Args:
-          esedb_parser_class (type): esedb parser class.
+            _cursor (Database object): database connection object.
+            table_name (str): table name.
+            schema (list): table schema.
 
+        Returns:
+            bool: True if database table was created.
         Raises:
-          KeyError: if parser class is already set for the corresponding name.
+            ValueError: If the database attribute is not valid.
         """
-        esedb_parser_name = esedb_parser_class.NAME.lower()
-        if esedb_parser_name in cls._esedb_parser_classes:
-          raise KeyError('ESE database parser class already set for name: {0:s}.'.format(
-              esedb_parser_class.NAME))
+        if _cursor is None:
+            raise ValueError('Invalid database cursor.')
 
-        cls._esedb_parser_classes[esedb_parser_name] = esedb_parser_class
+        if table_name is None:
+            raise ValueError('Invalid table name.')
 
-    @classmethod
-    def GetESEDBParserObjects(cls):
-        includes = {}
-        excludes = {}
+        if schema is None:
+            raise ValueError('Invalid schema.')
 
-        esedb_parser_objects = {}
-        for esedb_parser_name, esedb_parser_class in iter(cls._esedb_parser_classes.items()):
+        query = []
+        query.append("CREATE TABLE ")
+        query.append(table_name)
+        query.append("(")
 
-            if not includes and esedb_parser_name in excludes:
-                continue
-
-            if includes and esedb_parser_name not in includes:
-                continue
-
-            esedb_parser_object = esedb_parser_class()
-            esedb_parser_objects[esedb_parser_name] = esedb_parser_object
-
-        return esedb_parser_objects
-
-    @classmethod
-    def GetTableNames(self, database):
-        """Retrieves the table names in a database.
-
-        Args:
-          database (pyesedb.file): ESE database.
-
-        Returns:
-          list[str]: table names.
-        """
-        table_names = []
-        for esedb_table in database.tables:
-            table_names.append(esedb_table.name)
-
-        return table_names
-
-    def _GetRecordValue(self, record, value_entry):
-        """Retrieves a specific value from the record.
-
-        Args:
-          record (pyesedb.record): ESE record.
-          value_entry (int): value entry.
-
-        Returns:
-          object: value.
-
-        Raises:
-          ValueError: if the value is not supported.
-        """
-        column_type = record.get_column_type(value_entry)
-        long_value = None
-
-        if record.is_long_value(value_entry):
-            long_value = record.get_value_data_as_long_value(value_entry)
-
-        if record.is_multi_value(value_entry):
-            # TODO: implement
-            raise ValueError('Multi value support not implemented yet.')
-
-        if column_type == pyesedb.column_types.NULL:
-            return None
-
-        if column_type == pyesedb.column_types.BOOLEAN:
-            # TODO: implement
-            raise ValueError('Boolean value support not implemented yet.')
-
-        if column_type in self.INTEGER_COLUMN_TYPES:
-            if long_value:
-                raise ValueError('Long integer value not supported.')
-            return record.get_value_data_as_integer(value_entry)
-
-        if column_type in self.FLOATING_POINT_COLUMN_TYPES:
-            if long_value:
-                raise ValueError('Long floating point value not supported.')
-            return record.get_value_data_as_floating_point(value_entry)
-
-        if column_type in self.STRING_COLUMN_TYPES:
-            if long_value:
-                return long_value.get_data_as_string()
-            return record.get_value_data_as_string(value_entry)
-
-        if column_type == pyesedb.column_types.GUID:
-            # TODO: implement
-            raise ValueError('GUID value support not implemented yet.')
-
-        if long_value:
-            return long_value.get_data()
-        return record.get_value_data(value_entry)
-
-    def _GetRecordValues(
-            self, table_name, record, value_mappings=None):
-        """Retrieves the values from the record.
-
-        Args:
-            table_name (str): name of the table.
-            record (pyesedb.record): ESE record.
-            value_mappings (Optional[dict[str, str]): value mappings, which map
-            the column name to a callback method.
-
-        Returns:
-            dict[str,object]: values per column name.
-        """
-        record_values = {}
-
-        for value_entry in range(0, record.number_of_values):
-
-            column_name = record.get_column_name(value_entry)
-            if column_name in record_values:
-                logger.warning(
-                    '[{0:s}] duplicate column: {1:s} in table: {2:s}'.format(
-                        self.NAME, column_name, table_name))
-                continue
-
-            value_callback = None
-            if value_mappings and column_name in value_mappings:
-                value_callback_method = value_mappings.get(column_name)
-                if value_callback_method:
-                    value_callback = getattr(self, value_callback_method, None)
-                    if value_callback is None:
-                        logger.warning((
-                            '[{0:s}] missing value callback method: {1:s} for column: '
-                            '{2:s} in table: {3:s}').format(
-                            self.NAME, value_callback_method, column_name, table_name))
-
-            if value_callback:
-                try:
-                    value_data = record.get_value_data(value_entry)
-                    value = value_callback(value_data)
-
-                except Exception as exception:  # pylint: disable=broad-except
-                    logger.error(exception)
-                    value = None
-
+        for i in range(len(schema)):
+            if i != (len(schema) - 1):
+                if schema[i] == "RequestHeaders" or schema[i] == "ResponseHeaders" or schema[i] == "ExtraData":
+                    query.append("`" + schema[i] + "`" + " BLOB,")
+                else:
+                    query.append("`" + schema[i] + "`" + " TEXT,")
             else:
-                try:
-                    value = self._GetRecordValue(record, value_entry)
-                except ValueError as exception:
-                    value = None
+                if schema[i] == "RequestHeaders" or schema[i] == "ResponseHeaders" or schema[i] == "ExtraData":
+                    query.append("`" + schema[i] + "`" + " BLOB);")
+                else:
+                    query.append("`" + schema[i] + "`" + " TEXT);")
 
-            record_values[column_name] = value
+        query = ''.join(query)
 
-        return record_values
+        try:
+            _cursor.execute_query(query)
+        except Exception as exception:
+            logger.error(exception)
+            return False
 
-    def GetEntries(self, database=None, **kwargs):
-        """Extracts event objects from the database.
+        return True
 
-        Args:
-            database (Optional[pyesedb.file]): ESE database.
+    def InsertQueryBuilder(self, table_name, schema, data):
+        """Build Inserting query.
 
-        Raises:
-            ValueError: If the database attribute is not valid.
-        """
-        if database is None:
-            raise ValueError('Invalid database.')
+		Args:
+			table_name(str): database table name.
+			schema (list): table schema
+			data (tuple): data to insert.
 
-        for table_name, callback_method in sorted(self._tables.items()):
+		Returns:
+			query (str): built query string.
+		"""
+        TIME_COLUMNS = frozenset(['SyncTime', 'CreationTime', 'ExpiryTime', 'ModifiedTime',
+                                  'AccessedTime', 'PostCheckTime'])
 
-            if not callback_method:
-                continue
+        query = f"Insert into {table_name} values ("
+        for i in range(0, len(schema)):
+            if i < len(data) - 1:
+                if isinstance(data[i], bytes):
+                    query += "UNHEX('%s')," % data[i].hex()
+                elif schema[i] in TIME_COLUMNS and data[i] is not 0:
+                    datetime = self._format_timestamp(self.DecodeFiletime(data[i]))
+                    datetime = self._configuration.apply_time_zone(datetime, self._time_zone)
+                    query += "\"" + str(datetime) + "\", "
+                else:
+                    query += "\"" + str(data[i]) + "\", "
+            else:
+                if isinstance(data[i], bytes):
+                    query += "UNHEX('%s'));" % data[i].hex()
+                elif schema[i] in TIME_COLUMNS and data[i] is not 0:
+                    datetime = self._format_timestamp(self.DecodeFiletime(data[i]))
+                    datetime = self._configuration.apply_time_zone(datetime, self._time_zone)
+                    query += "\"" + str(datetime) + "\");"
+                else:
+                    query += "\"" + str(data[i]) + "\");"
 
-            callback = getattr(self, callback_method, None)
-            if callback is None:
-                logger.warning(
-                    '[{0:s}] missing callback method: {1:s} for table: {2:s}'.format(
-                        self.NAME, callback_method, table_name))
-                continue
+        return query
 
-            esedb_table = database.get_table_by_name(table_name)
-            if not esedb_table:
-                if table_name not in self.OPTIONAL_TABLES:
-                    logger.warning('[{0:s}] missing table: {1:s}'.format(
-                        self.NAME, table_name))
-                continue
+    def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
+        """Connector to connect to ESE database modules.
 
-            # The database is passed in case the database contains table names
-            # that are assigned dynamically and cannot be defined by
-            # the table name-callback mechanism.
-            callback(database=database, table=esedb_table, **kwargs)
+		Args:
+			configuration: configuration values.
+			source_path_spec (dfvfs.PathSpec): path specification of the source file.
+			knowledge_base (KnowledgeBase): knowledge base.
 
-    def Process(self, database=None, **kwargs):
-        """Determines if this is the appropriate parser for the database.
+		"""
 
-        Args:
-            database (Optional[pyesedb.file]): ESE database.
+        self._configuration = configuration
+        self._time_zone = knowledge_base.time_zone
 
-        Raises:
-            ValueError: If the database attribute is not valid.
-        """
-        if database is None:
-            raise ValueError('Invalid database.')
+        # Load Schema
+        yaml_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'esedb' \
+                    + os.sep + 'lv1_os_win_esedb.yaml'
+        if not self.LoadSchemaFromYaml(yaml_path):
+            logger.error('cannot load schema from yaml: {0:s}'.format(self.TABLE_NAME))
+            return False
 
-        # This will raise if unhandled keyword arguments are passed.
-        if kwargs:
-            raise ValueError('Unused keyword arguments: {0:s}.'.format(
-                ', '.join(kwargs.keys())))
+        # Search artifact paths
+        paths = self._schema['Paths']
+        separator = self._schema['Path_Separator']
+        environment_variables = knowledge_base.GetEnvironmentVariables()
 
-        self.GetEntries(database=database, **kwargs)
+        find_specs = self.BuildFindSpecs(paths, separator, environment_variables)
+        if len(find_specs) < 0:
+            return False
+
+        esedb_file = pyesedb.file()
+        for spec in find_specs:
+            try:
+                file_object = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
+                                                          configuration=configuration,
+                                                          file_spec=spec)
+
+                esedb_file.open_file_object(file_object)
+            except IOError as exception:
+                logger.debug('[{0:s}] unable to open file with error: {0!s}'.format(
+                    self.NAME, exception))
+                return
+
+            path_spec_generator = self._path_spec_extractor.ExtractPathSpecs(
+                [source_path_spec], find_specs=[spec], recurse_file_system=False,
+                resolver_context=configuration.resolver_context)
+
+            for path_spec in path_spec_generator:
+                edb_path = path_spec.location
+            try:
+                esedb_parsers = esedb_parser.ESEDBParser.GetESEDBParserObjects()
+                table_names = frozenset(esedb_parser.ESEDBParser.GetTableNames(esedb_file))
+
+                for parser in esedb_parsers.values():
+
+                    if not parser.required_tables.issubset(table_names):
+                        continue
+
+                    try:
+                        parser.Process(database=esedb_file)
+
+                        info = tuple([par_id, configuration.case_id, configuration.evidence_id])
+                        # Internet Explorer
+                        if 'Containers' in parser.required_tables:
+                            # Internet Explorer History
+                            if len(parser.GetHistoryRecords) > 0:
+                                history_schema = ['par_id', 'case_id', 'evd_id'] + list(parser.GetHistorySchema) \
+                                                 + ['source']
+                                table_name = 'lv1_os_win_esedb_ie_history'
+                                if not configuration.cursor.check_table_exist(table_name):
+                                    ret = self.CreateTableWithSchema(configuration.cursor,
+                                                                     table_name=table_name,
+                                                                     schema=history_schema)
+                                    if not ret:
+                                        logger.error('cannot create database table name: {0:s}'.format(table_name))
+                                        return False
+
+                                for record in parser.GetHistoryRecords:
+                                    tmp_record = list(record)
+                                    tmp_record[17] = tmp_record[17].replace('"', '""')
+                                    tmp_record[17] = tmp_record[17].replace('\'', '\'\'')
+                                    result = info + tuple(tmp_record) + tuple([edb_path])
+                                    query = self.InsertQueryBuilder(table_name=table_name,
+                                                                    schema=history_schema,
+                                                                    data=result)
+                                    try:
+                                        configuration.cursor.execute_query(query)
+                                    except Exception as exception:
+                                        logger.error('database execution failed: {0!s}'.format(
+                                            exception))
+
+                            # Internet Explorer Content
+                            if len(parser.GetContentRecords) > 0:
+                                content_schema = ['par_id', 'case_id', 'evd_id'] + list(parser.GetContentSchema) \
+                                                 + ['source']
+                                table_name = 'lv1_os_win_esedb_ie_content'
+                                if not configuration.cursor.check_table_exist(table_name):
+                                    ret = self.CreateTableWithSchema(configuration.cursor,
+                                                                     table_name=table_name,
+                                                                     schema=content_schema)
+                                    if not ret:
+                                        logger.error('cannot create database table name: {0!s}'.format(table_name))
+                                        return False
+
+                                for record in parser.GetContentRecords:
+                                    tmp_record = list(record)
+                                    tmp_record[17] = tmp_record[17].replace('"', '""')
+                                    tmp_record[17] = tmp_record[17].replace('\'', '\'\'')
+                                    result = info + tuple(tmp_record) + tuple([edb_path])
+                                    query = self.InsertQueryBuilder(table_name=table_name,
+                                                                    schema=content_schema,
+                                                                    data=result)
+                                    try:
+                                        configuration.cursor.execute_query(query)
+                                    except Exception as exception:
+                                        logger.error('database execution failed: {0!s}'.format(
+                                            exception))
+
+                            if len(parser.GetCookiesRecords) > 0:
+                                cookie_schema = ['par_id', 'case_id', 'evd_id'] + list(parser.GetCookiesSchema) \
+                                                + ['source']
+                                table_name = 'lv1_os_win_esedb_ie_cookies'
+                                if not configuration.cursor.check_table_exist(table_name):
+                                    ret = self.CreateTableWithSchema(configuration.cursor,
+                                                                     table_name=table_name,
+                                                                     schema=cookie_schema)
+                                    if not ret:
+                                        logger.error('cannot create database table name: {0!s}'.format(table_name))
+                                        return False
+
+                                for record in parser.GetCookiesRecords:
+                                    tmp_record = list(record)
+                                    tmp_record[17] = tmp_record[17].replace('"', '""')
+                                    tmp_record[17] = tmp_record[17].replace('\'', '\'\'')
+                                    result = info + tuple(tmp_record) + tuple([edb_path])
+                                    query = self.InsertQueryBuilder(table_name=table_name,
+                                                                    schema=cookie_schema,
+                                                                    data=result)
+                                    try:
+                                        configuration.cursor.execute_query(query)
+                                    except Exception as exception:
+                                        logger.error('database execution failed: {0!s}'.format(
+                                            exception))
+
+                            if len(parser.GetDownloadRecords) > 0:
+                                download_schema = ['par_id', 'case_id', 'evd_id'] + list(parser.GetDownloadSchema) \
+                                                  + ['source']
+                                table_name = 'lv1_os_win_esedb_ie_download'
+                                if not configuration.cursor.check_table_exist(table_name):
+                                    ret = self.CreateTableWithSchema(configuration.cursor,
+                                                                     table_name=table_name,
+                                                                     schema=download_schema)
+                                    if not ret:
+                                        logger.error('cannot create database table name: {0!s}'.format(table_name))
+                                        return False
+
+                                for record in parser.GetDownloadRecords:
+                                    tmp_record = list(record)
+                                    tmp_record[17] = tmp_record[17].replace('"', '""')
+                                    tmp_record[17] = tmp_record[17].replace('\'', '\'\'')
+                                    result = info + tuple(tmp_record) + tuple([edb_path])
+                                    query = self.InsertQueryBuilder(table_name=table_name,
+                                                                    schema=download_schema,
+                                                                    data=result)
+                                    try:
+                                        configuration.cursor.execute_query(query)
+                                    except Exception as exception:
+                                        logger.error('database execution failed: {0!s}'.format(
+                                            exception))
+
+                    except errors.UnableToParseFile as exception:
+                        logger.debug('[{0:s}] unable to parse file with error: {1!s}'.format(
+                            self.NAME, exception))
+
+            finally:
+                esedb_file.close()
+                file_object.close()
+
+
+manager.ModulesManager.RegisterModule(ESEDatabaseConnector)

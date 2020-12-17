@@ -3,7 +3,6 @@
 import os
 from modules import manager
 from modules import interface
-from modules import logger
 
 from modules.Eventlog import lv1_os_win_evt_total as et
 from modules.Eventlog import lv1_os_win_event_logs_usb_devices as ud

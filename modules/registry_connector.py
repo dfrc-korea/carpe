@@ -247,7 +247,8 @@ class RegistryConnector(interface.ModuleConnector):
                 file_object = self.LoadTargetFileToMemory(
                     source_path_spec=source_path_spec,
                     configuration=configuration,
-                    file_path=registry_path)
+                    file_path=registry_path
+                )
 
                 if file_object is None:
                     return
@@ -256,19 +257,19 @@ class RegistryConnector(interface.ModuleConnector):
                     reg_am = Registry.RegistryHive(file_object)
                     for registry in registry_files:
                         if registry[0] == 'Amcache.hve.LOG1':
-                            registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[
-                                0]
+                            registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                             reg_am_log1 = self.LoadTargetFileToMemory(
                                 source_path_spec=source_path_spec,
                                 configuration=configuration,
-                                file_path=registry_path)
+                                file_path=registry_path
+                            )
                         elif registry[0] == 'Amcache.hve.LOG2':
-                            registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[
-                                0]
+                            registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                             reg_am_log2 = self.LoadTargetFileToMemory(
                                 source_path_spec=source_path_spec,
                                 configuration=configuration,
-                                file_path=registry_path)
+                                file_path=registry_path
+                            )
                     reg_am.recover_auto(None, reg_am_log1, reg_am_log2)
 
                 if file_name == 'SYSTEM':
@@ -280,19 +281,19 @@ class RegistryConnector(interface.ModuleConnector):
                     if reg_system != '':
                         for registry in registry_files:
                             if registry[0] == 'SYSTEM.LOG1':
-                                registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
-                                                registry[0]
+                                registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                 reg_system_log1 = self.LoadTargetFileToMemory(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
-                                    file_path=registry_path)
+                                    file_path=registry_path
+                                )
                             elif registry[0] == 'SYSTEM.LOG2':
-                                registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
-                                                registry[0]
+                                registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                 reg_system_log2 = self.LoadTargetFileToMemory(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
-                                    file_path=registry_path)
+                                    file_path=registry_path
+                                )
                         reg_system.recover_auto(None, reg_system_log1, reg_system_log2)
 
                 if file_name == 'SOFTWARE':
@@ -454,7 +455,8 @@ class RegistryConnector(interface.ModuleConnector):
                                str(amcache.binary_product_version),
                                str(amcache.language_code), str(amcache.usn), str(amcache.publisher), backup_flag,
                                ', '.join(amcache.source_location)]))
-                query = "Insert into lv1_os_win_reg_amcache_file values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                query = "Insert into lv1_os_win_reg_amcache_file values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                        "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
                 if len(insert_data) > 0:
                     configuration.cursor.bulk_execute(query, insert_data)
 
@@ -485,7 +487,8 @@ class RegistryConnector(interface.ModuleConnector):
                                str(amcache.root_dir_path), str(amcache.type), str(amcache.program_source),
                                str(amcache.store_app_type),
                                str(amcache.uninstall_string), backup_flag, ', '.join(amcache.source_location)]))
-                query = "Insert into lv1_os_win_reg_amcache_program values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                query = "Insert into lv1_os_win_reg_amcache_program values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                        "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
                 if len(insert_data) > 0:
                     configuration.cursor.bulk_execute(query, insert_data)
 
@@ -505,7 +508,8 @@ class RegistryConnector(interface.ModuleConnector):
                                  str(program.install_size), str(program.version),
                                  str(program.potential_location), str(reg_nt[1]), backup_flag,
                                  ', '.join(program.source_location)]))
-                        query = "Insert into lv1_os_win_reg_installed_program values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                        query = "Insert into lv1_os_win_reg_installed_program values (%s, %s, %s, %s, %s, %s, %s, " \
+                                "%s, %s, %s, %s, %s, %s);"
                         if len(insert_data) > 0:
                             configuration.cursor.bulk_execute(query, insert_data)
                         count = count + 1
@@ -519,7 +523,8 @@ class RegistryConnector(interface.ModuleConnector):
                                  str(program.install_size), str(program.version),
                                  str(program.potential_location), str(reg_nt[1]), backup_flag,
                                  ', '.join(program.source_location)]))
-                        query = "Insert into lv1_os_win_reg_installed_program values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                        query = "Insert into lv1_os_win_reg_installed_program values (%s, %s, %s, %s, %s, %s, %s, " \
+                                "%s, %s, %s, %s, %s, %s);"
                         if len(insert_data) > 0:
                             configuration.cursor.bulk_execute(query, insert_data)
                         count = count + 1
@@ -545,7 +550,8 @@ class RegistryConnector(interface.ModuleConnector):
                                str(op_system.system_root), str(op_system.path), str(op_system.last_access_time_flag),
                                str(op_system.timezone_utc), str(op_system.display_timezone_name), backup_flag,
                                ', '.join(op_system.source_location)]))
-                query = "Insert into lv1_os_win_reg_os_information values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                query = "Insert into lv1_os_win_reg_os_information values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                        "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
                 if len(insert_data) > 0:
                     configuration.cursor.bulk_execute(query, insert_data)
 
