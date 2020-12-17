@@ -17,6 +17,7 @@ from engine import path_extractors
 from engine import path_helper
 from advanced_modules import logger
 
+
 class BaseAnalyzer(object):
 
     NAME = 'base_analyzer'
@@ -554,8 +555,7 @@ class AdvancedModuleAnalyzer(BaseAnalyzer):
         return True
 
     def print_now_time(self):
-        now = datetime.now()
-        return f'{now.year}-{now.month:02}-{now.day:02} {now.hour:02}:{now.minute:02}:{now.second:02}'
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
     def print_run_info(self, module_name, start=True):
         if start:

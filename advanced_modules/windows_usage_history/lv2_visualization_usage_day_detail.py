@@ -123,7 +123,7 @@ def USAGEDAYDETAIL(configuration):
                 usage_history_count = usage_history_count + 1
             elif result_data[0] == 'Disconnected':
                 usage_history_list.append(usage_day_detail_information)
-                usage_history_list[usage_history_count].regdate = result_data[1].replace('T',' ').replace('Z','')
+                usage_history_list[usage_history_count].regdate = result_data[1].replace('T', ' ').replace('Z', '')
                 usage_history_list[usage_history_count].evdnc_type = 'USB Disonnected'
                 usage_history_list[usage_history_count].artifact_type = 'EventLog'
                 usage_history_list[usage_history_count].information = result_data[2]+'|'+result_data[3]+'|'+result_data[4]+'|'+result_data[5]+'|'+result_data[6]+'|'+result_data[7]+'|'+result_data[8]
