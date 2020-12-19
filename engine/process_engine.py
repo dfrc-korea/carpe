@@ -107,7 +107,8 @@ class ProcessEngine(object):
                                                      'image_classification_connector',
                                                      'kakaotalk_mobile_decrypt_connector',
                                                      'android_basic_apps_connector',
-                                                     'android_user_apps_connector']:
+                                                     'android_user_apps_connector',
+                                                     'macos_connector']:
                                     pass
                                 # Other modules
                                 else:
