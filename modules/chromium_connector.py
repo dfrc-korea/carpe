@@ -678,7 +678,7 @@ class ChromiumConnector(interface.ModuleConnector):
             for search_terms, profile_match in zip(whale_search_result, os_user_whale_profile):
                 source = get_source_path(profile_match, 'History', 'Whale')
                 for row in search_terms:
-                    row[4] = configuration.apply_time_zone(row[4], knowledge_base.time_zone)  # last_visit_time
+                    row[4] = configuration.apply_time_zone(row[2], knowledge_base.time_zone)  # last_visit_time
                     row = info + row + profile_match + [source]
                     result.append(row)
             query = f"Insert into lv1_app_web_whale_search_terms values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
