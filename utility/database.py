@@ -155,11 +155,14 @@ class Database(object):
             print("db cursor error")
             return -1
         try:
+            if not values:
+                return
             cursor.executemany(query, values)
             data = cursor.fetchone()
             cursor.close()
             return data
         except Exception as e:
+            print(query)
             print("db execution error : " + str(e))
             return -1
 

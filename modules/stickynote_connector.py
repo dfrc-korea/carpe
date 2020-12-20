@@ -63,7 +63,6 @@ class StickyNoteConnector(interface.ModuleConnector):
             fn = output_path + os.path.sep + fileName
 
         # STICKY NOTE
-        print('[MODULE]: StickyNote')
         insert_data = []
         for note in sn.STICKYNOTE(fn):
             created_time = configuration.apply_time_zone(str(note.createdtime), knowledge_base.time_zone)
@@ -73,10 +72,6 @@ class StickyNoteConnector(interface.ModuleConnector):
                         str(note.type), str(note.content), str(note.activated), created_time, modified_time]))
         query = "Insert into lv1_os_win_sticky_note values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_data)
-
-        print('[MODULE]: StickyNote Complete')
-        # except:
-        #     print("StickyNote Connector Error")
 
 
 manager.ModulesManager.RegisterModule(StickyNoteConnector)

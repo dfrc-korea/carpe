@@ -109,7 +109,8 @@ class ESEDatabaseConnector(interface.ModuleConnector):
                     query += "UNHEX('%s')," % data[i].hex()
                 elif schema[i] in TIME_COLUMNS and data[i] is not 0:
                     datetime = self._format_timestamp(self.DecodeFiletime(data[i]))
-                    datetime = self._configuration.apply_time_zone(datetime, self._time_zone)
+                    if datetime != 'N/A':
+                        datetime = self._configuration.apply_time_zone(datetime, self._time_zone)
                     query += "\"" + str(datetime) + "\", "
                 else:
                     query += "\"" + str(data[i]) + "\", "

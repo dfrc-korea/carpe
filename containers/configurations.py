@@ -30,7 +30,7 @@ class Configuration(object):
 
     @staticmethod
     def apply_time_zone(timestamp, time_zone):
-        if timestamp is None or timestamp is '' or timestamp is 0:
+        if timestamp is None or timestamp == '' or timestamp == 0 or timestamp == '0':
             return timestamp
         date = dateutil.parser.parse(timestamp)
         local_date = date.replace(tzinfo=pytz.utc).astimezone(time_zone).isoformat()

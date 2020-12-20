@@ -108,8 +108,8 @@ class DEFAConnector(interface.ModuleConnector):
             insert_document = list()
         else:
             config = configparser.ConfigParser()
-            conf_file = os.path.dirname(
-                os.path.dirname(os.path.abspath(__file__))) + path_separator + 'config' + path_separator + 'carpe.conf'
+            conf_file = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) \
+                        + os.sep + 'config' + os.sep + 'carpe.conf'
             if not os.path.exists(conf_file):
                 raise Exception('%s file does not exist.\n' % conf_file)
             config.read(conf_file)

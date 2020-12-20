@@ -53,6 +53,8 @@ def Parse2FilePath(data):
 
 
 def Parse2TimeStamp(data):
+    if data == 0:
+        return 0
     return datetime.datetime.fromtimestamp(data / 10000000 - 62135596800).strftime('%Y-%m-%dT%H:%M:%S.%f')+'Z'
 
 
