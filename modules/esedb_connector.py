@@ -68,12 +68,14 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
         for i in range(len(schema)):
             if i != (len(schema) - 1):
-                if schema[i] == "RequestHeaders" or schema[i] == "ResponseHeaders" or schema[i] == "ExtraData":
+                if schema[i] == "RequestHeaders" or schema[i] == "ResponseHeaders" or schema[i] == "ExtraData" \
+                        or schema[i] == "Data" or schema[i] == "Data2":
                     query.append("`" + schema[i] + "`" + " BLOB,")
                 else:
                     query.append("`" + schema[i] + "`" + " TEXT,")
             else:
-                if schema[i] == "RequestHeaders" or schema[i] == "ResponseHeaders" or schema[i] == "ExtraData":
+                if schema[i] == "RequestHeaders" or schema[i] == "ResponseHeaders" or schema[i] == "ExtraData" \
+                        or schema[i] == "Data" or schema[i] == "Data2":
                     query.append("`" + schema[i] + "`" + " BLOB);")
                 else:
                     query.append("`" + schema[i] + "`" + " TEXT);")
@@ -243,6 +245,7 @@ class ESEDatabaseConnector(interface.ModuleConnector):
                                         logger.error('database execution failed: {0!s}'.format(
                                             exception))
 
+                            # Internet Explorer Cookies
                             if len(parser.GetCookiesRecords) > 0:
                                 cookie_schema = ['par_id', 'case_id', 'evd_id'] + list(parser.GetCookiesSchema) \
                                                 + ['source']
@@ -257,8 +260,6 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
                                 for record in parser.GetCookiesRecords:
                                     tmp_record = list(record)
-                                    tmp_record[17] = tmp_record[17].replace('"', '""')
-                                    tmp_record[17] = tmp_record[17].replace('\'', '\'\'')
                                     result = info + tuple(tmp_record) + tuple([edb_path])
                                     query = self.InsertQueryBuilder(table_name=table_name,
                                                                     schema=cookie_schema,
