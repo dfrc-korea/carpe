@@ -74,11 +74,13 @@ class GoogledrivefscConnector(interface.ModuleConnector):
                 fs_data = gs.fschange_parse(output_path + os.sep, db)
                 for d in fs_data:
                     f_data.append(info + d + [google_drive_fs_path])
-
-            query = f"INSERT INTO lv1_app_google_drive_fschange values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         except:
             return False
 
+        if f_data is None:
+            return False
+
+        query = f"INSERT INTO lv1_app_google_drive_fschange values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         configuration.cursor.bulk_execute(query, f_data)
         shutil.rmtree(output_path)
 

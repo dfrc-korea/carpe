@@ -22,7 +22,7 @@ def _count_microseconds(microseconds):
 
 
 def _list_dict_to_list(_dict):
-    return [(key,) + tuple(val) for dic in [_dict] for key, val in dic.items()]
+    return [[key] + val for dic in [_dict] for key, val in dic.items()]
 
 
 def _convert_timestamp(timestamp):
