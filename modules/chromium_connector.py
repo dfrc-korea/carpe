@@ -35,7 +35,9 @@ class ChromiumConnector(interface.ModuleConnector):
         query_sep = self.GetQuerySeparator(source_path_spec, configuration)
         if not knowledge_base._user_accounts:
             return False
+
         query_sep = query_sep.replace('\\\\', '\\')
+
         for user_accounts in knowledge_base._user_accounts.values():
             for hostname in user_accounts.values():
                 if hostname.identifier.find('S-1-5-21') == -1:
