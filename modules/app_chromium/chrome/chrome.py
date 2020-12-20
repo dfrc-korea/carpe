@@ -12,7 +12,7 @@ def _convert_timestamp(timestamp):
     if timestamp == 0:
         time = ''
         return time
-    elif len(str(timestamp)) <= 17:
+    elif len(str(timestamp)) <= 18:
         time = datetime.datetime(1601, 1, 1) + datetime.timedelta(microseconds=timestamp)
         time = str(time).replace(' ', 'T') + 'Z'
         return time
