@@ -7,7 +7,7 @@ from . import logger
 class ESEDBParser(object):
     """ESE database Parser Interface."""
 
-    NAME = 'esedb'
+    NAME = 'esedb_connector'
     DESCRIPTION = 'The ESE database parser.'
 
     _esedb_parser_classes = {}
@@ -119,7 +119,10 @@ class ESEDBParser(object):
         long_value = None
 
         if record.is_long_value(value_entry):
-            long_value = record.get_value_data_as_long_value(value_entry)
+            try:
+                long_value = record.get_value_data_as_long_value(value_entry)
+            except:
+                return record.get_value_data(value_entry)
 
         if record.is_multi_value(value_entry):
             # TODO: implement
