@@ -878,12 +878,11 @@ class ChromiumConnector(interface.ModuleConnector):
                     tmp_file_path = edge_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'Bookmarks'
                     edge_bookmarks.append(chromium_edge.edge_bookmarks(tmp_file_path))
 
-            # delete chrome output dir
+            # Delete chromium edge output dir
             shutil.rmtree(edge_output_path)
 
             info = [par_id, configuration.case_id, configuration.evidence_id]
 
-            # insert data
             # Edge Search Terms
             result = []
             for search_terms, profile_match in zip(edge_search_result, os_user_edge_profile):

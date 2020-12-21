@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 """module for RecycleBin."""
 import os, sys
-import time
-from datetime import datetime
 
-from modules import logger
 from modules import manager
 from modules import interface
 from modules.windows_recyclebin import RecycleBinParser
@@ -70,6 +67,9 @@ class RecycleBinConnector(interface.ModuleConnector):
 
             if not results:
                 os.remove(output_path + os.sep + fileName)
+                continue
+
+            if results == [None]:
                 continue
 
             deleted_time = configuration.apply_time_zone(results[0]['Deleted_Time'], knowledge_base.time_zone)
