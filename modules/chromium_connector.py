@@ -1245,7 +1245,7 @@ class ChromiumConnector(interface.ModuleConnector):
                                                           ", '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " \
                                                           "'%s', '%s', " % tuple(row[12:22]) + \
                             "(UNHEX(\'" + row[22].hex() + "\'))" \
-                                                          ", '%s', '%s', '%s', '%s', '%s', %s);" % tuple(row[23:])
+                                                          ", '%s', '%s', '%s', '%s', '%s', '%s');" % tuple(row[23:])
                     configuration.cursor.execute_query(query)
 
             # Opera Bookmark
