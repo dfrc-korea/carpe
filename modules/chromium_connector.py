@@ -1135,7 +1135,7 @@ class ChromiumConnector(interface.ModuleConnector):
                     row[2] = configuration.apply_time_zone(row[2], knowledge_base.time_zone)  # searched_time
                     row = info + row + profile_match + [source]
                     result.append(row)
-            query = f"Insert into lv1_app_opera_search_terms values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+            query = f"Insert into lv1_app_web_opera_search_terms values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, result)
 
             # Opera Visit Urls
@@ -1187,7 +1187,7 @@ class ChromiumConnector(interface.ModuleConnector):
                     row = info + row + profile_match + [source]
                     result.append(row)
             query = f"Insert into lv1_app_web_opera_shortcuts values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
-                    f"%s, %s, %s, %s);"
+                    f"%s, %s, %s);"
             configuration.cursor.bulk_execute(query, result)
 
             # Opera Favicons
@@ -1257,7 +1257,7 @@ class ChromiumConnector(interface.ModuleConnector):
                     row = info + row + profile_match + [source]
                     result.append(row)
             query = f"Insert into lv1_app_web_opera_bookmarks values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
-                    f"%s, %s, %s);"
+                    f"%s, %s);"
             configuration.cursor.bulk_execute(query, result)
 
             print("[Web] " + "\033[32m" + "Opera Analysis Complete" + "\033[0m")
@@ -1378,7 +1378,7 @@ class ChromiumConnector(interface.ModuleConnector):
                     row = info + row + profile_match + [source]
                     result.append(row)
             query = f"Insert into lv1_app_web_firefox_visit_history values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
-                    f"%s, %s, %s, %s);"
+                    f"%s, %s);"
             configuration.cursor.bulk_execute(query, result)
 
             # Firefox Visit Urls
