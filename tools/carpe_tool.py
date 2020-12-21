@@ -319,13 +319,10 @@ class CarpeTool(extraction_tool.ExtractionTool,
                 info += "size: " + str(int(par['length'])) + "MB\n"
                 print(info)
 
-            print("Input vol_name \t ex) p1")
-            vol_name = input()
-
             self.print_now_time(f'Start Extract File/Directory')
             module = engine._modules.get('extract_connector', None)
             module.ExtractTargetDirToPath(
-                source_path_spec=configuration.source_path_specs[int(vol_name[-1]) - 1],
+                source_path_spec=configuration.source_path_specs[int(self.par_num[1:]) - 1],
                 configuration=configuration,
                 dir_path=self.extract_path,
                 output_path=self._output_file_path)

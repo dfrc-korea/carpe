@@ -32,7 +32,7 @@ class CLITool(object):
         self._log_file = None
 
         # carpe_extract
-        self.par_id = None
+        self.par_num = None
         self.extract_path = None
 
         # carpe_carve
@@ -129,7 +129,7 @@ class CLITool(object):
 
     def parse_extract_options(self, options):
         self.extract_path = getattr(options, 'extract_path', None)
-        self.par_id = getattr(options, 'par_id', None)
+        self.par_num = getattr(options, 'par_num', None)
 
     def parse_carve_options(self, options):
         self.sector_size = getattr(options, 'sector_size', 512)

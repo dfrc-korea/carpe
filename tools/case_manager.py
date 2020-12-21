@@ -82,9 +82,9 @@ class CaseManager(object):
         )
 
         argument_group.add_argument(
-            '--par_id', action='store', dest='par_id', type=str,
+            '-p', '--par_num', action='store', dest='par_num', type=str,
             default=None, help=(
-                'Enter your par_id to extract.'
+                'Enter your partition number to extract.'
             )
         )
 
