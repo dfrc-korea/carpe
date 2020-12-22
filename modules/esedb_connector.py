@@ -233,8 +233,10 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
                                 for record in parser.GetContentRecords:
                                     tmp_record = list(record)
-                                    tmp_record[17] = tmp_record[17].replace('"', '""')
-                                    tmp_record[17] = tmp_record[17].replace('\'', '\'\'')
+                                    if isinstance(tmp_record[17], bytes):
+                                        tmp_record[17] = "Unknown"
+                                    else:
+                                        tmp_record[17] = tmp_record[17].replace('"', '""').replace('\'', '\'\'')
                                     result = info + tuple(tmp_record) + tuple([edb_path])
                                     query = self.InsertQueryBuilder(table_name=table_name,
                                                                     schema=content_schema,
