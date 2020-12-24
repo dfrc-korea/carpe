@@ -237,7 +237,7 @@ def main(file_name):
         print('Error: Unknown format')
         return False
 
-    # db이름
+    # db 이름
     if (proc_n[0] == 0xE) and (proc_n[1] == 0x1):
         fileinfo['Name'] = data[244:data.find(b'\x00', 244)].decode('utf8')
     elif (proc_n[0] == 0x3) and (proc_n[1] == 0x15):
@@ -274,11 +274,9 @@ def main(file_name):
                 fileinfo['Volume Name'] = v
             else:
                 if len(v.rstrip()) > 1:
-                    # print(v)
                     result['reference_point'].append(v)
             if __debug__:
-                _p = data.rfind(struct.pack('<i', len(v) * 4), pos - 70,
-                                pos - 1)  # 이진 데이터(data)내 현재 문자열(v) 길이가 명시된 위치 유추
+                _p = data.rfind(struct.pack('<i', len(v) * 4), pos - 70, pos - 1)  # 이진 데이터(data)내 현재 문자열(v) 길이가 명시된 위치 유추
                 # print('pos: %d (gap: %d)' % (_p, pos - _p))
                 cnt += 1
         pos += len(b)

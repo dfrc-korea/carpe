@@ -144,11 +144,11 @@ class ProcessEngine(object):
         module = self._modules.get('fica_connector', None)
         if is_partition:
             for source_path_spec in configuration.source_path_specs:
+                # Image
                 if source_path_spec.IsFileSystem():
-                    par_id = configuration.partition_list[getattr(source_path_spec.parent, 'location', None)[1:]]
-                    if par_id is None:
-                        return False
-                else:   # file
+                    par_id = self.get_partition_id(source_path_spec, configuration)
+                # File
+                else:
                     par_id = configuration.partition_list['p1']
 
                 module.print_run_info(module.DESCRIPTION, par_id, start=True)
