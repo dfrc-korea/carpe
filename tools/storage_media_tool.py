@@ -1096,25 +1096,26 @@ class StorageMediaTool(tools.CLITool):
 
         try:
             if file_entry.IsDirectory():
+                try:
+                    for sub_file_entry in file_entry.sub_file_entries:
+                        try:
+                            if not sub_file_entry.IsAllocated():
+                                continue
 
-                for sub_file_entry in file_entry.sub_file_entries:
-                    try:
-                        if not sub_file_entry.IsAllocated():
+                        except dfvfs_errors.BackEndError as exception:
+                            logger.warning(
+                                'Unable to process file: {0:s} with error: {1!s}'.format(
+                                    sub_file_entry.path_spec.comparable.replace(
+                                        '\n', ';'), exception))
                             continue
 
-                    except dfvfs_errors.BackEndError as exception:
-                        logger.warning(
-                            'Unable to process file: {0:s} with error: {1!s}'.format(
-                                sub_file_entry.path_spec.comparable.replace(
-                                    '\n', ';'), exception))
-                        continue
+                        if sub_file_entry.type_indicator == dfvfs_definitions.TYPE_INDICATOR_NTFS:
+                            if file_entry.IsRoot() and sub_file_entry.name == '$OrphanFiles':
+                                continue
 
-                    if sub_file_entry.type_indicator == dfvfs_definitions.TYPE_INDICATOR_NTFS:
-                        if file_entry.IsRoot() and sub_file_entry.name == '$OrphanFiles':
-                            continue
-
-                    self._ProcessFileOrDirectoryForNTFS(sub_file_entry.path_spec, current_id)
-
+                        self._ProcessFileOrDirectoryForNTFS(sub_file_entry.path_spec, current_id)
+                except Exception as e:
+                    print(e)
         except dfvfs_errors.AccessError as exception:
             logger.warning(
                 'Unable to access file: {0:s} with error: {1!s}'.format(
