@@ -92,7 +92,7 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
         for lcn in log_record.get_lcns_for_page():
             lcns.append(str(lcn))
     except LogFile.ClientException:
-        return log_record_items
+        return None
 
     if len(lcns) > 0:
         log_record_items.append(' '.join(lcns))

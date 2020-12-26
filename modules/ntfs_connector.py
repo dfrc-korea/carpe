@@ -130,6 +130,8 @@ class NTFSConnector(interface.ModuleConnector):
             elif type(log_item) is LogFile.NTFSLogRecord:
                 output_data = logfile_parser.log_record_parse(log_item, mft_file, self.path_dict,
                                                               knowledge_base.time_zone)
+                if not output_data:
+                    continue
                 log_record_list.append(info + output_data)
 
         restart_area_query = f"Insert into {table_list[1]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s," \
