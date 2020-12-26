@@ -580,7 +580,7 @@ def whale_logindata(file):
         scheme = row[10]
         password_type = row[11]
         times_used = row[12]
-        date_synced = row[13]
+        date_synced = _convert_timestamp(row[13])
         display_name = row[14]
         icon_url = row[15]
         if type(icon_url) == str and ("\'" or "\"") in icon_url:

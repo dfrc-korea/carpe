@@ -1104,6 +1104,7 @@ class StorageMediaTool(tools.CLITool):
 
                         except dfvfs_errors.BackEndError as exception:
                             logger.warning(
+
                                 'Unable to process file: {0:s} with error: {1!s}'.format(
                                     sub_file_entry.path_spec.comparable.replace(
                                         '\n', ';'), exception))
