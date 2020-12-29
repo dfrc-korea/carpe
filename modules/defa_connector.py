@@ -126,10 +126,10 @@ class DEFAConnector(interface.ModuleConnector):
         for document in document_files:
             document_path = document[1][document[1].find(path_separator):] + path_separator + document[
                 0]  # document full path
-            output_path = configuration.root_tmp_path + path_separator + configuration.case_id + path_separator + \
-                          configuration.evidence_id + path_separator + par_id + path_separator \
+            output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
+                          configuration.evidence_id + os.sep + par_id + os.sep \
                           + hashlib.sha1(document_path.encode('utf-8')).hexdigest()
-            ole_path = output_path + path_separator + "ole"
+            ole_path = output_path + os.sep + "ole"
 
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
@@ -146,7 +146,7 @@ class DEFAConnector(interface.ModuleConnector):
             #     file_path=document_path,
             #     output_path=output_path)
 
-            file_path = output_path + path_separator + document[0]
+            file_path = output_path + os.sep + document[0]
             extension = document[3].lower()
 
             try:
@@ -230,7 +230,6 @@ class DEFAConnector(interface.ModuleConnector):
                     7)) else 0  # check Mtime > Ctime, 1 = True, 0 = False
 
             # is_created
-
             result.is_created = 0
             try:
                 if result.createdtime != 'None' and result.createdtime != '' and result.createdtime is not None:
@@ -305,5 +304,6 @@ class DEFAConnector(interface.ModuleConnector):
                     "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_document)
             # print(f"Total Count : {total_count}, Error Count : {error_count}")
+
 
 manager.ModulesManager.RegisterModule(DEFAConnector)
