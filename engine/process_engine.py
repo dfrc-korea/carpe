@@ -84,8 +84,16 @@ class ProcessEngine(object):
             module.Connect(par_id='', configuration=configuration,
                            source_path_spec=configuration.source_path_specs[0],
                            knowledge_base=self.knowledge_base)
-
         else:
+            # for ReFS
+            for source_path_spec in configuration.source_path_specs:
+                for module_name in self._modules:
+                    if module_name == 'refs_connector':
+                        module = self._modules.get('refs_connector', None)
+                        module.Connect(par_id='', configuration=configuration,
+                                       source_path_spec=source_path_spec,
+                                       knowledge_base=self.knowledge_base)
+
             for source_path_spec in configuration.source_path_specs:
                 if source_path_spec.IsFileSystem() \
                         or source_path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
