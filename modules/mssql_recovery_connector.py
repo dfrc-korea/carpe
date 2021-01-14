@@ -26,12 +26,13 @@ class MssqlRecoveryConnector(interface.ModuleConnector):
             print("There are no mssql files")
             return False
 
+        # db_file = 'test_DB.mdf'
+        # path = f'{path_separator}Users{path_separator}dfrct{path_separator}Desktop' \
+        #     f'{path_separator}Data{path_separator}{db_file}'  # temp
+
         # Search artifact path
-        db_file = 'test_DB.mdf'
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         path_separator = self.GetPathSeparator(source_path_spec)
-        path = f'{path_separator}Users{path_separator}dfrct{path_separator}Desktop' \
-            f'{path_separator}Data{path_separator}{db_file}'  # temp
         output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                       configuration.evidence_id + os.sep + par_id
 

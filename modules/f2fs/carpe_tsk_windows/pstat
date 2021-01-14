@@ -1,0 +1,184 @@
+POOL CONTAINER INFORMATION
+--------------------------------------------
+
+Container a97c788f-de63-49ac-9ab4-9438d8c03296
+==============================================
+Type: APFS
+
+NX Block Number: 0
+NX oid: 1
+NX xid: 82
+Checkpoint Descriptor Block: 7
+
+Capacity Ceiling (Size): 1000001536 B
+Capacity In Use:         560717824 B
+Capacity Available:      439283712 B
+
+Block Size:            4096 B
+Number of Blocks:      244141
+Number of Free Blocks: 107247
+|
++-> Volume 8bac946e-fb09-4beb-a8e1-f7924f5d464e
+|   ===========================================
+|   APSB Block Number: 137539
+|   APSB oid: 1038
+|   APSB xid: 82
+|   Name (Role): APFS_TEST (No specific role)
+|   Capacity Consumed: 557043712 B
+|   Capacity Reserved: None
+|   Capacity Quota: None
+|   Case Sensitive: No
+|   Encrypted: No
+|   Formatted by: newfs_apfs (748.77.8)
+|
+|   Created: 2020-08-05 15:17:09.087969984 (|   Changed: 2020-08-05 15:19:33.125461715 (|
+|   Unmount Logs
+|   ------------
+|   Timestamp                            Log String
+|   2020-08-05 15:19:33.130337280 (|
+|   Root Files
+|   -------------
+|  [     204] dataset088.pptx
+|  [     160] dataset044.jpg
+|  [     166] dataset050.jpg
+|  [     173] dataset057.docx
+|  [     161] dataset045.jpg
+|  [     200] dataset084.pptx
+|  [     163] dataset047.JPG
+|  [     208] dataset092.pptx
+|  [     162] dataset046.JPG
+|  [     177] dataset061.docx
+|  [     176] dataset060.docx
+|  [      16] .Spotlight-V100
+|  [     158] dataset042.jpg
+|  [      76] .DS_Store
+|  [     209] dataset093.pptx
+|  [     159] dataset043.jpg
+|  [     201] dataset085.pptx
+|  [     157] dataset041.jpg
+|  [     172] dataset056.docx
+|  [     156] dataset040.jpg
+|  [     205] dataset089.pptx
+|  [     198] dataset082.pptx
+|  [     143] dataset027.JPG
+|  [     149] dataset033.JPG
+|  [     135] dataset019.pdf
+|  [     141] dataset025.pdf
+|  [     210] dataset094.pptx
+|  [     140] dataset024.pdf
+|  [     187] dataset071.docx
+|  [     134] dataset018.pdf
+|  [     148] dataset032.JPG
+|  [     142] dataset026.JPG
+|  [     216] dataset100.ppt
+|  [     183] dataset067.docx
+|  [     146] dataset030.JPG
+|  [     167] dataset051.docx
+|  [     214] dataset098.pptx
+|  [     192] dataset076.ppt
+|  [     193] dataset077.ppt
+|  [     147] dataset031.JPG
+|  [     151] dataset035.JPG
+|  [     139] dataset023.pdf
+|  [     138] dataset022.pdf
+|  [     215] dataset099.pptx
+|  [     150] dataset034.JPG
+|  [     182] dataset066.docx
+|  [     152] dataset036.jpg
+|  [     136] dataset020.pdf
+|  [     186] dataset070.docx
+|  [     124] dataset008.pdf
+|  [     125] dataset009.pdf
+|  [     137] dataset021.pdf
+|  [     211] dataset095.pptx
+|  [     153] dataset037.JPG
+|  [     199] dataset083.pptx
+|  [     181] dataset065.docx
+|  [     189] dataset073.docx
+|  [     120] dataset004.pdf
+|  [      22] .Trashes
+|  [     126] dataset010.pdf
+|  [     127] dataset011.pdf
+|  [     212] dataset096.pptx
+|  [     121] dataset005.pdf
+|  [     195] dataset079.pptx
+|  [     115] test2.jpeg
+|  [     196] dataset080.pptx
+|  [     185] dataset069.docx
+|  [     155] dataset039.jpg
+|  [     129] dataset013.pdf
+|  [     123] dataset007.pdf
+|  [     122] dataset006.pdf
+|  [     128] dataset012.pdf
+|  [     169] dataset053.docx
+|  [      74] .fseventsd
+|  [     154] dataset038.jpg
+|  [     144] dataset028.JPG
+|  [     168] dataset052.docx
+|  [     132] dataset016.pdf
+|  [     118] dataset002.pdf
+|  [     104] test 1.png
+|  [     119] dataset003.pdf
+|  [     133] dataset017.pdf
+|  [     145] dataset029.JPG
+|  [     184] dataset068.docx
+|  [     197] dataset081.pptx
+|  [     213] dataset097.pptx
+|  [     117] dataset001.pdf
+|  [     131] dataset015.pdf
+|  [     188] dataset072.docx
+|  [     130] dataset014.pdf
+|  [     194] dataset078.ppt
+|  [     180] dataset064.docx
+|  [     171] dataset055.docx
+|  [     179] dataset063.docx
+|  [     191] dataset075.docx
+|  [     206] dataset090.pptx
+|  [     116] apfs.png
+|  [     175] dataset059.docx
+|  [     202] dataset086.pptx
+|  [     203] dataset087.pptx
+|  [     174] dataset058.docx
+|  [     207] dataset091.pptx
+|  [     190] dataset074.docx
+|  [     178] dataset062.docx
+|  [     164] dataset048.JPG
+|  [     170] dataset054.docx
+|  [     165] dataset049.JPG
+|
++-> Unallocated Container Blocks
+|   ============================
+|   0x00000320-0x00000401
+|   0x00000403-0x00000406
+|   0x00000408-0x0000040c
+|   0x0000040f-0x00000415
+|   0x00000417-0x0000041a
+|   0x0000041e-0x0000041e
+|   0x00000421-0x00000421
+|   0x00000423-0x00000424
+|   0x00000427-0x0000044a
+|   0x0000045b-0x00000474
+|   0x000004c6-0x000004cc
+|   0x000004e5-0x000004f2
+|   0x00000503-0x0000050d
+|   0x0000050f-0x0000050f
+|   0x00000513-0x00000516
+|   0x0000051b-0x00000526
+|   0x00000529-0x00000536
+|   0x00000538-0x0000053f
+|   0x00000541-0x0000055e
+|   0x0000056f-0x0000056f
+|   0x00000571-0x00000583
+|   0x00000586-0x00000586
+|   0x00000597-0x00000598
+|   0x0000059b-0x000005e0
+|   0x000005fa-0x00000624
+|   0x00000626-0x00000629
+|   0x0000062c-0x0000064e
+|   0x00000654-0x0000066c
+|   0x0000066f-0x00000674
+|   0x00000676-0x00000682
+|   0x00000684-0x00000684
+|   0x00000686-0x00000693
+|   0x00000695-0x00000695
+|   0x00021946-0x0003b9ac
