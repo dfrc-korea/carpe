@@ -6,8 +6,7 @@ from advanced_modules import interface
 from advanced_modules import logger
 from datetime import datetime, timedelta
 
-from advanced_modules.windows_usage_history import lv2_visualization_usage_year as uy, \
-    lv2_visualization_usage_day_stat as uds, lv2_visualization_usage_day_detail as udd
+from advanced_modules.windows_usage_history import lv2_visualization_usage_year as uy, lv2_visualization_usage_day_stat as uds, lv2_visualization_usage_day_detail as udd, lv2_visualization_timeline_month as tm
 
 
 class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
@@ -23,7 +22,8 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
     def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
         try:
 
-            query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+            query_separator = "/" if source_path_spec.location == "/" else source_path_spec.location * 2
+            #query_separator = self.GetQuerySeparator(source_path_spec, configuration)
             query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
                     f"and extension = 'evtx' and parent_path = 'root{query_separator}Windows{query_separator}" \
                     f"System32{query_separator}winevt{query_separator}Logs'"
@@ -44,7 +44,7 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             table_list = ['usage_day_detail',
                           'usage_year',
                           'usage_day_stat',
-                          'timeline_month']
+                          'timeline_month_2']
 
             # 모든 테이블 생성
             for count in range(0, len(yaml_list)):
@@ -100,17 +100,17 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
-            '''
+
             #Timeline_month
             print('[MODULE]: LV2 OS Win Usage History Analyzer - TIMELINE MONTH')
             insert_data = []
-            query = "Insert into timeline_month values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+            query = "Insert into timeline_month_2 values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             for result in tm.TIMELINEMONTH(configuration):
                 for i in result:
+                    i[0] = configuration.evidence_id
                     insert_data.append(tuple(i))
             configuration.cursor.bulk_execute(query, insert_data)
-            '''
+
         except:
             print("LV2 OS Win Usage History Analyzer Error")
 

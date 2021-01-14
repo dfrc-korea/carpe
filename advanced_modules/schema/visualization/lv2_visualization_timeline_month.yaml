@@ -1,8 +1,9 @@
 Name: TIMELINE MONTH
 Desc: VISUALIZATION USAGE HISTORY TIMELINE MONTH
 Table:
-  - TableName: timeline_month
+  - TableName: timeline_month_2
     Columns:
+      - evd_id
       - regmonth
       - regtime
       - day1
@@ -38,6 +39,7 @@ Table:
       - day31
 
     Types:
+      - [TEXT, NOT NULL]
       - [TEXT, NOT NULL]
       - [TEXT, NOT NULL]
       - [TEXT, NOT NULL]
