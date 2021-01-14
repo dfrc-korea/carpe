@@ -44,30 +44,58 @@ class ReFSConnector(interface.ModuleConnector):
         rf.close()
         wf.close()
 
+        # analyze ReFS
         vol = VolumeHandle()
         vol.load_image(output_path)
         try:
-            _refs = refs.ReFS(vol)
+            self.refs = refs.ReFS(vol)
         except refs.UnknownReFSVersionError:
             print('No ReFS')
             os.remove(output_path)
             return
-        _refs.read_volume()
-        _refs.file_system_metadata()
-        _refs.logfile_info()
-        if _refs.root_dir():
-            _cwd = _refs.root
-            if _refs.root.children_table:
-                for v in _refs.root.children_table.values():
+        self.refs.read_volume()
+        self.refs.file_system_metadata()
+        self.refs.logfile_info()
+        self._pwd = []
+        self.parent_dir = []
+        self._all_items = list()
+        if self.refs.root_dir():
+            self._cwd = self.refs.root
+            self._pwd.append('root')
+            if self.refs.root.children_table:
+                for v in self.refs.root.children_table.values():
                     v.ls()
 
-            if _refs.root.table:
-                for name, metadata in _refs.root.table.items():
+            if self.refs.root.table:
+                for name, metadata in self.refs.root.table.items():
+                    if metadata['file_type'] == 'DIR':
+                        self.parent_dir.append(self._cwd)
+                        self._pwd.append(self._pwd[-1] + '\\' + name)
+                        dir_obj = self.refs.object_table.table[metadata['object_id']]
+                        tmp = self._cwd
+                        self._explore_directory(dir_obj)
+                        self._cwd = tmp
+                        self._all_items.append({'name' : name, 'metadata':metadata, 'path':self._pwd.pop()})
+                    else:
+                        self._all_items.append({'name': name, 'metadata': metadata, 'path':self._pwd[-1] + '\\' + name})
                     print(f"[{metadata['file_type']}] {name:<30} {metadata['ModifiedTime']}")
 
 
         os.remove(output_path)
         return vol
+
+    def _explore_directory(self, dir_obj):
+        self._cwd = self.refs.change_directory(dir_obj)
+        for name, metadata in self._cwd.table.items():
+            if metadata['file_type'] == 'DIR':
+                self.parent_dir.append(self._cwd)
+                self._pwd.append(self._pwd[-1] + '\\' + name)
+                dir_obj = self.refs.object_table.table[metadata['object_id']]
+                self._explore_directory(dir_obj)
+                self._all_items.append({'name': name, 'metadata': metadata, 'path': self._pwd.pop()})
+            else:
+                self._all_items.append({'name': name, 'metadata': metadata, 'path': self._pwd[-1] + '\\' + name})
+
 
 
 
