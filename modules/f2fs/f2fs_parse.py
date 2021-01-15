@@ -26,4 +26,4 @@ def main(par_id, input_db):
     return file_info
 
 def get_column_dict(cur):
-    return {desc[0]:None for desc in cur.description}
+    return {desc[0]: None for desc in cur.description}

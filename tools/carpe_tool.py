@@ -234,7 +234,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         # set partition_list
         if self.ignore:
-            self.get_partition_list()
+            self.set_partition_list()
 
         # set configuration
         configuration = self._CreateProcessingConfiguration()

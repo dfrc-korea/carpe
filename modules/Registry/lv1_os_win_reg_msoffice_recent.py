@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
-import binascii
+
 
 class MSOffice_Recent_Information:
     par_id = ''
@@ -12,6 +12,7 @@ class MSOffice_Recent_Information:
     useraccount = ''
     backup_flag = ''
     source_location = ''
+
 
 def MSOFFICERECENT(reg_nt):
     msoffice_recent_docs_list = []
