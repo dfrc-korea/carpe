@@ -580,7 +580,7 @@ class ModuleConnector(BaseConnector):
             return "/"
         if configuration.standalone_check:
             return "\\"
-        return "\\\\\\\\"
+        return "\\\\"
 
     def GetPathSeparator(self, source_path_spec):
         if source_path_spec.location == "/":

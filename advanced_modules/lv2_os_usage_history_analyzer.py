@@ -22,8 +22,9 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
     def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
         try:
 
-            query_separator = "/" if source_path_spec.location == "/" else source_path_spec.location * 2
-            #query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+            #query_separator = "/" if source_path_spec.location == "/" else source_path_spec.location * 2
+            query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+            path_separator = self.GetPathSeparator(source_path_spec)
             query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
                     f"and extension = 'evtx' and parent_path = 'root{query_separator}Windows{query_separator}" \
                     f"System32{query_separator}winevt{query_separator}Logs'"
@@ -32,7 +33,7 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             if len(eventlog_files) == 0:
                 return False
 
-            this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'visualization' + os.sep
+            this_file_path = os.path.dirname(os.path.abspath(__file__)) + path_separator + 'schema' + path_separator + 'visualization' + path_separator
 
             # 모든 yaml 파일 리스트
             yaml_list = [this_file_path + 'lv2_visualization_usage_day_detail.yaml',

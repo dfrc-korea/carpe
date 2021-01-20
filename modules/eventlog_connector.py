@@ -101,8 +101,8 @@ class EventlogConnector(interface.ModuleConnector):
             if not self.check_table_from_yaml(configuration, yaml_list, table_list):
                 return False
 
-            query_separator = "/" if source_path_spec.location == "/" else source_path_spec.location * 2
-            #query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+            #query_separator = "/" if source_path_spec.location == "/" else source_path_spec.location * 2
+            query_separator = self.GetQuerySeparator(source_path_spec, configuration)
             path_separator = self.GetPathSeparator(source_path_spec)
 
             query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
