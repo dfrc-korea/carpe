@@ -44,8 +44,6 @@ PYTHON_DEPENDENCIES = {
     'pytz': ('__version__', '', None, True),
     'pyvshadow': ('get_version()', '20191221', None, True),
     'six': ('__version__', '1.1.0', None, True),
-    'striprtf':('__version__', '0.0.11', None, True),
-    'tqdm': ('__version__', '4.46.0', None, True),
     'xlrd': ('__version__', '1.2.0', None, True),
     'yaml': ('__version__', '3.10', None, True)
 }
