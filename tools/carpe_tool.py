@@ -135,7 +135,18 @@ class CarpeTool(extraction_tool.ExtractionTool,
                 'Get partition id from existing database'
             )
         )
-
+        argument_parser.add_argument(
+            '--case-name', '--case_name', action='store', dest='case_name', type=str, help='Enter your case name',
+            default=''
+        )
+        argument_parser.add_argument(
+            '--investigator', action='store', dest='investigator', type=str, help='Enter investigator name',
+            default=''
+        )
+        argument_parser.add_argument(
+            '--case_desc', '--case_description', '--case-desc', '--case-description', action='store',
+            dest='case_description', type=str, help='Enter case description', default=''
+        )
         ### source path
         argument_parser.add_argument(
             'source', action='store', metavar='SOURCE', nargs='?',
