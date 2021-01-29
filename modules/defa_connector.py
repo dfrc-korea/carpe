@@ -182,52 +182,76 @@ class DEFAConnector(interface.ModuleConnector):
             result.ole_path = ole_path
             result.content_size = len(result.content)
 
-            result.mft_st_created_time = str(datetime.utcfromtimestamp(
-                int(str(document[6]).zfill(11) + str(document[10]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
-                                                                                                                'T') + 'Z'
-            result.mft_st_last_modified_time = str(datetime.utcfromtimestamp(
-                int(str(document[4]).zfill(11) + str(document[8]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
-                                                                                                               'T') + 'Z'
-            result.mft_st_last_accessed_time = str(datetime.utcfromtimestamp(
-                int(str(document[5]).zfill(11) + str(document[9]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
-                                                                                                               'T') + 'Z'
-            result.mft_st_entry_modified_time = str(datetime.utcfromtimestamp(
-                int(str(document[7]).zfill(11) + str(document[11]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
-                                                                                                                'T') + 'Z'
-            result.mft_st_created_time = str(
-                configuration.apply_time_zone(result.mft_st_created_time, knowledge_base.time_zone))
-            result.mft_st_last_modified_time = str(
-                configuration.apply_time_zone(result.mft_st_last_modified_time, knowledge_base.time_zone))
-            result.mft_st_last_accessed_time = str(
-                configuration.apply_time_zone(result.mft_st_last_accessed_time, knowledge_base.time_zone))
-            result.mft_st_entry_modified_time = str(
-                configuration.apply_time_zone(result.mft_st_entry_modified_time, knowledge_base.time_zone))
+            # for windows
+            if knowledge_base._values['operating_system'][0].find('Windows') > 0:
+                try:
+                    result.mft_st_created_time = str(datetime.utcfromtimestamp(
+                        int(str(document[6]).zfill(11) + str(document[10]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                        'T') + 'Z'
+                    result.mft_st_last_modified_time = str(datetime.utcfromtimestamp(
+                        int(str(document[4]).zfill(11) + str(document[8]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                       'T') + 'Z'
+                    result.mft_st_last_accessed_time = str(datetime.utcfromtimestamp(
+                        int(str(document[5]).zfill(11) + str(document[9]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                       'T') + 'Z'
+                    result.mft_st_entry_modified_time = str(datetime.utcfromtimestamp(
+                        int(str(document[7]).zfill(11) + str(document[11]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                        'T') + 'Z'
+                    result.mft_st_created_time = str(
+                        configuration.apply_time_zone(result.mft_st_created_time, knowledge_base.time_zone))
+                    result.mft_st_last_modified_time = str(
+                        configuration.apply_time_zone(result.mft_st_last_modified_time, knowledge_base.time_zone))
+                    result.mft_st_last_accessed_time = str(
+                        configuration.apply_time_zone(result.mft_st_last_accessed_time, knowledge_base.time_zone))
+                    result.mft_st_entry_modified_time = str(
+                        configuration.apply_time_zone(result.mft_st_entry_modified_time, knowledge_base.time_zone))
 
-            result.mft_fn_created_time = str(datetime.utcfromtimestamp(
-                int(str(document[14]).zfill(11) + str(document[18]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
-                                                                                                                 'T') + 'Z'
-            result.mft_fn_last_modified_time = str(datetime.utcfromtimestamp(
-                int(str(document[12]).zfill(11) + str(document[16]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
-                                                                                                                 'T') + 'Z'
-            result.mft_fn_last_accessed_time = str(datetime.utcfromtimestamp(
-                int(str(document[13]).zfill(11) + str(document[17]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
-                                                                                                                 'T') + 'Z'
-            result.mft_fn_entry_modified_time = str(datetime.utcfromtimestamp(
-                int(str(document[15]).zfill(11) + str(document[19]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
-                                                                                                                 'T') + 'Z'
-            result.mft_fn_created_time = str(
-                configuration.apply_time_zone(result.mft_fn_created_time, knowledge_base.time_zone))
-            result.mft_fn_last_modified_time = str(
-                configuration.apply_time_zone(result.mft_fn_last_modified_time, knowledge_base.time_zone))
-            result.mft_fn_last_accessed_time = str(
-                configuration.apply_time_zone(result.mft_fn_last_accessed_time, knowledge_base.time_zone))
-            result.mft_fn_entry_modified_time = str(
-                configuration.apply_time_zone(result.mft_fn_entry_modified_time, knowledge_base.time_zone))
+                    result.mft_fn_created_time = str(datetime.utcfromtimestamp(
+                        int(str(document[14]).zfill(11) + str(document[18]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                         'T') + 'Z'
+                    result.mft_fn_last_modified_time = str(datetime.utcfromtimestamp(
+                        int(str(document[12]).zfill(11) + str(document[16]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                         'T') + 'Z'
+                    result.mft_fn_last_accessed_time = str(datetime.utcfromtimestamp(
+                        int(str(document[13]).zfill(11) + str(document[17]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                         'T') + 'Z'
+                    result.mft_fn_entry_modified_time = str(datetime.utcfromtimestamp(
+                        int(str(document[15]).zfill(11) + str(document[19]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                                                                                                                         'T') + 'Z'
+                    result.mft_fn_created_time = str(
+                        configuration.apply_time_zone(result.mft_fn_created_time, knowledge_base.time_zone))
+                    result.mft_fn_last_modified_time = str(
+                        configuration.apply_time_zone(result.mft_fn_last_modified_time, knowledge_base.time_zone))
+                    result.mft_fn_last_accessed_time = str(
+                        configuration.apply_time_zone(result.mft_fn_last_accessed_time, knowledge_base.time_zone))
+                    result.mft_fn_entry_modified_time = str(
+                        configuration.apply_time_zone(result.mft_fn_entry_modified_time, knowledge_base.time_zone))
 
-            result.is_downloaded = 1 if document_path in zone_list else 0  # check Zone.Identifier, 1 = True, 0 = False
-            result.is_copied = 1 if int(str(document[4]).zfill(11) + str(document[8]).zfill(7)) < int(
-                str(document[6]).zfill(11) + str(document[10]).zfill(
-                    7)) else 0  # check Mtime > Ctime, 1 = True, 0 = False
+                    result.is_downloaded = 1 if document_path in zone_list else 0  # check Zone.Identifier, 1 = True, 0 = False
+                    result.is_copied = 1 if int(str(document[4]).zfill(11) + str(document[8]).zfill(7)) < int(
+                        str(document[6]).zfill(11) + str(document[10]).zfill(
+                            7)) else 0  # check Mtime > Ctime, 1 = True, 0 = False
+                except Exception:
+                    continue
+            elif knowledge_base._values['operating_system'][0].find('Unknown') >= 0:
+                try:
+                    result.mft_st_created_time = datetime.utcfromtimestamp(int(str(document[6]).zfill(10) + str(document[10]).zfill(9)[0:3]) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f').replace(' ','T') + 'Z'
+                    result.mft_st_last_modified_time = datetime.utcfromtimestamp(int(str(document[4]).zfill(10) + str(document[8]).zfill(9)[0:3]) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f').replace(' ','T') + 'Z'
+                    result.mft_st_last_accessed_time = datetime.utcfromtimestamp(int(str(document[5]).zfill(10) + str(document[9]).zfill(9)[0:3]) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f').replace(' ','T') + 'Z'
+                    result.mft_st_entry_modified_time = datetime.utcfromtimestamp(int(str(document[7]).zfill(10) + str(document[11]).zfill(9)[0:3]) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f').replace(' ','T') + 'Z'
+
+                    result.mft_st_created_time = str(
+                        configuration.apply_time_zone(result.mft_st_created_time, knowledge_base.time_zone))
+                    result.mft_st_last_modified_time = str(
+                        configuration.apply_time_zone(result.mft_st_last_modified_time, knowledge_base.time_zone))
+                    result.mft_st_last_accessed_time = str(
+                        configuration.apply_time_zone(result.mft_st_last_accessed_time, knowledge_base.time_zone))
+                    result.mft_st_entry_modified_time = str(
+                        configuration.apply_time_zone(result.mft_st_entry_modified_time, knowledge_base.time_zone))
+                except Exception:
+                    continue
+
+
 
             # is_created
             result.is_created = 0
