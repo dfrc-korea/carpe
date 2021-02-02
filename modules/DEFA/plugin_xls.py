@@ -11,7 +11,6 @@ class XLSPlugin(interface.DEFAPlugin):
     DESCRIPTION = 'xls plugin'
 
     def Process(self, **kwargs):
-        print("-[Plugin]: XLS Plugin Started.")
         super(XLSPlugin, self).Process(**kwargs)
 
         data = MappingDocuments()

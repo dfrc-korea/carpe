@@ -10,7 +10,6 @@ class PDFPlugin(interface.DEFAPlugin):
     DESCRIPTION = 'pdf plugin'
 
     def Process(self, **kwargs):
-        print("-[Plugin]: PDF Plugin Started.")
         super(PDFPlugin, self).Process(**kwargs)
 
         data = MappingDocuments()

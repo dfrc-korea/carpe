@@ -151,21 +151,37 @@ class DEFAConnector(interface.ModuleConnector):
 
             try:
                 if extension == 'hwp':
+                    self.print_run_info(f"Parse HWP File : \"{document[0]}\"", start=True)
                     result = hwp_plugin.Process(fp=file_path, ole_path=ole_path)
+                    self.print_run_info(f"Parse HWP File : \"{document[0]}\"", start=False)
                 elif extension == 'doc':
+                    self.print_run_info(f"Parse DOC File : \"{document[0]}\"", start=True)
                     result = doc_plugin.Process(fp=file_path, ole_path=ole_path)
+                    self.print_run_info(f"Parse DOC File : \"{document[0]}\"", start=False)
                 elif extension == 'ppt':
+                    self.print_run_info(f"Parse PPT File : \"{document[0]}\"", start=True)
                     result = ppt_plugin.Process(fp=file_path, ole_path=ole_path)
+                    self.print_run_info(f"Parse PPT File : \"{document[0]}\"", start=False)
                 elif extension == 'xls':
+                    self.print_run_info(f"Parse XLS File : \"{document[0]}\"", start=True)
                     result = xls_plugin.Process(fp=file_path, ole_path=ole_path)
+                    self.print_run_info(f"Parse XLS File : \"{document[0]}\"", start=False)
                 elif extension == 'docx':
+                    self.print_run_info(f"Parse DOCX File : \"{document[0]}\"", start=True)
                     result = docx_plugin.Process(fp=file_path, ole_path=ole_path)
+                    self.print_run_info(f"Parse DOCX File : \"{document[0]}\"", start=False)
                 elif extension == 'pptx':
+                    self.print_run_info(f"Parse PPTX File : \"{document[0]}\"", start=True)
                     result = pptx_plugin.Process(fp=file_path, ole_path=ole_path)
+                    self.print_run_info(f"Parse PPTX File : \"{document[0]}\"", start=False)
                 elif extension == 'xlsx':
+                    self.print_run_info(f"Parse XLSX File : \"{document[0]}\"", start=True)
                     result = xlsx_plugin.Process(fp=file_path, ole_path=ole_path)
+                    self.print_run_info(f"Parse XLSX File : \"{document[0]}\"", start=False)
                 elif extension == 'pdf':
+                    self.print_run_info(f"Parse PDF File : \"{document[0]}\"", start=True)
                     result = pdf_plugin.Process(fp=file_path, ole_path=ole_path)
+                    self.print_run_info(f"Parse PDF File : \"{document[0]}\"", start=False)
             except Exception as e:
                 # print("Error : " + str(e))
                 error_count += 1

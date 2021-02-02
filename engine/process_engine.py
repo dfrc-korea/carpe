@@ -81,9 +81,11 @@ class ProcessEngine(object):
         and_flag = False
         if configuration.source_path_specs[0].TYPE_INDICATOR == 'APFS':
             module = self._modules.get('macos_connector', None)
+            module.print_run_info(module.DESCRIPTION, start=True)
             module.Connect(par_id='', configuration=configuration,
                            source_path_spec=configuration.source_path_specs[0],
                            knowledge_base=self.knowledge_base)
+            module.print_run_info(module.DESCRIPTION, start=False)
         else:
             """# for ReFS
             for source_path_spec in configuration.source_path_specs:
@@ -126,6 +128,7 @@ class ProcessEngine(object):
                                                    source_path_spec=source_path_spec,
                                                    knowledge_base=self.knowledge_base)
                                     module.print_run_info(module.DESCRIPTION, start=False)
+                                    print()  # for line feed
 
                     except RuntimeError as exception:
                         raise errors.BackEndError('The module cannot be connected: {0!s}'.format(exception))
@@ -279,7 +282,7 @@ class ProcessEngine(object):
             par_id = ''
         else:
             par_id = configuration.partition_list[list(configuration.partition_list.keys())[0]]
-        print(f'\n[{self.print_now_time()}] Partition ID: {par_id}')
+        print(f'\n\n[{self.print_now_time()}] Partition ID: {par_id}')
         return par_id
 
     def print_now_time(self):

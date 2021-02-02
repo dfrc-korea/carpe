@@ -10,7 +10,6 @@ class HWPPlugin(interface.DEFAPlugin):
     DESCRIPTION = 'hwp plugin'
 
     def Process(self, **kwargs):
-        print("-[Plugin]: HWP Plugin Started.")
         super(HWPPlugin, self).Process(**kwargs)
 
         data = MappingDocuments()
