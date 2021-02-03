@@ -447,4 +447,4 @@ class CarpeTool(extraction_tool.ExtractionTool,
         print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + '] ' + phrase)
 
     def update_process_state(self, state):
-        self._cursor.execute_query(f"UPDATE evidence_info SET process_state={state} WHERE case_id like {self.case_id} and evd_id like {self.evidence_id}")
+        self._cursor.execute_query(f"UPDATE evidence_info SET process_state={state} WHERE case_id like \'{self.case_id}\' and evd_id like \'{self.evidence_id}\';")
