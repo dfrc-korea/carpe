@@ -115,7 +115,7 @@ CREATE_HELPER = {
                      "md5 TEXT, "
                      "sha1 TEXT, "
                      "sha3 TEXT, "
-                     "process_state INT(11) DEFAULT 0, "
+                     "process_state INT(11) DEFAULT 2, "
                      "PRIMARY KEY(evd_id), "
                      "FOREIGN KEY(case_id) REFERENCES case_info(case_id));",
 

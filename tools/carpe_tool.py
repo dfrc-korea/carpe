@@ -17,6 +17,7 @@ from utility import database
 from utility import database_sqlite  # for standalone version
 from utility import errors
 from utility import loggers
+from utility import definitions
 
 
 class CarpeTool(extraction_tool.ExtractionTool,
@@ -239,6 +240,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
             self._output_writer.Write('ERROR: {0!s}\n'.format(exception))
             return False
 
+        # update process state
+        self.update_process_state(definitions.PROCESS_STATE_PROCESSING)
+
         # scan source
         scan_context = self.ScanSource(self._source_path)
         self._source_type = scan_context.source_type
@@ -339,6 +343,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
                 output_path=self._output_file_path)
             self.print_now_time(f'Finish Extract File/Directory')
 
+        # update process state
+        self.update_process_state(definitions.PROCESS_STATE_COMPLETE)
+
         self._cursor.close()
         self.print_now_time(f'Finish {mode} Image')
 
@@ -438,3 +445,6 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
     def print_now_time(self, phrase=""):
         print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + '] ' + phrase)
+
+    def update_process_state(self, state):
+        self._cursor.execute_query(f"UPDATE evidence_info SET process_state={state} WHERE case_id like {self.case_id} and evd_id like {self.evidence_id}")
