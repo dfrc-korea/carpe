@@ -37,6 +37,11 @@ class LINKConnector(interface.ModuleConnector):
                 f"FROM file_info WHERE par_id like '{par_id}' and " \
                 f"extension like 'lnk' and ("
 
+        # This is not OS partition
+        if len(knowledge_base._user_accounts.values()) == 0:
+            print("There are no lnk files")
+            return False
+
         for user_accounts in knowledge_base._user_accounts.values():
             for hostname in user_accounts.values():
                 if hostname.identifier.find('S-1-5-21') == -1:

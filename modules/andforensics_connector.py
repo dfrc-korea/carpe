@@ -41,7 +41,7 @@ class AndForensicsConnector(interface.ModuleConnector):
             ret_code = proc.stdout.read()
             f = io.StringIO(str(ret_code))
             result_msg = f.readline()
-            print(result_msg)
+            #print(result_msg)
             f.close()
             if result_msg[-14:-3] == 'Process End':
 

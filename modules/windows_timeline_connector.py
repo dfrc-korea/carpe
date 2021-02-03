@@ -32,6 +32,11 @@ class WindowsTimelineConnector(interface.ModuleConnector):
         query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}' " \
                 f"and name like '%ActivitiesCache.db') and ("
 
+        # This is not OS partition
+        if len(knowledge_base._user_accounts.values()) == 0:
+            print("There are no ActivitiesCache.db file")
+            return False
+
         for user_accounts in knowledge_base._user_accounts.values():
             for hostname in user_accounts.values():
                 if hostname.identifier.find('S-1-5-21') == -1:
