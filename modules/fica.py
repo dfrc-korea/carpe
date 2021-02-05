@@ -58,7 +58,12 @@ class Fica(interface.ModuleConnector):
             }
 
         copier = fica.main(case_profile)
-        copier.to_sql('carve', configuration.cursor._conn)
+        # Insert to DB
+        if configuration.standalone_check:
+            copier.to_sql(name='carve', con=configuration.cursor._conn)
+        else:
+            engine = configuration.cursor.create_engine()
+            copier.to_sql(name='carve', con=engine)
 
 
 manager.ModulesManager.RegisterModule(Fica)

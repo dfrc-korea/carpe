@@ -273,8 +273,8 @@ class CarpeTool(extraction_tool.ExtractionTool,
         if mode == 'Analyze' and not self._partition_list:
             if configuration.source_path_specs[0].TYPE_INDICATOR == 'APFS':
                 pass
-            else:
-                raise errors.BadConfigObject('partition does not exist.\n')
+            # else:
+            #     raise errors.BadConfigObject('partition does not exist.\n')
 
         # print partition_list
         print('partition_list: ' + str(self._partition_list))
@@ -311,6 +311,14 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
             # parse advanced modules
             engine.ProcessAdvancedModules(configuration)
+
+            # carve
+            if not self._partition_list:
+                print("No partition")
+                engine.process_carve(configuration, is_partition=False)
+            else:
+                print(self._partition_list)
+                engine.process_carve(configuration, is_partition=True)
 
         # carpe_carve.py
         elif mode == 'Carve':
