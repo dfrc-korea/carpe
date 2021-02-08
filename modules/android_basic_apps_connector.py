@@ -12,7 +12,7 @@ from utility import errors
 
 class AndroidBasicAppsConnector(interface.ModuleConnector):
     NAME = 'android_basic_apps_connector'
-    DESCRIPTION = 'Module for android basic apps'
+    DESCRIPTION = 'Module for Android Basic Apps'
 
     def __init__(self):
         super(AndroidBasicAppsConnector, self).__init__()
@@ -27,6 +27,14 @@ class AndroidBasicAppsConnector(interface.ModuleConnector):
             knowledge_base (KnowledgeBase): knowledge base.
 
         """
+
+        # Check Filesystem
+        query = f"SELECT filesystem FROM partition_info WHERE par_id like '{par_id}'"
+        filesystem = configuration.cursor.execute_query(query)
+
+        if filesystem == None or filesystem[0] != "TSK_FS_TYPE_EXT4":
+            print("No EXT filesystem.")
+            return False
 
         # Load Schema
         yaml_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'android' \

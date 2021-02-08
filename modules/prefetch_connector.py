@@ -37,7 +37,7 @@ class PREFETCHConnector(interface.ModuleConnector):
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         # extension -> sig_type 변경해야 함
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano, inode FROM file_info " \
-                f"WHERE par_id='{par_id}' and parent_path = 'root{query_separator}Windows{query_separator}Prefetch' " \
+                f"WHERE par_id='{par_id}' and parent_path like 'root{query_separator}Windows{query_separator}Prefetch' " \
                 f"and extension = 'pf';"
 
         prefetch_files = configuration.cursor.execute_query_mul(query)

@@ -541,10 +541,10 @@ class ModuleConnector(BaseConnector):
                         else:
                             query.append(types[i][j] + " ")"""
 
-                if i != (len(_schema) - 1):
-                    query.append(",")
-                else:
-                    query.append(");")
+            if i != (len(_schema) - 1):
+                query.append(",")
+            else:
+                query.append(");")
 
         query = ''.join(query)
 
@@ -580,7 +580,7 @@ class ModuleConnector(BaseConnector):
             return "/"
         if configuration.standalone_check:
             return "\\"
-        return "\\\\"
+        return "\\\\\\\\"  # 서버는 query separator 사용할 때 = 대신 like로 사용할 것.
 
     def GetPathSeparator(self, source_path_spec):
         if source_path_spec.location == "/":

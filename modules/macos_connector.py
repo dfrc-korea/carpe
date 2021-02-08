@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""module for Registry."""
-import os
+"""module for MAC OS."""
+import os, sys
 from modules import manager
 from modules import interface
 from modules import logger
@@ -48,6 +48,10 @@ class MacosConnector(interface.ModuleConnector):
 
     def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
+        if source_path_spec.TYPE_INDICATOR != 'APFS':
+            print('No MacOS')
+            return False
+
         this_file_path = os.path.dirname(
             os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'macos' + os.sep
         # 모든 yaml 파일 리스트
@@ -67,7 +71,10 @@ class MacosConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
-        cmd = "/usr/local/bin/pstat " + '"' + configuration.source_path + '"'
+        if sys.platform == 'win32':
+            cmd = "apfs\\pstat.exe " + '"' + configuration.source_path + '"'
+        else:
+            cmd = "/usr/local/bin/pstat " + '"' + configuration.source_path + '"'
         ret = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         ret_code = ret.stdout.read()
         apsb_block_number = str(ret_code)[str(ret_code).find('APSB Block Number') + 19:].split('\\')[0]

@@ -43,11 +43,11 @@ class ChromiumConnector(interface.ModuleConnector):
                 if hostname.identifier.find('S-1-5-21') == -1:
                     continue
 
-                chrome_query += f"parent_path= \'root{query_sep}Users{query_sep}{hostname.username}{query_sep}AppData{query_sep}Local{query_sep}Google{query_sep}Chrome{query_sep}User Data\' or "
-                whale_query += f"parent_path= \'root{query_sep}Users{query_sep}{hostname.username}{query_sep}AppData{query_sep}Local{query_sep}Naver{query_sep}Naver Whale{query_sep}User Data\' or "
-                chromium_edge_query += f"parent_path= \'root{query_sep}Users{query_sep}{hostname.username}{query_sep}AppData{query_sep}Local{query_sep}Microsoft{query_sep}Edge{query_sep}User Data\' or "
-                opera_query += f"parent_path= \'root{query_sep}Users{query_sep}{hostname.username}{query_sep}AppData{query_sep}Roaming{query_sep}Opera Software{query_sep}Opera Stable\' or "
-                firefox_query += f"parent_path= \'root{query_sep}Users{query_sep}{hostname.username}{query_sep}AppData{query_sep}Roaming{query_sep}Mozilla{query_sep}Firefox{query_sep}Profiles\' or "
+                chrome_query += f"parent_path like \'root{query_sep}Users{query_sep}{hostname.username}{query_sep}AppData{query_sep}Local{query_sep}Google{query_sep}Chrome{query_sep}User Data\' or "
+                whale_query += f"parent_path like \'root{query_sep}Users{query_sep}{hostname.username}{query_sep}AppData{query_sep}Local{query_sep}Naver{query_sep}Naver Whale{query_sep}User Data\' or "
+                chromium_edge_query += f"parent_path like \'root{query_sep}Users{query_sep}{hostname.username}{query_sep}AppData{query_sep}Local{query_sep}Microsoft{query_sep}Edge{query_sep}User Data\' or "
+                opera_query += f"parent_path like \'root{query_sep}Users{query_sep}{hostname.username}{query_sep}AppData{query_sep}Roaming{query_sep}Opera Software{query_sep}Opera Stable\' or "
+                firefox_query += f"parent_path like \'root{query_sep}Users{query_sep}{hostname.username}{query_sep}AppData{query_sep}Roaming{query_sep}Mozilla{query_sep}Firefox{query_sep}Profiles\' or "
                 user_list.append(hostname.username)
 
         chrome_query = chrome_query[:-4] + ")and not type='7';"
