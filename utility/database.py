@@ -1,6 +1,7 @@
 import os
 import pymysql
 import configparser
+import sqlalchemy
 
 from utility import logger
 
@@ -201,3 +202,9 @@ class Database(object):
             print(query)
             print("db execution failed: %s" % e)
             return -1
+
+    def create_engine(self):
+        pymysql.install_as_MySQLdb()
+        db_data = f'mysql://{self._user}:{self._passwd}@{self._host}:{self._port}/{self._database}?charset=utf8mb4'
+        engine = sqlalchemy.create_engine(db_data)
+        return engine

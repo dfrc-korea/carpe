@@ -49,7 +49,7 @@ def decode_time_stamp(filetimeQword):
             msg = "(Date is greater than 3001-01-01)"
         elif filetimeQword < 116444303999999991:
             msg = "(Date is older than 1970-01-01)"
-        print("Error converting timestamp, original value was : 0x%X %s" % (filetimeQword, msg))
+        # print("Error converting timestamp, original value was : 0x%X %s" % (filetimeQword, msg))
     return None
 
 

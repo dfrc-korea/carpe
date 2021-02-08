@@ -7,8 +7,10 @@ from __future__ import unicode_literals
 class Error(Exception):
   """Base error class."""
 
+
 class BackEndError(Error):
   """Error indicating that a dependency has encountered a problem."""
+
 
 class BadConfigObject(Error):
   """Raised when the configuration object is of the wrong type."""

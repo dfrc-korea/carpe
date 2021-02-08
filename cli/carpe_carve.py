@@ -40,7 +40,6 @@ def main():
     if tool.dependencies_check and not dependencies.CheckDependencies(
             verbose_output=False):
         return False
-
     try:
         tool.ExtractDataFromSources(mode='Carve')
 
