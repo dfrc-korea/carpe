@@ -13,7 +13,7 @@ from utility import errors
 
 class AndroidUserAppsConnector(interface.ModuleConnector):
     NAME = 'android_user_apps_connector'
-    DESCRIPTION = 'Module for android user apps'
+    DESCRIPTION = 'Module for Android User Apps'
 
     def __init__(self):
         super(AndroidUserAppsConnector, self).__init__()
@@ -28,13 +28,22 @@ class AndroidUserAppsConnector(interface.ModuleConnector):
             knowledge_base (KnowledgeBase): knowledge base.
 
         """
+
+        # Check Filesystem
+        query = f"SELECT filesystem FROM partition_info WHERE par_id like '{par_id}'"
+        filesystem = configuration.cursor.execute_query(query)
+
+        if filesystem == None or filesystem[0] != "TSK_FS_TYPE_EXT4":
+            print("No EXT filesystem.")
+            return False
+
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'android' + os.sep
 
         ### Create LV1 Table ###
         # 모든 yaml 파일 리스트
         yaml_list = [this_file_path + 'lv1_os_and_geodata.yaml']
         # 모든 테이블 리스트
-        table_list = ['lv1_os_and_geodata.yaml']
+        table_list = ['lv1_os_and_geodata']
 
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False

@@ -13,7 +13,7 @@ from dfvfs.lib import definitions as dfvfs_definitions
 class KakaotalkMobileDecryptConnector(interface.ModuleConnector):
 
 	NAME = 'kakaotalk_mobile_decrypt_connector'
-	DESCRIPTION = 'Module for kakaotalk_mobile_decrypt'
+	DESCRIPTION = 'Module for Kakaotalk Mobile Decrypt'
 	TABLE_NAME = 'lv1_kakaotalk_mobile_decrypt'
 
 	_plugin_classes = {}
@@ -22,6 +22,14 @@ class KakaotalkMobileDecryptConnector(interface.ModuleConnector):
 		super(KakaotalkMobileDecryptConnector, self).__init__()
 
 	def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
+
+		# Check Filesystem
+		query = f"SELECT filesystem FROM partition_info WHERE par_id like '{par_id}'"
+		filesystem = configuration.cursor.execute_query(query)
+
+		if filesystem == None or filesystem[0] != "TSK_FS_TYPE_EXT4":
+			print("No EXT filesystem.")
+			return False
 
 		this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'kakaotalk_mobile'
 
