@@ -313,6 +313,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
             engine.ProcessAdvancedModules(configuration)
 
             # carve
+            print("Carving Start")
             if not self._partition_list:
                 print("No partition")
                 engine.process_carve(configuration, is_partition=False)
