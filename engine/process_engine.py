@@ -107,9 +107,11 @@ class ProcessEngine(object):
                                 # Android Forensic Module
                                 if module_name == 'andforensics_connector':
                                     if not and_flag:
+                                        module.print_run_info(module.DESCRIPTION, start=True)
                                         module.Connect(par_id=par_id, configuration=configuration,
                                                        source_path_spec=source_path_spec,
                                                        knowledge_base=self.knowledge_base)
+                                        module.print_run_info(module.DESCRIPTION, start=False)
                                         and_flag = True
                                 # Skip these modules
                                 elif module_name in ['andforensics_connector',
