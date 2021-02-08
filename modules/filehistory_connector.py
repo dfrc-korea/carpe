@@ -50,9 +50,9 @@ class FileHistoryConnector(interface.ModuleConnector):
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano FROM file_info WHERE par_id='{par_id}' and " \
                 f"(parent_path like '%FileHistory%Configuration' and name like 'Catalog%edb') ORDER by ctime DESC;"
 
-        filehistory_file = configuration.cursor.execute_query_mul(query)
+        filehistory_files = configuration.cursor.execute_query_mul(query)
 
-        if len(filehistory_file) == 0:
+        if len(filehistory_files) == 0:
             print("There are no file history files")
             return False
 
@@ -60,62 +60,60 @@ class FileHistoryConnector(interface.ModuleConnector):
         insert_filehistory_string = []
         insert_filehistory_file = []
 
-        #query_separator = '/' if source_path_spec.location == '/' else source_path_spec.location * 2
-        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
-        path_separator = self.GetPathSeparator(source_path_spec)
+        for filehistory_file in filehistory_files:
 
-        filehistory_path = filehistory_file[0][1][filehistory_file[0][1].find(query_separator):] + query_separator + filehistory_file[0][0]
+            filehistory_path = filehistory_file[1][5:] + '\\' + filehistory_file[0]
 
-        file_object = self.LoadTargetFileToMemory(
-            source_path_spec=source_path_spec,
-            configuration=configuration,
-            file_path=filehistory_path)
+            file_object = self.LoadTargetFileToMemory(
+                source_path_spec=source_path_spec,
+                configuration=configuration,
+                file_path=filehistory_path)
 
-        results = filehistory_parser.main(database=file_object)
-        if not results:
+            results = filehistory_parser.main(database=file_object)
+            if not results:
+                file_object.close()
+                return False
             file_object.close()
-            return False
-        file_object.close()
 
-        for idx, result in enumerate(results['namespace']):
-            if idx == 0:
-                continue
-            file_created = result[5]
-            file_modified = result[6]
+            for idx, result in enumerate(results['namespace']):
+                if idx == 0:
+                    continue
+                file_created = result[5]
+                file_modified = result[6]
 
-            try:
-                file_created_time = str(datetime.utcfromtimestamp(file_created / 10000000 - 11644473600))\
-                                        .replace(' ', 'T') + 'Z'
-                file_created_time = configuration.apply_time_zone(file_created_time, knowledge_base.time_zone)
-            except ValueError:
-                file_created_time = None
-            try:
-                file_modified_time = str(datetime.utcfromtimestamp(file_modified / 10000000 - 11644473600))\
-                                         .replace(' ', 'T') + 'Z'
-                file_modified_time = configuration.apply_time_zone(file_modified_time, knowledge_base.time_zone)
-            except ValueError:
-                file_modified_time = None
+                try:
+                    file_created_time = str(datetime.utcfromtimestamp(file_created / 10000000 - 11644473600))\
+                                            .replace(' ', 'T') + 'Z'
+                    file_created_time = configuration.apply_time_zone(file_created_time, knowledge_base.time_zone)
+                except ValueError:
+                    file_created_time = None
+                try:
+                    file_modified_time = str(datetime.utcfromtimestamp(file_modified / 10000000 - 11644473600))\
+                                             .replace(' ', 'T') + 'Z'
+                    file_modified_time = configuration.apply_time_zone(file_modified_time, knowledge_base.time_zone)
+                except ValueError:
+                    file_modified_time = None
 
-            insert_filehistory_namespace.append(
-                tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]),
-                       str(result[1]), str(result[2]), str(result[3]), str(result[4]), file_created_time,
-                       file_modified_time,
-                       str(result[7]), str(result[8]), str(result[9]), str(result[10])]))
+                insert_filehistory_namespace.append(
+                    tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]),
+                           str(result[1]), str(result[2]), str(result[3]), str(result[4]), file_created_time,
+                           file_modified_time,
+                           str(result[7]), str(result[8]), str(result[9]), str(result[10])]))
 
-        for idx, result in enumerate(results['file']):
-            if idx == 0:
-                continue
-            insert_filehistory_file.append(
-                tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]),
-                       str(result[1]), str(result[2]), str(result[3]), str(result[4]), str(result[5]), str(result[6]),
-                       str(result[7]), str(result[8])]))
+            for idx, result in enumerate(results['file']):
+                if idx == 0:
+                    continue
+                insert_filehistory_file.append(
+                    tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]),
+                           str(result[1]), str(result[2]), str(result[3]), str(result[4]), str(result[5]), str(result[6]),
+                           str(result[7]), str(result[8])]))
 
-        for idx, result in enumerate(results['string']):
-            if idx == 0:
-                continue
-            insert_filehistory_string.append(
-                tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]),
-                       str(result[1]), filehistory_path]))
+            for idx, result in enumerate(results['string']):
+                if idx == 0:
+                    continue
+                insert_filehistory_string.append(
+                    tuple([par_id, configuration.case_id, configuration.evidence_id, str(result[0]),
+                           str(result[1]), filehistory_path]))
 
         query = "Insert into lv1_os_win_filehistory_namespace values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_filehistory_namespace)
