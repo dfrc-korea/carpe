@@ -151,12 +151,12 @@ class ProcessEngine(object):
                 else:
                     par_id = configuration.partition_list['p1']
 
-                module.print_run_info(module.DESCRIPTION, par_id, start=True)
+                module.print_run_info(module.DESCRIPTION, start=True)
                 module.Connect(par_id=par_id,
                                configuration=configuration,
                                source_path_spec=source_path_spec,
                                knowledge_base=self.knowledge_base)
-                module.print_run_info(module.DESCRIPTION, par_id, start=False)
+                module.print_run_info(module.DESCRIPTION, start=False)
 
         else:
             module.print_run_info(module.DESCRIPTION, start=True)

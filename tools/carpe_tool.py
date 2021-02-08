@@ -312,6 +312,12 @@ class CarpeTool(extraction_tool.ExtractionTool,
             # parse advanced modules
             engine.ProcessAdvancedModules(configuration)
 
+            # carve
+            print("Carving Start")
+            if not self._partition_list:
+                print("No partition")
+                engine.process_carve(configuration, is_partition=False)
+                
             if configuration.source_path_specs[0].TYPE_INDECATOR == 'APFS':
                 pass
             else:

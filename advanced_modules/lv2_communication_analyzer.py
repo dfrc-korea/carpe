@@ -6,6 +6,7 @@ from advanced_modules import interface
 from advanced_modules import logger
 from datetime import datetime, timedelta
 
+
 class LV2COMMUNICATIONAnalyzer(interface.AdvancedModuleAnalyzer):
 
     NAME = 'lv2_communication_analyzer'
@@ -21,7 +22,7 @@ class LV2COMMUNICATIONAnalyzer(interface.AdvancedModuleAnalyzer):
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
 
         # 모든 yaml 파일 리스트
-        yaml_list = [this_file_path+'lv2_communication.yaml']
+        yaml_list = [this_file_path + 'lv2_communication.yaml']
 
         # 모든 테이블 리스트
         table_list = ['lv2_communication']
@@ -41,8 +42,8 @@ class LV2COMMUNICATIONAnalyzer(interface.AdvancedModuleAnalyzer):
 
         #KAKAOTALK
         print('[MODULE]: LV2 Communication Analyzer - KAKAOTALK')
-        # par_id 넣어줘야함. 임시로 where par_id는 뻇음
 
+        # par_id 넣어줘야함. 임시로 where par_id는 뻇음
         query = f"SELECT friends.name, friends.phone_number, chatlogs.message, chatlogs.created_at, chatrooms.private_meta, chatrooms.members FROM carpe.lv1_app_kakaotalk_mobile_chatlogs as chatlogs, carpe.lv1_app_kakaotalk_mobile_friends as friends, carpe.lv1_app_kakaotalk_mobile_chatrooms as chatrooms where chatlogs.user_id = friends.id and chatlogs.chat_id = chatrooms.id;"
         results = configuration.cursor.execute_query_mul(query)
         if len(results) == 0:
