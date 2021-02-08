@@ -11,11 +11,17 @@ def _count_microseconds(microseconds):
 def _convert_strdate_to_datetime(strdate):
     month_dic = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
                  'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
+    if strdate[6] != ' ':
+        day = strdate[5:7]
+        month = month_dic[strdate[8:11]]
+        year = strdate[12:16]
+        timestamp = strdate[17:25]
+    else:
+        day = strdate[5:6]
+        month = month_dic[strdate[7:10]]
+        year = strdate[11:15]
+        timestamp = strdate[16:24]
 
-    day = strdate[5:7]
-    month = month_dic[strdate[8:11]]
-    year = strdate[12:16]
-    timestamp = strdate[17:25]
 
     time = year+'-'+month+'-'+day+'T'+timestamp+'Z'
     return time

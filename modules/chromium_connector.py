@@ -36,7 +36,7 @@ class ChromiumConnector(interface.ModuleConnector):
         if not knowledge_base._user_accounts:
             return False
 
-        query_sep = query_sep.replace('\\\\', '\\')
+        #query_sep = query_sep.replace('\\\\', '\\')
 
         for user_accounts in knowledge_base._user_accounts.values():
             for hostname in user_accounts.values():
