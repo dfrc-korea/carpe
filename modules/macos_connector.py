@@ -72,7 +72,7 @@ class MacosConnector(interface.ModuleConnector):
             return False
 
         if sys.platform == 'win32':
-            cmd = "apfs\\pstat.exe " + '"' + configuration.source_path + '"'
+            cmd = "..\\modules\\apfs\\pstat.exe " + '"' + configuration.source_path + '"'
         else:
             cmd = "/usr/local/bin/pstat " + '"' + configuration.source_path + '"'
         ret = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -82,7 +82,10 @@ class MacosConnector(interface.ModuleConnector):
         # Installed program
         installed_program_list = []
         try:
-            cmd = "/usr/local/bin/fcat -B " + apsb_block_number + " /Library/Receipts/InstallHistory.plist " + '"' + configuration.source_path + '"'
+            if sys.platform == 'win32':
+                cmd = "..\\modules\\apfs\\fcat.exe -B " + apsb_block_number + " /Library/Receipts/InstallHistory.plist " + '"' + configuration.source_path + '"'
+            else:
+                cmd = "/usr/local/bin/fcat -B " + apsb_block_number + " /Library/Receipts/InstallHistory.plist " + '"' + configuration.source_path + '"'
             ret = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             ret_code = ret.stdout.read()
 
@@ -93,6 +96,8 @@ class MacosConnector(interface.ModuleConnector):
             with open("temp.plist", 'rb') as fp1:
                 pl = plistlib.load(fp1)
             fp1.close()
+
+            os.remove("temp.plist")
 
             installed_program_count = 0
             for program_info in pl:
@@ -117,7 +122,10 @@ class MacosConnector(interface.ModuleConnector):
         # System Information
         system_information_list = []
         try:
-            cmd = "/usr/local/bin/fcat -B " + apsb_block_number + " /System/Library/CoreServices/SystemVersion.plist " + '"' + configuration.source_path + '"'
+            if sys.platform == 'win32':
+                cmd = "..\\modules\\apfs\\fcat.exe -B " + apsb_block_number + " /System/Library/CoreServices/SystemVersion.plist " + '"' + configuration.source_path + '"'
+            else:
+                cmd = "/usr/local/bin/fcat -B " + apsb_block_number + " /System/Library/CoreServices/SystemVersion.plist " + '"' + configuration.source_path + '"'
             ret = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             ret_code = ret.stdout.read()
 
@@ -128,6 +136,8 @@ class MacosConnector(interface.ModuleConnector):
             with open("temp.plist", 'rb') as fp2:
                 system_info = plistlib.load(fp2)
             fp2.close()
+
+            os.remove("temp.plist")  # 이게 맞는지 확인
 
             system_information = SystemInformation()
             system_information_list.append(system_information)
@@ -148,7 +158,10 @@ class MacosConnector(interface.ModuleConnector):
         # System Log
         system_log_list = []
         try:
-            cmd = "/usr/local/bin/fcat -B " + apsb_block_number + " /private/var/log/system.log " + '"' + configuration.source_path + '"'
+            if sys.platform == 'win32':
+                cmd = "..\\modules\\apfs\\fcat.exe -B " + apsb_block_number + " /private/var/log/system.log " + '"' + configuration.source_path + '"'
+            else:
+                cmd = "/usr/local/bin/fcat -B " + apsb_block_number + " /private/var/log/system.log " + '"' + configuration.source_path + '"'
             ret = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             ret_code = ret.stdout.read()
 
