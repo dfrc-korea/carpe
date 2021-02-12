@@ -17,6 +17,7 @@ from utility import database
 from utility import database_sqlite  # for standalone version
 from utility import errors
 from utility import loggers
+from utility import definitions
 
 
 class CarpeTool(extraction_tool.ExtractionTool,
@@ -135,7 +136,18 @@ class CarpeTool(extraction_tool.ExtractionTool,
                 'Get partition id from existing database'
             )
         )
-
+        argument_parser.add_argument(
+            '--case-name', '--case_name', action='store', dest='case_name', type=str, help='Enter your case name',
+            default=''
+        )
+        argument_parser.add_argument(
+            '--investigator', action='store', dest='investigator', type=str, help='Enter investigator name',
+            default=''
+        )
+        argument_parser.add_argument(
+            '--case_desc', '--case_description', '--case-desc', '--case-description', action='store',
+            dest='case_description', type=str, help='Enter case description', default=''
+        )
         ### source path
         argument_parser.add_argument(
             'source', action='store', metavar='SOURCE', nargs='?',
@@ -228,13 +240,16 @@ class CarpeTool(extraction_tool.ExtractionTool,
             self._output_writer.Write('ERROR: {0!s}\n'.format(exception))
             return False
 
+        # update process state
+        self.update_process_state(definitions.PROCESS_STATE_PROCESSING)
+
         # scan source
         scan_context = self.ScanSource(self._source_path)
         self._source_type = scan_context.source_type
 
         # set partition_list
         if self.ignore:
-            self.get_partition_list()
+            self.set_partition_list()
 
         # set configuration
         configuration = self._CreateProcessingConfiguration()
@@ -258,8 +273,8 @@ class CarpeTool(extraction_tool.ExtractionTool,
         if mode == 'Analyze' and not self._partition_list:
             if configuration.source_path_specs[0].TYPE_INDICATOR == 'APFS':
                 pass
-            else:
-                raise errors.BadConfigObject('partition does not exist.\n')
+            # else:
+            #     raise errors.BadConfigObject('partition does not exist.\n')
 
         # print partition_list
         print('partition_list: ' + str(self._partition_list))
@@ -296,6 +311,18 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
             # parse advanced modules
             engine.ProcessAdvancedModules(configuration)
+                
+            if configuration.source_path_specs[0].TYPE_INDECATOR == 'APFS':
+                pass
+            else:
+                # carve
+                print("Carving Start")
+                if not self._partition_list:
+                    print("No partition")
+                    engine.process_carve(configuration, is_partition=False)
+                else:
+                    print(self._partition_list)
+                    engine.process_carve(configuration, is_partition=True)
 
         # carpe_carve.py
         elif mode == 'Carve':
@@ -327,6 +354,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
                 dir_path=self.extract_path,
                 output_path=self._output_file_path)
             self.print_now_time(f'Finish Extract File/Directory')
+
+        # update process state
+        self.update_process_state(definitions.PROCESS_STATE_COMPLETE)
 
         self._cursor.close()
         self.print_now_time(f'Finish {mode} Image')
@@ -427,3 +457,6 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
     def print_now_time(self, phrase=""):
         print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + '] ' + phrase)
+
+    def update_process_state(self, state):
+        self._cursor.execute_query(f"UPDATE evidence_info SET process_state={state} WHERE case_id like \'{self.case_id}\' and evd_id like \'{self.evidence_id}\';")

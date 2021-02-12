@@ -11,7 +11,6 @@ class PPTPlugin(interface.DEFAPlugin):
     DESCRIPTION = 'ppt plugin'
 
     def Process(self, **kwargs):
-        print("-[Plugin]: PPT Plugin Started.")
         super(PPTPlugin, self).Process(**kwargs)
 
         data = MappingDocuments()

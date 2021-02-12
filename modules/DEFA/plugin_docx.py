@@ -10,7 +10,6 @@ class DOCXPlugin(interface.DEFAPlugin):
     DESCRIPTION = 'docx plugin'
 
     def Process(self, **kwargs):
-        print("-[Plugin]: DOCX Plugin Started.")
         super(DOCXPlugin, self).Process(**kwargs)
 
         data = MappingDocuments()

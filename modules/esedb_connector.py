@@ -206,8 +206,9 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
                                 for record in parser.GetHistoryRecords:
                                     tmp_record = list(record)
-                                    tmp_record[17] = tmp_record[17].replace('"', '""')
-                                    tmp_record[17] = tmp_record[17].replace('\'', '\'\'')
+                                    if type(tmp_record) == bytes:
+                                        tmp_record[17] = tmp_record[17].replace('"', '""')
+                                        tmp_record[17] = tmp_record[17].replace('\'', '\'\'')
                                     result = info + tuple(tmp_record) + tuple([edb_path])
                                     query = self.InsertQueryBuilder(table_name=table_name,
                                                                     schema=history_schema,

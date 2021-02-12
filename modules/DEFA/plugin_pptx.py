@@ -10,7 +10,6 @@ class PPTXPlugin(interface.DEFAPlugin):
     DESCRIPTION = 'pptx plugin'
 
     def Process(self, **kwargs):
-        print("-[Plugin]: PPTX Plugin Started.")
         super(PPTXPlugin, self).Process(**kwargs)
 
         data = MappingDocuments()

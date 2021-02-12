@@ -49,7 +49,7 @@ class SearchDBConnector(interface.ModuleConnector):
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         # extension -> sig_type 변경해야 함
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano FROM file_info WHERE par_id='{par_id}' and " \
-                f"parent_path = 'root{query_separator}ProgramData{query_separator}Microsoft{query_separator}" \
+                f"parent_path like 'root{query_separator}ProgramData{query_separator}Microsoft{query_separator}" \
                 f"Search{query_separator}Data{query_separator}Applications{query_separator}Windows' and name = 'Windows.edb';"
 
         searchdb_file = configuration.cursor.execute_query_mul(query)

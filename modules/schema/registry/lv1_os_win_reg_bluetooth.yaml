@@ -9,6 +9,8 @@ Table:
       - name
       - key_last_updated_time
       - lastconnectedtime
+      - backup_flag
+      - source
 
     Types:
       - [VARCHAR(255), NOT NULL]
@@ -16,6 +18,8 @@ Table:
       - [VARCHAR(255), NOT NULL]
       - [TEXT, NOT NULL]
       - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT]
       - [TEXT, NOT NULL]
 
 Artifacts:

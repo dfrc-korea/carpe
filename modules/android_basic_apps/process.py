@@ -14,7 +14,7 @@ from modules.android_basic_apps.android_recent_files import parse_recent_files
 from modules.android_basic_apps.android_siminfo import parse_sim_info
 from modules.android_basic_apps.android_smsmms import parse_smsmms
 from modules.android_basic_apps.android_system_info import parse_system_info
-#from modules.android_basic_apps.android_usagestats import parse_usagestats
+from modules.android_basic_apps.android_usagestats import parse_usagestats
 from modules.android_basic_apps.android_user_dict import parse_user_dict
 from modules.android_basic_apps.android_wifi import parse_wifi
 

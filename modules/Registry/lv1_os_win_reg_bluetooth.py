@@ -14,6 +14,10 @@ def Bluetooth(reg_system):
     bluetooth_list = []
     bluetooth_count = 0
     bluetooth_key = reg_system.find_key(r"ControlSet001\Services\BTHPORT\Parameters\Devices") ####
+
+    if bluetooth_key == None:
+        return bluetooth_list
+
     for bluetooth_subkey in bluetooth_key.subkeys():
         try:
             bluetooth_information = Bluetooth_Information()

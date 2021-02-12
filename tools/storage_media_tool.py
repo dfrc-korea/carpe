@@ -1532,7 +1532,7 @@ class StorageMediaTool(tools.CLITool):
                     print(exception)
         # self._cursor.commit()
 
-    def get_partition_list(self):
+    def set_partition_list(self):
         query = f"SELECT par_name, par_id FROM partition_info WHERE evd_id='{self.evidence_id}'"
         results = self._cursor.execute_query_mul(query)
         self._partition_list = dict(results)

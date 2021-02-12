@@ -101,7 +101,7 @@ class NotificationConnector(interface.ModuleConnector):
                         data[7] = configuration.apply_time_zone(data[7], knowledge_base.time_zone)  # boot_id
                         data[10] = configuration.apply_time_zone(data[10], knowledge_base.time_zone)  # created_time
                         data[11] = configuration.apply_time_zone(data[11], knowledge_base.time_zone)  # modified_time
-                        noti_list.append(info + data)
+                        noti_list.append(info + list(data))
 
                     query = f"Insert into {table_list[1]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
                             f"%s, %s, %s, %s, %s);"
@@ -114,7 +114,7 @@ class NotificationConnector(interface.ModuleConnector):
                                                  output_path=output_path)
                     noti_tuple = noti.old_noti_parser(output_path + os.sep + 'appdb.dat')
                     for data in noti_tuple:
-                        noti_list.append(info + data)
+                        noti_list.append(info + list(data))
                     query = f"Insert into {table_list[0]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
             else:
                 print("Notification exists only Windows 10")

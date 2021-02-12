@@ -98,7 +98,7 @@ class Database:
                     query = self.insert_query_builder("evidence_info")
                     evd_path = self.source_path
                     tmp_path = self.output_path
-                    values = (str(now_time), self.case_id, self.evd_id, self.evd_id, evd_path, 'image', '', 0, '',
+                    values = (str(now_time), self.case_id, self.evd_id, self.evd_id, evd_path, 'image', '', 2, '',
                               '', 'EWF', 'UTC+9', tmp_path)
                     query = (query + "\n values " + "%s" % (values,))
                     self.execute_query(query)

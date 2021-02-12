@@ -12,7 +12,7 @@ location_query = \
     SELECT accessPoints.timeStamp as timestamp,
         accessPoints.coordinates_latitude as latitude,
         accessPoints.coordinates_longitude as longitude,
-        accessPoints.targetName as contents
+        accessPoints.ssid as contents
         
     FROM accessPoints
     ORDER BY accessPoints.timeStamp

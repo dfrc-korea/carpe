@@ -28,8 +28,7 @@ class Lv2OSLogHistoryAnalyzer(interface.AdvancedModuleAnalyzer):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
-        # MFT
-        # print("MFT loading")
+        # Load $MFT
         query = f"SELECT mft_ref_num, path, SI_ctime, file_size FROM lv1_fs_ntfs_mft WHERE par_id='{par_id}' AND source='File record';"
         mft_results = configuration.cursor.execute_query_mul(query)
         if not mft_results:
@@ -40,8 +39,7 @@ class Lv2OSLogHistoryAnalyzer(interface.AdvancedModuleAnalyzer):
             return False
         mft_results = preprocess_mft(mft_results)
 
-        # $Usnjrnl
-        # print("$UsnJrnl loading")
+        # Load $Usnjrnl
         query = f"SELECT usn_value, reason, mft_ref_num, timestamp, file_name, file_path_from_mft FROM lv1_fs_ntfs_usnjrnl WHERE par_id='{par_id}';"
         usnjrnl_results = configuration.cursor.execute_query_mul(query)
         if not usnjrnl_results:
@@ -74,17 +72,14 @@ class Lv2OSLogHistoryAnalyzer(interface.AdvancedModuleAnalyzer):
         info = tuple([par_id, configuration.case_id, configuration.evidence_id])
 
         # Collect $MFT
-        # print("Collecting $MFT")
         for key in mft_results.keys():
             output_data.append(collect_mft(info, mft_results[key]))
 
         # Collect $UsnJrnl
-        # print("Collecting $UsnJrnl")
         for key in usnjrnl_grouped.keys():
             output_data.extend(collect_usnjrnl(info, usnjrnl_grouped[key].values()))
 
         # Collect $MFT + $UsnJrnl
-        # print("Collecting $MFT + $UsnJrnl")
         for mft_entry_hist_object in mft_usnjrnl_list:
             output_data.extend(mft_entry_hist_object.collect_data(info))
 

@@ -26,6 +26,11 @@ class ShellbagConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
+        # This is not OS partition
+        if len(knowledge_base._user_accounts.values()) == 0:
+            print("There are no Registry")
+            return False
+
         # TODO file path list를 뽑아야함
         username = list()
         for user_accounts in knowledge_base._user_accounts.values():

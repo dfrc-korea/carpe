@@ -13,7 +13,7 @@ from modules import interface
 
 class AndForensicsConnector(interface.ModuleConnector):
     NAME = 'andforensics_connector'
-    DESCRIPTION = 'Module for android'
+    DESCRIPTION = 'Module for AndForensics'
     TABLE_NAME = 'lv1_os_android_andforensics'
 
     _plugin_classes = {}
@@ -31,6 +31,14 @@ class AndForensicsConnector(interface.ModuleConnector):
             knowledge_base (KnowledgeBase): knowledge base.
 
         """
+        # Check Filesystem
+        query = f"SELECT filesystem FROM partition_info WHERE par_id like '{par_id}'"
+        filesystem = configuration.cursor.execute_query(query)
+
+        if filesystem == None or filesystem[0] != "TSK_FS_TYPE_EXT4":
+            print("No EXT filesystem.")
+            return False
+
         # 이미지를 복사해와야함 andforensics
         if os.path.exists(configuration.source_path):
             cmd = 'python3.6 /home/byeongchan/modules/andForensics/andForensics.py -i \'{0:s}\' -o \'{1:s}\' ' \
@@ -41,7 +49,7 @@ class AndForensicsConnector(interface.ModuleConnector):
             ret_code = proc.stdout.read()
             f = io.StringIO(str(ret_code))
             result_msg = f.readline()
-            print(result_msg)
+            #print(result_msg)
             f.close()
             if result_msg[-14:-3] == 'Process End':
 

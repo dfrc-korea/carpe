@@ -25,7 +25,7 @@ from modules import searchdb_connector
 from modules import shellbag_connector
 from modules import stickynote_connector
 from modules import superfetch_connector
-#from modules import thumbnailcache_connector
+from modules import thumbnailcache_connector
 from modules import windows_timeline_connector
 from modules import google_drive_connector
 from modules import google_drive_entry_connector
