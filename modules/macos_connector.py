@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """module for MAC OS."""
-import os, sys
+import os, sys, platform
 from modules import manager
 from modules import interface
 from modules import logger
@@ -50,6 +50,11 @@ class MacosConnector(interface.ModuleConnector):
 
         if source_path_spec.TYPE_INDICATOR != 'APFS':
             print('No MacOS')
+            return False
+
+        # Check Platform
+        if platform.platform().find('Windows') >= 0:
+            print("No Linux platform.")
             return False
 
         this_file_path = os.path.dirname(

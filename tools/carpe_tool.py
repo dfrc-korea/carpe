@@ -277,7 +277,10 @@ class CarpeTool(extraction_tool.ExtractionTool,
             #     raise errors.BadConfigObject('partition does not exist.\n')
 
         # print partition_list
-        print('partition_list: ' + str(self._partition_list))
+        print(f"\nThe number of partition : {len(self._partition_list)}")
+        for key, value in self._partition_list.items():
+            print(f"Partition ({configuration.source_path_specs[int(key[1:]) - 1].TYPE_INDICATOR}) \'{key}\' : \'{value}\'")
+        print()  # for line feed
 
         if mode == 'Analyze' and not self.ignore:
             self.print_now_time(f'Insert File Information')

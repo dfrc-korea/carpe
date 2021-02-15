@@ -97,6 +97,10 @@ class ProcessEngine(object):
                                                    knowledge_base=self.knowledge_base)
                                     module.print_run_info(module.DESCRIPTION, start=False)
                                     and_flag = True
+                                else:  # for GUI
+                                    module.print_run_info(module.DESCRIPTION, start=True)
+                                    module.print_run_info(module.DESCRIPTION, start=False)
+                                    print()
                             # Skip these modules
                             elif module_name in ['andforensics_connector',
                                                  'fica_connector', 'extract_connector',

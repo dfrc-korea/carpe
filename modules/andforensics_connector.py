@@ -2,6 +2,7 @@
 """module for android forensics."""
 import os
 import io
+import platform
 import subprocess
 import sqlite3
 
@@ -37,6 +38,11 @@ class AndForensicsConnector(interface.ModuleConnector):
 
         if filesystem == None or filesystem[0] != "TSK_FS_TYPE_EXT4":
             print("No EXT filesystem.")
+            return False
+
+        # Check Platform
+        if platform.platform().find('Windows') >= 0:
+            print("No Linux platform.")
             return False
 
         # 이미지를 복사해와야함 andforensics
