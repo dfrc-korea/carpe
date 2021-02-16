@@ -79,6 +79,7 @@ class ProcessEngine(object):
 
     def Process(self, configuration):
         and_flag = False
+        macos_flag = False
 
         for source_path_spec in configuration.source_path_specs:
             if source_path_spec.IsFileSystem() \
@@ -87,6 +88,14 @@ class ProcessEngine(object):
                     par_id = self.get_partition_id(source_path_spec, configuration)
                     for module_name in self._modules:
                         module = self._modules.get(module_name, None)
+
+                        if source_path_spec.TYPE_INDICATOR == 'APFS':  # for APFS & GUI
+                            if module.NAME != 'macos_connector':
+                                module.print_run_info(module.DESCRIPTION, start=True)
+                                module.print_run_info(module.DESCRIPTION, start=False)
+                                print()
+                                continue
+
                         if isinstance(module, modules_interface.ModuleConnector):
                             # Android Forensic Module
                             if module_name == 'andforensics_connector':
@@ -107,11 +116,17 @@ class ProcessEngine(object):
                                                  'image_classification_connector']:
                                 pass
                             elif module_name == 'macos_connector':
-                                module.print_run_info(module.DESCRIPTION, start=True)
-                                module.Connect(par_id='', configuration=configuration,
-                                               source_path_spec=source_path_spec,
-                                               knowledge_base=self.knowledge_base)
-                                module.print_run_info(module.DESCRIPTION, start=False)
+                                if not macos_flag:
+                                    module.print_run_info(module.DESCRIPTION, start=True)
+                                    module.Connect(par_id='', configuration=configuration,
+                                                   source_path_spec=source_path_spec,
+                                                   knowledge_base=self.knowledge_base)
+                                    module.print_run_info(module.DESCRIPTION, start=False)
+                                    macos_flag = True
+                                else:  # for GUI
+                                    module.print_run_info(module.DESCRIPTION, start=True)
+                                    module.print_run_info(module.DESCRIPTION, start=False)
+                                    print()
                             # Other modules
                             else:
                                 module.print_run_info(module.DESCRIPTION, start=True)
