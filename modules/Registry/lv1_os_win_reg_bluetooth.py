@@ -26,7 +26,10 @@ def Bluetooth(reg_system):
             bluetooth_list[bluetooth_count].key_last_updated_time = bluetooth_subkey.last_written_timestamp().isoformat()+'Z'
             for bluetooth_subkey_value in bluetooth_subkey.values():
                 if bluetooth_subkey_value.name() == 'Name':
-                    bluetooth_list[bluetooth_count].name = bluetooth_subkey_value.data().replace('\x00','')
+                    if str(type(bluetooth_subkey_value.data()))=="<class 'bytes'>":
+                        bluetooth_list[bluetooth_count].name = bluetooth_subkey_value.data().decode('utf-8')[:-1]
+                    else:
+                        bluetooth_list[bluetooth_count].name = bluetooth_subkey_value.data().replace('\x00','')
                 elif bluetooth_subkey_value.name() == 'LastConnceted':
                     bluetooth_list[bluetooth_count].lastconnectedtime = bluetooth_subkey_value.data().replace('\x00','')
 
