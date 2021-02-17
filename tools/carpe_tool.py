@@ -271,7 +271,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         # check partition_list
         if mode == 'Analyze' and not self._partition_list:
-            if configuration.source_path_specs[0].TYPE_INDICATOR == 'APFS':
+            if configuration.source_path_specs[0].type_indicator == 'APFS':
                 pass
             # else:
             #     raise errors.BadConfigObject('partition does not exist.\n')
@@ -279,7 +279,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         # print partition_list
         print(f"\nThe number of partition : {len(self._partition_list)}")
         for key, value in self._partition_list.items():
-            print(f"Partition ({configuration.source_path_specs[int(key[1:]) - 1].TYPE_INDICATOR}) \'{key}\' : \'{value}\'")
+            print(f"Partition ({configuration.source_path_specs[int(key[1:]) - 1].type_indicator}) \'{key}\' : \'{value}\'")
         print()  # for line feed
 
         if mode == 'Analyze' and not self.ignore:
@@ -315,7 +315,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
             # parse advanced modules
             engine.ProcessAdvancedModules(configuration)
                 
-            if configuration.source_path_specs[0].TYPE_INDECATOR == 'APFS':
+            if configuration.source_path_specs[0].type_indicator == 'APFS':
                 pass
             else:
                 # carve
