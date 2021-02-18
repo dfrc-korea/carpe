@@ -85,13 +85,13 @@ class FileHistoryConnector(interface.ModuleConnector):
                     file_created_time = str(datetime.utcfromtimestamp(file_created / 10000000 - 11644473600))\
                                             .replace(' ', 'T') + 'Z'
                     file_created_time = configuration.apply_time_zone(file_created_time, knowledge_base.time_zone)
-                except ValueError:
+                except Exception:
                     file_created_time = None
                 try:
                     file_modified_time = str(datetime.utcfromtimestamp(file_modified / 10000000 - 11644473600))\
                                              .replace(' ', 'T') + 'Z'
                     file_modified_time = configuration.apply_time_zone(file_modified_time, knowledge_base.time_zone)
-                except ValueError:
+                except Exception:
                     file_modified_time = None
 
                 insert_filehistory_namespace.append(

@@ -33,5 +33,10 @@ class Configuration(object):
         if timestamp is None or timestamp == '' or timestamp == 0 or timestamp == '0':
             return timestamp
         date = dateutil.parser.parse(timestamp)
-        local_date = date.replace(tzinfo=pytz.utc).astimezone(time_zone).isoformat()
+
+        try:
+            local_date = date.replace(tzinfo=pytz.utc).astimezone(time_zone).isoformat()
+        except OverflowError as e:
+            print(f"Convert Timezone Error : {str(e)}")
+            local_date = ''
         return local_date
