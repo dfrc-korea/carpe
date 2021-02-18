@@ -118,10 +118,10 @@ class EventlogConnector(interface.ModuleConnector):
 
             eventlog_file_list = ['Security.evtx', 'System.evtx', 'Application.evtx',
                                   'Microsoft-Windows-Application-Experience%4Program-Compatibility-Assistant.evtx',
-                                  'Microsoft-Windows-DNS Client Events%4Operational.evtx',
+                                  'Microsoft-Windows-DNS-Client%4Operational.evtx',
                                   'Microsoft-Windows-User Profile Service%4Operational.evtx',
                                   'OAlerts.evtx', 'Microsoft-Windows-NetworkProfile%4Operational.evtx',
-                                  'Microsoft-Windows-PrintService%4Admin.evtx',
+                                  'Microsoft-Windows-PrintService%4Operational.evtx',
                                   'Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx',
                                   'Microsoft-Windows-SmbClient%4Connectivity.evtx',
                                   'Microsoft-Windows-TaskScheduler%4Operational.evtx',

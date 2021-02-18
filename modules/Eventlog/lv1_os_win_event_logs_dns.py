@@ -25,7 +25,7 @@ def EVENTLOGDNS(configuration):
 
     dns_list = []
     dns_count = 0
-    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id like '1001' or event_id like '3006' or event_id like '3008' or event_id like '3010' or event_id like '3019' or event_id like '3020') and source like '%DNS Client Events%'"
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id like '1001' or event_id like '3006' or event_id like '3008' or event_id like '3010' or event_id like '3019' or event_id like '3020') and source like '%DNS%'"
     #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:
