@@ -124,13 +124,12 @@ class EventlogConnector(interface.ModuleConnector):
                                   'Microsoft-Windows-PrintService%4Admin.evtx',
                                   'Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx',
                                   'Microsoft-Windows-SmbClient%4Connectivity.evtx',
-                                  'Microsoft-Windows-TaskScheduler%4Maintenance.evtx',
+                                  'Microsoft-Windows-TaskScheduler%4Operational.evtx',
                                   'Microsoft-Windows-Application-Experience%4Program-Telemetry.evtx',
                                   'Microsoft-Windows-DateTimeControlPanel%4Operational.evtx',
                                   'Microsoft-Windows-Partition%4Diagnostic.evtx',
                                   'Microsoft-Windows-Storage-ClassPnP%4Operational.evtx']
             insert_data = []
-
             for eventlog in eventlog_files:
                 if eventlog[0] in eventlog_file_list:
                     eventlog_path = eventlog[1][eventlog[1].find(path_separator):] + path_separator + eventlog[0]  # document full path
@@ -158,7 +157,6 @@ class EventlogConnector(interface.ModuleConnector):
             query = "Insert into lv1_os_win_evt_total values (%s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
-
             # EVENTLOGUSBDEVICES
             print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGUSBDEVICES')
             insert_data = []
