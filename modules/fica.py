@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """module for carving."""
-import os
-
 from modules import manager
 from modules import interface
 
@@ -58,12 +56,17 @@ class Fica(interface.ModuleConnector):
             }
 
         copier = fica.main(case_profile)
-        # Insert to DB
-        if configuration.standalone_check:
-            copier.to_sql(name='carve', con=configuration.cursor._conn)
-        else:
-            engine = configuration.cursor.create_engine()
-            copier.to_sql(name='carve', con=engine)
+
+        try:
+            if not isinstance(copier, int):
+                # Insert to DB
+                if configuration.standalone_check:
+                    copier.to_sql(name='carve', con=configuration.cursor._conn)
+                else:
+                    engine = configuration.cursor.create_engine()
+                    copier.to_sql(name='carve', con=engine)
+        except Exception as e:
+            pass
 
 
 manager.ModulesManager.RegisterModule(Fica)
