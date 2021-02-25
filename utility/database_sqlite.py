@@ -109,8 +109,12 @@ class Database:
         with self._conn as conn:
             with closing(conn.cursor()) as cursor:
                 query = mysql_to_sqlite(query)
-                cursor.executemany(query, values)
-
+                try:
+                    cursor.executemany(query, values)
+                except Exception as e:
+                    print(query)
+                    print("db execution error : " + str(e))
+                    return -1
 
     def insert_query_builder(self, table_name):
         query = ""

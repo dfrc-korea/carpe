@@ -161,6 +161,10 @@ class ProcessEngine(object):
 
     def process_carve(self, configuration, is_partition=False):
         module = self._modules.get('fica_connector', None)
+
+        if module is None:
+            return
+
         if is_partition:
             for source_path_spec in configuration.source_path_specs:
                 # Image
