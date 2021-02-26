@@ -26,23 +26,15 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
         print('[MODULE]: LV2 Timeline Analyzer')
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
+
         # 모든 yaml 파일 리스트
-        yaml_list = [this_file_path+'lv2_timeline.yaml']
+        yaml_list = [this_file_path + 'lv2_timeline.yaml']
 
         # 모든 테이블 리스트
         table_list = ['lv2_timeline']
 
         # 모든 테이블 생성
-        for count in range(0, len(yaml_list)):
-            if not self.LoadSchemaFromYaml(yaml_list[count]):
-                logger.error('cannot load schema from yaml: {0:s}'.format(table_list[count]))
-                return False
-
-            # if table is not existed, create table
-            if not configuration.cursor.check_table_exist(table_list[count]):
-                ret = self.CreateTable(configuration.cursor)
-                if not ret:
-                    logger.error('cannot create database table name: {0:s}'.format(table_list[count]))
-                    return False
+        if not self.check_table_from_yaml(configuration, yaml_list, table_list):
+            return False
 
         print("not yet")

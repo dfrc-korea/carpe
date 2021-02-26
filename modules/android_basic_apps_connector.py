@@ -32,13 +32,14 @@ class AndroidBasicAppsConnector(interface.ModuleConnector):
         query = f"SELECT filesystem FROM partition_info WHERE par_id like '{par_id}'"
         filesystem = configuration.cursor.execute_query(query)
 
-        if filesystem == None or filesystem[0] != "TSK_FS_TYPE_EXT4":
+        if filesystem is None or filesystem[0] != "TSK_FS_TYPE_EXT4":
             print("No EXT filesystem.")
             return False
 
+        yaml_list = []
+        table_list = []
+
         # Load Schema
-        yaml_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'android' \
-            + os.sep +'lv1_app_google_drive_path.yaml'
         if not self.LoadSchemaFromYaml('../modules/schema/android/lv1_os_and_basic_apps.yaml'):
             logger.error('cannot load schema from yaml: {0:s}'.format(self.NAME))
             return False

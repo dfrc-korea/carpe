@@ -63,7 +63,8 @@ class NotificationConnector(interface.ModuleConnector):
                 if file[0] == 'SOFTWARE':
                     file_objects['primary'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
                                                                           configuration=configuration,
-                                                                          file_path=file[1][4:] + path_separator + file[0])
+                                                                          file_path=file[1][4:] + path_separator + file[
+                                                                              0])
                 elif file[0] == 'SOFTWARE.LOG1':
                     file_objects['log1'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
                                                                        configuration=configuration,
@@ -89,10 +90,13 @@ class NotificationConnector(interface.ModuleConnector):
                 # 1607 (Redstone 1) and over
                 if build_number >= 14393:
                     noti_path = f"{query_separator}AppData{query_separator}Local{query_separator}Microsoft{query_separator}Windows{query_separator}Notifications"
-                    self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
-                                                configuration=configuration,
-                                                dir_path=user_path + noti_path,
-                                                output_path=output_path)
+                    if not self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
+                                                       configuration=configuration,
+                                                       dir_path=user_path + noti_path,
+                                                       output_path=output_path):
+                        print("There are no notification files")
+                        return False
+
                     noti_data = noti.new_noti_parser(output_path + os.sep + 'Notifications'
                                                      + os.sep + 'wpndatabase.db')
                     for data in noti_data:
@@ -107,11 +111,14 @@ class NotificationConnector(interface.ModuleConnector):
                             f"%s, %s, %s, %s, %s);"
                 else:
                     noti_path = f"{query_separator}AppData{query_separator}Local{query_separator}" \
-                        f"Microsoft{query_separator}Windows{query_separator}Notifications{query_separator}appdb.dat"
-                    self.ExtractTargetFileToPath(source_path_spec=source_path_spec,
-                                                 configuration=configuration,
-                                                 file_path=user_path + noti_path,
-                                                 output_path=output_path)
+                                f"Microsoft{query_separator}Windows{query_separator}Notifications{query_separator}appdb.dat"
+                    if not self.ExtractTargetFileToPath(source_path_spec=source_path_spec,
+                                                        configuration=configuration,
+                                                        file_path=user_path + noti_path,
+                                                        output_path=output_path):
+                        print("There are no notification files")
+                        return False
+
                     noti_tuple = noti.old_noti_parser(output_path + os.sep + 'appdb.dat')
                     for data in noti_tuple:
                         noti_list.append(info + list(data))

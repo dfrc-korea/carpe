@@ -36,7 +36,7 @@ class AndForensicsConnector(interface.ModuleConnector):
         query = f"SELECT filesystem FROM partition_info WHERE par_id like '{par_id}'"
         filesystem = configuration.cursor.execute_query(query)
 
-        if filesystem == None or filesystem[0] != "TSK_FS_TYPE_EXT4":
+        if filesystem is None or filesystem[0] != "TSK_FS_TYPE_EXT4":
             print("No EXT filesystem.")
             return False
 
@@ -55,7 +55,7 @@ class AndForensicsConnector(interface.ModuleConnector):
             ret_code = proc.stdout.read()
             f = io.StringIO(str(ret_code))
             result_msg = f.readline()
-            #print(result_msg)
+            # print(result_msg)
             f.close()
             if result_msg[-14:-3] == 'Process End':
 
