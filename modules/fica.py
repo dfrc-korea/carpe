@@ -59,14 +59,17 @@ class Fica(interface.ModuleConnector):
 
         try:
             if not isinstance(copier, int):
+                copier.insert(0, 'case_id', configuration.case_id)
+                copier.insert(1, 'evd_id', configuration.evidence_id)
+                copier.insert(2, 'par_id', par_id)
                 # Insert to DB
                 if configuration.standalone_check:
-                    copier.to_sql(name='carve', con=configuration.cursor._conn, if_exists='append')
+                    copier.to_sql(name='carve', con=configuration.cursor._conn, if_exists='append', index=False)
                 else:
                     engine = configuration.cursor.create_engine()
-                    copier.to_sql(name='carve', con=engine, if_exists='append')
+                    copier.to_sql(name='carve', con=engine, if_exists='append', index=False)
         except Exception as e:
-            pass
+            print("Carving failed")
 
 
 manager.ModulesManager.RegisterModule(Fica)
