@@ -295,7 +295,6 @@ class RegistryConnector(interface.ModuleConnector):
                                     file_path=registry_path
                                 )
                         reg_system.recover_auto(None, reg_system_log1, reg_system_log2)
-
                 if file_name == 'SOFTWARE':
                     try:
                         reg_software = Registry.RegistryHive(file_object)

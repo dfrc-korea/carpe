@@ -33,7 +33,7 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             if len(eventlog_files) == 0:
                 return False
 
-            this_file_path = os.path.dirname(os.path.abspath(__file__)) + path_separator + 'schema' + path_separator + 'visualization' + path_separator
+            this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'visualization' + os.sep
 
             # 모든 yaml 파일 리스트
             yaml_list = [this_file_path + 'lv2_visualization_usage_day_detail.yaml',
