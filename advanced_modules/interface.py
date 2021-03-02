@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os, sys
+import os
 import abc
 import yaml
 from datetime import datetime
@@ -571,7 +571,6 @@ class AdvancedModuleAnalyzer(BaseAnalyzer):
         return "\\\\\\\\"
 
     def GetPathSeparator(self, source_path_spec):
-        if sys.platform == 'win32':
-            return "\\"
-        else:
+        if source_path_spec.location == "/":
             return "/"
+        return "\\"
