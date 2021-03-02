@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os
+import os, sys
 import abc
 import yaml
 from datetime import datetime
@@ -583,6 +583,8 @@ class ModuleConnector(BaseConnector):
         return "\\\\\\\\"  # 서버는 query separator 사용할 때 = 대신 like로 사용할 것.
 
     def GetPathSeparator(self, source_path_spec):
-        if source_path_spec.location == "/":
+        if sys.platform == 'win32':
+            return "\\"
+        else:
             return "/"
-        return "\\"
+
