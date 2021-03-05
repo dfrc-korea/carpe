@@ -41,10 +41,13 @@ class GoogledriveentryConnector(interface.ModuleConnector):
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                           configuration.evidence_id + os.sep + par_id
 
-            self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
-                                                     configuration=configuration,
-                                                     dir_path=user_path + gs_path,
-                                                     output_path=output_path)
+            if not self.ExtractTargetDirToPath(source_path_spec=source_path_spec,
+                                                configuration=configuration,
+                                                dir_path=user_path + gs_path,
+                                                output_path=output_path):
+                print("File name is too long")
+                continue
+
             try:
                 e_data = []
                 info = [par_id, configuration.case_id, configuration.evidence_id]

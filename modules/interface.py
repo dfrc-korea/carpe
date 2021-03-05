@@ -419,7 +419,11 @@ class ModuleConnector(BaseConnector):
 
         if file_entry.IsDirectory():
             if not os.path.exists(output_path + os.sep + file_entry.name):
-                os.mkdir(output_path + os.sep + file_entry.name)
+                # TODO: 경로에 해시 취하기?
+                try:
+                    os.mkdir(output_path + os.sep + file_entry.name)
+                except:
+                    return False
 
             for sub_file_entry in file_entry.sub_file_entries:
                 try:
