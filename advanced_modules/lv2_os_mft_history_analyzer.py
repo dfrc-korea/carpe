@@ -72,7 +72,7 @@ class LV2OSMFTHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
                     is_copied = "Y"
 
                 # Make Standard Timestamp Format
-                if result[7] > 11644473600:
+                if int(mtime) > 11644473600 or int(ctime) > 11644473600:
                     mtime = self._convert_timestamp(result[7] - 11644473600)+"."+str(result[11])+"Z"
                     atime = self._convert_timestamp(result[8] - 11644473600)+"."+str(result[12])+"Z"
                     ctime = self._convert_timestamp(result[9] - 11644473600)+"."+str(result[13])+"Z"
