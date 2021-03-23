@@ -72,12 +72,19 @@ class LV2OSMFTHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
                     is_copied = "Y"
 
                 # Make Standard Timestamp Format
-                mtime = self._convert_timestamp(result[7])+"."+str(result[11])+"Z"
-                atime = self._convert_timestamp(result[8])+"."+str(result[12])+"Z"
-                ctime = self._convert_timestamp(result[9])+"."+str(result[13])+"Z"
-                etime = self._convert_timestamp(result[10])+"."+str(result[14])+"Z"
+                if result[7] > 11644473600 or result[9] > 11644473600:
+                    mtime = self._convert_timestamp(result[7] - 11644473600)+"."+str(result[11])+"Z"
+                    atime = self._convert_timestamp(result[8] - 11644473600)+"."+str(result[12])+"Z"
+                    ctime = self._convert_timestamp(result[9] - 11644473600)+"."+str(result[13])+"Z"
+                    etime = self._convert_timestamp(result[10] - 11644473600)+"."+str(result[14])+"Z"
 
-                file_id =  result[0]
+                else:
+                    mtime = self._convert_timestamp(result[7]) + "." + str(result[11]) + "Z"
+                    atime = self._convert_timestamp(result[8]) + "." + str(result[12]) + "Z"
+                    ctime = self._convert_timestamp(result[9]) + "." + str(result[13]) + "Z"
+                    etime = self._convert_timestamp(result[10]) + "." + str(result[14]) + "Z"
+
+                file_id = result[0]
                 par_id = result[1]
                 inode = result[2]
                 name = result[3]
