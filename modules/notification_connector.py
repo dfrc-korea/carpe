@@ -74,6 +74,9 @@ class NotificationConnector(interface.ModuleConnector):
                                                                        configuration=configuration,
                                                                        file_path=file[1][4:] + path_separator + file[0])
 
+            if file_objects['primary'] == None:
+                return False
+
             major_version, build_number = noti.get_win_version(file_objects)
 
             file_objects['primary'].close()
