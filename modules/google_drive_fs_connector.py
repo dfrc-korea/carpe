@@ -36,9 +36,12 @@ class GoogledrivefscConnector(interface.ModuleConnector):
 
         output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                       configuration.evidence_id + os.sep + par_id + os.sep + 'DB'
-
-        if not os.path.exists(output_path):
-            os.mkdir(output_path)
+        tmp = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
+                      configuration.evidence_id + os.sep + par_id
+        if not os.path.exists(tmp):
+            os.mkdir(tmp)
+            if not os.path.exists(output_path):
+                os.mkdir(output_path)
 
         google_drive_fs_path = ''
         for spec in find_specs:

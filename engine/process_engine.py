@@ -142,6 +142,7 @@ class ProcessEngine(object):
 
 
     def ProcessAdvancedModules(self, configuration):
+        os_usage_history_flag = False
         for source_path_spec in configuration.source_path_specs:
             if source_path_spec.IsFileSystem() \
                     or source_path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
@@ -150,6 +151,23 @@ class ProcessEngine(object):
                     for advanced_module_name in self._advanced_modules:
                         advanced_module = self._advanced_modules.get(advanced_module_name, None)
                         if isinstance(advanced_module, advanced_modules_interface.AdvancedModuleAnalyzer):
+
+                            if advanced_module_name == 'lv2_os_usage_history_analyzer':  # usage_history는 한 번만
+                                if not os_usage_history_flag:
+                                    advanced_module.print_run_info(advanced_module.DESCRIPTION, start=True)
+                                    advanced_module.Analyze(par_id=par_id,
+                                                    configuration=configuration,
+                                                    source_path_spec=source_path_spec,
+                                                    knowledge_base=self.knowledge_base)
+                                    advanced_module.print_run_info(advanced_module.DESCRIPTION, start=False)
+                                    os_usage_history_flag = True
+                                    continue
+                                else:  # for GUI
+                                    advanced_module.print_run_info(advanced_module.DESCRIPTION, start=True)
+                                    advanced_module.print_run_info(advanced_module.DESCRIPTION, start=False)
+                                    print()
+                                    continue
+
                             advanced_module.print_run_info(advanced_module.DESCRIPTION, start=True)
                             advanced_module.Analyze(par_id=par_id,
                                                     configuration=configuration,
