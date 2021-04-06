@@ -106,7 +106,7 @@ class PREFETCHConnector(interface.ModuleConnector):
                 tmp.append(result[6])  # program_path
             tmp.append(str(result[7]))  # program_run_count
             created_time = str(
-                datetime(1970, 1, 1) + timedelta(seconds=float(str(prefetch[3]) + '.' + str(prefetch[4])))).replace(
+                datetime(1601, 1, 1) + timedelta(seconds=float(str(prefetch[3]) + '.' + str(prefetch[4])))).replace(
                 ' ', 'T') + 'Z'
             created_time = configuration.apply_time_zone(created_time, knowledge_base.time_zone)
             tmp.append(created_time)  # 생성시간
