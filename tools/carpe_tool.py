@@ -18,6 +18,7 @@ from utility import database_sqlite  # for standalone version
 from utility import errors
 from utility import loggers
 from utility import definitions
+from utility import csv_export
 
 
 class CarpeTool(extraction_tool.ExtractionTool,
@@ -64,6 +65,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         self.show_info = False
         self.partition_id = None
         self.ignore = False
+        self.csv_check = False
 
     def ParseArguments(self, arguments):
         """Parses the command line arguments.
@@ -109,7 +111,14 @@ class CarpeTool(extraction_tool.ExtractionTool,
             '--eid', '--evdnc_id', '--evidence_id', action='store', dest='evidence_id', type=str,
             help='Enter your evidence id')
 
-        # check standalone mode
+        # Allow only standalone mode
+        argument_parser.add_argument(
+            '--csv', '--export_csv', action='store_true', dest='csv_check', default=False, help=(
+                'Define process mode to be processed.'
+            )
+        )
+
+        # Export CSV at Standalone
         argument_parser.add_argument(
             '--sqlite', '--standalone', action='store_true', dest='standalone_check', default=False, help=(
                 'Define process mode to be processed.'
@@ -204,6 +213,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         self.evidence_id = getattr(options, 'evidence_id', 'evd01')
 
         self.standalone_check = getattr(options, 'standalone_check', False)
+        self.csv_check = getattr(options, 'csv_check', False)
         self.signature_check = getattr(options, 'signature_check', False)
         self.rds_check = getattr(options, 'rds_check', False)
         self.show_info = getattr(options, 'show_info', False)
@@ -362,6 +372,10 @@ class CarpeTool(extraction_tool.ExtractionTool,
         self.update_process_state(definitions.PROCESS_STATE_COMPLETE)
 
         self._cursor.close()
+        if self.csv_check:
+            self.t_list = csv_export.export_table_list(self._output_file_path + os.sep + self.case_id + '.db')
+            csv_export.export_csv(self._output_file_path, self.case_id + '.db', self.t_list)
+
         self.print_now_time(f'Finish {mode} Image')
 
     def set_conn_and_path(self):
