@@ -373,9 +373,11 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         self._cursor.close()
         if self.csv_check:
+            self.print_now_time(f'Start Exporting CSV')
             self.t_list = csv_export.export_table_list(self._output_file_path + os.sep + self.case_id + '.db')
             csv_export.export_csv(self._output_file_path, self.case_id + '.db', self.t_list)
 
+            self.print_now_time(f'Finish Exporting CSV')
         self.print_now_time(f'Finish {mode} Image')
 
     def set_conn_and_path(self):
