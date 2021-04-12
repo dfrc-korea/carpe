@@ -403,6 +403,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
             self._root_tmp_path = self._output_file_path + os.sep + 'tmp'
             if not os.path.exists(self._root_tmp_path):
                 os.mkdir(self._root_tmp_path)
+        else:  # for linux
+            if not os.path.exists(self._root_tmp_path):
+                os.mkdir(self._root_tmp_path)
 
         # set storage path and temp path
         try:
