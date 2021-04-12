@@ -34,7 +34,7 @@ def export_csv(path, db_name, tablelist):
 
             df = pd.DataFrame(data, columns=column_list)
             try:
-                df.to_csv(path + os.sep + 'output_csv' + os.sep + table + '.csv')
+                df.to_csv(path + os.sep + 'output_csv' + os.sep + table + '.csv', encoding='utf-8-sig')
             except FileNotFoundError:
                 os.mkdir(path + os.sep + 'output_csv')
-                df.to_csv(path + os.sep + 'output_csv' + os.sep + table + '.csv', mode='a', encoding='utf-8')
+                df.to_csv(path + os.sep + 'output_csv' + os.sep + table + '.csv', mode='a', encoding='utf-8-sig')
