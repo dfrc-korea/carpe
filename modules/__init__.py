@@ -31,6 +31,7 @@ from modules import google_drive_connector
 #from modules import google_drive_entry_connector
 from modules import google_drive_fs_connector
 #from modules import google_drive_volume_connector
+from modules import google_takeout_connector
 from modules import macos_connector
 #from modules import refs_connector
 
@@ -39,3 +40,5 @@ from modules import extract
 
 # Register plugins.
 from modules import DEFA
+
+
