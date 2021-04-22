@@ -3,6 +3,7 @@
 import os
 from modules import manager
 from modules import interface
+from yarp import Registry
 from modules.Registry import lv1_os_win_reg_os_info as oi
 from modules.Registry import lv1_os_win_reg_installed_programs as ip
 from modules.Registry import lv1_os_win_reg_user_accounts as ua
