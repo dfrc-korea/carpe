@@ -138,11 +138,11 @@ class RegistryConnector(interface.ModuleConnector):
         for useraccount in useraccount_list:
             query2 = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') and " \
                      f"((name = 'UsrClass.dat' and parent_path like '%{useraccount}%') or " \
-                     f"(name = 'NTUSER.DAT' and parent_path like '%{useraccount}%') or " \
+                     f"(name = 'NTUSER.DAT' and parent_path like '%Users\\{useraccount}') or " \
                      f"(name = 'UsrClass.dat.LOG1' and parent_path like '%{useraccount}%') or " \
                      f"(name = 'UsrClass.dat.LOG2' and parent_path like '%{useraccount}%') or " \
-                     f"(name = 'ntuser.dat.LOG1' and parent_path like '%{useraccount}%') or " \
-                     f"(name = 'ntuser.dat.LOG2' and parent_path like '%{useraccount}%'))"
+                     f"(name = 'ntuser.dat.LOG1' and parent_path like '%Users\\{useraccount}') or " \
+                     f"(name = 'ntuser.dat.LOG2' and parent_path like '%Users\\{useraccount}'))"
             # query2 = query2.replace('/', query_sep)
             registry_files2.append(configuration.cursor.execute_query_mul(query2))
 
@@ -239,37 +239,59 @@ class RegistryConnector(interface.ModuleConnector):
             elif registry_file == registry_files5:
                 registry_files = registry_files5
                 backup_flag = 'Backup-Windows.old, Backup-RegBack'
-
+            output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
+                                  configuration.evidence_id + os.sep + par_id + os.sep + 'registry' + os.sep + backup_flag
+            if not os.path.exists(output_path):
+                os.makedirs(output_path, exist_ok=True)
             for registry in registry_files:
                 file_name = registry[0]
                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + file_name
 
-                file_object = self.LoadTargetFileToMemory(
+                # file_object = self.LoadTargetFileToMemory(
+                #     source_path_spec=source_path_spec,
+                #     configuration=configuration,
+                #     file_path=registry_path
+                # )
+                
+                # if file_object is None:
+                #     return
+                self.ExtractTargetFileToPath(
                     source_path_spec=source_path_spec,
                     configuration=configuration,
-                    file_path=registry_path
-                )
-
+                    file_path=registry_path,
+                    output_path=output_path)
+                file_object = open(output_path+path_sep+file_name, 'rb')
                 if file_object is None:
                     return
-
                 if file_name == 'Amcache.hve':
                     reg_am = Registry.RegistryHive(file_object)
                     for registry in registry_files:
                         if registry[0] == 'Amcache.hve.LOG1':
                             registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
-                            reg_am_log1 = self.LoadTargetFileToMemory(
+                            # reg_am_log1 = self.LoadTargetFileToMemory(
+                            #     source_path_spec=source_path_spec,
+                            #     configuration=configuration,
+                            #     file_path=registry_path
+                            # )
+                            self.ExtractTargetFileToPath(
                                 source_path_spec=source_path_spec,
                                 configuration=configuration,
-                                file_path=registry_path
-                            )
+                                file_path=registry_path,
+                                output_path=output_path)
+                            reg_am_log1 = open(output_path+path_sep+registry[0], 'rb')
                         elif registry[0] == 'Amcache.hve.LOG2':
                             registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
-                            reg_am_log2 = self.LoadTargetFileToMemory(
+                            # reg_am_log2 = self.LoadTargetFileToMemory(
+                            #     source_path_spec=source_path_spec,
+                            #     configuration=configuration,
+                            #     file_path=registry_path
+                            # )
+                            self.ExtractTargetFileToPath(
                                 source_path_spec=source_path_spec,
                                 configuration=configuration,
-                                file_path=registry_path
-                            )
+                                file_path=registry_path,
+                                output_path=output_path)
+                            reg_am_log2 = open(output_path+path_sep+registry[0], 'rb')
                     reg_am.recover_auto(None, reg_am_log1, reg_am_log2)
 
                 if file_name == 'SYSTEM':
@@ -282,18 +304,30 @@ class RegistryConnector(interface.ModuleConnector):
                         for registry in registry_files:
                             if registry[0] == 'SYSTEM.LOG1':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
-                                reg_system_log1 = self.LoadTargetFileToMemory(
+                                # reg_system_log1 = self.LoadTargetFileToMemory(
+                                #     source_path_spec=source_path_spec,
+                                #     configuration=configuration,
+                                #     file_path=registry_path
+                                # )
+                                self.ExtractTargetFileToPath(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
-                                    file_path=registry_path
-                                )
+                                    file_path=registry_path,
+                                    output_path=output_path)
+                                reg_system_log1 = open(output_path+path_sep+registry[0], 'rb')
                             elif registry[0] == 'SYSTEM.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
-                                reg_system_log2 = self.LoadTargetFileToMemory(
+                                # reg_system_log2 = self.LoadTargetFileToMemory(
+                                #     source_path_spec=source_path_spec,
+                                #     configuration=configuration,
+                                #     file_path=registry_path
+                                # )
+                                self.ExtractTargetFileToPath(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
-                                    file_path=registry_path
-                                )
+                                    file_path=registry_path,
+                                    output_path=output_path)
+                                reg_system_log2 = open(output_path+path_sep+registry[0], 'rb')
                         reg_system.recover_auto(None, reg_system_log1, reg_system_log2)
                 if file_name == 'SOFTWARE':
                     try:
@@ -306,17 +340,29 @@ class RegistryConnector(interface.ModuleConnector):
                             if registry[0] == 'SOFTWARE.LOG1':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
                                                 registry[0]
-                                reg_software_log1 = self.LoadTargetFileToMemory(
+                                # reg_software_log1 = self.LoadTargetFileToMemory(
+                                #     source_path_spec=source_path_spec,
+                                #     configuration=configuration,
+                                #     file_path=registry_path)
+                                self.ExtractTargetFileToPath(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
-                                    file_path=registry_path)
+                                    file_path=registry_path,
+                                    output_path=output_path)
+                                reg_software_log1 = open(output_path+path_sep+registry[0], 'rb')
                             elif registry[0] == 'SOFTWARE.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
                                                 registry[0]
-                                reg_software_log2 = self.LoadTargetFileToMemory(
+                                # reg_software_log2 = self.LoadTargetFileToMemory(
+                                #     source_path_spec=source_path_spec,
+                                #     configuration=configuration,
+                                #     file_path=registry_path)
+                                self.ExtractTargetFileToPath(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
-                                    file_path=registry_path)
+                                    file_path=registry_path,
+                                    output_path=output_path)
+                                reg_software_log2 = open(output_path+path_sep+registry[0], 'rb')
                         reg_software.recover_auto(None, reg_software_log1, reg_software_log2)
 
                 elif file_name == 'SAM':
@@ -330,17 +376,29 @@ class RegistryConnector(interface.ModuleConnector):
                             if registry[0] == 'SAM.LOG1':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
                                                 registry[0]
-                                reg_sam_log1 = self.LoadTargetFileToMemory(
+                                # reg_sam_log1 = self.LoadTargetFileToMemory(
+                                #     source_path_spec=source_path_spec,
+                                #     configuration=configuration,
+                                #     file_path=registry_path)
+                                self.ExtractTargetFileToPath(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
-                                    file_path=registry_path)
+                                    file_path=registry_path,
+                                    output_path=output_path)
+                                reg_sam_log1 = open(output_path+path_sep+registry[0], 'rb')
                             elif registry[0] == 'SAM.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
                                                 registry[0]
-                                reg_sam_log2 = self.LoadTargetFileToMemory(
+                                # reg_sam_log2 = self.LoadTargetFileToMemory(
+                                #     source_path_spec=source_path_spec,
+                                #     configuration=configuration,
+                                #     file_path=registry_path)
+                                self.ExtractTargetFileToPath(
                                     source_path_spec=source_path_spec,
                                     configuration=configuration,
-                                    file_path=registry_path)
+                                    file_path=registry_path,
+                                    output_path=output_path)
+                                reg_sam_log2 = open(output_path+path_sep+registry[0], 'rb')
                         reg_sam.recover_auto(None, reg_sam_log1, reg_sam_log2)
 
                 if file_name == 'setupapi.dev.log':
@@ -352,30 +410,51 @@ class RegistryConnector(interface.ModuleConnector):
                         file_name = registry[0]
                         registry_path = registry[1][registry[1].find(path_sep):] + path_sep + file_name
 
-                        file_object = self.LoadTargetFileToMemory(
+                        # file_object = self.LoadTargetFileToMemory(
+                        #     source_path_spec=source_path_spec,
+                        #     configuration=configuration,
+                        #     file_path=registry_path)
+                        
+
+                        # if file_object is None:
+                        #     return
+                        
+                        self.ExtractTargetFileToPath(
                             source_path_spec=source_path_spec,
                             configuration=configuration,
-                            file_path=registry_path)
-
+                            file_path=registry_path,
+                            output_path=output_path)
+                        file_object = open(output_path+path_sep+file_name, 'rb')
                         if file_object is None:
                             return
-
                         if file_name == 'UsrClass.dat':
                             wow = []
                             reg_usr = Registry.RegistryHive(file_object)
                             for registry in registry2:
                                 if registry[0] == 'UsrClass.dat.LOG1':
                                     registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
-                                    reg_usr_log1 = self.LoadTargetFileToMemory(
+                                    # reg_usr_log1 = self.LoadTargetFileToMemory(
+                                    #     source_path_spec=source_path_spec,
+                                    #     configuration=configuration,
+                                    #     file_path=registry_path)
+                                    self.ExtractTargetFileToPath(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,
-                                        file_path=registry_path)
+                                        file_path=registry_path,
+                                        output_path=output_path)
+                                    reg_usr_log1 = open(output_path+path_sep+registry[0], 'rb')
                                 elif registry[0] == 'UsrClass.dat.LOG2':
                                     registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
-                                    reg_usr_log2 = self.LoadTargetFileToMemory(
+                                    # reg_usr_log2 = self.LoadTargetFileToMemory(
+                                    #     source_path_spec=source_path_spec,
+                                    #     configuration=configuration,
+                                    #     file_path=registry_path)
+                                    self.ExtractTargetFileToPath(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,
-                                        file_path=registry_path)
+                                        file_path=registry_path,
+                                        output_path=output_path)
+                                    reg_usr_log2 = open(output_path+path_sep+registry[0], 'rb')
                             reg_usr.recover_auto(None, reg_usr_log1, reg_usr_log2)
 
                             wow.append(reg_usr)
@@ -388,16 +467,28 @@ class RegistryConnector(interface.ModuleConnector):
                             for registry in registry2:
                                 if registry[0] == 'ntuser.dat.LOG1':
                                     registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
-                                    reg_nt_log1 = self.LoadTargetFileToMemory(
+                                    # reg_nt_log1 = self.LoadTargetFileToMemory(
+                                    #     source_path_spec=source_path_spec,
+                                    #     configuration=configuration,
+                                    #     file_path=registry_path)
+                                    self.ExtractTargetFileToPath(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,
-                                        file_path=registry_path)
+                                        file_path=registry_path,
+                                        output_path=output_path)
+                                    reg_nt_log1 = open(output_path+path_sep+registry[0], 'rb')
                                 elif registry[0] == 'ntuser.dat.LOG2':
                                     registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
-                                    reg_nt_log2 = self.LoadTargetFileToMemory(
+                                    # reg_nt_log2 = self.LoadTargetFileToMemory(
+                                    #     source_path_spec=source_path_spec,
+                                    #     configuration=configuration,
+                                    #     file_path=registry_path)
+                                    self.ExtractTargetFileToPath(
                                         source_path_spec=source_path_spec,
                                         configuration=configuration,
-                                        file_path=registry_path)
+                                        file_path=registry_path,
+                                        output_path=output_path)
+                                    reg_nt_log2 = open(output_path+path_sep+registry[0], 'rb')
                             reg_nt.recover_auto(None, reg_nt_log1, reg_nt_log2)
 
                             wow.append(reg_nt)
