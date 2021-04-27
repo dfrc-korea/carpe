@@ -107,9 +107,8 @@ class EventlogConnector(interface.ModuleConnector):
 
             if configuration.source_type == 'directory' or 'file':
                 query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
-                        f"and extension = 'evtx' " \
-                        f"and parent_path like 'root{query_separator}Windows{query_separator}" \
-                        f"System32{query_separator}winevt{query_separator}Logs'"
+                        f"and sig_type = 'evtx' " \
+
             else:
                 query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
                         f"and extension = 'evtx' " \
@@ -141,19 +140,22 @@ class EventlogConnector(interface.ModuleConnector):
                     eventlog_path = eventlog[1][eventlog[1].find(path_separator):] + path_separator + eventlog[0]  # document full path
                     fileName = eventlog[0]
 
-                    output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
-                                  configuration.evidence_id + os.sep + par_id
+                    if configuration.source_type == 'directory' or 'file':
+                        fn = eventlog_path
+                    else:
+                        output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
+                                      configuration.evidence_id + os.sep + par_id
 
-                    if not os.path.exists(output_path):
-                        os.mkdir(output_path)
+                        if not os.path.exists(output_path):
+                            os.mkdir(output_path)
 
-                    self.ExtractTargetFileToPath(
-                        source_path_spec=source_path_spec,
-                        configuration=configuration,
-                        file_path=eventlog_path,
-                        output_path=output_path)
+                        self.ExtractTargetFileToPath(
+                            source_path_spec=source_path_spec,
+                            configuration=configuration,
+                            file_path=eventlog_path,
+                            output_path=output_path)
 
-                    fn = output_path + os.path.sep + fileName
+                        fn = output_path + os.path.sep + fileName
 
                     # Eventlog Total
                     print(f'[{self.print_now_time()}] [MODULE]: Eventlog - Total - ' + fn.split(os.sep)[-1])

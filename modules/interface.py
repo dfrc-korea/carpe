@@ -472,8 +472,8 @@ class ModuleConnector(BaseConnector):
                     print(display_name)
                     logger.error(
                         'Failed to extract file "{0:s}" : {1!s}'.format(display_name, exception))
-                finally:
-                    file_object.close()
+                # finally:
+                #     file_object.close()
 
     def LoadSchemaFromYaml(self, _yaml_path):
 

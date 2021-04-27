@@ -97,7 +97,6 @@ class PREFETCHConnector(interface.ModuleConnector):
 
             # TODO: slack 처리해야 함
             try:
-                print(file_path, fn)
                 results = PFExport2.main(fn, app_path)  # filename, app_path
 
             except Exception:
