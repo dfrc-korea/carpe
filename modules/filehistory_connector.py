@@ -53,7 +53,7 @@ class FileHistoryConnector(interface.ModuleConnector):
         filehistory_files = configuration.cursor.execute_query_mul(query)
 
         if len(filehistory_files) == 0:
-            print("There are no file history files")
+            # print("There are no file history files")
             return False
 
         insert_filehistory_namespace = []
