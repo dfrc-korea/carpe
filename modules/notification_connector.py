@@ -79,9 +79,9 @@ class NotificationConnector(interface.ModuleConnector):
 
             major_version, build_number = noti.get_win_version(file_objects)
 
-            file_objects['primary'].close()
-            file_objects['log1'].close()
-            file_objects['log2'].close()
+            # file_objects['primary'].close()
+            # file_objects['log1'].close()
+            # file_objects['log2'].close()
 
             if major_version == 10:
                 user_path = f'{query_separator}Users{query_separator}{user}'
@@ -97,7 +97,7 @@ class NotificationConnector(interface.ModuleConnector):
                                                        configuration=configuration,
                                                        dir_path=user_path + noti_path,
                                                        output_path=output_path):
-                        print("There are no notification files")
+                        # print("There are no notification files")
                         return False
 
                     noti_data = noti.new_noti_parser(output_path + os.sep + 'Notifications'

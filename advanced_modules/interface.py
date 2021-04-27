@@ -330,8 +330,8 @@ class AdvancedModuleAnalyzer(BaseAnalyzer):
                             'Failed to extract file "{0:s}" : {1!s}'.format(data_stream_name, exception))
                         return False
 
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
                 elif not data_stream_name:
                     file_object = file_entry.GetFileObject()
@@ -351,8 +351,8 @@ class AdvancedModuleAnalyzer(BaseAnalyzer):
                     except IOError as exception:
                         logger.error(
                             'Failed to extract file "{0:s}" : {1!s}'.format(display_name, exception))
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
             except KeyboardInterrupt:
                 return False

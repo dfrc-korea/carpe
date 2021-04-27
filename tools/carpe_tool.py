@@ -322,11 +322,10 @@ class CarpeTool(extraction_tool.ExtractionTool,
             engine.Process(configuration)
 
             # set advanced modules
-
-
             # parse advanced modules
             if configuration.source_type == 'directory' or 'file':
                 pass
+
             else:
                 engine.SetProcessAdvancedModules(
                     advanced_module_filter_expression=configuration.advanced_module_filter_expression)

@@ -55,35 +55,56 @@ class NTFSConnector(interface.ModuleConnector):
                                          output_path=output_path,
                                          data_stream_name=file[2])
 
-        self._mft_path = output_path + os.sep + '$MFT'
-        self._mftmirr_path = output_path + os.sep + '$MFTMirr'
-        self._logfile_path = output_path + os.sep + '$LogFile'
-        self._usnjrnl_path = output_path + os.sep + '$UsnJrnl_$J'
+        query = f"SELECT name, parent_path FROM file_info " \
+                f"WHERE par_id='{par_id}' " \
+                f"and sig_type = 'MFT';"
+        MFT_path = configuration.cursor.execute_query_mul(query)
 
-        mft_file = None
-        if os.path.exists(self._mft_path):
-            self.print_run_info('Parse $MFT', start=True)
-            mft_file = self.process_mft(par_id, configuration, table_list, knowledge_base)
-            self.print_run_info('Parse $MFT', start=False)
+        # if file input type is directory or file,
+        if configuration.source_type == 'directory' or 'file':
+            for mft_list in MFT_path:
+                self._mft_path = mft_list[1] + os.sep + mft_list[0]
+                self._mftmirr_path = None
+                self._logfile_path = None
+                self._usnjrnl_path = None
+                mft_file = None
+                if os.path.exists(self._mft_path):
+                    self.print_run_info('Parse $MFT', start=True)
+                    mft_file = self.process_mft(par_id, configuration, table_list, knowledge_base)
+                    self.print_run_info('Parse $MFT', start=False)
+                else:
+                    print('', end='')
+                    # print("There is no $MFT")
         else:
-            print('', end='')
-            # print("There is no $MFT")
+            self._mft_path = output_path + os.sep + '$MFT'
+            self._mftmirr_path = output_path + os.sep + '$MFTMirr'
+            self._logfile_path = output_path + os.sep + '$LogFile'
+            self._usnjrnl_path = output_path + os.sep + '$UsnJrnl_$J'
 
-        if os.path.exists(self._mft_path) and os.path.exists(self._logfile_path):
-            self.print_run_info('Parse $LogFile', start=True)
-            self.process_logfile(par_id, configuration, table_list, knowledge_base, mft_file)
-            self.print_run_info('Parse $LogFile', start=False)
-        else:
-            print('', end='')
-            # print("There is no $LogFile")
+            mft_file = None
+            if os.path.exists(self._mft_path):
+                self.print_run_info('Parse $MFT', start=True)
+                mft_file = self.process_mft(par_id, configuration, table_list, knowledge_base)
+                self.print_run_info('Parse $MFT', start=False)
+            else:
+                print('', end='')
+                # print("There is no $MFT")
 
-        if os.path.exists(self._mft_path) and os.path.exists(self._usnjrnl_path):
-            self.print_run_info('Parse $UsnJrnl', start=True)
-            self.process_usnjrnl(par_id, configuration, table_list, knowledge_base, mft_file)
-            self.print_run_info('Parse $UsnJrnl', start=False)
-        else:
-            print('', end='')
-            # print("There is no $UsnJrnl")
+            if os.path.exists(self._mft_path) and os.path.exists(self._logfile_path):
+                self.print_run_info('Parse $LogFile', start=True)
+                self.process_logfile(par_id, configuration, table_list, knowledge_base, mft_file)
+                self.print_run_info('Parse $LogFile', start=False)
+            else:
+                print('', end='')
+                # print("There is no $LogFile")
+
+            if os.path.exists(self._mft_path) and os.path.exists(self._usnjrnl_path):
+                self.print_run_info('Parse $UsnJrnl', start=True)
+                self.process_usnjrnl(par_id, configuration, table_list, knowledge_base, mft_file)
+                self.print_run_info('Parse $UsnJrnl', start=False)
+            else:
+                print('', end='')
+                # print("There is no $UsnJrnl")
 
     def process_mft(self, par_id, configuration, table_list, knowledge_base):
         mft_object = open(self._mft_path, 'rb')

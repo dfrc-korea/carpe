@@ -13,7 +13,7 @@ from modules import iconcache_connector
 from modules import jumplist_connector
 from modules import kakaotalk_mobile_decrypt_connector
 from modules import link_connector
-from modules import mssql_recovery_connector
+#from modules import mssql_recovery_connector
 from modules import mysql_recovery_connector
 from modules import notification_connector
 from modules import ntfs_connector
