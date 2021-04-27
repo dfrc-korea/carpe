@@ -22,7 +22,7 @@ PYTHON_DEPENDENCIES = {
     'Crypto': ('__version__', '3.9.4', None, True),  # kakaotalk
     'cryptography': ('__version__', '2.0.2', None, True),
     'dfdatetime': ('__version__', '20180704', None, True),
-    'dfvfs': ('__version__', '20190902', '20201105', True),
+    'dfvfs': ('__version__', '20201105', None, True),
     'dfwinreg': ('__version__', '20180712', None, True),
     'dtfabric': ('__version__', '20181128', None, True),
     'elasticsearch': ('__versionstr__', '6.0', None, True),  # for defa

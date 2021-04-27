@@ -243,7 +243,7 @@ class PathSpecExtractor():
                     dfvfs_errors.PathSpecError) as exception:
                 logger.warning('{0!s}'.format(exception))
 
-            finally:
-                file_system.Close()
+            #finally:
+                #file_system.Close()
 
 
