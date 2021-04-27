@@ -6,6 +6,7 @@ import argparse
 import textwrap
 import platform
 import pytz
+from pyfiglet import Figlet
 
 from tools.helpers import manager as helpers_manager
 from tools import extraction_tool, case_manager
@@ -234,7 +235,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
         self.parse_carve_options(options)
 
     def ExtractDataFromSources(self, mode):
-
+        f = Figlet(font='standard')
+        print(f.renderText('Carpe'))
+        print(f.renderText('Forensics'))
         self._output_writer.Write('Processing started.\n')
 
         investigator = {'investigator1': 'test', 'department': 'DFRC'}
