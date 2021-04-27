@@ -36,9 +36,16 @@ class PREFETCHConnector(interface.ModuleConnector):
 
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         # extension -> sig_type 변경해야 함
-        query = f"SELECT name, parent_path, extension, ctime, ctime_nano, inode FROM file_info " \
-                f"WHERE par_id='{par_id}' and parent_path like 'root{query_separator}Windows{query_separator}Prefetch' " \
-                f"and extension = 'pf';"
+
+        if configuration.source_type == 'directory' or 'file':
+            query = f"SELECT name, parent_path, extension, ctime, ctime_nano, inode FROM file_info " \
+                    f"WHERE par_id='{par_id}' " \
+                    f"and extension = 'pf';"
+        else:
+            query = f"SELECT name, parent_path, extension, ctime, ctime_nano, inode FROM file_info " \
+                    f"WHERE par_id='{par_id}' and parent_path like 'root{query_separator}Windows{query_separator}Prefetch' " \
+                    f"and extension = 'pf';"
+            tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
 
         prefetch_files = configuration.cursor.execute_query_mul(query)
 
@@ -50,7 +57,7 @@ class PREFETCHConnector(interface.ModuleConnector):
         insert_prefetch_run_info = []
         insert_prefetch_volume_info = []
 
-        tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
+
         for prefetch in prefetch_files:
             # prefetch_path = prefetch[1][prefetch[1].find(query_separator):] + query_separator + prefetch[0]
             # file_name = "SVCHOST.EXE-36E2D733.pf"
@@ -66,19 +73,27 @@ class PREFETCHConnector(interface.ModuleConnector):
             if not os.path.exists(output_path):
                 os.mkdir(output_path)
 
-            self.extract_file_to_path(tsk_file_system=tsk_file_system,
-                                      inode=int(prefetch[5]),
-                                      file_name=file_name,
-                                      output_path=output_path)
+            if configuration.source_type == 'directory' or 'file':
+                pass
+
+            else:
+                self.extract_file_to_path(tsk_file_system=tsk_file_system,
+                                          inode=int(prefetch[5]),
+                                          file_name=file_name,
+                                          output_path=output_path)
 
             # self.ExtractTargetFileToPath(
             #     source_path_spec=source_path_spec,
             #     configuration=configuration,
             #     file_path=prefetch_path,
             #     output_path=output_path)
+            if configuration.source_type == 'directory' or 'file':
+                fn = configuration.source_path + os.path.sep + file_name
+                app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_prefetch"
+            else:
+                fn = output_path + os.path.sep + file_name
+                app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_prefetch"
 
-            fn = output_path + os.path.sep + file_name
-            app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_prefetch"
             # TODO: slack 처리해야 함
             try:
                 results = PFExport2.main(fn, app_path)  # filename, app_path
@@ -180,8 +195,10 @@ class PREFETCHConnector(interface.ModuleConnector):
                     result[2] = configuration.apply_time_zone(result[2], knowledge_base.time_zone)  # creation_time
                 insert_prefetch_volume_info.append([par_id, configuration.case_id, configuration.evidence_id,
                                                     prefetch_name, result[1], result[2], result[3], result[4]])
-
-            os.remove(output_path + os.sep + file_name)
+            if configuration.source_type == 'directory' or 'file':
+                pass
+            else:
+                os.remove(output_path + os.sep + file_name)
 
         query = "Insert into lv1_os_win_prefetch values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
                 "%s, %s);"

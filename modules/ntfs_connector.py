@@ -55,10 +55,22 @@ class NTFSConnector(interface.ModuleConnector):
                                          output_path=output_path,
                                          data_stream_name=file[2])
 
-        self._mft_path = output_path + os.sep + '$MFT'
-        self._mftmirr_path = output_path + os.sep + '$MFTMirr'
-        self._logfile_path = output_path + os.sep + '$LogFile'
-        self._usnjrnl_path = output_path + os.sep + '$UsnJrnl_$J'
+        query = f"SELECT name, parent_path FROM file_info " \
+                f"WHERE par_id='{par_id}' " \
+                f"and sig_type = 'MFT';"
+        MFT_path = configuration.cursor.execute_query_mul(query)
+
+        # if file input type is directory or file,
+        if configuration.source_type == 'directory' or 'file':
+            self._mft_path = MFT_path[0][1] + os.sep + MFT_path[0][0]
+            self._mftmirr_path = None
+            self._logfile_path = None
+            self._usnjrnl_path = None
+        else:
+            self._mft_path = output_path + os.sep + '$MFT'
+            self._mftmirr_path = output_path + os.sep + '$MFTMirr'
+            self._logfile_path = output_path + os.sep + '$LogFile'
+            self._usnjrnl_path = output_path + os.sep + '$UsnJrnl_$J'
 
         mft_file = None
         if os.path.exists(self._mft_path):
@@ -69,7 +81,9 @@ class NTFSConnector(interface.ModuleConnector):
             print('', end='')
             # print("There is no $MFT")
 
-        if os.path.exists(self._mft_path) and os.path.exists(self._logfile_path):
+        if configuration.source_type == 'directory' or 'file':
+            pass
+        elif os.path.exists(self._mft_path) and os.path.exists(self._logfile_path):
             self.print_run_info('Parse $LogFile', start=True)
             self.process_logfile(par_id, configuration, table_list, knowledge_base, mft_file)
             self.print_run_info('Parse $LogFile', start=False)
@@ -77,7 +91,9 @@ class NTFSConnector(interface.ModuleConnector):
             print('', end='')
             # print("There is no $LogFile")
 
-        if os.path.exists(self._mft_path) and os.path.exists(self._usnjrnl_path):
+        if configuration.source_type == 'directory' or 'file':
+            pass
+        elif os.path.exists(self._mft_path) and os.path.exists(self._usnjrnl_path):
             self.print_run_info('Parse $UsnJrnl', start=True)
             self.process_usnjrnl(par_id, configuration, table_list, knowledge_base, mft_file)
             self.print_run_info('Parse $UsnJrnl', start=False)

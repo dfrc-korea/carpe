@@ -86,6 +86,8 @@ class ProcessEngine(object):
                     or source_path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
                 try:
                     par_id = self.get_partition_id(source_path_spec, configuration)
+                    # if configuration.source_type == 'directory' or 'file':
+
                     for module_name in self._modules:
                         module = self._modules.get(module_name, None)
 

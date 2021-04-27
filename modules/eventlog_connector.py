@@ -105,10 +105,16 @@ class EventlogConnector(interface.ModuleConnector):
             query_separator = self.GetQuerySeparator(source_path_spec, configuration)
             path_separator = self.GetPathSeparator(source_path_spec)
 
-            query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
-                    f"and extension = 'evtx' " \
-                    f"and parent_path like 'root{query_separator}Windows{query_separator}" \
-                    f"System32{query_separator}winevt{query_separator}Logs'"
+            if configuration.source_type == 'directory' or 'file':
+                query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
+                        f"and extension = 'evtx' " \
+                        f"and parent_path like 'root{query_separator}Windows{query_separator}" \
+                        f"System32{query_separator}winevt{query_separator}Logs'"
+            else:
+                query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
+                        f"and extension = 'evtx' " \
+                        f"and parent_path like 'root{query_separator}Windows{query_separator}" \
+                        f"System32{query_separator}winevt{query_separator}Logs'"
 
             eventlog_files = configuration.cursor.execute_query_mul(query)
 
