@@ -181,7 +181,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         try:
             self.ParseOptions(options)
         except errors.BadConfigOption as exception:
-            self._output_writer.Write('ERROR: {0!s}\n'.format(exception))
+            self._output_writer.Write('{0!s}\n'.format(exception))
             self._output_writer.Write('\n')
             self._output_writer.Write(argument_parser.format_usage())
             return False
