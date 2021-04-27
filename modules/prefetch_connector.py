@@ -62,6 +62,7 @@ class PREFETCHConnector(interface.ModuleConnector):
             # prefetch_path = prefetch[1][prefetch[1].find(query_separator):] + query_separator + prefetch[0]
             # file_name = "SVCHOST.EXE-36E2D733.pf"
             file_name = prefetch[0]
+            file_path = prefetch[1]
 
             # Ignore ReadyBoot directory and slack
             if file_name.find("-slack") != -1 or file_name.find("ReadyBoot") != -1:
@@ -88,7 +89,7 @@ class PREFETCHConnector(interface.ModuleConnector):
             #     file_path=prefetch_path,
             #     output_path=output_path)
             if configuration.source_type == 'directory' or 'file':
-                fn = configuration.source_path + os.path.sep + file_name
+                fn = file_path + os.path.sep + file_name
                 app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_prefetch"
             else:
                 fn = output_path + os.path.sep + file_name
@@ -96,7 +97,9 @@ class PREFETCHConnector(interface.ModuleConnector):
 
             # TODO: slack 처리해야 함
             try:
+                print(file_path, fn)
                 results = PFExport2.main(fn, app_path)  # filename, app_path
+
             except Exception:
                 continue
 
