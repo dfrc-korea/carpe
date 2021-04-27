@@ -158,13 +158,26 @@ class ESEDatabaseConnector(interface.ModuleConnector):
             return False
 
         esedb_file = pyesedb.file()
+        output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
+                                  configuration.evidence_id + os.sep + par_id + os.sep + 'esedb'
+        if not os.path.exists(output_path):
+            os.mkdir(output_path)
         for spec in find_specs:
             try:
-                file_object = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
-                                                          configuration=configuration,
-                                                          file_spec=spec)
-
-                esedb_file.open_file_object(file_object)
+                # file_object = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
+                #                                           configuration=configuration,
+                #                                           file_spec=spec)
+                self.ExtractTargetFileToPath(
+                        source_path_spec=source_path_spec,
+                        configuration=configuration,
+                        file_spec=spec,
+                        output_path=output_path)
+                name = self.GetFileNameFromSpec(
+                        source_path_spec=source_path_spec,
+                        configuration=configuration,
+                        file_spec=spec)
+                if name is not None:
+                    esedb_file.open(output_path+os.sep+name)
             except IOError as exception:
                 logger.debug('[{0:s}] unable to open file with error: {0!s}'.format(
                     self.NAME, exception))
@@ -304,8 +317,9 @@ class ESEDatabaseConnector(interface.ModuleConnector):
                             self.NAME, exception))
 
             finally:
-                esedb_file.close()
-                file_object.close()
+                pass
+                #esedb_file.close()
+                #file_object.close()
 
 
 manager.ModulesManager.RegisterModule(ESEDatabaseConnector)

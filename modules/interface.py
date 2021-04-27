@@ -2,6 +2,7 @@
 
 import os
 import abc
+import copy
 import yaml
 from datetime import datetime
 
@@ -287,6 +288,14 @@ class ModuleConnector(BaseConnector):
 
             except KeyboardInterrupt:
                 return False
+    def GetFileNameFromSpec(self, source_path_spec, configuration, file_spec=None):
+        path_spec_generator = self._path_spec_extractor.ExtractPathSpecs(
+            [source_path_spec], find_specs=[file_spec], recurse_file_system=False,
+            resolver_context=configuration.resolver_context)
+        for path_spec in path_spec_generator:
+            file_entry = path_spec_resolver.Resolver.OpenFileEntry(
+                    path_spec, resolver_context=configuration.resolver_context)
+            return file_entry.name
 
     def ExtractTargetFileToPath(self, source_path_spec, configuration,
                                 file_path=None, file_spec=None, output_path=None, data_stream_name=None):
