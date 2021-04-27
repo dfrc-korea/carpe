@@ -44,7 +44,7 @@ class SUPERFETCHConnector(interface.ModuleConnector):
         superfetch_files = configuration.cursor.execute_query_mul(query)
 
         if len(superfetch_files) == 0:
-            print("There are no superfetch files")
+            # print("There are no superfetch files")
             return False
 
         insert_superfetch_info = []

@@ -28,7 +28,7 @@ class KakaotalkMobileDecryptConnector(interface.ModuleConnector):
 		filesystem = configuration.cursor.execute_query(query)
 
 		if filesystem == None or filesystem[0] != "TSK_FS_TYPE_EXT4":
-			print("No EXT filesystem.")
+			#print("No EXT filesystem.")
 			return False
 
 		this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'kakaotalk_mobile'

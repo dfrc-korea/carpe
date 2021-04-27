@@ -56,7 +56,7 @@ class GoogleTakeoutConnector(interface.ModuleConnector):
         google_takeout_dirs = configuration.cursor.execute_query_mul(query)
 
         if len(google_takeout_dirs) == 0:
-            print("There are no google-takeout directories")
+            # print("There are no google-takeout directories")
             return False
 
         output_path = (

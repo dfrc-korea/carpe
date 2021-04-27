@@ -36,7 +36,7 @@ class RecycleBinConnector(interface.ModuleConnector):
         recyclebin_files = configuration.cursor.execute_query_mul(query)
 
         if len(recyclebin_files) == 0:
-            print("There are no recycle bin files")
+            # print("There are no recycle bin files")
             return False
 
         insert_recyclebin_info = []

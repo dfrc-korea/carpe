@@ -50,7 +50,7 @@ class NotificationConnector(interface.ModuleConnector):
             results = configuration.cursor.execute_query_mul(query)
 
             if len(results) == 0 or results == -1:
-                print("There are no registry files")
+                # print("There are no registry files")
                 return False
 
             file_objects = {

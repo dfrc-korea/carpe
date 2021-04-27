@@ -19,7 +19,10 @@ class SignatureTool(object):
         self.signature_specifications = None
 
     def ParseSignatureOptions(self):
-        path = '../config/signatures.conf'
+        self.main_path = os.path.abspath(__file__)
+        path = self.main_path + '\\..\\..\\..\\config\\signatures.conf'
+        #print(self.main_path, path)
+
         if not os.path.exists(path):
             raise IOError(
                 'No such format specification file: {0:s}'.format(path))

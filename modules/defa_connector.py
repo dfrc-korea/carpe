@@ -91,7 +91,7 @@ class DEFAConnector(interface.ModuleConnector):
         document_files = configuration.cursor.execute_query_mul(query)
 
         if document_files == -1 or len(document_files) == 0:
-            print("There are no document files")
+            #print("There are no document files")
             return False
 
         ### Download Check ###

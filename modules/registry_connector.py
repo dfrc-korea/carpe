@@ -131,7 +131,7 @@ class RegistryConnector(interface.ModuleConnector):
         registry_files = configuration.cursor.execute_query_mul(query)
 
         if len(registry_files) == 0:
-            print("There are no registry files")
+            # print("There are no registry files")
             return False
 
         registry_files2 = []

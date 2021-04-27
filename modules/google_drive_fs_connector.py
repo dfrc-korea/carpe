@@ -57,7 +57,7 @@ class GoogledrivefscConnector(interface.ModuleConnector):
                 google_drive_fs_path = path_spec.location
 
         if not os.path.exists(output_path):
-            print("There are no google drive files")
+            # print("There are no google drive files")
             return False
 
 

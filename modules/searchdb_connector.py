@@ -55,7 +55,7 @@ class SearchDBConnector(interface.ModuleConnector):
         searchdb_file = configuration.cursor.execute_query_mul(query)
 
         if len(searchdb_file) == 0:
-            print("There are no searchdb files")
+            # print("There are no searchdb files")
             return False
 
         # Search artifact paths

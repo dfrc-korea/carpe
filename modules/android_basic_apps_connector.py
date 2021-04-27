@@ -33,7 +33,7 @@ class AndroidBasicAppsConnector(interface.ModuleConnector):
         filesystem = configuration.cursor.execute_query(query)
 
         if filesystem is None or filesystem[0] != "TSK_FS_TYPE_EXT4":
-            print("No EXT filesystem.")
+            #print("No EXT filesystem.")
             return False
 
         yaml_list = []

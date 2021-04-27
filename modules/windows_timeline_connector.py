@@ -34,7 +34,7 @@ class WindowsTimelineConnector(interface.ModuleConnector):
 
         # This is not OS partition
         if len(knowledge_base._user_accounts.values()) == 0:
-            print("There are no ActivitiesCache.db file")
+            # print("There are no ActivitiesCache.db file")
             return False
 
         for user_accounts in knowledge_base._user_accounts.values():
@@ -49,7 +49,7 @@ class WindowsTimelineConnector(interface.ModuleConnector):
 
         if type(windows_timeline_files) != int:
             if len(windows_timeline_files) == 0:
-                print("There are no timeline files")
+                # print("There are no timeline files")
                 return False
         else:
             return False

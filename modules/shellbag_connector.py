@@ -28,7 +28,7 @@ class ShellbagConnector(interface.ModuleConnector):
 
         # This is not OS partition
         if len(knowledge_base._user_accounts.values()) == 0:
-            print("There are no Registry")
+            # print("There are no Registry")
             return False
 
         # TODO file path list를 뽑아야함

@@ -247,7 +247,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         try:
             self.set_conn_and_path()
         except errors.BadConfigOption as exception:
-            self._output_writer.Write('ERROR: {0!s}\n'.format(exception))
+            self._output_writer.Write('{0!s}\n'.format(exception))
             return False
 
         # update process state
@@ -263,6 +263,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         # set configuration
         configuration = self._CreateProcessingConfiguration()
+
+        if configuration.source_type == 'file' or 'directory':
+            self.signature_check = True
 
         # set signature check options
         if self.signature_check:
@@ -319,11 +322,15 @@ class CarpeTool(extraction_tool.ExtractionTool,
             engine.Process(configuration)
 
             # set advanced modules
-            engine.SetProcessAdvancedModules(
-               advanced_module_filter_expression=configuration.advanced_module_filter_expression)
+
 
             # parse advanced modules
-            engine.ProcessAdvancedModules(configuration)
+            if configuration.source_type == 'directory' or 'file':
+                pass
+            else:
+                engine.SetProcessAdvancedModules(
+                    advanced_module_filter_expression=configuration.advanced_module_filter_expression)
+                engine.ProcessAdvancedModules(configuration)
                 
             if configuration.source_path_specs[0].type_indicator == 'APFS':
                 pass

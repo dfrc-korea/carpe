@@ -23,7 +23,7 @@ class MssqlRecoveryConnector(interface.ModuleConnector):
         mdf_files = configuration.cursor.execute_query_mul(query)
 
         if len(mdf_files) == 0:
-            print("There are no mssql files")
+            # print("There are no mssql files")
             return False
 
         # db_file = 'test_DB.mdf'

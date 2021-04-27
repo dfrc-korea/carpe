@@ -55,7 +55,7 @@ class EvernoteConnector(interface.ModuleConnector):
 
         if evernote_db_query_results == -1 or len(evernote_db_query_results) == 0:
             logger.error('db execution failed.')
-            print("There are no evernote files")
+            # print("There are no evernote files")
             return False
 
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)

@@ -113,7 +113,7 @@ class EventlogConnector(interface.ModuleConnector):
             eventlog_files = configuration.cursor.execute_query_mul(query)
 
             if len(eventlog_files) == 0:
-                print("There are no eventlog files")
+                # print("There are no eventlog files")
                 return False
 
             eventlog_file_list = ['Security.evtx', 'System.evtx', 'Application.evtx',

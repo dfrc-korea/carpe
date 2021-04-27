@@ -66,21 +66,24 @@ class NTFSConnector(interface.ModuleConnector):
             mft_file = self.process_mft(par_id, configuration, table_list, knowledge_base)
             self.print_run_info('Parse $MFT', start=False)
         else:
-            print("There is no $MFT")
+            print('', end='')
+            # print("There is no $MFT")
 
         if os.path.exists(self._mft_path) and os.path.exists(self._logfile_path):
             self.print_run_info('Parse $LogFile', start=True)
             self.process_logfile(par_id, configuration, table_list, knowledge_base, mft_file)
             self.print_run_info('Parse $LogFile', start=False)
         else:
-            print("There is no $LogFile")
+            print('', end='')
+            # print("There is no $LogFile")
 
         if os.path.exists(self._mft_path) and os.path.exists(self._usnjrnl_path):
             self.print_run_info('Parse $UsnJrnl', start=True)
             self.process_usnjrnl(par_id, configuration, table_list, knowledge_base, mft_file)
             self.print_run_info('Parse $UsnJrnl', start=False)
         else:
-            print("There is no $UsnJrnl")
+            print('', end='')
+            # print("There is no $UsnJrnl")
 
     def process_mft(self, par_id, configuration, table_list, knowledge_base):
         mft_object = open(self._mft_path, 'rb')

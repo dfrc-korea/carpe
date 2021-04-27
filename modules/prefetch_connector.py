@@ -43,7 +43,7 @@ class PREFETCHConnector(interface.ModuleConnector):
         prefetch_files = configuration.cursor.execute_query_mul(query)
 
         if len(prefetch_files) == 0:
-            print("There are no prefetch files")
+            # print("There are no prefetch files")
             return False
 
         insert_prefetch_info = []
