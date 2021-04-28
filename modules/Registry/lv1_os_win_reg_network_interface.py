@@ -89,5 +89,5 @@ def NETWORKINTERFACE(reg_system):
                         network_interface_list[network_interface_count].registrationenabled = reg_subkey_value.data()
                 network_interface_count = network_interface_count + 1
     except:
-        print('-----Netowrk Interface Error')
+        print('-----Netowrk Interface not found')
     return network_interface_list

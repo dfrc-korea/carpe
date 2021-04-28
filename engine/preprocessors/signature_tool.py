@@ -105,7 +105,7 @@ class SignatureTool(object):
             self._scanner.scan_stop(scan_state)"""
 
         except IOError as exception:
-            logger.error('unable to scan file: error')
+            logger.error('unable to scan file: not found')
 
             return False
 

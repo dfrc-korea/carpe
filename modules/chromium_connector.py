@@ -258,7 +258,7 @@ class ChromiumConnector(interface.ModuleConnector):
                             file_path=file_path,
                             output_path=chrome_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
-                print("[Web] Chrome artifact files extraction success")
+                # print("[Web] Chrome artifact files extraction success")
 
                 chrome_search_result = []
                 chrome_visit_urls_result = []
@@ -513,9 +513,10 @@ class ChromiumConnector(interface.ModuleConnector):
                 query = f"Insert into lv1_app_web_chrome_zoom_level values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                 configuration.cursor.bulk_execute(query, result)
 
-                print("[Web] " + "\033[32m" + "Chrome Analysis Complete" + "\033[0m")
+                # print("[Web] " + "\033[32m" + "Chrome Analysis Complete" + "\033[0m")
         else:
-            print("[Web] " + "\033[31m" + "No Chrome artifact" + "\033[0m" + " in par_id %s." % (par_id))
+            pass
+            # print("[Web] " + "\033[31m" + "No Chrome artifact" + "\033[0m" + " in par_id %s." % (par_id))
 
         ################## Whale ###################
         if len(whale_artifact) != 0:
@@ -565,7 +566,7 @@ class ChromiumConnector(interface.ModuleConnector):
                             file_path=file_path,
                             output_path=whale_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
-                print("[Web] Whale artifact files extraction success")
+                # print("[Web] Whale artifact files extraction success")
 
                 whale_search_result = []
                 whale_visit_urls_result = []
@@ -767,9 +768,10 @@ class ChromiumConnector(interface.ModuleConnector):
                                 "(UNHEX(\'" + row[8].hex() + "\')), '%s', '%s', '%s', '%s', '%s');" % tuple(row[9:])
                         configuration.cursor.execute_query(query)
 
-                print("[Web] " + "\033[32m" + "Whale Analysis Complete" + "\033[0m")
+                # print("[Web] " + "\033[32m" + "Whale Analysis Complete" + "\033[0m")
         else:
-            print("[Web] " + "\033[31m" + "No Whale artifact" + "\033[0m" + " in par_id %s." % (par_id))
+            pass
+            # print("[Web] " + "\033[31m" + "No Whale artifact" + "\033[0m" + " in par_id %s." % (par_id))
 
 
         ################ Chromium Edge ###################
@@ -821,7 +823,7 @@ class ChromiumConnector(interface.ModuleConnector):
                             file_path=file_path,
                             output_path=edge_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
-                print("[Web] Chromium Edge artifact files extraction success")
+                # print("[Web] Chromium Edge artifact files extraction success")
 
                 edge_search_result = []
                 edge_visit_urls_result = []
@@ -1031,9 +1033,10 @@ class ChromiumConnector(interface.ModuleConnector):
                         f"%s, %s, %s, %s, %s);"
                 configuration.cursor.bulk_execute(query, result)
 
-                print("[Web] " + "\033[32m" + "Chromium Edge Analysis Complete" + "\033[0m")
+                # print("[Web] " + "\033[32m" + "Chromium Edge Analysis Complete" + "\033[0m")
         else:
-            print("[Web] " + "\033[31m" + "No Chromium Edge artifact" + "\033[0m" + " in par_id %s." % (par_id))
+            pass
+            # print("[Web] " + "\033[31m" + "No Chromium Edge artifact" + "\033[0m" + " in par_id %s." % (par_id))
 
         ################ Opera ###################
         if len(opera_artifact) != 0:
@@ -1072,7 +1075,7 @@ class ChromiumConnector(interface.ModuleConnector):
                         file_path=file_path,
                         output_path=opera_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
-            print("[Web] Opera artifact files extraction success")
+            # print("[Web] Opera artifact files extraction success")
 
             opera_search_result = []
             opera_visit_urls_result = []
@@ -1260,10 +1263,11 @@ class ChromiumConnector(interface.ModuleConnector):
                     f"%s, %s);"
             configuration.cursor.bulk_execute(query, result)
 
-            print("[Web] " + "\033[32m" + "Opera Analysis Complete" + "\033[0m")
+            # print("[Web] " + "\033[32m" + "Opera Analysis Complete" + "\033[0m")
 
         else:
-            print("[Web] " + "\033[31m" + "No Opera artifact" + "\033[0m" + " in par_id %s." % par_id)
+            pass
+            # print("[Web] " + "\033[31m" + "No Opera artifact" + "\033[0m" + " in par_id %s." % par_id)
 
 
         ################ Firefox ###################
@@ -1312,7 +1316,7 @@ class ChromiumConnector(interface.ModuleConnector):
                             file_path=file_path,
                             output_path=firefox_output_path + make_dir_tree[0] + os.sep + make_dir_tree[1] + os.sep)
 
-                print("[Web] Firefox artifact files extraction success")
+                # print("[Web] Firefox artifact files extraction success")
 
                 firefox_visit_history = []
                 firefox_visit_urls_result = []
@@ -1493,9 +1497,10 @@ class ChromiumConnector(interface.ModuleConnector):
                         f"%s, %s, %s);"
                 configuration.cursor.bulk_execute(query, result)
 
-                print("[Web] " + "\033[32m" + "Firefox Analysis Complete" + "\033[0m")
+                # print("[Web] " + "\033[32m" + "Firefox Analysis Complete" + "\033[0m")
         else:
-            print("[Web] " + "\033[31m" + "No Firefox artifact" + "\033[0m" + " in par_id %s." % par_id)
+            pass
+            # print("[Web] " + "\033[31m" + "No Firefox artifact" + "\033[0m" + " in par_id %s." % par_id)
 
 
 def get_source_path(profile, file_name, browser):

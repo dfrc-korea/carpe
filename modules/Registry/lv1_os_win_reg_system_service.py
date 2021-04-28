@@ -117,5 +117,5 @@ def SYSTEMSERVICE(reg_system):
                 system_service_list[system_service_count].host_service = ','.join(temp_array).replace('\x00','')
                 system_service_count = system_service_count + 1
     except:
-        print('-----System service Error')
+        print('-----System service not Found')
     return system_service_list

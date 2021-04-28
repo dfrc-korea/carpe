@@ -38,6 +38,6 @@ def NETWORKDRIVE(reg_nt):
                         network_drive_list[network_drive_count].ordering = network_drive_count+1
                         network_drive_count = network_drive_count + 1
     except:
-        print('-----Network Drive Error')
+        print('-----Network Drive not found')
     return network_drive_list
 

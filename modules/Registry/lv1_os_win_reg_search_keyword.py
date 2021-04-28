@@ -38,6 +38,6 @@ def SEARCHKEYWORD(reg_nt):
                         search_keyword_list[search_keyword_count].ordering = search_keyword_count+1
                         search_keyword_count = search_keyword_count + 1
     except:
-        print('-----Search Keyword Error')
+        print('-----Search Keyword not found')
     return search_keyword_list
 

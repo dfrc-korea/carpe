@@ -62,7 +62,8 @@ def MSOFFICERECENT(reg_nt):
                             msoffice_recent_docs_list[msoffice_recent_docs_count].source_location = "SOFTWARE/Microsoft/Office/"+ms_version[i]+"/Powerpoint/File MRU"
                             msoffice_recent_docs_count = msoffice_recent_docs_count + 1
         except:
-            print('-----MSOFFICE Recent Error')
+            pass
+            # print('-----MSOFFICE Recent Error')
 
     return msoffice_recent_docs_list
 

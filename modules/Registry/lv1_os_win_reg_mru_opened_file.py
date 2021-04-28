@@ -347,6 +347,6 @@ def MRUOPENEDFILE(reg_nt):
         #print("No Key")
 
     except:
-        print('-----MRU opened file Error')
+        print('-----MRU opened file not found')
 
     return mru_opened_file_list

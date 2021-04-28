@@ -67,7 +67,7 @@ def RECENTDOCS(reg_nt):
                             recent_docs_list[recent_docs_count].source_location = "NTUSER-SOFTWARE/Microsoft/Windows/CurrentVersion/Explorer/RecentDocs/"
                             recent_docs_count = recent_docs_count + 1
     except:
-        print('-----Recent Documents Error')
+        print('-----Recent Documents not found')
 
     return recent_docs_list
 

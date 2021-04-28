@@ -104,7 +104,7 @@ def edge_search_terms(file):
         cur.execute('select urls.last_visit_time, urls.url, keyword_search_terms.term from keyword_search_terms, urls where keyword_search_terms.url_id = urls.id order by last_visit_time asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chromium Edge] Search Terms " + "\033[31m" + "Main Query Error" + "\033[0m")
+        #print("[Web/Chromium Edge] Search Terms " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     search_terms = []
@@ -161,7 +161,7 @@ def edge_visit_urls(file):
         cur.execute('select urls.url, urls.last_visit_time, urls.title, urls.visit_count, urls.typed_count  from urls order by last_visit_time asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chromium Edge] Visit Urls " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chromium Edge] Visit Urls " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     visit_urls = []
@@ -254,7 +254,7 @@ def edge_visit_history(file):
         cur.execute('select url, visit_time, from_visit, transition, segment_id, visit_duration from visits order by id asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chromium Edge] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chromium Edge] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     visit_history = []
@@ -348,7 +348,7 @@ def edge_download(file):
             ' referrer, site_url, tab_url, tab_referrer_url, last_modified, mime_type, original_mime_type from downloads order by start_time asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chromium Edge] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chromium Edge] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     download_list = []
@@ -420,7 +420,7 @@ def edge_top_sites(file):
         cur.execute('select url, title, url_rank from top_sites order by url_rank asc ')
         result = cur.fetchall()
     except:
-        print("[Web/Chromium Edge] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chromium Edge] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     top_sites = []
@@ -460,7 +460,7 @@ def edge_shortcuts(file):
                     'number_of_hits from omni_box_shortcuts order by last_access_time asc ')
         result = cur.fetchall()
     except:
-        print("[Web/Chromium Edge] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chromium Edge] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     shortcuts = []
@@ -509,7 +509,7 @@ def edge_favicons(file):
                     ' order by favicon_bitmaps.id asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chromium Edge] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chromium Edge] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     favicons = []
@@ -551,7 +551,7 @@ def edge_cookies(file):
                     'has_expires, is_persistent, priority, encrypted_value, samesite from cookies order by creation_utc asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chromium Edge] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chromium Edge] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     cookies = []
@@ -593,7 +593,7 @@ def edge_autofill(file):
         cur.execute('select name, value, value_lower, date_created, date_last_used, count from autofill order by rowid asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chromium Edge] Autofill " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chromium Edge] Autofill " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     autofill = []
@@ -652,7 +652,7 @@ def edge_logindata(file):
         cur.execute(query)
         result = cur.fetchall()
     except:
-        print("[Web/Chromium Edge] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chromium Edge] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     login_datas = []

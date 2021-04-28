@@ -97,7 +97,7 @@ def opera_search_terms(file):
                     'urls where keyword_search_terms.url_id = urls.id order by last_visit_time asc')
         result = cur.fetchall()
     except:
-        print("[Web/Opera] Search Terms " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Opera] Search Terms " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     search_terms = []
@@ -260,7 +260,7 @@ def opera_visit_history(file):
                     'order by id asc')
         result = cur.fetchall()
     except:
-        print("[Web/Opera] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Opera] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     visit_history = []
@@ -355,7 +355,7 @@ def opera_download(file):
                     'mime_type, original_mime_type from downloads order by start_time asc')
         result = cur.fetchall()
     except:
-        print("[Web/Opera] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Opera] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     download_list = []
@@ -430,7 +430,7 @@ def opera_top_sites(file):
         cur.execute('select url, title, url_rank from top_sites order by url_rank asc ')
         result = cur.fetchall()
     except:
-        print("[Web/Opera] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Opera] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     top_sites = []
@@ -470,7 +470,7 @@ def opera_shortcuts(file):
                     'number_of_hits from omni_box_shortcuts order by last_access_time asc ')
         result = cur.fetchall()
     except:
-        print("[Web/Opera] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Opera] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     shortcuts = []
@@ -518,7 +518,7 @@ def opera_favicons(file):
                     'order by favicon_bitmaps.id asc')
         result = cur.fetchall()
     except:
-        print("[Web/Opera] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Opera] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     favicons = []
@@ -561,7 +561,7 @@ def opera_cookies(file):
                     'order by creation_utc asc')
         result = cur.fetchall()
     except:
-        print("[Web/Opera] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Opera] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     cookies = []
@@ -603,7 +603,7 @@ def opera_autofill(file):
                     'order by rowid asc')
         result = cur.fetchall()
     except:
-        print("[Web/Opera] Autofill " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Opera] Autofill " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     autofill = []
@@ -660,7 +660,7 @@ def opera_logindata(file):
                 'possible_username_pairs, submit_element, preferred, date_last_used from logins')
             result = cur.fetchall()
         except:
-            print("[Web/Opera] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
+            # print("[Web/Opera] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
             result = []
 
     else:
@@ -672,7 +672,7 @@ def opera_logindata(file):
                 'possible_username_pairs, submit_element, preferred from logins')
             result = cur.fetchall()
         except:
-            print("[Web/Opera] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
+            # print("[Web/Opera] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
             result = []
 
     logindatas = []

@@ -53,5 +53,5 @@ def USERASSIST(reg_nt):
                 user_list[user_count].last_run_time = (datetime(1601, 1, 1) + timedelta(microseconds=int(binascii.b2a_hex(user_value.data()[60:68][::-1]), 16) / 10)).isoformat()+'Z'
                 user_count = user_count + 1
     except:
-        print('-----UserAssist Error')
+        print('-----UserAssist not found')
     return user_list

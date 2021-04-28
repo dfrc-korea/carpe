@@ -35,7 +35,7 @@ def Bluetooth(reg_system):
 
             bluetooth_count = bluetooth_count + 1
         except:
-            print('-----Bluetooth File Error')
+            print('-----Bluetooth File not found')
 
     return bluetooth_list
 

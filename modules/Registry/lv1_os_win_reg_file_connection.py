@@ -60,5 +60,5 @@ def FILECCONNECTION(reg_software):
                                                 file_connection_list[file_connection_count].modified_time = command.last_written_timestamp().isoformat()+'Z'
                                                 file_connection_count = file_connection_count + 1
         except:
-            print('-----File Connection Error')
+            print('-----File Connection not found')
     return file_connection_list

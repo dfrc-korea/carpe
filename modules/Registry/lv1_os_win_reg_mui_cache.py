@@ -44,6 +44,6 @@ def MUICACHE(reg_usrclass):
                         mui_cache_count = mui_cache_count + 1
 
     except:
-        print('-----MUI Cache Error')
+        print('-----MUI Cache not found')
 
     return mui_cache_list

@@ -42,5 +42,5 @@ def SHIMCACHE(reg_system):
                             shim_cache_list[shim_cache_count].modified_time = convettime(dwLowDateTime, dwHighDateTime).isoformat()+'Z'
                         shim_cache_count = shim_cache_count + 1
     except:
-        print('-----Shim Cache Error')
+        print('-----Shim Cache not found')
     return shim_cache_list

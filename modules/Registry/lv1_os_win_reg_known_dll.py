@@ -28,5 +28,5 @@ def KNOWNDLL(reg_system):
             known_dll_list[known_dll_count].modified_time = known_dll_key.last_written_timestamp().isoformat()+'Z'
             known_dll_count = known_dll_count + 1
         except:
-            print('-----Knwon DLL Error')
+            print('-----Knwon DLL not found')
     return known_dll_list
