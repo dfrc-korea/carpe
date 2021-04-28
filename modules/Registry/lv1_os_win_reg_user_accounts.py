@@ -122,7 +122,7 @@ def USERACCOUNTS(reg_sam, reg_software):
                                 user.login_script = 'Yes'
                                 user.source_location.append('SOFTWARE-Microsoft/Windows NT/CurrentVersion/Winlogon')
     except:
-        print('-----User Account Error')
+        print('-----User Account not found')
     return user_list
 
 

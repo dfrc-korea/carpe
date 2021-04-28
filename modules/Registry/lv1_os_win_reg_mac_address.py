@@ -27,5 +27,5 @@ def MACADDRESS(reg_system):
                         mac_address_list[mac_address_count].description = reg_subkey.value(name='DriverDesc').data()
                         mac_address_count = mac_address_count + 1
         except:
-            print('-----MAC Address Error')
+            print('-----MAC Address not found')
     return mac_address_list

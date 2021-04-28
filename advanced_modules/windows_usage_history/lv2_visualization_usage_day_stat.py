@@ -60,6 +60,6 @@ def USAGEDAYSTAT(configuration):
             usage_history_count = usage_history_count + 1
 
     except:
-        print('-----USAGE_DAY_STAT Error')
+        print('-----USAGE_DAY_STAT not found')
 
     return usage_history_list

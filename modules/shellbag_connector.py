@@ -77,12 +77,12 @@ class ShellbagConnector(interface.ModuleConnector):
 
             shellbag_results = shellbag.Main(file_objects)
 
-            if file_objects['primary']:
-                file_objects['primary'].close()
-            if file_objects['log1']:
-                file_objects['log1'].close()
-            if file_objects['log2']:
-                file_objects['log2'].close()
+            # if file_objects['primary']:
+            #     file_objects['primary'].close()
+            # if file_objects['log1']:
+            #     file_objects['log1'].close()
+            # if file_objects['log2']:
+            #     file_objects['log2'].close()
 
             info = [par_id, configuration.case_id, configuration.evidence_id, user]
             insert_shellbag_info = []

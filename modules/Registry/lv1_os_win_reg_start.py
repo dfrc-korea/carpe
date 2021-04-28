@@ -67,6 +67,6 @@ def START(reg_software, reg_nt):
                 start_list[start_count].type = 'Run'
                 start_count = start_count + 1
     except:
-        print('-----Start list Error')
+        print('-----Start list not found')
 
     return start_list

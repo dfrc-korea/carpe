@@ -275,4 +275,5 @@ if dll is not None:
     Xpress['OpenSrc']        = OpenSrc.Xpress
     XpressHuffman['OpenSrc'] = OpenSrc.XpressHuffman
 else:
-    print(sys.stdout, 'OpenSrc compression library is unavailable because the library couldn\'t be found/loaded')
+    print()
+    #print(sys.stdout, 'OpenSrc compression library is unavailable because the library couldn\'t be found/loaded')

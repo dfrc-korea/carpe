@@ -127,7 +127,7 @@ def whale_download(file):
             'original_mime_type from downloads order by start_time asc')
         result = cur.fetchall()
     except:
-        print("[Web/Whale] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Whale] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     download_list = []
@@ -200,7 +200,7 @@ def whale_visit_urls(file):
         cur.execute('select id, url, title, visit_count, typed_count, last_visit_time from urls')
         result = cur.fetchall()
     except:
-        print("[Web/Whale] Visit Urls " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Whale] Visit Urls " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     url_list = []
@@ -290,7 +290,7 @@ def whale_visit_history(file):
                     'from visits order by id asc')
         result = cur.fetchall()
     except:
-        print("[Web/Whale] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Whale] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     visit_history = []
@@ -432,7 +432,7 @@ def whale_cookies(file):
                 'creation_utc, expires_utc, last_access_utc from cookies')
         result = cur.fetchall()
     except:
-        print("[Web/Whale] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Whale] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     cookies_list = []
@@ -456,7 +456,7 @@ def whale_top_sites(file):
         cur.execute('select url, title, url_rank from top_sites')
         result = cur.fetchall()
     except:
-        print("[Web/Whale] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Whale] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     top_site_list = []
@@ -496,7 +496,7 @@ def whale_autofill (file):
         cur.execute('select value, date_created, date_last_used, count from autofill')
         result = cur.fetchall()
     except:
-        print("[Web/Whale] Autofill " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Whale] Autofill " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     for row in result:
@@ -539,7 +539,7 @@ def whale_logindata(file):
                 'possible_username_pairs, submit_element, preferred, date_last_used from logins')
             result = cur.fetchall()
         except:
-            print("[Web/Whale] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
+            # print("[Web/Whale] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
             result = []
 
     else:
@@ -551,7 +551,7 @@ def whale_logindata(file):
                 'possible_username_pairs, submit_element, preferred from logins')
             result = cur.fetchall()
         except:
-            print("[Web/Whale] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
+            # print("[Web/Whale] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
             result = []
 
     logindatas = []
@@ -629,7 +629,7 @@ def whale_shortcuts(file):
                     'number_of_hits from omni_box_shortcuts order by last_access_time asc ')
         result = cur.fetchall()
     except:
-        print("[Web/Whale] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Whale] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     shortcuts = []
@@ -679,7 +679,7 @@ def whale_favicons(file):
                     'order by favicon_bitmaps.id asc')
         result = cur.fetchall()
     except:
-        print("[Web/Whale] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Whale] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     favicons = []

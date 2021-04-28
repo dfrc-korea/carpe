@@ -144,7 +144,7 @@ def firefox_visit_history(file):
             'select id, from_visit, place_id, visit_date, visit_type from moz_historyvisits order by visit_date asc')
         visit_history = cur.fetchall()
     except:
-        print("[Web/Firefox] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Firefox] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
         visit_history = []
 
     result = []
@@ -196,7 +196,7 @@ def firefox_visit_urls(file):
             'description, preview_image_url from moz_places')
         visit_urls = cur.fetchall()
     except:
-        print("[Web/Firefox] Visit Urls " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Firefox] Visit Urls " + "\033[31m" + "Main Query Error" + "\033[0m")
         visit_urls = []
 
     result = []
@@ -250,7 +250,7 @@ def firefox_domain(file):
             'select prefix, host, frecency from moz_origins')
         domains = cur.fetchall()
     except:
-        print("[Web/Firefox] Domain " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Firefox] Domain " + "\033[31m" + "Main Query Error" + "\033[0m")
         domains = []
 
     result = []
@@ -289,7 +289,7 @@ def firefox_downloads(file):
                     'lastModified from moz_annos order by place_id asc')
         download_record = cur.fetchall()
     except:
-        print("[Web/Firefox] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Firefox] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
         download_record = []
 
     file_path_record = []
@@ -436,7 +436,7 @@ def firefox_cookies(file):
                 'inBrowserElement, sameSite, rawSameSite, schemeMap from moz_cookies order by id asc')
             cookies = cur.fetchall()
         except:
-            print("[Web/Firefox] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
+            # print("[Web/Firefox] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
             cookies = []
     else:
         try:
@@ -445,7 +445,7 @@ def firefox_cookies(file):
                 'inBrowserElement, sameSite, rawSameSite from moz_cookies order by id asc')
             cookies = cur.fetchall()
         except:
-            print("[Web/Firefox] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
+            # print("[Web/Firefox] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
             cookies = []
 
     result = []
@@ -488,7 +488,7 @@ def firefox_perms(file):
                     'order by id asc')
         perms = cur.fetchall()
     except:
-        print("[Web/Firefox] Permissions " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Firefox] Permissions " + "\033[31m" + "Main Query Error" + "\033[0m")
         perms = []
 
     result = []
@@ -521,7 +521,7 @@ def firefox_forms(file):
                     'order by id asc')
         forms = cur.fetchall()
     except:
-        print("[Web/Firefox] Form History " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Firefox] Form History " + "\033[31m" + "Main Query Error" + "\033[0m")
         forms = []
     result = []
 
@@ -587,7 +587,7 @@ def firefox_favicons(file):
         cur.execute('select id, icon_url, fixed_icon_url_hash, width, root, color, expire_ms, data from moz_icons order by id asc')
         favicons = cur.fetchall()
     except:
-        print("[Web/Firefox] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Firefox] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
         favicons = []
 
     result = []
@@ -664,7 +664,7 @@ def firefox_prefs(file):
         cur.execute('select id, groupID, settingID, value, timestamp from prefs order by id asc')
         prefs = cur.fetchall()
     except:
-        print("[Web/Firefox] Preference " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Firefox] Preference " + "\033[31m" + "Main Query Error" + "\033[0m")
         prefs = []
 
     result = []
@@ -742,7 +742,7 @@ def firefox_bookmarks(file):
                     'from moz_bookmarks')
         bookmarks = cur.fetchall()
     except:
-        print("[Web/Firefox] Bookmarks " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Firefox] Bookmarks " + "\033[31m" + "Main Query Error" + "\033[0m")
         bookmarks = []
 
     result = []

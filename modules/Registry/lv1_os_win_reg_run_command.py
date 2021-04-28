@@ -38,6 +38,6 @@ def RUNCOMMAND(reg_nt):
                         run_command_list[run_command_count].ordering = run_command_count+1
                         run_command_count = run_command_count + 1
     except:
-        print('-----Run Command Error')
+        print('-----Run Command not found')
     return run_command_list
 

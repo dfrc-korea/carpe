@@ -127,5 +127,5 @@ def OSINFO(reg_software, reg_system):
                 elif os_value.name() == 'ShutdownTime':
                     os_list[os_count].last_shutdown_time = (datetime(1601, 1, 1) + timedelta(microseconds=int(binascii.b2a_hex(os_value.data()[::-1]), 16) / 10)).isoformat()+'Z'
     except:
-        print('-----OS Information Error')
+        print('-----OS Information not found')
     return os_list

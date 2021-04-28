@@ -362,7 +362,7 @@ def MRUFOLDER(reg_nt):
                         break
 
     except:
-        print('-----MRU Folder Error')
+        print('-----MRU Folder not found')
 
     return mru_folder_list
 

@@ -42,7 +42,7 @@ class Compound(Common):
                 self._fp = open(self.input, 'rb')
                 self._filesize = os.path.getsize(input)
             except FileNotFoundError:
-                print('file not found error')
+                print('file not found')
         else:
             self._fp = None
             self._filesize = 0
