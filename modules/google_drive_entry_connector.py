@@ -45,7 +45,7 @@ class GoogledriveentryConnector(interface.ModuleConnector):
                                                 configuration=configuration,
                                                 dir_path=user_path + gs_path,
                                                 output_path=output_path):
-                print("File name is too long")
+                #print("File name is too long")
                 continue
 
             try:
