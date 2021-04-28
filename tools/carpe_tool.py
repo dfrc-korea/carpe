@@ -340,12 +340,12 @@ class CarpeTool(extraction_tool.ExtractionTool,
                 pass
             else:
                 # carve
-                print("Carving Start")
+                #print("Carving Start")
                 if not self._partition_list:
-                    print("No partition")
+                    # print("No partition")
                     engine.process_carve(configuration, is_partition=False)
                 else:
-                    print(self._partition_list)
+                    # print(self._partition_list)
                     engine.process_carve(configuration, is_partition=True)
 
         # carpe_carve.py
