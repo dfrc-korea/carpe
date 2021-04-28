@@ -1261,8 +1261,8 @@ class StorageMediaTool(tools.CLITool):
                     except IOError as exception:
                         raise errors.BackEndError(
                             'Unable to scan file: error: {0:s}'.format(exception))
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
                 if self.rds_check and file._size > 0 and file_entry.IsFile():
 
