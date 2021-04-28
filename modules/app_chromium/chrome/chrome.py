@@ -36,7 +36,10 @@ def _convert_strdate_to_datetime(strdate):
                  'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
 
     day = strdate[5:7]
-    month = month_dic[strdate[8:11]]
+    try:
+        month = month_dic[strdate[8:11]]
+    except KeyError:
+        return '0'
     year = strdate[12:16]
     timestamp = strdate[17:25]
 
