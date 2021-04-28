@@ -1084,7 +1084,6 @@ class StorageMediaTool(tools.CLITool):
     def _ProcessFileOrDirectoryForNTFS(self, path_spec, parent_id=None):
         current_display_name = path_helper.PathHelper.GetDisplayNameForPathSpec(path_spec)
 
-        print(current_display_name)
         file_entry = dfvfs_resolver.Resolver.OpenFileEntry(
             path_spec)
 

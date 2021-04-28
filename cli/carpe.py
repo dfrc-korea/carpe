@@ -24,10 +24,10 @@ def Main():
     print(f.renderText('Carpe'))
     print(f.renderText('Forensics'))
     print('---------------------------------------------------------------------')
-    print('Comprehensive Analysis and Research Platform for digital Evidence')
+    print('\nComprehensive Analysis and Research Platform for digital Evidence')
     print('Korea University - Digital Forensic Reseach Center')
     print('URL -> https://github.com/dfrc-korea/carpe\n')
-    print("Copyright 2021. Korea University - DFRC. All rights reserved ")
+    #print("Copyright 2021. Korea University - DFRC. All rights reserved ")
     print('---------------------------------------------------------------------')
     print()
 

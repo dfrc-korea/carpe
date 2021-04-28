@@ -425,7 +425,7 @@ class ChromiumConnector(interface.ModuleConnector):
                         row[4] = configuration.apply_time_zone(row[4], knowledge_base.time_zone)  # expires_utc
                         row[7] = configuration.apply_time_zone(row[7], knowledge_base.time_zone)  # last_access_utc
                         row = info + row + profile_match + [source]
-
+                        print(row[14])
                         query = f"Insert into lv1_app_web_chrome_cookies values ('%s', '%s', '%s', '%s', '%s', '%s', " \
                                 f"'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " % tuple(row[0:14]) + \
                                 "(UNHEX(\'" + row[14].hex() + "\')), '%s', '%s', '%s', '%s');" % tuple(row[15:])
