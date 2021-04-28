@@ -67,9 +67,10 @@ class ProcessEngine(object):
                             artifacts_registry_object, file_system, mount_point, self.knowledge_base)
 
                     detected_operating_systems.append(operating_system)
-
-                finally:
-                    file_system.Close()
+                except:
+                    pass
+                # finally:
+                #     file_system.Close()
 
         if detected_operating_systems:
             logger.info('Preprocessing detected operating systems: {0:s}'.format(
