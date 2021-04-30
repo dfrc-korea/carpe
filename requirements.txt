@@ -10,7 +10,7 @@ chardet==3.0.4
 colorama==0.4.3
 compoundfiles==0.3
 coverage==5.2.1
-cryptography==3.1
+cryptography==3.3.2
 dfdatetime==20200824
 dfvfs==20210213
 dfwinreg==20200415
