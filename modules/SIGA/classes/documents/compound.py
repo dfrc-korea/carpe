@@ -265,7 +265,7 @@ class Compound(Common):
         while True:
             idx = fat[idx]
             # temporarily changed - jbc
-            if idx == 0:
+            if idx == 0 or len(chain) > 1000000:
                 return False
             if idx == Lego_Kaitai_Cfbf_Difat_Sector.FatType.end_of_chain.value:
                 break
