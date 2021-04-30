@@ -28,7 +28,7 @@ libregf-python==20200805
 libsigscan-python==20191221
 libsmdev-python==20190315
 libsmraw-python==20191221
-libvshadow-python==20210424
+libvshadow-python==20210425
 lxml==4.6.2
 moduleInterface==2.0.13
 more-itertools==8.5.0
