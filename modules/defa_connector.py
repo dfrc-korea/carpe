@@ -199,7 +199,7 @@ class DEFAConnector(interface.ModuleConnector):
             result.content_size = len(result.content)
 
             # for windows
-            if knowledge_base._values['operating_system'][0].find('Windows') > 0:
+            if knowledge_base._values['operating_system'][0].find('Windows') >= 0:
                 try:
                     result.mft_st_created_time = str(datetime.utcfromtimestamp(
                         int(str(document[6]).zfill(11) + str(document[10]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
