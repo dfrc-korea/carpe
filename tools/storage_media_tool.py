@@ -634,7 +634,7 @@ class StorageMediaTool(tools.CLITool):
     def LoadReferenceDataSet(self):
         try:
             self._rds = csv.read_csv('/home/carpe/rds/NSRLFile.txt')
-            self._rds_set = set(self._rds.columns[0].to_pylist())  # 중복제거
+            self._rds_set = set(self._rds.columns[0].to_pylist().upper())  # 중복제거
         except KeyboardInterrupt:
             raise errors.UserAbort('File system scan aborted.')
 
@@ -1038,7 +1038,7 @@ class StorageMediaTool(tools.CLITool):
                     # finally:
                     #     file_object.close()
 
-                    if file._sha1 in self._rds_set:
+                    if hash_result in self._rds_set:
                         rds_result = "Matching"
                     else:
                         rds_result = "Not Matching"
@@ -1284,7 +1284,7 @@ class StorageMediaTool(tools.CLITool):
                     # finally:
                     #     file_object.close()
 
-                    if file._sha1 in self._rds_set:
+                    if hash_result in self._rds_set:
                         rds_result = "Matching"
                     else:
                         rds_result = "Not Matching"
@@ -1495,7 +1495,7 @@ class StorageMediaTool(tools.CLITool):
                     # finally:
                     #     file_object.close()
 
-                    if file._sha1 in self._rds_set:
+                    if hash_result in self._rds_set:
                         rds_result = "Matching"
                     else:
                         rds_result = "Not Matching"

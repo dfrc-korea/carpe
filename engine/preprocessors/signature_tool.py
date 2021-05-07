@@ -19,8 +19,8 @@ class SignatureTool(object):
         self.signature_specifications = None
 
     def ParseSignatureOptions(self):
-        self.main_path = os.path.abspath(__file__)
-        path = self.main_path + '\\..\\..\\..\\config\\signatures.conf'
+        self.main_path = os.path.dirname(os.path.abspath(__file__))
+        path = self.main_path + os.sep + '..' + os.sep + '..' + os.sep + 'config' + os.sep + 'signatures.conf'
         #print(self.main_path, path)
 
         if not os.path.exists(path):
