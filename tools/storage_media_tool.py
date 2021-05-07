@@ -1035,8 +1035,8 @@ class StorageMediaTool(tools.CLITool):
                         print(f'Exception: {exception}')
                         continue
 
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
                     if file._sha1 in self._rds_set:
                         rds_result = "Matching"
@@ -1281,8 +1281,8 @@ class StorageMediaTool(tools.CLITool):
                         print(f'Exception: {exception}')
                         continue
 
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
                     if file._sha1 in self._rds_set:
                         rds_result = "Matching"
@@ -1472,8 +1472,8 @@ class StorageMediaTool(tools.CLITool):
                     except IOError as exception:
                         raise errors.BackEndError(
                             'Unable to scan file: error: {0:s}'.format(exception))
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
                 if self.rds_check and file._size > 0 and file_entry.IsFile():
 
@@ -1492,8 +1492,8 @@ class StorageMediaTool(tools.CLITool):
                         print(f'Exception: {exception}')
                         continue
 
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
                     if file._sha1 in self._rds_set:
                         rds_result = "Matching"
