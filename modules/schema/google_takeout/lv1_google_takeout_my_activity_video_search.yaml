@@ -1,0 +1,27 @@
+Name: GoogleTakeoutMyActivityVideoSearch
+Desc: Google Takeout My Activity Video Search
+Table:
+  - TableName: lv1_google_takeout_my_activity_video_search
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - source
+      - timestamp
+      - service
+      - type
+      - keyword
+      - keyword_url
+      - used_device
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

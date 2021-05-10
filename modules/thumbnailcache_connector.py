@@ -41,7 +41,7 @@ class ThumbnailCacheConnector(interface.ModuleConnector):
                         f"{query_separator}Microsoft{query_separator}Windows{query_separator}Explorer%' or "
             query = query[:-4] + ");"
         else:
-            print("No user accounts")
+            # print("No user accounts")
             return False
 
         thumbnail_cache_files = configuration.cursor.execute_query_mul(query)

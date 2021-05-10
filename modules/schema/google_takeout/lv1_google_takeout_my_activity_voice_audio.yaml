@@ -1,0 +1,29 @@
+Name: GoogleTakeoutMyActivityVoiceAudio
+Desc: Google Takeout My Activity Voice Audio
+Table:
+  - TableName: lv1_google_takeout_my_activity_voice_audio
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - source
+      - timestamp
+      - service
+      - type
+      - keyword
+      - keyword_url
+      - attachment
+      - used_deivce
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]

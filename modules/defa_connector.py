@@ -91,7 +91,7 @@ class DEFAConnector(interface.ModuleConnector):
         document_files = configuration.cursor.execute_query_mul(query)
 
         if document_files == -1 or len(document_files) == 0:
-            print("There are no document files")
+            #print("There are no document files")
             return False
 
         ### Download Check ###
@@ -198,8 +198,33 @@ class DEFAConnector(interface.ModuleConnector):
             result.ole_path = ole_path
             result.content_size = len(result.content)
 
-            # for windows
-            if knowledge_base._values['operating_system'][0].find('Windows') > 0:
+            # for else
+            if source_path_spec.TYPE_INDICATOR == 'TSK' or source_path_spec.TYPE_INDICATOR == 'APFS':
+                try:
+                    result.mft_st_created_time = datetime.utcfromtimestamp(
+                        int(str(document[6]).zfill(10) + str(document[10]).zfill(9)[0:3]) / 1000).strftime(
+                        '%Y-%m-%d %H:%M:%S.%f').replace(' ', 'T') + 'Z'
+                    result.mft_st_last_modified_time = datetime.utcfromtimestamp(
+                        int(str(document[4]).zfill(10) + str(document[8]).zfill(9)[0:3]) / 1000).strftime(
+                        '%Y-%m-%d %H:%M:%S.%f').replace(' ', 'T') + 'Z'
+                    result.mft_st_last_accessed_time = datetime.utcfromtimestamp(
+                        int(str(document[5]).zfill(10) + str(document[9]).zfill(9)[0:3]) / 1000).strftime(
+                        '%Y-%m-%d %H:%M:%S.%f').replace(' ', 'T') + 'Z'
+                    result.mft_st_entry_modified_time = datetime.utcfromtimestamp(
+                        int(str(document[7]).zfill(10) + str(document[11]).zfill(9)[0:3]) / 1000).strftime(
+                        '%Y-%m-%d %H:%M:%S.%f').replace(' ', 'T') + 'Z'
+
+                    result.mft_st_created_time = str(
+                        configuration.apply_time_zone(result.mft_st_created_time, knowledge_base.time_zone))
+                    result.mft_st_last_modified_time = str(
+                        configuration.apply_time_zone(result.mft_st_last_modified_time, knowledge_base.time_zone))
+                    result.mft_st_last_accessed_time = str(
+                        configuration.apply_time_zone(result.mft_st_last_accessed_time, knowledge_base.time_zone))
+                    result.mft_st_entry_modified_time = str(
+                        configuration.apply_time_zone(result.mft_st_entry_modified_time, knowledge_base.time_zone))
+                except Exception:
+                    continue
+            elif source_path_spec.TYPE_INDICATOR == 'NTFS' or source_path_spec.TYPE_INDICATOR == 'OS':  # for Windows
                 try:
                     result.mft_st_created_time = str(datetime.utcfromtimestamp(
                         int(str(document[6]).zfill(11) + str(document[10]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
@@ -249,24 +274,6 @@ class DEFAConnector(interface.ModuleConnector):
                             7)) else 0  # check Mtime > Ctime, 1 = True, 0 = False
                 except Exception:
                     continue
-            elif knowledge_base._values['operating_system'][0].find('Unknown') >= 0:
-                try:
-                    result.mft_st_created_time = datetime.utcfromtimestamp(int(str(document[6]).zfill(10) + str(document[10]).zfill(9)[0:3]) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f').replace(' ','T') + 'Z'
-                    result.mft_st_last_modified_time = datetime.utcfromtimestamp(int(str(document[4]).zfill(10) + str(document[8]).zfill(9)[0:3]) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f').replace(' ','T') + 'Z'
-                    result.mft_st_last_accessed_time = datetime.utcfromtimestamp(int(str(document[5]).zfill(10) + str(document[9]).zfill(9)[0:3]) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f').replace(' ','T') + 'Z'
-                    result.mft_st_entry_modified_time = datetime.utcfromtimestamp(int(str(document[7]).zfill(10) + str(document[11]).zfill(9)[0:3]) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f').replace(' ','T') + 'Z'
-
-                    result.mft_st_created_time = str(
-                        configuration.apply_time_zone(result.mft_st_created_time, knowledge_base.time_zone))
-                    result.mft_st_last_modified_time = str(
-                        configuration.apply_time_zone(result.mft_st_last_modified_time, knowledge_base.time_zone))
-                    result.mft_st_last_accessed_time = str(
-                        configuration.apply_time_zone(result.mft_st_last_accessed_time, knowledge_base.time_zone))
-                    result.mft_st_entry_modified_time = str(
-                        configuration.apply_time_zone(result.mft_st_entry_modified_time, knowledge_base.time_zone))
-                except Exception:
-                    continue
-
 
 
             # is_created

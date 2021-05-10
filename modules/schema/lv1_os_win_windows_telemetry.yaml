@@ -1,0 +1,37 @@
+Name: WindowsTelemetry
+Desc: Windows 10 Telemetry
+Table:
+  - TableName: lv1_os_win_windows_telemetry
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - ver
+      - name
+      - time
+      - epoch
+      - seqNum
+      - flags
+      - os
+      - osVer
+      - appId
+      - appVer
+      - ext
+      - data
+
+    Types:
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [VARCHAR(255), NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [INT, NOT NULL]
+      - [INT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [TEXT, NOT NULL]
+      - [LONGBLOB, NOT NULL]
+      - [LONGBLOB, NOT NULL]

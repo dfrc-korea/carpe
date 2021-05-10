@@ -105,6 +105,11 @@ class EventlogConnector(interface.ModuleConnector):
             query_separator = self.GetQuerySeparator(source_path_spec, configuration)
             path_separator = self.GetPathSeparator(source_path_spec)
 
+            # if configuration.source_type == 'directory' or 'file':
+            #     query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
+            #             f"and sig_type = 'evtx' " \
+            #
+            # else:
             query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
                     f"and extension = 'evtx' " \
                     f"and parent_path like 'root{query_separator}Windows{query_separator}" \
@@ -113,7 +118,7 @@ class EventlogConnector(interface.ModuleConnector):
             eventlog_files = configuration.cursor.execute_query_mul(query)
 
             if len(eventlog_files) == 0:
-                print("There are no eventlog files")
+                # print("There are no eventlog files")
                 return False
 
             eventlog_file_list = ['Security.evtx', 'System.evtx', 'Application.evtx',
@@ -135,6 +140,9 @@ class EventlogConnector(interface.ModuleConnector):
                     eventlog_path = eventlog[1][eventlog[1].find(path_separator):] + path_separator + eventlog[0]  # document full path
                     fileName = eventlog[0]
 
+                    # if configuration.source_type == 'directory' or 'file':
+                    #     fn = eventlog_path
+                    # else:
                     output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                                   configuration.evidence_id + os.sep + par_id
 

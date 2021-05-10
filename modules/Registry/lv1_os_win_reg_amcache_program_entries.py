@@ -94,6 +94,6 @@ def AMCACHEPROGRAMENTRIES(reg_am):
                     amcache_list[amcache_count].uninstall_string = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
             amcache_count = amcache_count + 1
         except:
-            print('-----Amcache program Error')
+            print('-----Amcache program not found')
 
     return amcache_list

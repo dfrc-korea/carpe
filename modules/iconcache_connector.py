@@ -41,7 +41,7 @@ class IconCacheConnector(interface.ModuleConnector):
                         query += f"parent_path like '%{hostname.username}%' or "
                 query = query[:-4] + ");"
             else:
-                print("No user list")
+                # print("No user list")
                 return False
 
             iconcache_files = configuration.cursor.execute_query_mul(query)

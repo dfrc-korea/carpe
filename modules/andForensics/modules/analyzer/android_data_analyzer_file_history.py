@@ -63,7 +63,7 @@ class FileHistory(object):
 	def analyze_with_preprocess_db(case):
 		list_userinfo_record = FileHistory.get_logs_from_pp_db(case)		
 		if (list_userinfo_record == []) | (list_userinfo_record == False):
-			logger.error('There are no file history to analyze.')
+			# logger.error('There are no file history to analyze.')
 			return False
 
 		length = len(list_userinfo_record)

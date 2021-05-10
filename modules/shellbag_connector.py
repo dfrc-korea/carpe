@@ -28,7 +28,7 @@ class ShellbagConnector(interface.ModuleConnector):
 
         # This is not OS partition
         if len(knowledge_base._user_accounts.values()) == 0:
-            print("There are no Registry")
+            # print("There are no Registry")
             return False
 
         # TODO file path list를 뽑아야함
@@ -77,12 +77,12 @@ class ShellbagConnector(interface.ModuleConnector):
 
             shellbag_results = shellbag.Main(file_objects)
 
-            if file_objects['primary']:
-                file_objects['primary'].close()
-            if file_objects['log1']:
-                file_objects['log1'].close()
-            if file_objects['log2']:
-                file_objects['log2'].close()
+            # if file_objects['primary']:
+            #     file_objects['primary'].close()
+            # if file_objects['log1']:
+            #     file_objects['log1'].close()
+            # if file_objects['log2']:
+            #     file_objects['log2'].close()
 
             info = [par_id, configuration.case_id, configuration.evidence_id, user]
             insert_shellbag_info = []

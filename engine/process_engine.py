@@ -67,9 +67,10 @@ class ProcessEngine(object):
                             artifacts_registry_object, file_system, mount_point, self.knowledge_base)
 
                     detected_operating_systems.append(operating_system)
-
-                finally:
-                    file_system.Close()
+                except:
+                    pass
+                # finally:
+                #     file_system.Close()
 
         if detected_operating_systems:
             logger.info('Preprocessing detected operating systems: {0:s}'.format(
@@ -86,6 +87,8 @@ class ProcessEngine(object):
                     or source_path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
                 try:
                     par_id = self.get_partition_id(source_path_spec, configuration)
+                    # if configuration.source_type == 'directory' or 'file':
+
                     for module_name in self._modules:
                         module = self._modules.get(module_name, None)
 

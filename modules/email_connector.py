@@ -44,7 +44,7 @@ class EMAILConnector(interface.ModuleConnector):
         email_files = configuration.cursor.execute_query_mul(query)
 
         if type(email_files) == int or len(email_files) == 0:
-            print("There are no email files")
+            # print("There are no email files")
             return False
 
         if configuration.standalone_check:

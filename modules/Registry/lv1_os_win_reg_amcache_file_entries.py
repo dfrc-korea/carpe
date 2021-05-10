@@ -87,7 +87,7 @@ def AMCACHEFILEENTRIES(reg_am):
                     amcache_list[amacache_count].usn = amcache_subkey_value.data()
             amacache_count = amacache_count + 1
         except:
-            print('-----Amcache File Error')
+            print('-----Amcache File not found')
 
     amcahce_key = reg_am.find_key(r"Root\InventoryApplication")
     try:
@@ -99,6 +99,6 @@ def AMCACHEFILEENTRIES(reg_am):
                             amcache.related_programname = amcache_subkey_value.data().replace('\x00','')
                             amcache.source_location.append('AmCache.hve-Root/InventoryApplication')
     except:
-        print('-----Amcache File Error')
+        print('-----Amcache File not found')
     return amcache_list
 

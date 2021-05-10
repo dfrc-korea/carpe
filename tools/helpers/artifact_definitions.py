@@ -111,8 +111,8 @@ class ArtifactDefinitionsArgumentsHelper(interface.ArgumentsHelper):
         registry = artifacts_registry.ArtifactDefinitionsRegistry()
         reader = artifacts_reader.YamlArtifactsReader()
 
-        logger.info(
-            'Determined artifact definitions path: {0:s}'.format(artifacts_path))
+        # logger.info(
+        #     'Determined artifact definitions path: {0:s}'.format(artifacts_path))
 
         try:
             registry.ReadFromDirectory(reader, artifacts_path)

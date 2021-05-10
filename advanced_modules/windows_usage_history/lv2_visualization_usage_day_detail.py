@@ -64,7 +64,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                             usage_history_count = usage_history_count + 1
 
                 except:
-                    print('-----Document Error')
+                    print('-----Document not found')
 
     # 링크 - 실행 시간
     query = f"SELECT file_name, file_path, lnk_creation_time, lnk_write_time FROM lv1_os_win_link WHERE (evd_id='{configuration.evidence_id}')"
@@ -89,7 +89,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                 usage_history_count = usage_history_count + 1
 
             except:
-                print('-----Link Error')
+                print('-----Link not found')
 
     # 이벤트로그 -  로그온/로그오프
     query = f"SELECT task, time, user_sid FROM lv1_os_win_event_logs_logonoff WHERE (evd_id='{configuration.evidence_id}') ORDER BY time ASC"
@@ -113,7 +113,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                     usage_history_list[usage_history_count].information = result_data[2]
                     usage_history_count = usage_history_count + 1
             except:
-                print('-----Log On/Off Error')
+                print('-----Log On/Off not found')
 
     # 이벤트로그 -  시스템 시작/시스템 종료 (12,13은 뻇음)
     query = f"SELECT task, time, user_sid FROM lv1_os_win_event_logs_pconoff WHERE (evd_id='{configuration.evidence_id}') ORDER BY time ASC"
@@ -137,7 +137,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                     usage_history_list[usage_history_count].information = result_data[2]
                     usage_history_count = usage_history_count + 1
             except:
-                print('-----System On/Off Error')
+                print('-----System On/Off not found')
 
     # 이벤트로그 -  외부 저장 장치 연결 / 연결 해제
     query = f"SELECT task, time, device_instance_id, description, manufacturer, model, revision, serial_number, user_sid " \
@@ -162,7 +162,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                     usage_history_list[usage_history_count].information = result_data[2]+'|'+result_data[3]+'|'+result_data[4]+'|'+result_data[5]+'|'+result_data[6]+'|'+result_data[7]+'|'+result_data[8]
                     usage_history_count = usage_history_count + 1
             except:
-                print('-----EVT - USB Connected/Disconneccted Error')
+                print('-----EVT - USB Connected/Disconneccted not found')
 
     # 레지스트리 -  외부 저장 장치 연결 / 연결 해제 등
     query = f"SELECT last_connected_time, first_connected_time, first_connected_since_reboot_time, " \
@@ -231,7 +231,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                     usage_history_list[usage_history_count].information = result_data[7]+'|'+result_data[8]+'|'+result_data[9]+'|'+result_data[10]+'|'+result_data[11]+'|'+result_data[12]+'|'+result_data[13]
                     usage_history_count = usage_history_count + 1
             except:
-                print('-----REG - USB Connected/Disconneccted Error')
+                print('-----REG - USB Connected/Disconneccted not found')
 
     # 웹 아티팩트 - IE - 접근시간
     # query = f"SELECT ModifiedTime, Url FROM lv1_os_win_esedb_ie_content WHERE (evd_id='{configuration.evidence_id}')"
@@ -281,7 +281,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                 usage_history_list[usage_history_count].information = result_data[1]
                 usage_history_count = usage_history_count + 1
             except:
-                print('-----WEB - IE - Download Error')
+                print('-----WEB - IE - Download not found')
 
     query = f"SELECT ModifiedTime, Url FROM lv1_os_win_esedb_ie_history WHERE (evd_id='{configuration.evidence_id}')"
     result_query = db.execute_query_mul(query)
@@ -296,7 +296,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                 usage_history_list[usage_history_count].information = result_data[1]
                 usage_history_count = usage_history_count + 1
             except:
-                print('-----WEB - IE - History Error')
+                print('-----WEB - IE - History not found')
 
     # 웹 아티팩트 - Chrome - 접근시간
     # query = f"SELECT last_access_utc, host_key FROM lv1_app_web_chrome_cookies WHERE (evd_id='{configuration.evidence_id}')"
@@ -326,7 +326,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                 usage_history_list[usage_history_count].information = result_data[1]+' | '+ result_data[2].replace('\\','/')
                 usage_history_count = usage_history_count + 1
             except:
-                print('-----WEB - Chrome - Download Error')
+                print('-----WEB - Chrome - Download not found')
 
     # query = f"SELECT last_updated, icon_url FROM lv1_app_web_chrome_favicons WHERE (evd_id='{configuration.evidence_id}')"
     # result_query = db.execute_query_mul(query)
@@ -355,7 +355,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                 usage_history_list[usage_history_count].information = result_data[1]
                 usage_history_count = usage_history_count + 1
             except:
-                print('-----WEB - Chrome - Search Term Error')
+                print('-----WEB - Chrome - Search Term not found')
     #
     # query = f"SELECT last_access_time, url FROM lv1_app_web_chrome_shortcuts WHERE (evd_id='{configuration.evidence_id}')"
     # result_query = db.execute_query_mul(query)
@@ -385,7 +385,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                     usage_history_list[usage_history_count].information = result_data[1] + '|' + result_data[2].replace('\\','/')
                     usage_history_count = usage_history_count + 1
             except:
-                print('-----WEB - Chrome - Visit URL Error')
+                print('-----WEB - Chrome - Visit URL not found')
 
 
     # 프로그램 실행시간
@@ -402,7 +402,7 @@ def USAGEDAYDETAIL(configuration, time_zone):
                 usage_history_list[usage_history_count].artifact_type = result_data[2]
                 usage_history_count = usage_history_count + 1
             except:
-                print('-----Application - Execution Time - Error')
+                print('-----Application - Execution Time - not found')
     #
     # # AmCache 프로그램 실행시간
     # query = f"SELECT key_last_updated_time, file_name FROM lv1_os_win_reg_amcache_program WHERE (evd_id='{configuration.evidence_id}')"

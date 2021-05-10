@@ -7,6 +7,7 @@ import textwrap
 import platform
 import pytz
 
+
 from tools.helpers import manager as helpers_manager
 from tools import extraction_tool, case_manager
 from engine import process_engine
@@ -44,8 +45,23 @@ class CarpeTool(extraction_tool.ExtractionTool,
         '',
         'Example usage:',
         '',
-        'Run the tool against a storage media image (full kitchen sink)',
-        '    --modules shellbag_connector --cid c1c16a681937b345f1990d10a9d0fdfcc8 --eid e666666666666666666666666666666668',
+        'Enter Image Full Module',
+        'C:\\image\\image01 C:\\temp\\output --cid case_01 --eid evd_01 --sqlite --csv',
+        '',
+        'Enter Image Part Module',
+        'C:\\image\\image01 C:\\temp\\output --modules chromium_connector,prefetch_connector,eventlog_connector --cid case_01 --eid evd_01 --sqlite --csv',
+        '',
+        'Enter Physical drive Full Module (\\.\physicaldrive1)',
+        '\\.\physicaldrive1 C:\\temp\\output --cid case_01 --eid evd_01 --sqlite --csv',
+        '',
+        'Enter Physical drive Part Module(\\.\physicaldrive1)',
+        '\\.\physicaldrive1 C:\\temp\\output --modules chromium_connector,prefetch_connector,eventlog_connector --cid case_01 --eid evd_01 --sqlite --csv',
+        '',
+        'Enter Logical drive Full Module (\\.\C:)',
+        '\\.\C: C:\\temp\\output --cid case_01 --eid evd_01 --sqlite --csv',
+        '',
+        'Enter Logical drive Part Module (\\.\C:)',
+        '\\.\C: C:\\temp\\output --modules chromium_connector,prefetch_connector,eventlog_connector --cid case_01 --eid evd_01 --sqlite --csv',
         '']))
 
     def __init__(self):
@@ -181,7 +197,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         try:
             self.ParseOptions(options)
         except errors.BadConfigOption as exception:
-            self._output_writer.Write('ERROR: {0!s}\n'.format(exception))
+            self._output_writer.Write('{0!s}\n'.format(exception))
             self._output_writer.Write('\n')
             self._output_writer.Write(argument_parser.format_usage())
             return False
@@ -247,7 +263,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         try:
             self.set_conn_and_path()
         except errors.BadConfigOption as exception:
-            self._output_writer.Write('ERROR: {0!s}\n'.format(exception))
+            self._output_writer.Write('{0!s}\n'.format(exception))
             return False
 
         # update process state
@@ -263,6 +279,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         # set configuration
         configuration = self._CreateProcessingConfiguration()
+
+        if configuration.source_type == 'file' or 'directory':
+            self.signature_check = True
 
         # set signature check options
         if self.signature_check:
@@ -319,22 +338,25 @@ class CarpeTool(extraction_tool.ExtractionTool,
             engine.Process(configuration)
 
             # set advanced modules
-            engine.SetProcessAdvancedModules(
-               advanced_module_filter_expression=configuration.advanced_module_filter_expression)
-
             # parse advanced modules
-            engine.ProcessAdvancedModules(configuration)
+            if configuration.source_type == 'directory' or 'file':
+                pass
+
+            else:
+                engine.SetProcessAdvancedModules(
+                    advanced_module_filter_expression=configuration.advanced_module_filter_expression)
+                engine.ProcessAdvancedModules(configuration)
                 
             if configuration.source_path_specs[0].type_indicator == 'APFS':
                 pass
             else:
                 # carve
-                print("Carving Start")
+                #print("Carving Start")
                 if not self._partition_list:
-                    print("No partition")
+                    # print("No partition")
                     engine.process_carve(configuration, is_partition=False)
                 else:
-                    print(self._partition_list)
+                    # print(self._partition_list)
                     engine.process_carve(configuration, is_partition=True)
 
         # carpe_carve.py

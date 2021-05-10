@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import logging
 import os
 import sys
+from pyfiglet import Figlet
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
@@ -19,6 +20,17 @@ from utility import errors
 
 def Main():
     """The main function."""
+    f = Figlet(font='standard')
+    print(f.renderText('Carpe'))
+    print(f.renderText('Forensics'))
+    print('---------------------------------------------------------------------')
+    print('\nComprehensive Analysis and Research Platform for digital Evidence')
+    print('Korea University - Digital Forensic Reseach Center')
+    print('URL -> https://github.com/dfrc-korea/carpe\n')
+    #print("Copyright 2021. Korea University - DFRC. All rights reserved ")
+    print('---------------------------------------------------------------------')
+    print()
+
     tool = carpe_tool.CarpeTool()
 
     if not tool.ParseArguments(sys.argv[1:]):

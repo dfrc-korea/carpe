@@ -52,5 +52,5 @@ def NETWORKPROFILE(reg_software):
                         elif reg_subkey_value.name() == 'DefaultGatewayMac':
                             network_profile.default_gateway_mac = binascii.b2a_hex(reg_subkey_value.data()).decode()
     except:
-        print('-----Network Profile Error')
+        print('-----Network Profile not found')
     return network_profile_list

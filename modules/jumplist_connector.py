@@ -54,7 +54,7 @@ class JumpListConnector(interface.ModuleConnector):
         jumplist_custom_files = configuration.cursor.execute_query_mul(query)
 
         if len(jumplist_automatic_files) == 0 and len(jumplist_custom_files) == 0:
-            print("There are no jumplist files")
+            # print("There are no jumplist files")
             return False
 
         output_path = configuration.root_tmp_path + os.path.sep + configuration.case_id + os.path.sep + \

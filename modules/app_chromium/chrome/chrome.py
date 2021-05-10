@@ -36,7 +36,10 @@ def _convert_strdate_to_datetime(strdate):
                  'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
 
     day = strdate[5:7]
-    month = month_dic[strdate[8:11]]
+    try:
+        month = month_dic[strdate[8:11]]
+    except KeyError:
+        return '0'
     year = strdate[12:16]
     timestamp = strdate[17:25]
 
@@ -108,7 +111,7 @@ def chrome_search_terms(file):
             'from keyword_search_terms, urls where keyword_search_terms.url_id = urls.id order by last_visit_time asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chrome] Search Terms " + "\033[31m" + "Main Query Error" + "\033[0m")
+        #print("[Web/Chrome] Search Terms " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     search_terms = []
@@ -165,7 +168,7 @@ def chrome_visit_urls(file):
             'from urls order by last_visit_time asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chrome] Visit Urls " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chrome] Visit Urls " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     visit_urls = []
@@ -261,7 +264,7 @@ def chrome_visit_history(file):
             'select url, visit_time, from_visit, transition, segment_id, visit_duration from visits order by id asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chrome] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chrome] Visit History " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     visit_history = []
@@ -356,7 +359,7 @@ def chrome_download(file):
             'original_mime_type from downloads order by start_time asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chrome] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chrome] Downloads " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     download_list = []
@@ -432,14 +435,14 @@ def chrome_top_sites(file):
             cur.execute('select url, title, url_rank from top_sites order by url_rank asc ')
             result = cur.fetchall()
         except:
-            print("[Web/Chrome] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
+            # print("[Web/Chrome] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
             result = []
     elif ('thumbnails',) in table_list:
         try:
             cur.execute('select url, title, url_rank from thumbnails order by url_rank asc ')
             result = cur.fetchall()
         except:
-            print("[Web/Chrome] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
+            # print("[Web/Chrome] Top Sites " + "\033[31m" + "Main Query Error" + "\033[0m")
             result = []
     else:
         print("[Web/Chrome] Top Sites " + "\033[31m" + "Main Query Table Name Error" + "\033[0m")
@@ -483,7 +486,7 @@ def chrome_shortcuts(file):
             'from omni_box_shortcuts order by last_access_time asc ')
         result = cur.fetchall()
     except:
-        print("[Web/Chrome] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chrome] Shortcuts " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     shortcuts = []
@@ -532,7 +535,7 @@ def chrome_favicons(file):
                     ' order by favicon_bitmaps.id asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chrome] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chrome] Favicons " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     favicons = []
@@ -587,7 +590,7 @@ def chrome_cookies(file):
                 'has_expires, is_persistent, priority, encrypted_value, samesite from cookies order by creation_utc asc')
             result = cur.fetchall()
         except:
-            print("[Web/Chrome] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
+            # print("[Web/Chrome] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
             result = []
     else:
         try:
@@ -596,7 +599,7 @@ def chrome_cookies(file):
                 'has_expires, is_persistent, priority, encrypted_value from cookies order by creation_utc asc')
             result = cur.fetchall()
         except:
-            print("[Web/Chrome] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
+            # print("[Web/Chrome] Cookies " + "\033[31m" + "Main Query Error" + "\033[0m")
             result = []
 
     cookies = []
@@ -643,7 +646,7 @@ def chrome_autofill(file):
             'select name, value, value_lower, date_created, date_last_used, count from autofill order by rowid asc')
         result = cur.fetchall()
     except:
-        print("[Web/Chrome] Autofill " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chrome] Autofill " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     autofill = []
@@ -711,7 +714,7 @@ def chrome_logindata(file):
         cur.execute(query)
         result = cur.fetchall()
     except:
-        print("[Web/Chrome] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
+        # print("[Web/Chrome] Login Data " + "\033[31m" + "Main Query Error" + "\033[0m")
         result = []
 
     login_datas = []

@@ -27,7 +27,7 @@ class MysqlRecoveryConnector(interface.ModuleConnector):
                                            configuration=configuration,
                                            dir_path=path,
                                            output_path=output_path):
-            print("There are no mysql files")
+            # print("There are no mysql files")
             return False
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'MYR' + os.sep

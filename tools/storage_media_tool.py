@@ -91,7 +91,9 @@ class StorageMediaTool(tools.CLITool):
         if not self._source_path and self.standalone_check:
             raise errors.BadConfigOption('Missing source path.')
         elif not self.case_id and not self.evidence_id and not self.standalone_check:
+            #raise print("Check your Source: Missing source path.")
             raise errors.BadConfigOption('Missing source path.')
+
 
     def _ParseOutputPathOption(self, options):
         self._output_file_path = self.ParseStringOption(options, 'output_file')
@@ -632,7 +634,7 @@ class StorageMediaTool(tools.CLITool):
     def LoadReferenceDataSet(self):
         try:
             self._rds = csv.read_csv('/home/carpe/rds/NSRLFile.txt')
-            self._rds_set = set(self._rds.columns[0].to_pylist())  # 중복제거
+            self._rds_set = set(self._rds.columns[0].to_pylist().upper())  # 중복제거
         except KeyboardInterrupt:
             raise errors.UserAbort('File system scan aborted.')
 
@@ -1033,10 +1035,10 @@ class StorageMediaTool(tools.CLITool):
                         print(f'Exception: {exception}')
                         continue
 
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
-                    if file._sha1 in self._rds_set:
+                    if hash_result in self._rds_set:
                         rds_result = "Matching"
                     else:
                         rds_result = "Not Matching"
@@ -1259,8 +1261,8 @@ class StorageMediaTool(tools.CLITool):
                     except IOError as exception:
                         raise errors.BackEndError(
                             'Unable to scan file: error: {0:s}'.format(exception))
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
                 if self.rds_check and file._size > 0 and file_entry.IsFile():
 
@@ -1279,10 +1281,10 @@ class StorageMediaTool(tools.CLITool):
                         print(f'Exception: {exception}')
                         continue
 
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
-                    if file._sha1 in self._rds_set:
+                    if hash_result in self._rds_set:
                         rds_result = "Matching"
                     else:
                         rds_result = "Not Matching"
@@ -1470,8 +1472,8 @@ class StorageMediaTool(tools.CLITool):
                     except IOError as exception:
                         raise errors.BackEndError(
                             'Unable to scan file: error: {0:s}'.format(exception))
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
                 if self.rds_check and file._size > 0 and file_entry.IsFile():
 
@@ -1490,10 +1492,10 @@ class StorageMediaTool(tools.CLITool):
                         print(f'Exception: {exception}')
                         continue
 
-                    finally:
-                        file_object.close()
+                    # finally:
+                    #     file_object.close()
 
-                    if file._sha1 in self._rds_set:
+                    if hash_result in self._rds_set:
                         rds_result = "Matching"
                     else:
                         rds_result = "Not Matching"

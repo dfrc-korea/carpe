@@ -50,6 +50,6 @@ def USAGEYEAR(configuration):
             usage_history_list[usage_history_count].cnt = k
             usage_history_count = usage_history_count + 1
     except:
-        print('-----USAGE_YEAR Error')
+        print('-----USAGE_YEAR not found')
 
     return usage_history_list

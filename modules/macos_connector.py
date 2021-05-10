@@ -49,7 +49,7 @@ class MacosConnector(interface.ModuleConnector):
     def Connect(self, par_id, configuration, source_path_spec, knowledge_base):
 
         if source_path_spec.TYPE_INDICATOR != 'APFS':
-            print('No MacOS')
+            # print('No MacOS')
             return False
 
         this_file_path = os.path.dirname(

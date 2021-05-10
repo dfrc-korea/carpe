@@ -19,7 +19,10 @@ class SignatureTool(object):
         self.signature_specifications = None
 
     def ParseSignatureOptions(self):
-        path = '../config/signatures.conf'
+        self.main_path = os.path.dirname(os.path.abspath(__file__))
+        path = self.main_path + os.sep + '..' + os.sep + '..' + os.sep + 'config' + os.sep + 'signatures.conf'
+        #print(self.main_path, path)
+
         if not os.path.exists(path):
             raise IOError(
                 'No such format specification file: {0:s}'.format(path))
@@ -102,7 +105,7 @@ class SignatureTool(object):
             self._scanner.scan_stop(scan_state)"""
 
         except IOError as exception:
-            logger.error('unable to scan file: error')
+            logger.error('unable to scan file: not found')
 
             return False
 

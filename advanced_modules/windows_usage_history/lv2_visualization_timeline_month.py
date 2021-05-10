@@ -170,6 +170,6 @@ def TIMELINEMONTH(configuration):
             month_count = month_count + 1
 
     except:
-        print('-----USAGE_DAY_STAT Error')
+        print('-----USAGE_DAY_STAT not found')
 
     return usage_history_list

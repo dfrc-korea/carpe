@@ -73,6 +73,6 @@ def INSTALLEDPROGRAMS(reg_software, reg_nt):
                             programs_list[program_count].potential_location = installed_programs_subkey_value.data().replace('\\','/').replace('\x00','')
                     program_count = program_count + 1
             except:
-                print('-----Installed Program Error')
+                print('-----Installed Program not found')
 
     return programs_list

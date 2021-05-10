@@ -33,7 +33,7 @@ class StickyNoteConnector(interface.ModuleConnector):
         stickynote_files = configuration.cursor.execute_query_mul(query)
 
         if len(stickynote_files) == 0:
-            print("There are no sticky note files")
+            # print("There are no sticky note files")
             return False
 
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)

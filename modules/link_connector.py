@@ -39,7 +39,7 @@ class LINKConnector(interface.ModuleConnector):
 
         # This is not OS partition
         if len(knowledge_base._user_accounts.values()) == 0:
-            print("There are no lnk files")
+            # print("There are no lnk files")
             return False
 
         for user_accounts in knowledge_base._user_accounts.values():
@@ -51,11 +51,11 @@ class LINKConnector(interface.ModuleConnector):
 
         lnk_files = configuration.cursor.execute_query_mul(query)
         if lnk_files == -1:
-            print("There are no lnk files")
+            # print("There are no lnk files")
             return False
 
         if len(lnk_files) == 0:
-            print("There are no lnk files")
+            # print("There are no lnk files")
             return False
 
         insert_link_file = []

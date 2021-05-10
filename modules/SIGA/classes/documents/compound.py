@@ -42,7 +42,7 @@ class Compound(Common):
                 self._fp = open(self.input, 'rb')
                 self._filesize = os.path.getsize(input)
             except FileNotFoundError:
-                print('file not found error')
+                print('file not found')
         else:
             self._fp = None
             self._filesize = 0
@@ -265,7 +265,7 @@ class Compound(Common):
         while True:
             idx = fat[idx]
             # temporarily changed - jbc
-            if idx == 0:
+            if idx == 0 or len(chain) > 1000000:
                 return False
             if idx == Lego_Kaitai_Cfbf_Difat_Sector.FatType.end_of_chain.value:
                 break
