@@ -29,6 +29,7 @@ class RecycleBinConnector(interface.ModuleConnector):
             return False
 
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        path_separator = self.GetPathSeparator(source_path_spec)
         # extension -> sig_type 변경해야 함
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano FROM file_info WHERE par_id like '{par_id}' and " \
                 f"parent_path like 'root{query_separator}$Recycle.Bin{query_separator}S-1-5-21%' and name like '$I%';"
@@ -42,8 +43,8 @@ class RecycleBinConnector(interface.ModuleConnector):
         insert_recyclebin_info = []
 
         for recyclebin_file in recyclebin_files:
-            recyclebin_file_path = recyclebin_file[1][recyclebin_file[1].find(query_separator):] + \
-                query_separator + recyclebin_file[0]  # document full path
+            recyclebin_file_path = recyclebin_file[1][recyclebin_file[1].find(path_separator):] + \
+                path_separator + recyclebin_file[0]  # document full path
             fileName = recyclebin_file[0]
 
             if fileName.find("-slack") != -1:
