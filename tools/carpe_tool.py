@@ -339,7 +339,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
             # set advanced modules
             # parse advanced modules
-            if configuration.source_type == 'directory' or 'file':
+            if configuration.source_type == 'directory' or configuration.source_type == 'file':
                 pass
 
             else:

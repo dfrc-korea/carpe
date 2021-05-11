@@ -21,9 +21,9 @@ def MSOFFICERECENT(reg_nt):
     ms_version = ['12.0', '14.0', '15.0', '16.0', '17.0']  # 2007, 2010, 2014, 2016, 2019
 
     for i in range(0, 5):
-        reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Office" + '\\' + ms_version[i])
-
         try:
+            reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Office" + '\\' + ms_version[i])
+
             if reg_key is not None:
                 excel_mru = reg_key.subkey('Excel').subkey('File MRU')
                 word_mru = reg_key.subkey('Word').subkey('File MRU')

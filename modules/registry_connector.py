@@ -260,7 +260,7 @@ class RegistryConnector(interface.ModuleConnector):
                     configuration=configuration,
                     file_path=registry_path,
                     output_path=output_path)
-                file_object = open(output_path+path_sep+file_name, 'rb')
+                file_object = open(output_path+os.sep+file_name, 'rb')
                 if file_object is None:
                     return
                 if file_name == 'Amcache.hve':
@@ -278,7 +278,7 @@ class RegistryConnector(interface.ModuleConnector):
                                 configuration=configuration,
                                 file_path=registry_path,
                                 output_path=output_path)
-                            reg_am_log1 = open(output_path+path_sep+registry[0], 'rb')
+                            reg_am_log1 = open(output_path+os.sep+registry[0], 'rb')
                         elif registry[0] == 'Amcache.hve.LOG2':
                             registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                             # reg_am_log2 = self.LoadTargetFileToMemory(
@@ -291,7 +291,7 @@ class RegistryConnector(interface.ModuleConnector):
                                 configuration=configuration,
                                 file_path=registry_path,
                                 output_path=output_path)
-                            reg_am_log2 = open(output_path+path_sep+registry[0], 'rb')
+                            reg_am_log2 = open(output_path+os.sep+registry[0], 'rb')
                     reg_am.recover_auto(None, reg_am_log1, reg_am_log2)
 
                 if file_name == 'SYSTEM':
@@ -314,7 +314,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_system_log1 = open(output_path+path_sep+registry[0], 'rb')
+                                reg_system_log1 = open(output_path+os.sep+registry[0], 'rb')
                             elif registry[0] == 'SYSTEM.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                 # reg_system_log2 = self.LoadTargetFileToMemory(
@@ -327,7 +327,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_system_log2 = open(output_path+path_sep+registry[0], 'rb')
+                                reg_system_log2 = open(output_path+os.sep+registry[0], 'rb')
                         reg_system.recover_auto(None, reg_system_log1, reg_system_log2)
                 if file_name == 'SOFTWARE':
                     try:
@@ -349,7 +349,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_software_log1 = open(output_path+path_sep+registry[0], 'rb')
+                                reg_software_log1 = open(output_path+os.sep+registry[0], 'rb')
                             elif registry[0] == 'SOFTWARE.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
                                                 registry[0]
@@ -362,7 +362,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_software_log2 = open(output_path+path_sep+registry[0], 'rb')
+                                reg_software_log2 = open(output_path+os.sep+registry[0], 'rb')
                         reg_software.recover_auto(None, reg_software_log1, reg_software_log2)
 
                 elif file_name == 'SAM':
@@ -385,7 +385,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_sam_log1 = open(output_path+path_sep+registry[0], 'rb')
+                                reg_sam_log1 = open(output_path+os.sep+registry[0], 'rb')
                             elif registry[0] == 'SAM.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
                                                 registry[0]
@@ -398,7 +398,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_sam_log2 = open(output_path+path_sep+registry[0], 'rb')
+                                reg_sam_log2 = open(output_path+os.sep+registry[0], 'rb')
                         reg_sam.recover_auto(None, reg_sam_log1, reg_sam_log2)
 
                 if file_name == 'setupapi.dev.log':
@@ -424,7 +424,7 @@ class RegistryConnector(interface.ModuleConnector):
                             configuration=configuration,
                             file_path=registry_path,
                             output_path=output_path)
-                        file_object = open(output_path+path_sep+file_name, 'rb')
+                        file_object = open(output_path+os.sep+file_name, 'rb')
                         if file_object is None:
                             return
                         if file_name == 'UsrClass.dat':
@@ -442,7 +442,7 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_usr_log1 = open(output_path+path_sep+registry[0], 'rb')
+                                    reg_usr_log1 = open(output_path+os.sep+registry[0], 'rb')
                                 elif registry[0] == 'UsrClass.dat.LOG2':
                                     registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                     # reg_usr_log2 = self.LoadTargetFileToMemory(
@@ -454,7 +454,7 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_usr_log2 = open(output_path+path_sep+registry[0], 'rb')
+                                    reg_usr_log2 = open(output_path+os.sep+registry[0], 'rb')
                             reg_usr.recover_auto(None, reg_usr_log1, reg_usr_log2)
 
                             wow.append(reg_usr)
@@ -476,7 +476,7 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_nt_log1 = open(output_path+path_sep+registry[0], 'rb')
+                                    reg_nt_log1 = open(output_path+os.sep+registry[0], 'rb')
                                 elif registry[0] == 'ntuser.dat.LOG2':
                                     registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                     # reg_nt_log2 = self.LoadTargetFileToMemory(
@@ -488,7 +488,7 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_nt_log2 = open(output_path+path_sep+registry[0], 'rb')
+                                    reg_nt_log2 = open(output_path+os.sep+registry[0], 'rb')
                             reg_nt.recover_auto(None, reg_nt_log1, reg_nt_log2)
 
                             wow.append(reg_nt)

@@ -74,8 +74,11 @@ class ShellbagConnector(interface.ModuleConnector):
                     file_objects['log2'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
                                                                        configuration=configuration,
                                                                        file_path=file[1][4:] + path_separator + file[0])
-
-            shellbag_results = shellbag.Main(file_objects)
+            try:
+                shellbag_results = shellbag.Main(file_objects)
+            except Exception as e:
+                print(str(e))
+                return False
 
             # if file_objects['primary']:
             #     file_objects['primary'].close()
