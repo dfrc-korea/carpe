@@ -28,8 +28,8 @@ def SYSTEMSERVICE(reg_system):
     system_service_list = []
     system_service_count = 0
 
-    reg_key = reg_system.find_key(r"ControlSet001\Services")
     try:
+        reg_key = reg_system.find_key(r"ControlSet001\Services")
         for reg_subkey in reg_key.subkeys():
             if reg_subkey.name().startswith('.') is not True:
                 system_service_information = System_Service_Information()

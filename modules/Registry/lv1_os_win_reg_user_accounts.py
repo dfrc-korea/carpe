@@ -33,10 +33,9 @@ class User_Information:
 def USERACCOUNTS(reg_sam, reg_software):
     user_list = []
     user_count = 0
-
-    sam_users = reg_sam.find_key(r"SAM\Domains\Account\Users")
-
     try:
+        sam_users = reg_sam.find_key(r"SAM\Domains\Account\Users")
+
          #Local User 계정
         for sam_subkey in sam_users.subkeys():
             if sam_subkey.name() != 'Names':

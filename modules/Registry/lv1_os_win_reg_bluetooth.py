@@ -13,13 +13,14 @@ class Bluetooth_Information:
 def Bluetooth(reg_system):
     bluetooth_list = []
     bluetooth_count = 0
-    bluetooth_key = reg_system.find_key(r"ControlSet001\Services\BTHPORT\Parameters\Devices") ####
+    try:
+        bluetooth_key = reg_system.find_key(r"ControlSet001\Services\BTHPORT\Parameters\Devices") ####
 
-    if bluetooth_key == None:
-        return bluetooth_list
+        if bluetooth_key == None:
+            return bluetooth_list
 
-    for bluetooth_subkey in bluetooth_key.subkeys():
-        try:
+        for bluetooth_subkey in bluetooth_key.subkeys():
+
             bluetooth_information = Bluetooth_Information()
             bluetooth_list.append(bluetooth_information)
             bluetooth_list[bluetooth_count].source = r"ControlSet001\Services\BTHPORT\Parameters\Devices"+'/'+bluetooth_subkey.name()
@@ -34,8 +35,8 @@ def Bluetooth(reg_system):
                     bluetooth_list[bluetooth_count].lastconnectedtime = bluetooth_subkey_value.data().replace('\x00','')
 
             bluetooth_count = bluetooth_count + 1
-        except:
-            print('-----Bluetooth File not found')
+    except:
+        print('-----Bluetooth File not found')
 
     return bluetooth_list
 

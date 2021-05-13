@@ -17,8 +17,8 @@ def RUNCOMMAND(reg_nt):
     run_command_count = 0
     run_command_order = []
 
-    reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU")
     try:
+        reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU")
         if reg_key != None:
             for reg_value in reg_key.values():
                 if reg_value.name() == 'MRUList':

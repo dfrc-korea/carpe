@@ -25,8 +25,8 @@ def SHIMCACHE(reg_system):
     shim_cache_list = []
     shim_cache_count = 0
 
-    reg_key = reg_system.find_key(r"ControlSet001\Control\Session Manager\AppCompatCache")
     try:
+        reg_key = reg_system.find_key(r"ControlSet001\Control\Session Manager\AppCompatCache")
         for reg_value in reg_key.values():
             if reg_value.name() == 'AppCompatCache':
                 for i in reg_value.data().split(b'10ts')[1:]:

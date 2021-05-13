@@ -33,11 +33,12 @@ class Amcache_Program_Information:
 def AMCACHEPROGRAMENTRIES(reg_am):
     amcache_list = []
     amcache_count = 0
-    amcache_key = reg_am.find_key(r"Root\InventoryApplication")
-    if amcache_key is None:
-        return amcache_list
-    for amcache_subkey in amcache_key.subkeys():
-        try:
+    try:
+        amcache_key = reg_am.find_key(r"Root\InventoryApplication")
+        if amcache_key is None:
+            return amcache_list
+        for amcache_subkey in amcache_key.subkeys():
+
             amcache_file_information = Amcache_Program_Information()
             amcache_list.append(amcache_file_information)
             amcache_list[amcache_count].source_location = []
@@ -93,7 +94,7 @@ def AMCACHEPROGRAMENTRIES(reg_am):
                 elif amcache_subkey_value.name() == 'UninstallString':
                     amcache_list[amcache_count].uninstall_string = amcache_subkey_value.data().replace('\\','/').replace('\x00','')
             amcache_count = amcache_count + 1
-        except:
-            print('-----Amcache program not found')
+    except:
+        print('-----Amcache program not found')
 
     return amcache_list

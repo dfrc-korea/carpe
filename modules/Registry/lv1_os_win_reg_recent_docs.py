@@ -18,9 +18,9 @@ def RECENTDOCS(reg_nt):
     recent_docs_list = []
     recent_docs_order = []
     recent_docs_count = 0
-    reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs")
-
     try:
+        reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs")
+
         if reg_key != None:
             for reg_value in reg_key.values():
                 if reg_value.name() == 'MRUListEx':

@@ -20,8 +20,9 @@ def NETWORKPROFILE(reg_software):
     network_profile_list = []
     network_profile_count = 0
 
-    reg_key = reg_software.find_key(r"Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles")
+
     try:
+        reg_key = reg_software.find_key(r"Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles")
         for reg_subkey in reg_key.subkeys():
             network_profile_information = Network_Profile_Information()
             network_profile_list.append(network_profile_information)

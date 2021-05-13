@@ -33,8 +33,9 @@ class Network_Interface_Information:
 def NETWORKINTERFACE(reg_system):
     network_interface_list = []
     network_interface_count = 0
-    reg_key = reg_system.find_key(r"ControlSet001\Services\Tcpip\Parameters\Interfaces")
+
     try:
+        reg_key = reg_system.find_key(r"ControlSet001\Services\Tcpip\Parameters\Interfaces")
         for reg_subkey in reg_key.subkeys():
             if len(list(reg_subkey.values())) > 0:
                 network_interface_information = Network_Interface_Information()

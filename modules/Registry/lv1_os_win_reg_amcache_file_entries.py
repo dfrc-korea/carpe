@@ -32,9 +32,10 @@ class Amcache_File_Information:
 def AMCACHEFILEENTRIES(reg_am):
     amcache_list = []
     amacache_count = 0
-    amcache_key = reg_am.find_key(r"Root\InventoryApplicationFile")
-    for amcache_subkey in amcache_key.subkeys():
-        try:
+    try:
+        amcache_key = reg_am.find_key(r"Root\InventoryApplicationFile")
+        for amcache_subkey in amcache_key.subkeys():
+
             amcache_file_information = Amcache_File_Information()
             amcache_list.append(amcache_file_information)
             amcache_list[amacache_count].source_location = []
@@ -86,11 +87,12 @@ def AMCACHEFILEENTRIES(reg_am):
                 elif amcache_subkey_value.name() == 'Usn':
                     amcache_list[amacache_count].usn = amcache_subkey_value.data()
             amacache_count = amacache_count + 1
-        except:
-            print('-----Amcache File not found')
+    except:
+        print('-----Amcache File not found')
 
-    amcahce_key = reg_am.find_key(r"Root\InventoryApplication")
+
     try:
+        amcahce_key = reg_am.find_key(r"Root\InventoryApplication")
         for amcache in amcache_list:
             for amcache_subkey in amcahce_key.subkeys():
                 if amcache_subkey.name() == amcache.program_id:

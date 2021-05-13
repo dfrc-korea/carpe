@@ -17,8 +17,8 @@ def SEARCHKEYWORD(reg_nt):
     search_keyword_count = 0
     search_keyword_order = []
 
-    reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery")
     try:
+        reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery")
         if reg_key != None:
             for reg_value in reg_key.values():
                 if reg_value.name() == 'MRUListEx':
