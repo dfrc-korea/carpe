@@ -234,12 +234,12 @@ class DEFAConnector(interface.ModuleConnector):
                         configuration.apply_time_zone(result.mft_st_last_accessed_time, knowledge_base.time_zone))
                     result.mft_st_entry_modified_time = str(
                         configuration.apply_time_zone(result.mft_st_entry_modified_time, knowledge_base.time_zone))
-                except Exception:
-                    continue
-            elif source_path_spec.TYPE_INDICATOR == 'NTFS' or source_path_spec.TYPE_INDICATOR == 'OS':  # for Windows
+                except Exception as e:
+                    logger.debug(str(e))
+            elif source_path_spec.TYPE_INDICATOR == 'NTFS':  # for Windows
                 try:
                     result.mft_st_created_time = str(datetime.utcfromtimestamp(
-                        int(str(document[6]).zfill(11) + str(document[10]).zfill(7)) / 1000000000 - 11644473600)).replace(' ',
+                        int(str(document[6]).zfill(11) + str(document[10]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
                                                                                                                         'T') + 'Z'
                     result.mft_st_last_modified_time = str(datetime.utcfromtimestamp(
                         int(str(document[4]).zfill(11) + str(document[8]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
@@ -286,8 +286,48 @@ class DEFAConnector(interface.ModuleConnector):
                             7)) else 0  # check Mtime > Ctime, 1 = True, 0 = False
                 except Exception as e:
                     logger.debug(str(e))
+            elif source_path_spec.TYPE_INDICATOR == 'OS':  # for 파일 및 폴더 입력
+                try:
+                    result.mft_st_created_time = str(datetime.utcfromtimestamp(
+                        int(str(document[6]).zfill(12)) / 100)).replace(' ','T') + 'Z'
+                    result.mft_st_last_modified_time = str(datetime.utcfromtimestamp(
+                        int(str(document[4]).zfill(12)) / 100)).replace(' ','T') + 'Z'
+                    result.mft_st_last_accessed_time = str(datetime.utcfromtimestamp(
+                        int(str(document[5]).zfill(12)) / 100)).replace(' ','T') + 'Z'
+                    result.mft_st_entry_modified_time = str(datetime.utcfromtimestamp(
+                        int(str(document[7]).zfill(12)) / 100)).replace(' ','T') + 'Z'
+                    result.mft_st_created_time = str(
+                        configuration.apply_time_zone(result.mft_st_created_time, knowledge_base.time_zone))
+                    result.mft_st_last_modified_time = str(
+                        configuration.apply_time_zone(result.mft_st_last_modified_time, knowledge_base.time_zone))
+                    result.mft_st_last_accessed_time = str(
+                        configuration.apply_time_zone(result.mft_st_last_accessed_time, knowledge_base.time_zone))
+                    result.mft_st_entry_modified_time = str(
+                        configuration.apply_time_zone(result.mft_st_entry_modified_time, knowledge_base.time_zone))
 
+                    result.mft_fn_created_time = str(datetime.utcfromtimestamp(
+                        int(str(document[14]).zfill(12)) / 100)).replace(' ','T') + 'Z'
+                    result.mft_fn_last_modified_time = str(datetime.utcfromtimestamp(
+                        int(str(document[12]).zfill(12)) / 100)).replace(' ','T') + 'Z'
+                    result.mft_fn_last_accessed_time = str(datetime.utcfromtimestamp(
+                        int(str(document[13]).zfill(12)) / 100)).replace(' ','T') + 'Z'
+                    result.mft_fn_entry_modified_time = str(datetime.utcfromtimestamp(
+                        int(str(document[15]).zfill(12)) / 100)).replace(' ','T') + 'Z'
+                    result.mft_fn_created_time = str(
+                        configuration.apply_time_zone(result.mft_fn_created_time, knowledge_base.time_zone))
+                    result.mft_fn_last_modified_time = str(
+                        configuration.apply_time_zone(result.mft_fn_last_modified_time, knowledge_base.time_zone))
+                    result.mft_fn_last_accessed_time = str(
+                        configuration.apply_time_zone(result.mft_fn_last_accessed_time, knowledge_base.time_zone))
+                    result.mft_fn_entry_modified_time = str(
+                        configuration.apply_time_zone(result.mft_fn_entry_modified_time, knowledge_base.time_zone))
 
+                    result.is_downloaded = 1 if document_path in zone_list else 0  # check Zone.Identifier, 1 = True, 0 = False
+                    result.is_copied = 1 if int(str(document[4]).zfill(12)) < int(
+                        str(document[6]).zfill(12)
+                    ) else 0  # check Mtime > Ctime, 1 = True, 0 = False
+                except Exception as e:
+                    logger.debug(str(e))
             # is_created
             result.is_created = 0
             try:
