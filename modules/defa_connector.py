@@ -8,6 +8,7 @@ from zipfile import ZipFile
 from zipfile import BadZipFile
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from utility import logger
 
 from elasticsearch import Elasticsearch, helpers
 
@@ -121,7 +122,11 @@ class DEFAConnector(interface.ModuleConnector):
             _type_name = config.get('document', 'type')
             es = Elasticsearch(hosts=_host, port=_port, http_auth=(_elastic_id, _elastic_passwd))
 
-        tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
+        try:
+            tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
+        except TypeError as e:
+            tsk_file_system = None
+            logger.debug("None Filesystem")
         error_count = 0
         for document in document_files:
             document_path = document[1][document[1].find(path_separator):] + path_separator + document[
@@ -135,10 +140,17 @@ class DEFAConnector(interface.ModuleConnector):
                 os.makedirs(output_path)
                 os.makedirs(ole_path)
 
-            self.extract_file_to_path(tsk_file_system=tsk_file_system,
-                                      inode=int(document[20]),
-                                      file_name=document[0],
-                                      output_path=output_path)
+            if tsk_file_system == None:
+                self.ExtractTargetFileToPath(
+                    source_path_spec=source_path_spec,
+                    configuration=configuration,
+                    file_path=document_path,
+                    output_path=output_path)
+            else:
+                self.extract_file_to_path(tsk_file_system=tsk_file_system,
+                                          inode=int(document[20]),
+                                          file_name=document[0],
+                                          output_path=output_path)
 
             # self.ExtractTargetFileToPath(
             #     source_path_spec=source_path_spec,
@@ -227,7 +239,7 @@ class DEFAConnector(interface.ModuleConnector):
             elif source_path_spec.TYPE_INDICATOR == 'NTFS' or source_path_spec.TYPE_INDICATOR == 'OS':  # for Windows
                 try:
                     result.mft_st_created_time = str(datetime.utcfromtimestamp(
-                        int(str(document[6]).zfill(11) + str(document[10]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
+                        int(str(document[6]).zfill(11) + str(document[10]).zfill(7)) / 1000000000 - 11644473600)).replace(' ',
                                                                                                                         'T') + 'Z'
                     result.mft_st_last_modified_time = str(datetime.utcfromtimestamp(
                         int(str(document[4]).zfill(11) + str(document[8]).zfill(7)) / 10000000 - 11644473600)).replace(' ',
@@ -272,8 +284,8 @@ class DEFAConnector(interface.ModuleConnector):
                     result.is_copied = 1 if int(str(document[4]).zfill(11) + str(document[8]).zfill(7)) < int(
                         str(document[6]).zfill(11) + str(document[10]).zfill(
                             7)) else 0  # check Mtime > Ctime, 1 = True, 0 = False
-                except Exception:
-                    continue
+                except Exception as e:
+                    logger.debug(str(e))
 
 
             # is_created
@@ -283,8 +295,8 @@ class DEFAConnector(interface.ModuleConnector):
                     if datetime.fromisoformat(result.createdtime.replace('Z', '')) > datetime.fromisoformat(
                             result.mft_st_created_time.split('+')[0]) == True:
                         result.is_created = 1
-            except:
-                pass
+            except Exception as e:
+                logger.debug(str(e))
 
             rsid_list = []
 
@@ -304,8 +316,8 @@ class DEFAConnector(interface.ModuleConnector):
                                     for rsid in i:
                                         rsid_list.append(rsid.attrib.get(
                                             "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val"))
-                except BadZipFile:
-                    continue
+                except BadZipFile as e:
+                    logger.debug(str(e))
 
             if configuration.standalone_check:
                 if result.has_content:
