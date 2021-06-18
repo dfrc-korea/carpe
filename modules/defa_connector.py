@@ -129,8 +129,14 @@ class DEFAConnector(interface.ModuleConnector):
             logger.debug("None Filesystem")
         error_count = 0
         for document in document_files:
-            document_path = document[1][document[1].find(path_separator):] + path_separator + document[
-                0]  # document full path
+            #print(source_path_spec.location)
+            if source_path_spec.TYPE_INDICATOR == 'OS':  # 파일 및 폴더 입력
+                if len(document[1]) == len(source_path_spec.location):  # 입력한 폴더의 루트인경우
+                    document_path = document[0]
+                else:  # 폴더 내 폴더인경우 -> 안되서 수정해야함.
+                    document_path = document[1][len(source_path_spec.location):] + path_separator + document[0]
+            else:
+                document_path = document[1][document[1].find(path_separator):] + path_separator + document[0]  # document full path
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                           configuration.evidence_id + os.sep + par_id + os.sep \
                           + hashlib.sha1(document_path.encode('utf-8')).hexdigest()
@@ -195,7 +201,7 @@ class DEFAConnector(interface.ModuleConnector):
                     result = pdf_plugin.Process(fp=file_path, ole_path=ole_path)
                     self.print_run_info(f"Parse PDF File : \"{document[0]}\"", start=False)
             except Exception as e:
-                # print("Error : " + str(e))
+                logger.debug(str(e))
                 error_count += 1
                 continue
 

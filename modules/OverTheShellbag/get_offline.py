@@ -1,5 +1,4 @@
 from yarp import Registry
-from yarp import RegistryLive
 
 
 def GetRegistryDataPath(_path):
