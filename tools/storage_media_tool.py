@@ -634,7 +634,7 @@ class StorageMediaTool(tools.CLITool):
     def LoadReferenceDataSet(self):
         try:
             self._rds = csv.read_csv('/home/carpe/rds/NSRLFile.txt')
-            self._rds_set = set(self._rds.columns[0].to_pylist().upper())  # 중복제거
+            self._rds_set = set([x.upper() for x in self._rds.columns[0].to_pylist()])
         except KeyboardInterrupt:
             raise errors.UserAbort('File system scan aborted.')
 

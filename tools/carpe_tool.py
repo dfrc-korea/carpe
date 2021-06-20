@@ -131,14 +131,14 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         # Export CSV at Standalone
         argument_parser.add_argument(
-            '--csv', '--export_csv', action='store_true', dest='csv_check', default=True, help=(
+            '--csv', '--export_csv', action='store_true', dest='csv_check', default=False, help=(
                 'Define process mode to be processed.'
             )
         )
 
         # Allow only standalone mode
         argument_parser.add_argument(
-            '--sqlite', '--standalone', action='store_true', dest='standalone_check', default=True, help=(
+            '--sqlite', '--standalone', action='store_true', dest='standalone_check', default=False, help=(
                 'Define process mode to be processed.'
             )
         )
