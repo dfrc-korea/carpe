@@ -31,7 +31,7 @@ class LV2COMMUNICATIONAnalyzer(interface.AdvancedModuleAnalyzer):
             return False
 
         #KAKAOTALK
-        print('[MODULE]: LV2 Communication Analyzer - KAKAOTALK')
+        print('[MODULE] LV2 Communication Analyzer - KAKAOTALK')
 
         # par_id 넣어줘야함. 임시로 where par_id는 뻇음
         query = f"SELECT friends.name, friends.phone_number, chatlogs.message, chatlogs.created_at, chatrooms.private_meta, chatrooms.members " \
@@ -74,7 +74,7 @@ class LV2COMMUNICATIONAnalyzer(interface.AdvancedModuleAnalyzer):
 
 
         #MESSAGES
-        print('[MODULE]: LV2 Communication Analyzer - SMS')
+        print('[MODULE] LV2 Communication Analyzer - SMS')
         query = f"SELECT sms.type, sms.address, sms.body, sms.date FROM lv1_os_and_basic_app_sms as sms " \
                 f"WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
@@ -92,7 +92,7 @@ class LV2COMMUNICATIONAnalyzer(interface.AdvancedModuleAnalyzer):
             query = "Insert into lv2_communication values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_data)
 
-        print('[MODULE]: LV2 Communication Analyzer - MMS')
+        print('[MODULE] LV2 Communication Analyzer - MMS')
         query = f"SELECT `from`, `to`, body, `date` FROM lv1_os_and_basic_app_mms " \
                 f"WHERE par_id='{par_id}';"
         results = configuration.cursor.execute_query_mul(query)
@@ -116,7 +116,7 @@ class LV2COMMUNICATIONAnalyzer(interface.AdvancedModuleAnalyzer):
             query = "Insert into lv2_communication values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_data)
 
-        print('[MODULE]: LV2 Communication Analyzer - CALLS')
+        print('[MODULE] LV2 Communication Analyzer - CALLS')
         query = f"SELECT call_l.type, call_l.partner, call_l.duration_in_secs, call_l.call_date " \
                 f"FROM lv1_os_and_basic_app_call_logs as call_l WHERE par_id='{par_id}'"
         results = configuration.cursor.execute_query_mul(query)

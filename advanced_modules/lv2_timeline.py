@@ -23,7 +23,7 @@ class LV2TIMELINEAnalyzer(interface.AdvancedModuleAnalyzer):
         super(LV2TIMELINEAnalyzer, self).__init__()
 
     def Analyze(self, par_id, configuration, source_path_spec, knowledge_base):
-        print('[MODULE]: LV2 Timeline Analyzer')
+        print('[MODULE] LV2 Timeline Analyzer')
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
 

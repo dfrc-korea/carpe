@@ -63,7 +63,7 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
                     return False
 
         # USAGE_DAY_DETAIL
-        print('[MODULE]: LV2 OS Win Usage History Analyzer - USAGE_DAY_DETAIL')
+        print('[MODULE] LV2 OS Win Usage History Analyzer - USAGE_DAY_DETAIL')
         insert_data = []
         for result in udd.USAGEDAYDETAIL(configuration, knowledge_base.time_zone):
             # try:
@@ -82,7 +82,7 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             configuration.cursor.bulk_execute(query, insert_data)
 
         #USAGE_YEAR
-        print('[MODULE]: LV2 OS Win Usage History Analyzer - USAGE_YEAR')
+        print('[MODULE] LV2 OS Win Usage History Analyzer - USAGE_YEAR')
         insert_data = []
         for result in uy.USAGEYEAR(configuration):
             insert_data.append(tuple(
@@ -93,7 +93,7 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
             configuration.cursor.bulk_execute(query, insert_data)
 
         #USAGE_DAY_STAT
-        print('[MODULE]: LV2 OS Win Usage History Analyzer - USAGE_DAY_STAT')
+        print('[MODULE] LV2 OS Win Usage History Analyzer - USAGE_DAY_STAT')
         insert_data = []
         for result in uds.USAGEDAYSTAT(configuration):
             insert_data.append(tuple(
@@ -105,7 +105,7 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
 
 
         #Timeline_month
-        print('[MODULE]: LV2 OS Win Usage History Analyzer - TIMELINE MONTH')
+        print('[MODULE] LV2 OS Win Usage History Analyzer - TIMELINE MONTH')
         insert_data = []
         query = "Insert into timeline_month_2 values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         for result in tm.TIMELINEMONTH(configuration):
