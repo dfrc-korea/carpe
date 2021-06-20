@@ -22,12 +22,12 @@ iniconfig==1.0.1
 libewf-python==20201129
 libesedb-python==20210424
 libfsapfs-python==20200727
-libfsntfs-python==20201027
+libfsntfs-python==20210503
 libfwnt-python==20200723
 libregf-python==20200805
-libsigscan-python==20191221
-libsmdev-python==20190315
-libsmraw-python==20191221
+libsigscan-python==20210419
+libsmdev-python==20210418
+libsmraw-python==20210418
 libvshadow-python==20210425
 lxml==4.6.2
 moduleInterface==2.0.13
