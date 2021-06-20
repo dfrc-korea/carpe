@@ -15,7 +15,7 @@ def main(filePath):
                 return
 
             object.parse()
-            fp = open(".\\result\\" + fname[:-4] + ".txt", 'w', encoding='UTF-8')
+            # fp = open(".\\result\\" + fname[:-4] + ".txt", 'w', encoding='UTF-8')
             fp.write(object.content)
             fp.write(str(object.metadata['author']))
             fp.write(str(object.metadata['title']))

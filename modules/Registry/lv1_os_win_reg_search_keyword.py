@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import binascii
+from modules import logger
 
 class Search_Keyword_Information:
     par_id = ''
@@ -19,6 +20,9 @@ def SEARCHKEYWORD(reg_nt):
 
     try:
         reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery")
+    except Exception as exception:
+        logger.error(exception)
+    try:
         if reg_key != None:
             for reg_value in reg_key.values():
                 if reg_value.name() == 'MRUListEx':
@@ -37,7 +41,7 @@ def SEARCHKEYWORD(reg_nt):
                             search_keyword_list[search_keyword_count].modified_time = reg_key.last_written_timestamp().isoformat()+'Z'
                         search_keyword_list[search_keyword_count].ordering = search_keyword_count+1
                         search_keyword_count = search_keyword_count + 1
-    except:
-        print('-----Search Keyword not found')
+    except Exception as exception:
+        logger.error(exception)
     return search_keyword_list
 

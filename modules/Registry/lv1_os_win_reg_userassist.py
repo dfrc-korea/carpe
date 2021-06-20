@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import binascii
 import codecs
+from modules import logger
 
 class Userassist_information:
     par_id = ''
@@ -52,6 +53,6 @@ def USERASSIST(reg_nt):
                 user_list[user_count].focus_seconds = int(binascii.b2a_hex(user_value.data()[12:16][::-1]), 16)/10000
                 user_list[user_count].last_run_time = (datetime(1601, 1, 1) + timedelta(microseconds=int(binascii.b2a_hex(user_value.data()[60:68][::-1]), 16) / 10)).isoformat()+'Z'
                 user_count = user_count + 1
-    except:
-        print('-----UserAssist not found')
+    except Exception as exception:
+        logger.error(exception)
     return user_list

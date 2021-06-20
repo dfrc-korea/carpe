@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
-
+from modules import logger
 
 class MSOffice_Recent_Information:
     par_id = ''
@@ -23,7 +23,10 @@ def MSOFFICERECENT(reg_nt):
     for i in range(0, 5):
         try:
             reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Office" + '\\' + ms_version[i])
+        except Exception as exception:
+            logger.error(exception)
 
+        try:
             if reg_key is not None:
                 excel_mru = reg_key.subkey('Excel').subkey('File MRU')
                 word_mru = reg_key.subkey('Word').subkey('File MRU')
@@ -61,9 +64,8 @@ def MSOFFICERECENT(reg_nt):
                             msoffice_recent_docs_list[msoffice_recent_docs_count].modified_time = datetime(1601, 1, 1) + timedelta(microseconds=us)
                             msoffice_recent_docs_list[msoffice_recent_docs_count].source_location = "SOFTWARE/Microsoft/Office/"+ms_version[i]+"/Powerpoint/File MRU"
                             msoffice_recent_docs_count = msoffice_recent_docs_count + 1
-        except:
-            pass
-            # print('-----MSOFFICE Recent Error')
+        except Exception as exception:
+            logger.error(exception)
 
     return msoffice_recent_docs_list
 

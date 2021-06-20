@@ -625,23 +625,23 @@ class OOXML:
                     if content_saved == "":
                         temp_size = lastpart[30+data_name_length:]
 
-                        f1 = open("./outputtest.zip", 'wb')
+                        f1 = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'wb')
                         f1.write(b'\x78\x9C')
                         f1.write(temp_size)
                         f1.close()
 
-                        fz = open("./outputtest.zip",'rb')
+                        fz = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip",'rb')
                         d = fz.read()
                         fz.close()
 
                         zobj = zlib.decompressobj()
                         real_data = zobj.decompress(d)
 
-                        f2 = open("./test.xml",'wb')
+                        f2 = open(os.path.dirname(self.filename) + os.sep + "test.xml",'wb')
                         f2.write(real_data)
                         f2.close()
 
-                        f3 = open("./test.xml",'r',encoding='utf-8')
+                        f3 = open(os.path.dirname(self.filename) + os.sep + "test.xml",'r',encoding='utf-8')
                         a1 = f3.read()
                         f3.close()
 
@@ -673,23 +673,23 @@ class OOXML:
                         #self.parse_media(filename, filetype, isDamaged, tmp_path)
                         return only_data
                     else:
-                        f1 = open("./outputtest.zip", 'wb')
+                        f1 = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'wb')
                         f1.write(b'\x78\x9C')
                         f1.write(content_saved)
                         f1.close()
 
-                        fz = open("./outputtest.zip", 'rb')
+                        fz = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'rb')
                         d = fz.read()
                         fz.close()
 
                         zobj = zlib.decompressobj()
                         real_data = zobj.decompress(d)
 
-                        f2 = open("./test.xml", 'wb')
+                        f2 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'wb')
                         f2.write(real_data)
                         f2.close()
 
-                        f3 = open("./test.xml", 'r', encoding='utf-8')
+                        f3 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'r', encoding='utf-8')
                         a1 = f3.read()
                         f3.close()
 
@@ -782,23 +782,23 @@ class OOXML:
                             else:
                                 if "xl/sharedStrings.xml" == data_name:
                                     content_saved = f.read(data_length)
-                                    f1 = open("./outputtest.zip", 'wb')
+                                    f1 = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'wb')
                                     f1.write(b'\x78\x9C')
                                     f1.write(content_saved)
                                     f1.close()
 
-                                    fz = open("./outputtest.zip", 'rb')
+                                    fz = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'rb')
                                     d = fz.read()
                                     fz.close()
 
                                     zobj = zlib.decompressobj()
                                     real_data = zobj.decompress(d)
 
-                                    f2 = open("./test.xml", 'wb')
+                                    f2 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'wb')
                                     f2.write(real_data)
                                     f2.close()
 
-                                    f3 = open("./test.xml", 'r', encoding='utf-8')
+                                    f3 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'r', encoding='utf-8')
                                     a1 = f3.read()
                                     f3.close()
 
@@ -874,23 +874,23 @@ class OOXML:
                             else:
                                 if "xl/worksheets/sheet1.xml" == data_name:
                                     content_saved = f.read(data_length)
-                                    f1 = open("./outputtest.zip", 'wb')
+                                    f1 = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'wb')
                                     f1.write(b'\x78\x9C')
                                     f1.write(content_saved)
                                     f1.close()
 
-                                    fz = open("./outputtest.zip", 'rb')
+                                    fz = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'rb')
                                     d = fz.read()
                                     fz.close()
 
                                     zobj = zlib.decompressobj()
                                     real_data = zobj.decompress(d)
 
-                                    f2 = open("./test.xml", 'wb')
+                                    f2 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'wb')
                                     f2.write(real_data)
                                     f2.close()
 
-                                    f3 = open("./test.xml", 'r', encoding='utf-8')
+                                    f3 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'r', encoding='utf-8')
                                     a1 = f3.read()
                                     f3.close()
 
@@ -1052,23 +1052,23 @@ class OOXML:
                            if data_name == "docProps/app.xml":
                                content_saved = f.read(data_length)
 
-                               f1 = open("./outputtest.zip", 'wb')
+                               f1 = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'wb')
                                f1.write(b'\x78\x9C')
                                f1.write(content_saved)
                                f1.close()
 
-                               fz = open("./outputtest.zip", 'rb')
+                               fz = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'rb')
                                d = fz.read()
                                fz.close()
 
                                zobj = zlib.decompressobj()
                                real_data = zobj.decompress(d)
 
-                               f2 = open("./test.xml", 'wb')
+                               f2 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'wb')
                                f2.write(real_data)
                                f2.close()
 
-                               f3 = open("./test.xml", 'r', encoding='utf-8')
+                               f3 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'r', encoding='utf-8')
                                a1 = f3.read()
                                f3.close()
 
@@ -1127,23 +1127,23 @@ class OOXML:
 
                                            content_saved = f.read(data_length)
                                            pptx_ordering_table.append(content_saved)
-                                           f1 = open("./outputtest.zip", 'wb')
+                                           f1 = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'wb')
                                            f1.write(b'\x78\x9C')
                                            f1.write(content_saved)
                                            f1.close()
 
-                                           fz = open("./outputtest.zip", 'rb')
+                                           fz = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'rb')
                                            d = fz.read()
                                            fz.close()
 
                                            zobj = zlib.decompressobj()
                                            real_data = zobj.decompress(d)
 
-                                           f2 = open("./test.xml", 'wb')
+                                           f2 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'wb')
                                            f2.write(real_data)
                                            f2.close()
 
-                                           f3 = open("./test.xml", 'r', encoding='utf-8')
+                                           f3 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'r', encoding='utf-8')
                                            a1 = f3.read()
                                            f3.close()
 
@@ -1216,23 +1216,23 @@ class OOXML:
 
                                        content_saved = f.read(data_length)
                                        pptx_ordering_table.append(content_saved)
-                                       f1 = open("./outputtest.zip", 'wb')
+                                       f1 = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'wb')
                                        f1.write(b'\x78\x9C')
                                        f1.write(content_saved)
                                        f1.close()
 
-                                       fz = open("./outputtest.zip", 'rb')
+                                       fz = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'rb')
                                        d = fz.read()
                                        fz.close()
 
                                        zobj = zlib.decompressobj()
                                        real_data = zobj.decompress(d)
 
-                                       f2 = open("./test.xml", 'wb')
+                                       f2 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'wb')
                                        f2.write(real_data)
                                        f2.close()
 
-                                       f3 = open("./test.xml", 'r', encoding='utf-8')
+                                       f3 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'r', encoding='utf-8')
                                        a1 = f3.read()
                                        f3.close()
 
@@ -1274,23 +1274,23 @@ class OOXML:
                    if "ppt/slideL" not in data_name:
                        temp_size = lastpart[30 + data_name_length:]
 
-                       f1 = open("./outputtest.zip", 'wb')
+                       f1 = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'wb')
                        f1.write(b'\x78\x9C')
                        f1.write(temp_size)
                        f1.close()
 
-                       fz = open("./outputtest.zip", 'rb')
+                       fz = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'rb')
                        d = fz.read()
                        fz.close()
 
                        zobj = zlib.decompressobj()
                        real_data = zobj.decompress(d)
 
-                       f2 = open("./test.xml", 'wb')
+                       f2 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'wb')
                        f2.write(real_data)
                        f2.close()
 
-                       f3 = open("./test.xml", 'r', encoding='utf-8')
+                       f3 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'r', encoding='utf-8')
                        a1 = f3.read()
                        f3.close()
 
@@ -1477,23 +1477,23 @@ class OOXML:
                         if data_name == "docProps/core.xml":
                             content_saved = f.read(data_length)
 
-                            f1 = open("./outputtest.zip", 'wb')
+                            f1 = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'wb')
                             f1.write(b'\x78\x9C')
                             f1.write(content_saved)
                             f1.close()
 
-                            fz = open("./outputtest.zip", 'rb')
+                            fz = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'rb')
                             d = fz.read()
                             fz.close()
 
                             zobj = zlib.decompressobj()
                             real_data = zobj.decompress(d)
 
-                            f2 = open("./test.xml", 'wb')
+                            f2 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'wb')
                             f2.write(real_data)
                             f2.close()
 
-                            f3 = open("./test.xml", 'r', encoding='utf-8')
+                            f3 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'r', encoding='utf-8')
                             a1 = f3.read()
                             f3.close()
 
@@ -1728,23 +1728,23 @@ class OOXML:
                         elif data_name == "docProps/app.xml":
                             content_saved = f.read(data_length)
 
-                            f1 = open("./outputtest.zip", 'wb')
+                            f1 = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'wb')
                             f1.write(b'\x78\x9C')
                             f1.write(content_saved)
                             f1.close()
 
-                            fz = open("./outputtest.zip", 'rb')
+                            fz = open(os.path.dirname(self.filename) + os.sep + "outputtest.zip", 'rb')
                             d = fz.read()
                             fz.close()
 
                             zobj = zlib.decompressobj()
                             real_data = zobj.decompress(d)
 
-                            f2 = open("./test.xml", 'wb')
+                            f2 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'wb')
                             f2.write(real_data)
                             f2.close()
 
-                            f3 = open("./test.xml", 'r', encoding='utf-8')
+                            f3 = open(os.path.dirname(self.filename) + os.sep + "test.xml", 'r', encoding='utf-8')
                             a1 = f3.read()
                             f3.close()
 

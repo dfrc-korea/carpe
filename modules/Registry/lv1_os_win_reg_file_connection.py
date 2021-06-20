@@ -1,4 +1,4 @@
-
+from modules import logger
 
 class File_Connection_Information:
     par_id = ''
@@ -18,7 +18,10 @@ def FILECCONNECTION(reg_software):
 
     try:
         reg_key = reg_software.find_key(r"Classes")
-        for reg_subkey in reg_key.subkeys():
+    except Exception as exception:
+        logger.error(exception)
+    for reg_subkey in reg_key.subkeys():
+        try:
             if reg_subkey.name()[0] != '.':
                 for reg_subkey_subkey in reg_subkey.subkeys():
                     if reg_subkey_subkey.name() == 'shell':
@@ -59,6 +62,6 @@ def FILECCONNECTION(reg_software):
                                                     file_connection_list[file_connection_count].file_name = command_value.data()[:-1].decode('utf-16').lower().split(' ')[0]
                                                 file_connection_list[file_connection_count].modified_time = command.last_written_timestamp().isoformat()+'Z'
                                                 file_connection_count = file_connection_count + 1
-    except:
-        print('-----File Connection not found')
+        except Exception as exception:
+            logger.error(exception)
     return file_connection_list

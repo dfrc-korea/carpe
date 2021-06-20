@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import binascii
 
 import modules.Registry.convert_util as cu
-
+from modules import logger
 
 class User_Information:
     par_id = ''
@@ -33,9 +33,13 @@ class User_Information:
 def USERACCOUNTS(reg_sam, reg_software):
     user_list = []
     user_count = 0
+
     try:
         sam_users = reg_sam.find_key(r"SAM\Domains\Account\Users")
+    except Exception as exception:
+        logger.error(exception)
 
+    try:
          #Local User 계정
         for sam_subkey in sam_users.subkeys():
             if sam_subkey.name() != 'Names':
@@ -120,8 +124,8 @@ def USERACCOUNTS(reg_sam, reg_software):
                             if user_subkey_value.data() == user.user_name:
                                 user.login_script = 'Yes'
                                 user.source_location.append('SOFTWARE-Microsoft/Windows NT/CurrentVersion/Winlogon')
-    except:
-        print('-----User Account not found')
+    except Exception as exception:
+        logger.error(exception)
     return user_list
 
 

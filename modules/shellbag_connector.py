@@ -52,7 +52,7 @@ class ShellbagConnector(interface.ModuleConnector):
             results = configuration.cursor.execute_query_mul(query)
 
             if len(results) == 0 or results == -1:
-                print("There are no shellbag files")
+                #print("There are no shellbag files")
                 return False
 
             file_objects = {
@@ -74,11 +74,8 @@ class ShellbagConnector(interface.ModuleConnector):
                     file_objects['log2'] = self.LoadTargetFileToMemory(source_path_spec=source_path_spec,
                                                                        configuration=configuration,
                                                                        file_path=file[1][4:] + path_separator + file[0])
-            try:
-                shellbag_results = shellbag.Main(file_objects)
-            except Exception as e:
-                print(str(e))
-                return False
+
+            shellbag_results = shellbag.Main(file_objects)
 
             # if file_objects['primary']:
             #     file_objects['primary'].close()

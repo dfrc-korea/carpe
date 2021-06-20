@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import binascii
+from modules import logger
 
 class Start_Information:
     par_id = ''
@@ -66,7 +67,7 @@ def START(reg_software, reg_nt):
                 start_list[start_count].modified_time = reg_key.last_written_timestamp().isoformat() + 'Z'
                 start_list[start_count].type = 'Run'
                 start_count = start_count + 1
-    except:
-        print('-----Start list not found')
+    except Exception as exception:
+        logger.error(exception)
 
     return start_list

@@ -1,4 +1,5 @@
 import datetime
+from modules import logger
 
 
 class Device_information:
@@ -144,8 +145,8 @@ def USBDEVICES(reg_software, reg_system, text_data):
                                             device_list[
                                                 device_count].last_removal_time = properties_time_data.last_written_timestamp().isoformat() + 'Z'
                         device_count = device_count + 1
-        except:
-            print("list2 error")
+        except Exception as exception:
+            logger.error(exception)
         # last_assigned_drive_letter
         reg_key = reg_system.find_key(r"MountedDevices")
         for reg_value in reg_key.values():
@@ -182,8 +183,7 @@ def USBDEVICES(reg_software, reg_system, text_data):
                         device.first_connected_time = str(temp_date2).replace(' ', 'T') + 'Z'
                         device.source_location.append('setupapi.dev.log')
 
-    except Exception as e:
-        # print(traceback.print_exc())
-        print(f'-----USB devices Error: {e}')
+    except Exception as exception:
+        logger.error(exception)
 
     return device_list

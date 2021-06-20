@@ -1,4 +1,4 @@
-
+from modules import logger
 
 class Amcache_File_Information:
     par_id = ''
@@ -34,8 +34,10 @@ def AMCACHEFILEENTRIES(reg_am):
     amacache_count = 0
     try:
         amcache_key = reg_am.find_key(r"Root\InventoryApplicationFile")
-        for amcache_subkey in amcache_key.subkeys():
-
+    except Exception as exception:
+        logger.error(exception)
+    for amcache_subkey in amcache_key.subkeys():
+        try:
             amcache_file_information = Amcache_File_Information()
             amcache_list.append(amcache_file_information)
             amcache_list[amacache_count].source_location = []
@@ -87,12 +89,11 @@ def AMCACHEFILEENTRIES(reg_am):
                 elif amcache_subkey_value.name() == 'Usn':
                     amcache_list[amacache_count].usn = amcache_subkey_value.data()
             amacache_count = amacache_count + 1
-    except:
-        print('-----Amcache File not found')
+        except Exception as exception:
+            logger.error(exception)
 
-
+    amcahce_key = reg_am.find_key(r"Root\InventoryApplication")
     try:
-        amcahce_key = reg_am.find_key(r"Root\InventoryApplication")
         for amcache in amcache_list:
             for amcache_subkey in amcahce_key.subkeys():
                 if amcache_subkey.name() == amcache.program_id:
@@ -100,7 +101,7 @@ def AMCACHEFILEENTRIES(reg_am):
                         if amcache_subkey_value.name() == 'Name':
                             amcache.related_programname = amcache_subkey_value.data().replace('\x00','')
                             amcache.source_location.append('AmCache.hve-Root/InventoryApplication')
-    except:
-        print('-----Amcache File not found')
+    except Exception as exception:
+        logger.error(exception)
     return amcache_list
 

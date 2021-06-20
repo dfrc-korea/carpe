@@ -96,7 +96,7 @@ class StorageMediaTool(tools.CLITool):
 
 
     def _ParseOutputPathOption(self, options):
-        self._output_file_path = self.ParseStringOption(options, 'output_file')
+        self._output_file_path = self.ParseStringOption(options, 'output_file', ".\\CARPE-Result")
         if self._output_file_path:
             self._output_file_path = os.path.abspath(self._output_file_path)
 
@@ -634,7 +634,7 @@ class StorageMediaTool(tools.CLITool):
     def LoadReferenceDataSet(self):
         try:
             self._rds = csv.read_csv('/home/carpe/rds/NSRLFile.txt')
-            self._rds_set = set([x.upper() for x in self._rds.columns[0].to_pylist()])
+            self._rds_set = set(self._rds.columns[0].to_pylist().upper())  # 중복제거
         except KeyboardInterrupt:
             raise errors.UserAbort('File system scan aborted.')
 
@@ -1004,19 +1004,19 @@ class StorageMediaTool(tools.CLITool):
                         if results:
                             sig = results[0].identifier.split(':')
                             signature_result = sig[0]
-                        else:
-                            file_object.seek(0, os.SEEK_SET)
-                            file_content = file_object.read()
-                            self._signature_tool.siga.Identify(file_content)
+                        # else:
+                        #     file_object.seek(0, os.SEEK_SET)
+                        #     file_content = file_object.read()
+                        #     self._signature_tool.siga.Identify(file_content)
 
-                            if self._signature_tool.siga.ext:
-                                signature_result = self._signature_tool.siga.ext[1:]
+                        #     if self._signature_tool.siga.ext:
+                        #         signature_result = self._signature_tool.siga.ext[1:]
 
                     except IOError as exception:
                         raise errors.BackEndError(
                             'Unable to scan file: error: {0:s}'.format(exception))
-                    # finally:
-                    #     file_object.close()
+                    #finally:
+                        #file_object.close()
 
                 if self.rds_check and file._size > 0 and file_entry.IsFile():
 
@@ -1035,8 +1035,8 @@ class StorageMediaTool(tools.CLITool):
                         print(f'Exception: {exception}')
                         continue
 
-                    # finally:
-                    #     file_object.close()
+                    #finally:
+                        #file_object.close()
 
                     if hash_result in self._rds_set:
                         rds_result = "Matching"
@@ -1118,7 +1118,7 @@ class StorageMediaTool(tools.CLITool):
 
                         self._ProcessFileOrDirectoryForNTFS(sub_file_entry.path_spec, current_id)
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
         except dfvfs_errors.AccessError as exception:
             logger.warning(
                 'Unable to access file: {0:s} with error: {1!s}'.format(
@@ -1251,13 +1251,13 @@ class StorageMediaTool(tools.CLITool):
                         if results:
                             sig = results[0].identifier.split(':')
                             signature_result = sig[0]
-                        else:
-                            file_object.seek(0, os.SEEK_SET)
-                            file_content = file_object.read(4096)
-                            self._signature_tool.siga.Identify(file_content)
+                        # else:
+                        #     file_object.seek(0, os.SEEK_SET)
+                        #     file_content = file_object.read(4096)
+                        #     self._signature_tool.siga.Identify(file_content)
 
-                            if self._signature_tool.siga.ext:
-                                signature_result = self._signature_tool.siga.ext[1:]
+                        #     if self._signature_tool.siga.ext:
+                        #         signature_result = self._signature_tool.siga.ext[1:]
                     except IOError as exception:
                         raise errors.BackEndError(
                             'Unable to scan file: error: {0:s}'.format(exception))
@@ -1281,8 +1281,8 @@ class StorageMediaTool(tools.CLITool):
                         print(f'Exception: {exception}')
                         continue
 
-                    # finally:
-                    #     file_object.close()
+                    #finally:
+#                        file_object.close()
 
                     if hash_result in self._rds_set:
                         rds_result = "Matching"
@@ -1461,19 +1461,19 @@ class StorageMediaTool(tools.CLITool):
                         if results:
                             sig = results[0].identifier.split(':')
                             signature_result = sig[0]
-                        else:
-                            file_object.seek(0, os.SEEK_SET)
-                            file_content = file_object.read(4096)
-                            self._signature_tool.siga.Identify(file_content)
+                        # else:
+                        #     file_object.seek(0, os.SEEK_SET)
+                        #     file_content = file_object.read(4096)
+                        #     self._signature_tool.siga.Identify(file_content)
 
-                            if self._signature_tool.siga.ext:
-                                signature_result = self._signature_tool.siga.ext[1:]
+                        #     if self._signature_tool.siga.ext:
+                        #         signature_result = self._signature_tool.siga.ext[1:]
 
                     except IOError as exception:
                         raise errors.BackEndError(
                             'Unable to scan file: error: {0:s}'.format(exception))
-                    # finally:
-                    #     file_object.close()
+                    #finally:
+                        #file_object.close()
 
                 if self.rds_check and file._size > 0 and file_entry.IsFile():
 
@@ -1492,8 +1492,8 @@ class StorageMediaTool(tools.CLITool):
                         print(f'Exception: {exception}')
                         continue
 
-                    # finally:
-                    #     file_object.close()
+                    #finally:
+                        #file_object.close()
 
                     if hash_result in self._rds_set:
                         rds_result = "Matching"
@@ -1531,7 +1531,7 @@ class StorageMediaTool(tools.CLITool):
                                      "%s, %s, %s)")
                     self._cursor.bulk_execute(query, (file,))
                 except Exception as exception:
-                    print(exception)
+                    logger.error(exception)
         # self._cursor.commit()
 
     def set_partition_list(self):

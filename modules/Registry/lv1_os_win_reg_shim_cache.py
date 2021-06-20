@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 import binascii
 import struct
+from modules import logger
+
 class Shim_Cache_Information:
     par_id = ''
     case_id = ''
@@ -27,6 +29,9 @@ def SHIMCACHE(reg_system):
 
     try:
         reg_key = reg_system.find_key(r"ControlSet001\Control\Session Manager\AppCompatCache")
+    except Exception as exception:
+        logger.error(exception)
+    try:
         for reg_value in reg_key.values():
             if reg_value.name() == 'AppCompatCache':
                 for i in reg_value.data().split(b'10ts')[1:]:
@@ -41,6 +46,6 @@ def SHIMCACHE(reg_system):
                         if convettime(dwLowDateTime, dwHighDateTime) != None:
                             shim_cache_list[shim_cache_count].modified_time = convettime(dwLowDateTime, dwHighDateTime).isoformat()+'Z'
                         shim_cache_count = shim_cache_count + 1
-    except:
-        print('-----Shim Cache not found')
+    except Exception as exception:
+        logger.error(exception)
     return shim_cache_list

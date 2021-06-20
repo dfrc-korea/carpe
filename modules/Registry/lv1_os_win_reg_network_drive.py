@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import binascii
+from modules import logger
 
 class Network_Drive_Information:
     par_id = ''
@@ -37,7 +38,7 @@ def NETWORKDRIVE(reg_nt):
                             network_drive_list[network_drive_count].modified_time = reg_key.last_written_timestamp().isoformat()+'Z'
                         network_drive_list[network_drive_count].ordering = network_drive_count+1
                         network_drive_count = network_drive_count + 1
-    except:
-        print('-----Network Drive not found')
+    except Exception as exception:
+        logger.error(exception)
     return network_drive_list
 

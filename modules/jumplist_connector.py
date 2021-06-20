@@ -4,6 +4,7 @@ import os
 
 from modules import manager
 from modules import interface
+from modules import logger
 from modules.windows_jumplist import JumpListParser
 from modules.windows_jumplist.res import res_jumplist
 
@@ -63,7 +64,12 @@ class JumpListConnector(interface.ModuleConnector):
         if not os.path.exists(output_path):
             os.mkdir(output_path)
 
-        tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
+        
+        try:
+            tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
+        except Exception as exeption:
+            logger.error(exeption)
+            return
         insert_jumplist_automatic_file = []
         insert_jumplist_custom_file = []
         for jumplist_automatic_file in jumplist_automatic_files:

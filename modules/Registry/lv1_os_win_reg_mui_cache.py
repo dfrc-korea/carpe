@@ -1,4 +1,4 @@
-
+from modules import logger
 
 class Mui_Cache_Information:
     par_id = ''
@@ -43,7 +43,7 @@ def MUICACHE(reg_usrclass):
                         mui_cache_list[mui_cache_count].data = reg_value.data().replace('\x00','')
                         mui_cache_count = mui_cache_count + 1
 
-    except:
-        print('-----MUI Cache not found')
+    except Exception as exception:
+        logger.error(exception)
 
     return mui_cache_list

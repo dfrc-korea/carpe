@@ -115,8 +115,8 @@ class ESEDBInternetExplorerParser(esedb_parser.ESEDBParser):
             elif container_name == 'History':
                 self._history_schema = tuple(record_values.keys())
                 self._history_records.append(tuple(record_values.values()))
-                if record_values.get('EntryId') == 8 and record_values.get('ContainerId') == 18:
-                    print(record_values)
+                # if record_values.get('EntryId') == 8 and record_values.get('ContainerId') == 18:
+                #     print(record_values)
 
             elif container_name == 'Cookies':
                 self._cookies_schema = tuple(record_values.keys())

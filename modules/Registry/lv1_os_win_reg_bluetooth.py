@@ -1,4 +1,4 @@
-
+from modules import logger
 
 class Bluetooth_Information:
     par_id = ''
@@ -15,12 +15,14 @@ def Bluetooth(reg_system):
     bluetooth_count = 0
     try:
         bluetooth_key = reg_system.find_key(r"ControlSet001\Services\BTHPORT\Parameters\Devices") ####
+    except Exception as exception:
+        logger.error(exception)
 
-        if bluetooth_key == None:
-            return bluetooth_list
+    if bluetooth_key == None:
+        return bluetooth_list
 
-        for bluetooth_subkey in bluetooth_key.subkeys():
-
+    for bluetooth_subkey in bluetooth_key.subkeys():
+        try:
             bluetooth_information = Bluetooth_Information()
             bluetooth_list.append(bluetooth_information)
             bluetooth_list[bluetooth_count].source = r"ControlSet001\Services\BTHPORT\Parameters\Devices"+'/'+bluetooth_subkey.name()
@@ -35,8 +37,8 @@ def Bluetooth(reg_system):
                     bluetooth_list[bluetooth_count].lastconnectedtime = bluetooth_subkey_value.data().replace('\x00','')
 
             bluetooth_count = bluetooth_count + 1
-    except:
-        print('-----Bluetooth File not found')
+        except Exception as exception:
+            logger.error(exception)
 
     return bluetooth_list
 

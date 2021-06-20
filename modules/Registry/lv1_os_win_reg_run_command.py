@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import binascii
+from modules import logger
 
 class Run_Command_Information:
     par_id = ''
@@ -16,9 +17,11 @@ def RUNCOMMAND(reg_nt):
     run_command_list = []
     run_command_count = 0
     run_command_order = []
-
     try:
         reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU")
+    except Exception as exception:
+        logger.error(exception)
+    try:
         if reg_key != None:
             for reg_value in reg_key.values():
                 if reg_value.name() == 'MRUList':
@@ -37,7 +40,7 @@ def RUNCOMMAND(reg_nt):
                             run_command_list[run_command_count].modified_time = reg_key.last_written_timestamp().isoformat()+'Z'
                         run_command_list[run_command_count].ordering = run_command_count+1
                         run_command_count = run_command_count + 1
-    except:
-        print('-----Run Command not found')
+    except Exception as exception:
+        logger.error(exception)
     return run_command_list
 

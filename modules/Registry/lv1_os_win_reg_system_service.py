@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import binascii
+from modules import logger
 
 class System_Service_Information:
     par_id = ''
@@ -30,6 +31,9 @@ def SYSTEMSERVICE(reg_system):
 
     try:
         reg_key = reg_system.find_key(r"ControlSet001\Services")
+    except Exception as exception:
+        logger.error(exception)
+    try:
         for reg_subkey in reg_key.subkeys():
             if reg_subkey.name().startswith('.') is not True:
                 system_service_information = System_Service_Information()
@@ -116,6 +120,6 @@ def SYSTEMSERVICE(reg_system):
                                         pass
                 system_service_list[system_service_count].host_service = ','.join(temp_array).replace('\x00','')
                 system_service_count = system_service_count + 1
-    except:
-        print('-----System service not Found')
+    except Exception as exception:
+        logger.error(exception)
     return system_service_list

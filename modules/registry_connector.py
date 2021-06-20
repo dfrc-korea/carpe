@@ -3,6 +3,7 @@
 import os
 from modules import manager
 from modules import interface
+from modules import logger
 from yarp import Registry
 from modules.Registry import lv1_os_win_reg_os_info as oi
 from modules.Registry import lv1_os_win_reg_installed_programs as ip
@@ -260,7 +261,7 @@ class RegistryConnector(interface.ModuleConnector):
                     configuration=configuration,
                     file_path=registry_path,
                     output_path=output_path)
-                file_object = open(output_path+os.sep+file_name, 'rb')
+                file_object = open(output_path+path_sep+file_name, 'rb')
                 if file_object is None:
                     return
                 if file_name == 'Amcache.hve':
@@ -278,7 +279,7 @@ class RegistryConnector(interface.ModuleConnector):
                                 configuration=configuration,
                                 file_path=registry_path,
                                 output_path=output_path)
-                            reg_am_log1 = open(output_path+os.sep+registry[0], 'rb')
+                            reg_am_log1 = open(output_path+path_sep+registry[0], 'rb')
                         elif registry[0] == 'Amcache.hve.LOG2':
                             registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                             # reg_am_log2 = self.LoadTargetFileToMemory(
@@ -291,8 +292,11 @@ class RegistryConnector(interface.ModuleConnector):
                                 configuration=configuration,
                                 file_path=registry_path,
                                 output_path=output_path)
-                            reg_am_log2 = open(output_path+os.sep+registry[0], 'rb')
-                    reg_am.recover_auto(None, reg_am_log1, reg_am_log2)
+                            reg_am_log2 = open(output_path+path_sep+registry[0], 'rb')
+                    try:
+                        reg_am.recover_auto(None, reg_am_log1, reg_am_log2)
+                    except Exception as exception:
+                        logger.error('Registry Amcache: {0!s}'.format(exception))
 
                 if file_name == 'SYSTEM':
                     try:
@@ -314,7 +318,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_system_log1 = open(output_path+os.sep+registry[0], 'rb')
+                                reg_system_log1 = open(output_path+path_sep+registry[0], 'rb')
                             elif registry[0] == 'SYSTEM.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                 # reg_system_log2 = self.LoadTargetFileToMemory(
@@ -327,8 +331,11 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_system_log2 = open(output_path+os.sep+registry[0], 'rb')
-                        reg_system.recover_auto(None, reg_system_log1, reg_system_log2)
+                                reg_system_log2 = open(output_path+path_sep+registry[0], 'rb')
+                        try:
+                            reg_system.recover_auto(None, reg_system_log1, reg_system_log2)
+                        except Exception as exception:
+                            logger.error('Registry Amcache: {0!s}'.format(exception))
                 if file_name == 'SOFTWARE':
                     try:
                         reg_software = Registry.RegistryHive(file_object)
@@ -349,7 +356,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_software_log1 = open(output_path+os.sep+registry[0], 'rb')
+                                reg_software_log1 = open(output_path+path_sep+registry[0], 'rb')
                             elif registry[0] == 'SOFTWARE.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
                                                 registry[0]
@@ -362,8 +369,12 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_software_log2 = open(output_path+os.sep+registry[0], 'rb')
-                        reg_software.recover_auto(None, reg_software_log1, reg_software_log2)
+                                reg_software_log2 = open(output_path+path_sep+registry[0], 'rb')
+                        
+                        try:
+                            reg_software.recover_auto(None, reg_software_log1, reg_software_log2)
+                        except Exception as exception:
+                            logger.error('Registry Amcache: {0!s}'.format(exception))
 
                 elif file_name == 'SAM':
                     try:
@@ -385,7 +396,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_sam_log1 = open(output_path+os.sep+registry[0], 'rb')
+                                reg_sam_log1 = open(output_path+path_sep+registry[0], 'rb')
                             elif registry[0] == 'SAM.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
                                                 registry[0]
@@ -398,8 +409,12 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_sam_log2 = open(output_path+os.sep+registry[0], 'rb')
-                        reg_sam.recover_auto(None, reg_sam_log1, reg_sam_log2)
+                                reg_sam_log2 = open(output_path+path_sep+registry[0], 'rb')
+                        
+                        try:
+                            reg_sam.recover_auto(None, reg_sam_log1, reg_sam_log2)
+                        except Exception as exception:
+                            logger.error('Registry Amcache: {0!s}'.format(exception))
 
                 if file_name == 'setupapi.dev.log':
                     setupapi_data = file_object.read()
@@ -424,7 +439,7 @@ class RegistryConnector(interface.ModuleConnector):
                             configuration=configuration,
                             file_path=registry_path,
                             output_path=output_path)
-                        file_object = open(output_path+os.sep+file_name, 'rb')
+                        file_object = open(output_path+path_sep+file_name, 'rb')
                         if file_object is None:
                             return
                         if file_name == 'UsrClass.dat':
@@ -442,7 +457,7 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_usr_log1 = open(output_path+os.sep+registry[0], 'rb')
+                                    reg_usr_log1 = open(output_path+path_sep+registry[0], 'rb')
                                 elif registry[0] == 'UsrClass.dat.LOG2':
                                     registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                     # reg_usr_log2 = self.LoadTargetFileToMemory(
@@ -454,8 +469,12 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_usr_log2 = open(output_path+os.sep+registry[0], 'rb')
-                            reg_usr.recover_auto(None, reg_usr_log1, reg_usr_log2)
+                                    reg_usr_log2 = open(output_path+path_sep+registry[0], 'rb')
+                            try:
+                                reg_usr.recover_auto(None, reg_usr_log1, reg_usr_log2)
+                            except Exception as exception:
+                                logger.error('Registry Amcache: {0!s}'.format(exception))
+                            
 
                             wow.append(reg_usr)
                             wow.append(registry[1].split(path_sep)[2])
@@ -476,7 +495,7 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_nt_log1 = open(output_path+os.sep+registry[0], 'rb')
+                                    reg_nt_log1 = open(output_path+path_sep+registry[0], 'rb')
                                 elif registry[0] == 'ntuser.dat.LOG2':
                                     registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                     # reg_nt_log2 = self.LoadTargetFileToMemory(
@@ -488,8 +507,12 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_nt_log2 = open(output_path+os.sep+registry[0], 'rb')
-                            reg_nt.recover_auto(None, reg_nt_log1, reg_nt_log2)
+                                    reg_nt_log2 = open(output_path+path_sep+registry[0], 'rb')
+                            
+                            try:
+                                reg_nt.recover_auto(None, reg_nt_log1, reg_nt_log2)
+                            except Exception as exception:
+                                logger.error('Registry Amcache: {0!s}'.format(exception))
 
                             wow.append(reg_nt)
                             wow.append(registry[1].split(path_sep)[2])
@@ -497,7 +520,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Bluetooth
             if reg_system != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Bluetooth')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Bluetooth')
                 insert_data = []
                 for bluetooth in bt.Bluetooth(reg_system):
                     last_updated_time = configuration.apply_time_zone(str(bluetooth.key_last_updated_time),
@@ -513,7 +536,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # MSOFFICE RECENT
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - MSOFFICE RECENT')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - MSOFFICE RECENT')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for docs in mr.MSOFFICERECENT(reg_nt[0]):
@@ -528,7 +551,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Amcache File
             if backup_flag != 'Backup-RegBack' and reg_am != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Amcache File')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Amcache File')
                 insert_data = []
                 for amcache in afe.AMCACHEFILEENTRIES(reg_am):
                     key_last_updated_time = configuration.apply_time_zone(str(amcache.key_last_updated_time),
@@ -552,7 +575,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Amcache Program
             if backup_flag != 'Backup-RegBack' and reg_am != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Amcache Program')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Amcache Program')
                 insert_data = []
                 for amcache in ape.AMCACHEPROGRAMENTRIES(reg_am):
                     key_last_updated_time = configuration.apply_time_zone(str(amcache.key_last_updated_time),
@@ -584,7 +607,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Installed Program
             if backup_flag != 'Backup-RegBack' and reg_software != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Installed Program')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Installed Program')
                 count = 0
                 for reg_nt in reg_nt_list:
                     insert_data = []
@@ -621,7 +644,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # OS Information
             if reg_software != '' and reg_system != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - OS Information')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - OS Information')
                 insert_data = []
                 for op_system in oi.OSINFO(reg_software, reg_system):
                     install_time = configuration.apply_time_zone(str(op_system.install_time), knowledge_base.time_zone)
@@ -647,7 +670,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # USB Device
             if reg_software != '' and reg_system != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - USB Device')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - USB Device')
                 insert_data = []
                 for usb in ud.USBDEVICES(reg_software, reg_system, setupapi_data):
                     last_connected_time = configuration.apply_time_zone(str(usb.last_connected_time),
@@ -681,7 +704,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # User Account
             if reg_sam != '' and reg_software != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - User Account')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - User Account')
                 insert_data = []
                 for user in ua.USERACCOUNTS(reg_sam, reg_software):
                     account_created_time = configuration.apply_time_zone(str(user.account_created_time),
@@ -705,7 +728,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Known DLL
             if reg_system != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Known DLL')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Known DLL')
                 insert_data = []
                 for dll in kd.KNOWNDLL(reg_system):
                     modified_time = configuration.apply_time_zone(str(dll.modified_time), knowledge_base.time_zone)
@@ -719,7 +742,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # MAC Address
             if reg_system != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - MAC Address')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - MAC Address')
                 if len(ma.MACADDRESS(reg_system)) != 0:
                     insert_data = []
                     for address in ma.MACADDRESS(reg_system):
@@ -732,7 +755,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Shim Cache
             if reg_system != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Shim Cache')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Shim Cache')
                 insert_data = []
                 for cache in sc.SHIMCACHE(reg_system):
                     modified_time = configuration.apply_time_zone(str(cache.modified_time), knowledge_base.time_zone)
@@ -746,7 +769,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Network Interface
             if reg_system != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Network Interface')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Network Interface')
                 insert_data = []
                 for network in ni.NETWORKINTERFACE(reg_system):
                     lease_obtained_time = configuration.apply_time_zone(str(network.lease_obtained_time),
@@ -774,7 +797,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Network Profile
             if reg_software != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Network Profile')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Network Profile')
                 insert_data = []
                 for network in np.NETWORKPROFILE(reg_software):
                     date_created = configuration.apply_time_zone(str(network.datecreated), knowledge_base.time_zone)
@@ -791,7 +814,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # File Connection
             if reg_software != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - File Connection')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - File Connection')
                 insert_data = []
                 for file in fc.FILECCONNECTION(reg_software):
                     modified_time = configuration.apply_time_zone(str(file.modified_time), knowledge_base.time_zone)
@@ -805,7 +828,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # System service
             if reg_system != '':
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - System service')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - System service')
                 insert_data = []
                 for service in ss.SYSTEMSERVICE(reg_system):
                     modified_time = configuration.apply_time_zone(str(service.modified_time), knowledge_base.time_zone)
@@ -824,7 +847,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # User Assist
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - User Assist')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - User Assist')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for user in u.USERASSIST(reg_nt[0]):
@@ -840,7 +863,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # MUI Cache
             if backup_flag != 'Backup-RegBack' and len(reg_usrclass_list) != 0:
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - MUI Cache')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - MUI Cache')
                 for reg_usrclass in reg_usrclass_list:
                     insert_data = []
                     for cache in mc.MUICACHE(reg_usrclass[0]):
@@ -854,7 +877,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Network Drive
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Network Drive')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Network Drive')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for drive in nd.NETWORKDRIVE(reg_nt[0]):
@@ -870,7 +893,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Recent Docs
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Recent Docs')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Recent Docs')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for doc in rd.RECENTDOCS(reg_nt[0]):
@@ -885,7 +908,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Run command
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Run command')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Run command')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for command in rc.RUNCOMMAND(reg_nt[0]):
@@ -901,7 +924,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Search keyword
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Search keyword')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Search keyword')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for keyword in sk.SEARCHKEYWORD(reg_nt[0]):
@@ -917,7 +940,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # Start list
             if backup_flag != 'Backup-RegBack' and reg_software != '' and len(reg_nt_list) != 0:
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - Start list')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - Start list')
                 count = 0
                 for reg_nt in reg_nt_list:
                     insert_data = []
@@ -950,7 +973,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # MRU Foloder
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - MRU Folder')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - MRU Folder')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for mru in mf.MRUFOLDER(reg_nt[0]):
@@ -966,7 +989,7 @@ class RegistryConnector(interface.ModuleConnector):
 
             # MRU Open File
             if backup_flag != 'Backup-RegBack' and len(reg_nt_list) != 0:
-                print(f'[{self.print_now_time()}] [MODULE]: Registry - MRU File')
+                print(f'[{self.print_now_time()}] [MODULE] Registry - MRU File')
                 for reg_nt in reg_nt_list:
                     insert_data = []
                     for mru in mof.MRUOPENEDFILE(reg_nt[0]):

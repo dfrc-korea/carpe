@@ -225,7 +225,11 @@ class ModuleConnector(BaseConnector):
 
     def extract_file_object(self, tsk_file_system, inode):
         f = tsk_file_system.open_meta(inode)
-        return f.read_random(0, f.info.meta.size)
+        try:
+            file_object = f.read_random(0, f.info.meta.size)
+        except Exception:
+            raise Error
+        return file_object
 
     def extract_file_to_path(self, tsk_file_system, inode, file_name, output_path):
         file_object = tsk_file_system.open_meta(inode)

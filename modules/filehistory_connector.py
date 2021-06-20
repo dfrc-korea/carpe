@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """module for ESE database."""
 import os, struct
-import pyesedb
 from datetime import datetime, timedelta
 
 from modules import logger
@@ -69,11 +68,15 @@ class FileHistoryConnector(interface.ModuleConnector):
                 configuration=configuration,
                 file_path=filehistory_path)
 
-            results = filehistory_parser.main(database=file_object)
+            try:
+                results = filehistory_parser.main(database=file_object)
+            except Exception as exception:
+                results = None
+                logger.error(exception)
             if not results:
-                file_object.close()
+                #file_object.close()
                 return False
-            file_object.close()
+            #file_object.close()
 
             for idx, result in enumerate(results['namespace']):
                 if idx == 0:

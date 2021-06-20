@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import binascii
+from modules import logger
 
 class Recent_Docs_Information:
     par_id = ''
@@ -20,7 +21,10 @@ def RECENTDOCS(reg_nt):
     recent_docs_count = 0
     try:
         reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs")
+    except Exception as exception:
+        logger.error(exception)
 
+    try:
         if reg_key != None:
             for reg_value in reg_key.values():
                 if reg_value.name() == 'MRUListEx':
@@ -66,8 +70,8 @@ def RECENTDOCS(reg_nt):
                             recent_docs_list[recent_docs_count].value = reg_value.name()
                             recent_docs_list[recent_docs_count].source_location = "NTUSER-SOFTWARE/Microsoft/Windows/CurrentVersion/Explorer/RecentDocs/"
                             recent_docs_count = recent_docs_count + 1
-    except:
-        print('-----Recent Documents not found')
+    except Exception as exception:
+        logger.error(exception)
 
     return recent_docs_list
 

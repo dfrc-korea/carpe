@@ -158,7 +158,7 @@ class EventlogConnector(interface.ModuleConnector):
                     fn = output_path + os.path.sep + fileName
 
                     # Eventlog Total
-                    print(f'[{self.print_now_time()}] [MODULE]: Eventlog - Total - ' + fn.split(os.sep)[-1])
+                    print(f'[{self.print_now_time()}] [MODULE] Eventlog - Total - ' + fn.split(os.sep)[-1])
                     for eventlog in et.EventlogTotal(eventlog_path, fn):
                         insert_data.append(tuple(
                             [par_id, configuration.case_id, configuration.evidence_id, str(eventlog.event_id),
@@ -169,7 +169,7 @@ class EventlogConnector(interface.ModuleConnector):
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
             # EVENTLOGUSBDEVICES
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGUSBDEVICES')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGUSBDEVICES')
             insert_data = []
             for usb in ud.EVENTLOGUSBDEVICES(configuration):
                 insert_data.append(tuple(
@@ -183,7 +183,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGANTIFORENSICS
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGANTIFORENSICS')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGANTIFORENSICS')
             insert_data = []
             for antiforensics in af.EVENTLOGANTIFORENSICS(configuration):
                 insert_data.append(tuple(
@@ -196,7 +196,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGAPPLICATIONS
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGAPPLICATIONS')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGAPPLICATIONS')
             insert_data = []
             for applications in app.EVENTLOGAPPLICATIONS(configuration):
                 insert_data.append(tuple(
@@ -210,7 +210,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGDNS
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGDNS')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGDNS')
             insert_data = []
             for dns in dn.EVENTLOGDNS(configuration):
                 insert_data.append(tuple(
@@ -223,7 +223,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGFILEHANDLING
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGFILEHANDLING')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGFILEHANDLING')
             insert_data = []
             for file_handling in fh.EVENTLOGFILEHANDLING(configuration):
                 insert_data.append(tuple(
@@ -236,7 +236,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGONOFF
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGONOFF')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGONOFF')
             insert_data = []
             for event in logon.EVENTLOGONOFF(configuration):
                 insert_data.append(tuple(
@@ -248,7 +248,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGMSALERTS
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGMSALERTS')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGMSALERTS')
             insert_data = []
             for ms_alerts in ms.EVENTLOGMSALERTS(configuration):
                 insert_data.append(tuple(
@@ -262,7 +262,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGMSIINSTALLER
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGMSIINSTALLER')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGMSIINSTALLER')
             insert_data = []
             for msi_installer in msi.EVENTLOGMSIINSTALLER(configuration):
                 insert_data.append(tuple(
@@ -276,7 +276,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGNETWORK
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGNETWORK')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGNETWORK')
             insert_data = []
             for network in nt.EVENTLOGNETWORK(configuration):
                 insert_data.append(tuple(
@@ -289,7 +289,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGOTHERS
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGOTHERS')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGOTHERS')
             insert_data = []
             for others in ot.EVENTLOGOTHERS(configuration):
                 insert_data.append(tuple(
@@ -302,7 +302,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGPCONOFF
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGPCONOFF')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGPCONOFF')
             insert_data = []
             for event in pc.EVENTLOGPCONOFF(configuration):
                 insert_data.append(tuple(
@@ -314,7 +314,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGPRINTER
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGPRINTER')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGPRINTER')
             insert_data = []
             for printer in pr.EVENTLOGPRINTER(configuration):
                 insert_data.append(tuple(
@@ -327,7 +327,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGPROCESS
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGPROCESS')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGPROCESS')
             insert_data = []
             for process in pro.EVENTLOGPROCESS(configuration):
                 insert_data.append(tuple(
@@ -340,7 +340,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGREGISTRYHANDLING
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGREGISTRYHANDLING')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGREGISTRYHANDLING')
             insert_data = []
             for registry in reg.EVENTLOGREGISTRYHANDLING(configuration):
                 insert_data.append(tuple(
@@ -354,7 +354,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGREMOTEONOFF
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGREMOTEONOFF')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGREMOTEONOFF')
             insert_data = []
             for remote in rem.EVENTLOGREMOTEONOFF(configuration):
                 insert_data.append(tuple(
@@ -367,7 +367,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGSCREENSAVER
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGSCREENSAVER')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGSCREENSAVER')
             insert_data = []
             for screen_saver in ss.EVENTLOGSCREENSAVER(configuration):
                 insert_data.append(tuple(
@@ -380,7 +380,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGSHAREDFOLDER
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGSHAREDFOLDER')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGSHAREDFOLDER')
             insert_data = []
             for shared_folder in sf.EVENTLOGSHAREDFOLDER(configuration):
                 insert_data.append(tuple(
@@ -393,7 +393,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGSLEEPONOFF
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGSLEEPONOFF')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGSLEEPONOFF')
             insert_data = []
             for sleep in sle.EVENTLOGSLEEPONOFF(configuration):
                 insert_data.append(tuple(
@@ -407,7 +407,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGTASKSCHEDULER
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGTASKSCHEDULER')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGTASKSCHEDULER')
             insert_data = []
             for task_scheduler in ts.EVENTLOGTASKSCHEDULER(configuration):
                 insert_data.append(tuple(
@@ -421,7 +421,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGTELEMETRY
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGTELEMETRY')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGTELEMETRY')
             insert_data = []
             for telemetry in tele.EVENTLOGTELEMETRY(configuration):
                 insert_data.append(tuple(
@@ -434,7 +434,7 @@ class EventlogConnector(interface.ModuleConnector):
                 configuration.cursor.bulk_execute(query, insert_data)
 
             # EVENTLOGTIMECHANGED
-            print(f'[{self.print_now_time()}] [MODULE]: Eventlog - EVENTLOGTIMECHANGED')
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGTIMECHANGED')
             insert_data = []
             for time in tc.EVENTLOGTIMECHANGED(configuration):
                 insert_data.append(tuple(

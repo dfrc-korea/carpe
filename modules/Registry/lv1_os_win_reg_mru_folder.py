@@ -4,7 +4,7 @@ import modules.Registry.guid as gu
 import modules.Registry.convert_util as cu
 import re
 import os
-
+from modules import logger
 
 class MRU_Folder_Information:
     par_id = ''
@@ -294,7 +294,10 @@ def MRUFOLDER(reg_nt):
     mru_folder_count = 0
     mru_folder_order = []
     check_first_third_ch_list = [b'\x19\x00\x1F', b'\x3A\x00\x1F',b'\x14\x00\\', b'\x55\x00\x1F']
-    reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\LastVisitedPidlMRU")
+    try:
+        reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\LastVisitedPidlMRU")
+    except Exception as exception:
+        logger.error(exception)
     try:
         if reg_key != None:
             for reg_value in reg_key.values():
@@ -361,8 +364,8 @@ def MRUFOLDER(reg_nt):
                         mru_folder_count = mru_folder_count + 1
                         break
 
-    except:
-        print('-----MRU Folder not found')
+    except Exception as exception:
+        logger.error(exception)
 
     return mru_folder_list
 

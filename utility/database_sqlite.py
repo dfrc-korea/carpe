@@ -111,10 +111,10 @@ class Database:
                 query = mysql_to_sqlite(query)
                 try:
                     cursor.executemany(query, values)
-                except Exception as e:
-                    print(query)
-                    print("db execution error : " + str(e))
-                    return -1
+                except sqlite3.Error as e:
+                    #print(query)
+                    #print("db execution error : " + str(e))
+                    raise e
 
     def insert_query_builder(self, table_name):
         query = ""

@@ -73,7 +73,7 @@ class SearchDBConnector(interface.ModuleConnector):
             return False
         if results is None:
             return False
-        file_object.close()
+        #file_object.close()
         insert_searchdb_gthr = []
         insert_searchdb_gthrpth = []
 
@@ -94,8 +94,8 @@ class SearchDBConnector(interface.ModuleConnector):
                            str(None), str(result[11]), str(result[12]),  # user_data blob 임시 처리
                            str(result[13]), str(result[14]), str(result[15]), str(result[16]),
                            str(result[17]), str(result[18]), str(result[19])]))
-        except Exception as e:
-            print(e)
+        except Exception as exception:
+            logger.error('Search DB parsing Error: {0!s}'.format(exception))
 
         for idx, result in enumerate(results['SystemIndex_GthrPth']):
             if idx == 0:

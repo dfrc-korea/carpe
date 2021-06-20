@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """module for DEFA."""
 import os
+import shutil
 import hashlib
 import configparser
 import zipfile
@@ -8,10 +9,12 @@ from zipfile import ZipFile
 from zipfile import BadZipFile
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from utility import logger
+from dfvfs.resolver import resolver as dfvfs_resolver
+
 
 from elasticsearch import Elasticsearch, helpers
 
+from modules import logger
 from modules import manager
 from modules import interface
 
@@ -124,19 +127,12 @@ class DEFAConnector(interface.ModuleConnector):
 
         try:
             tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
-        except TypeError as e:
+        except Exception as exception:
             tsk_file_system = None
-            logger.debug("None Filesystem")
+            logger.debug(exception)
         error_count = 0
         for document in document_files:
-            #print(source_path_spec.location)
-            if source_path_spec.TYPE_INDICATOR == 'OS':  # 파일 및 폴더 입력
-                if len(document[1]) == len(source_path_spec.location):  # 입력한 폴더의 루트인경우
-                    document_path = document[0]
-                else:  # 폴더 내 폴더인경우 -> 안되서 수정해야함.
-                    document_path = document[1][len(source_path_spec.location):] + path_separator + document[0]
-            else:
-                document_path = document[1][document[1].find(path_separator):] + path_separator + document[0]  # document full path
+            document_path = document[1][document[1].find(path_separator):] + path_separator + document[0]
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                           configuration.evidence_id + os.sep + par_id + os.sep \
                           + hashlib.sha1(document_path.encode('utf-8')).hexdigest()
@@ -147,11 +143,13 @@ class DEFAConnector(interface.ModuleConnector):
                 os.makedirs(ole_path)
 
             if tsk_file_system == None:
-                self.ExtractTargetFileToPath(
-                    source_path_spec=source_path_spec,
-                    configuration=configuration,
-                    file_path=document_path,
-                    output_path=output_path)
+                if source_path_spec.TYPE_INDICATOR == 'OS':
+                    if os.path.isdir(source_path_spec.location):
+                        for root, dirs, files in os.walk(source_path_spec.location):
+                            if document[0] in files:
+                                shutil.copy(document[1]+ path_separator + document[0], output_path + path_separator + document[0])
+                    elif os.path.isfile(source_path_spec.location):
+                        shutil.copy(source_path_spec.location, output_path + path_separator + document[0])
             else:
                 self.extract_file_to_path(tsk_file_system=tsk_file_system,
                                           inode=int(document[20]),
@@ -201,7 +199,7 @@ class DEFAConnector(interface.ModuleConnector):
                     result = pdf_plugin.Process(fp=file_path, ole_path=ole_path)
                     self.print_run_info(f"Parse PDF File : \"{document[0]}\"", start=False)
             except Exception as e:
-                logger.debug(str(e))
+                # print("Error : " + str(e))
                 error_count += 1
                 continue
 

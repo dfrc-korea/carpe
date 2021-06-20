@@ -96,7 +96,6 @@ class ProcessEngine(object):
                             if module.NAME != 'macos_connector':
                                 module.print_run_info(module.DESCRIPTION, start=True)
                                 module.print_run_info(module.DESCRIPTION, start=False)
-                                print()
                                 continue
 
                         if isinstance(module, modules_interface.ModuleConnector):
@@ -112,7 +111,7 @@ class ProcessEngine(object):
                                 else:  # for GUI
                                     module.print_run_info(module.DESCRIPTION, start=True)
                                     module.print_run_info(module.DESCRIPTION, start=False)
-                                    print()
+                                    
                             # Skip these modules
                             elif module_name in ['andforensics_connector',
                                                  'fica_connector', 'extract_connector',
@@ -129,7 +128,7 @@ class ProcessEngine(object):
                                 else:  # for GUI
                                     module.print_run_info(module.DESCRIPTION, start=True)
                                     module.print_run_info(module.DESCRIPTION, start=False)
-                                    print()
+                                    
                             # Other modules
                             else:
                                 module.print_run_info(module.DESCRIPTION, start=True)
@@ -138,7 +137,7 @@ class ProcessEngine(object):
                                                source_path_spec=source_path_spec,
                                                knowledge_base=self.knowledge_base)
                                 module.print_run_info(module.DESCRIPTION, start=False)
-                                print()  # for line feed
+
 
                 except RuntimeError as exception:
                     raise errors.BackEndError('The module cannot be connected: {0!s}'.format(exception))
@@ -315,7 +314,7 @@ class ProcessEngine(object):
             par_id = ''
         else:
             par_id = configuration.partition_list[list(configuration.partition_list.keys())[0]]
-        print(f'\n\n[{self.print_now_time()}] Partition ID: {par_id}')
+        #print(f'[{self.print_now_time()}] Partition ID: {par_id}')
         return par_id
 
     def print_now_time(self):

@@ -5,6 +5,7 @@ import os, sys, re
 from datetime import datetime
 
 from utility import database
+from modules import logger
 from xml.etree import ElementTree
 
 class MS_Alerts_Information:
@@ -57,11 +58,11 @@ def EVENTLOGMSALERTS(configuration):
                 ms_alerts_list[ms_alerts_count].message = message
                 ms_alerts_list[ms_alerts_count].error_type = data[len(data)-2]
                 ms_alerts_list[ms_alerts_count].program_version = data[len(data)-1]
-            except Exception as e:
-                print("Eventlog_ms_alerts_parsing_error: {0:s}".format(e))
+            except Exception as exception:
+                logger.error('EVENTLOGS MS Alerts Parsing Error: {0!s}'.format(exception))
             ms_alerts_count = ms_alerts_count + 1
-        except:
-            print("EVENT LOG MS ALERTS ERROR")
+        except Exception as exception:
+            logger.error('EVENTLOGS MS Alerts Error: {0!s}'.format(exception))
 
     #db.close()
 

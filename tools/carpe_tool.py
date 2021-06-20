@@ -119,24 +119,26 @@ class CarpeTool(extraction_tool.ExtractionTool,
         self.add_extract_option(module_group)
         self.add_carve_option(module_group)
 
+        date = datetime.now().strftime('%Y-%m-%d')
+
         argument_parser.add_argument(
-            '--cid', '--case_id', action='store', dest='case_id', type=str,
+            '--cid', '--case_id', action='store', dest='case_id', type=str, default='case-'+date,
             help='Enter your case id')
 
         argument_parser.add_argument(
-            '--eid', '--evdnc_id', '--evidence_id', action='store', dest='evidence_id', type=str,
+            '--eid', '--evdnc_id', '--evidence_id', action='store', dest='evidence_id', type=str, default='evd-'+date,
             help='Enter your evidence id')
 
-        # Allow only standalone mode
+        # Export CSV at Standalone
         argument_parser.add_argument(
-            '--csv', '--export_csv', action='store_true', dest='csv_check', default=False, help=(
+            '--csv', '--export_csv', action='store_true', dest='csv_check', default=True, help=(
                 'Define process mode to be processed.'
             )
         )
 
-        # Export CSV at Standalone
+        # Allow only standalone mode
         argument_parser.add_argument(
-            '--sqlite', '--standalone', action='store_true', dest='standalone_check', default=False, help=(
+            '--sqlite', '--standalone', action='store_true', dest='standalone_check', default=True, help=(
                 'Define process mode to be processed.'
             )
         )
@@ -225,8 +227,8 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         self.list_modules = self._module_filter_expression == 'list'
         self.list_advanced_modules = self._advanced_module_filter_expression == 'list'
-        self.case_id = getattr(options, 'case_id', 'case01')
-        self.evidence_id = getattr(options, 'evidence_id', 'evd01')
+        self.case_id = getattr(options, 'case_id', None)
+        self.evidence_id = getattr(options, 'evidence_id', None)
 
         self.standalone_check = getattr(options, 'standalone_check', False)
         self.csv_check = getattr(options, 'csv_check', False)
@@ -306,10 +308,10 @@ class CarpeTool(extraction_tool.ExtractionTool,
             #     raise errors.BadConfigObject('partition does not exist.\n')
 
         # print partition_list
-        print(f"\nThe number of partition : {len(self._partition_list)}")
+        print(f"The number of partition : {len(self._partition_list)}")
         for key, value in self._partition_list.items():
-            print(f"Partition ({configuration.source_path_specs[int(key[1:]) - 1].type_indicator}) \'{key}\' : \'{value}\'")
-        print()  # for line feed
+            print(f" - Partition ({configuration.source_path_specs[int(key[1:]) - 1].type_indicator}) \'{key}\' : \'{value}\'")
+        #print()  # for line feed
 
         if mode == 'Analyze' and not self.ignore:
             self.print_now_time(f'Insert File Information')
@@ -339,7 +341,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
             # set advanced modules
             # parse advanced modules
-            if configuration.source_type == 'directory' or configuration.source_type == 'file':
+            if configuration.source_type == 'directory' or 'file':
                 pass
 
             else:
@@ -424,6 +426,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         if platform.system() == 'Windows':
             if self._output_file_path is None:
                 raise errors.BadConfigOption('Missing output file path.')
+            print('Output Path: '+ self._output_file_path)
             self._root_tmp_path = self._output_file_path + os.sep + 'tmp'
             if not os.path.exists(self._root_tmp_path):
                 os.mkdir(self._root_tmp_path)

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import binascii
+from modules import logger
 
 class Network_Interface_Information:
     par_id = ''
@@ -33,9 +34,11 @@ class Network_Interface_Information:
 def NETWORKINTERFACE(reg_system):
     network_interface_list = []
     network_interface_count = 0
-
     try:
         reg_key = reg_system.find_key(r"ControlSet001\Services\Tcpip\Parameters\Interfaces")
+    except Exception as exception:
+        logger.error(exception)
+    try:
         for reg_subkey in reg_key.subkeys():
             if len(list(reg_subkey.values())) > 0:
                 network_interface_information = Network_Interface_Information()
@@ -89,6 +92,6 @@ def NETWORKINTERFACE(reg_system):
                     elif reg_subkey_value.name() == 'RegistrationEnabled':
                         network_interface_list[network_interface_count].registrationenabled = reg_subkey_value.data()
                 network_interface_count = network_interface_count + 1
-    except:
-        print('-----Netowrk Interface not found')
+    except Exception as exception:
+        logger.error(exception)
     return network_interface_list

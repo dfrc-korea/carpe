@@ -4,7 +4,7 @@ import modules.Registry.guid as gu
 import modules.Registry.convert_util as cu
 import os
 import re
-
+from modules import logger
 
 class MRU_Opened_file_Information:
     par_id = ''
@@ -254,7 +254,10 @@ def MRUOPENEDFILE(reg_nt):
     mru_opened_file_count = 0
     mru_opened_file_order = []
     mru_dict = dict()
-    reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\OpenSavePidlMRU")
+    try:
+        reg_key = reg_nt.find_key(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\OpenSavePidlMRU")
+    except Exception as exception:
+        logger.error(exception)
     try:
         if reg_key != None:
             for reg_subkey in reg_key.subkeys(): #reg_subkey : extension
@@ -346,7 +349,7 @@ def MRUOPENEDFILE(reg_nt):
                     mru_opened_file_count = mru_opened_file_count + 1
         #print("No Key")
 
-    except:
-        print('-----MRU opened file not found')
+    except Exception as exception:
+        logger.error(exception)
 
     return mru_opened_file_list

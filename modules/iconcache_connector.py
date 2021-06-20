@@ -46,7 +46,7 @@ class IconCacheConnector(interface.ModuleConnector):
 
             iconcache_files = configuration.cursor.execute_query_mul(query)
             if len(iconcache_files) == 0:
-                print("There are no iconcache files")
+                #print("There are no iconcache files")
                 return False
 
             insert_iconcache_info = []
@@ -72,7 +72,8 @@ class IconCacheConnector(interface.ModuleConnector):
                 fn = output_path + os.path.sep + fileName
                 app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_iconcache"
 
-                results = ic.main(fn, app_path, img_output_path)
+                if os.path.exists(fn):
+                    results = ic.main(fn, app_path, img_output_path)
 
                 if not results:
                     os.remove(output_path + os.sep + fileName)
@@ -108,7 +109,7 @@ class IconCacheConnector(interface.ModuleConnector):
             configuration.cursor.bulk_execute(query, insert_iconcache_info)
 
         except Exception as e:
-            print("IconCache Connector Error", e)
+            logger.error("IconCache Connector Error: {0!s}".format(e))
 
 
 manager.ModulesManager.RegisterModule(IconCacheConnector)
