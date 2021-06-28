@@ -37,6 +37,8 @@ from modules import macos_connector
 #from modules import srum_connector
 #from modules import refs_connector
 
+from modules import android_email_connector
+
 # from modules import fica
 # from modules import extract
 
