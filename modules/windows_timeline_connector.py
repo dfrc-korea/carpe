@@ -21,7 +21,7 @@ class WindowsTimelineConnector(interface.ModuleConnector):
 
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         path_separator = self.GetPathSeparator(source_path_spec)
-        this_file_path = os.path.dirname(os.path.abspath(__file__)) + path_separator + 'schema' + path_separator
+        this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep
 
         yaml_list = [this_file_path + 'lv1_os_win_windows_timeline.yaml']
         table_list = ['lv1_os_win_windows_timeline']
@@ -59,7 +59,7 @@ class WindowsTimelineConnector(interface.ModuleConnector):
         for tl_file in windows_timeline_files:
             timeline_path = tl_file[1][tl_file[1].find(path_separator):] + path_separator + tl_file[0]  # document full path
             file_name = tl_file[0]
-            output_path = configuration.root_tmp_path + path_separator + configuration.case_id + path_separator + configuration.evidence_id + path_separator + par_id
+            output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + configuration.evidence_id + os.sep + par_id
             if not os.path.exists(output_path):
                 os.mkdir(output_path)
             self.ExtractTargetFileToPath(
@@ -86,7 +86,7 @@ class WindowsTimelineConnector(interface.ModuleConnector):
                 file_path=timeline_path + '-shm',
                 output_path=output_path)
 
-            fn = output_path + path_separator + file_name
+            fn = output_path + os.sep + file_name
 
             time_zone = knowledge_base.time_zone
 
