@@ -30,6 +30,7 @@ def Main():
     #print("Copyright 2021. Korea University - DFRC. All rights reserved ")
     print('---------------------------------------------------------------------')
     print()
+    sys.stdout.flush()
 
     tool = carpe_tool.CarpeTool()
 
@@ -71,6 +72,7 @@ def Main():
         return False
 
     try:
+        sys.stdout.flush()
         tool.ExtractDataFromSources(mode='Analyze')
 
     except (KeyboardInterrupt, errors.UserAbort):

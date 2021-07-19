@@ -2,6 +2,8 @@
 
 import os
 import abc
+import sys
+
 import yaml
 from datetime import datetime
 
@@ -559,9 +561,11 @@ class AdvancedModuleAnalyzer(BaseAnalyzer):
 
     def print_run_info(self, module_name, start=True):
         if start:
-            print(f'[{self.print_now_time()}] [MODULE] {module_name} Start')
+            print(f'[{self.print_now_time()}] [MODULE] {module_name} Start', file=sys.stdout)
+            sys.stdout.flush()
         else:
-            print(f'[{self.print_now_time()}] [MODULE] {module_name} End')
+            print(f'[{self.print_now_time()}] [MODULE] {module_name} End', file=sys.stdout)
+            sys.stdout.flush()
 
     def GetQuerySeparator(self, source_path_spec, configuration):
         if source_path_spec.location == "/":

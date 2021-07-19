@@ -254,6 +254,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
     def ExtractDataFromSources(self, mode):
 
         self._output_writer.Write('Processing started.\n')
+        sys.stdout.flush()
 
         investigator = {'investigator1': 'test', 'department': 'DFRC'}
         self.AddInvestigatorInformation(investigator)
@@ -294,7 +295,6 @@ class CarpeTool(extraction_tool.ExtractionTool,
             self.LoadReferenceDataSet()
 
         self.print_now_time(f'Start {mode} Image')
-
         disk_info = []
         if not self.ignore:
             # After analyzing of an IMAGE, Put the partition information into the partition_info TABLE.
@@ -308,9 +308,11 @@ class CarpeTool(extraction_tool.ExtractionTool,
             #     raise errors.BadConfigObject('partition does not exist.\n')
 
         # print partition_list
-        print(f"The number of partition : {len(self._partition_list)}")
+        print(f"The number of partition : {len(self._partition_list)}", file=sys.stdout)
+        sys.stdout.flush()
         for key, value in self._partition_list.items():
-            print(f" - Partition ({configuration.source_path_specs[int(key[1:]) - 1].type_indicator}) \'{key}\' : \'{value}\'")
+            print(f" - Partition ({configuration.source_path_specs[int(key[1:]) - 1].type_indicator}) \'{key}\' : \'{value}\'", file=sys.stdout)
+            sys.stdout.flush()
         #print()  # for line feed
 
         if mode == 'Analyze' and not self.ignore:
@@ -503,7 +505,8 @@ class CarpeTool(extraction_tool.ExtractionTool,
         return return_dict
 
     def print_now_time(self, phrase=""):
-        print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + '] ' + phrase)
+        print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + '] ' + phrase, file=sys.stdout)
+        sys.stdout.flush()
 
     def update_process_state(self, state):
         self._cursor.execute_query(f"UPDATE evidence_info SET process_state={state} WHERE case_id like \'{self.case_id}\' and evd_id like \'{self.evidence_id}\';")
