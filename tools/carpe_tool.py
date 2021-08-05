@@ -269,9 +269,6 @@ class CarpeTool(extraction_tool.ExtractionTool,
             self._output_writer.Write('{0!s}\n'.format(exception))
             return False
 
-        # update process state
-        self.update_process_state(definitions.PROCESS_STATE_PROCESSING)
-
         # scan source
         scan_context = self.ScanSource(self._source_path)
         self._source_type = scan_context.source_type
@@ -293,6 +290,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         if self.rds_check:
             self.LoadReferenceDataSet()
+
+        # update process state
+        self.update_process_state(definitions.PROCESS_STATE_PROCESSING)
 
         self.print_now_time(f'Start {mode} Image')
         disk_info = []
@@ -343,7 +343,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
             # set advanced modules
             # parse advanced modules
-            if configuration.source_type == 'directory' or 'file':
+            if configuration.source_type == 'directory' or configuration.source_type == 'file':
                 pass
 
             else:
