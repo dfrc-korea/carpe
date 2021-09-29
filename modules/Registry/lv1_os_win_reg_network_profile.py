@@ -38,12 +38,12 @@ def NETWORKPROFILE(reg_software):
                 elif reg_subkey_value.name() == 'Description':
                     network_profile_list[network_profile_count].description = reg_subkey_value.data().replace('\x00','')
                 # 128bit... 어떻게 바꾸는지 확인 필요
-                '''
+
                 elif reg_subkey_value.name() == 'DateCreated':
                     network_profile_list[network_profile_count].datecreated = reg_subkey_value.data()
                 elif reg_subkey_value.name() == 'DateLastConnected':
                     network_profile_list[network_profile_count].datelstconnected = reg_subkey_value.data()
-                '''
+
             network_profile_count = network_profile_count + 1
 
         reg_key = reg_software.find_key(r"Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\Unmanaged")

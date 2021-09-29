@@ -799,14 +799,92 @@ class RegistryConnector(interface.ModuleConnector):
             if reg_software != '':
                 print(f'[{self.print_now_time()}] [MODULE] Registry - Network Profile')
                 insert_data = []
+
+                created_data_final = ''
+                last_connected_data_final = ''
+
                 for network in np.NETWORKPROFILE(reg_software):
-                    date_created = configuration.apply_time_zone(str(network.datecreated), knowledge_base.time_zone)
-                    date_lst_connected = configuration.apply_time_zone(str(network.datelstconnected),
-                                                                       knowledge_base.time_zone)
+                    if network.datecreated == '':
+                        continue
+                    network.datecreated_convert1 = network.datecreated.hex()
+
+                    date_created_splitdata = list(map(''.join, zip(*[iter(network.datecreated_convert1)] * 4)))
+
+                    for i in date_created_splitdata:
+                        data1 = int(i, 16)
+                        data2 = int.to_bytes(data1, byteorder='little', length=2)
+                        data3 = int.from_bytes(data2, byteorder='big')
+
+                        created_data_final += str(data3)
+
+
+                    network.date_lst_connected_convert = network.datelstconnected.hex()
+
+                    date_lst_connected_splitdata = list(map(''.join, zip(*[iter(network.date_lst_connected_convert)] * 4)))
+
+                    for i in date_lst_connected_splitdata:
+                        data4 = int(i, 16)
+                        data5 = int.to_bytes(data4, byteorder='little', length=2)
+                        data6 = int.from_bytes(data5, byteorder='big')
+
+                        last_connected_data_final += str(data6)
+
+
+                    created_year = created_data_final[0:4]
+
+                    created_month = created_data_final[4:5]
+
+                    created_day = created_data_final[6:8]
+
+                    created_hour = created_data_final[8:10]
+
+                    created_min = created_data_final[10:12]
+
+                    created_sec = created_data_final[12:14]
+                    created_msec = created_data_final[14:17] + '000'
+
+
+                    created_date_list = []
+
+                    created_date_list.append('{y}-{m}-{d} {H}:{M}:{S}.{MS}'.format(y=created_year, m=created_month, d=created_day, H=created_hour, M=created_min, S=created_sec, MS=created_msec))
+
+                    created_date_final = "".join(map(str, created_date_list))
+
+                    # created_date_time = created_date_final.replace(' ', 'T') + 'Z' , configuration.apply_time_zone(created_date_final, knowledge_base.time_zone)
+                    created_date_time = configuration.apply_time_zone(created_date_final, knowledge_base.time_zone)
+
+
+                    lastcon_year = last_connected_data_final[0:4]
+
+                    lastcon_month = last_connected_data_final[4:5]
+
+                    lastcon_day = last_connected_data_final[6:8]
+
+                    lastcon_hour = last_connected_data_final[8:10]
+
+                    lastcon_min = last_connected_data_final[10:12]
+
+                    lastcon_sec = last_connected_data_final[12:14]
+                    lastcon_msec = last_connected_data_final[14:17] + '000'
+                    # print('case = ',last_connected_data_final[0:19])
+
+
+                    date_lst_connected_list = []
+                    date_lst_connected_list.append('{y}-{m}-{d} {H}:{M}:{S}.{MS}'.format(y=lastcon_year, m=lastcon_month, d=lastcon_day, H=lastcon_hour, M=lastcon_min, S=lastcon_sec, MS=lastcon_msec))
+                    date_lst_connected_final = "".join(map(str, date_lst_connected_list))
+
+
+
+
+                    # date_lst_connected_time = date_lst_connected_final.replace(' ', 'T') + 'Z' , configuration.apply_time_zone(date_lst_connected_final, knowledge_base.time_zone)
+                    date_lst_connected_time = configuration.apply_time_zone(date_lst_connected_final, knowledge_base.time_zone)
+
+
+
                     insert_data.append(
                         tuple([par_id, configuration.case_id, configuration.evidence_id, str(network.profile_name),
                                str(network.profile_guid), str(network.description),
-                               date_created, date_lst_connected, str(network.dns),
+                               str(created_date_time), str(date_lst_connected_time), str(network.dns),
                                str(network.default_gateway_mac), backup_flag, ', '.join(network.source_location)]))
                 query = "Insert into lv1_os_win_reg_network_profile values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
                 if len(insert_data) > 0:
