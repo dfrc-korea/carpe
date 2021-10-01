@@ -9,50 +9,51 @@ import datetime
 from collections import namedtuple
 from .Attributes import DecodeFiletime
 
-VSP_DIFF_AREA_FILE_GUID = b'\x6B\x87\x08\x38\x76\xC1\x48\x4E\xB7\xAE\x04\x04\x6E\x6C\xC7\x52' # As raw bytes.
+VSP_DIFF_AREA_FILE_GUID = b'\x6B\x87\x08\x38\x76\xC1\x48\x4E\xB7\xAE\x04\x04\x6E\x6C\xC7\x52'  # As raw bytes.
 
 # Shadow block types:
-SHADOW_BLOCK_TYPE_UNKNOWN_NAME_1 = 1 # A start block.
-SHADOW_BLOCK_TYPE_UNKNOWN_NAME_2 = 2 # A control block.
-SHADOW_BLOCK_TYPE_UNKNOWN_NAME_3 = 3 # A diff area table block.
-SHADOW_BLOCK_TYPE_UNKNOWN_NAME_4 = 4 # An application information block.
-SHADOW_BLOCK_TYPE_UNKNOWN_NAME_5 = 5 # A location description block.
-SHADOW_BLOCK_TYPE_UNKNOWN_NAME_6 = 6 # A bitmap block.
+SHADOW_BLOCK_TYPE_UNKNOWN_NAME_1 = 1  # A start block.
+SHADOW_BLOCK_TYPE_UNKNOWN_NAME_2 = 2  # A control block.
+SHADOW_BLOCK_TYPE_UNKNOWN_NAME_3 = 3  # A diff area table block.
+SHADOW_BLOCK_TYPE_UNKNOWN_NAME_4 = 4  # An application information block.
+SHADOW_BLOCK_TYPE_UNKNOWN_NAME_5 = 5  # A location description block.
+SHADOW_BLOCK_TYPE_UNKNOWN_NAME_6 = 6  # A bitmap block.
 
 # Protection flags:
-VSS_PROTECTION_FLAG_UNKNOWN_NAME_1 = 1 # The snapshot protection mode is enabled.
+VSS_PROTECTION_FLAG_UNKNOWN_NAME_1 = 1  # The snapshot protection mode is enabled.
 
 # Item types for a control block:
-CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_1 = 1 # An unused (free) item.
-CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_2 = 2 # A type 2 item.
-CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_3 = 3 # A type 3 item.
+CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_1 = 1  # An unused (free) item.
+CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_2 = 2  # A type 2 item.
+CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_3 = 3  # A type 3 item.
 
-CONTROL_BLOCK_ITEM_TYPES_SUPPORTED = [ CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_1, CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_2, CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_3 ]
+CONTROL_BLOCK_ITEM_TYPES_SUPPORTED = [CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_1, CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_2, CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_3]
 
 # Store flags:
-STORE_FLAG_UNKNOWN_NAME_1 = 0x1 # The revert bit.
-STORE_FLAG_UNKNOWN_2 = 0x2 # ???
-STORE_FLAG_UNKNOWN_4 = 0x4 # ???
-STORE_FLAG_UNKNOWN_20 = 0x20 # ???
-STORE_FLAG_UNKNOWN_NAME_40 = 0x40 # This snapshot is about to be written to a volume.
-STORE_FLAG_UNKNOWN_NAME_80 = 0x80 # The copy-on-write cache is enabled.
-STORE_FLAG_UNKNOWN_100 = 0x100 # This snapshot is offline (deleted).
-STORE_FLAG_UNKNOWN_200 = 0x200 # ???
-STORE_FLAG_UNKNOWN_NAME_400 = 0x400 # When unset, data blocks marked in the bitmap (unused blocks) point to original data (instead of being filled with null bytes).
+STORE_FLAG_UNKNOWN_NAME_1 = 0x1  # The revert bit.
+STORE_FLAG_UNKNOWN_2 = 0x2  # ???
+STORE_FLAG_UNKNOWN_4 = 0x4  # ???
+STORE_FLAG_UNKNOWN_20 = 0x20  # ???
+STORE_FLAG_UNKNOWN_NAME_40 = 0x40  # This snapshot is about to be written to a volume.
+STORE_FLAG_UNKNOWN_NAME_80 = 0x80  # The copy-on-write cache is enabled.
+STORE_FLAG_UNKNOWN_100 = 0x100  # This snapshot is offline (deleted).
+STORE_FLAG_UNKNOWN_200 = 0x200  # ???
+STORE_FLAG_UNKNOWN_NAME_400 = 0x400  # When unset, data blocks marked in the bitmap (unused blocks) point to original data (instead of being filled with null bytes).
 
 # Diff area table entry flags:
-DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_1 = 0x1 # This entry is a forwarder: the 'data_block_offset_in_store' field contains the offset to be resolved using the next store (the forward offset). This entry also affects a subsequent (not necessary the next one) regular entry (from the same store, if any) having its original volume offset equal to the forward offset: the original volume offset of such an entry is replaced with the original volume offset of the forwarder entry (this affects only one regular entry).
-DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_2 = 0x2 # This entry is an overlay: this entry has the allocation bitmap set to describe which 512-byte blocks are used in the data block, these 512-byte blocks take precedence over data blocks from entries with this flag unset; this entry should be ignored when a read request is redirected (from another store) to this store.
-DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_4 = 0x4 # This entry should be ignored.
-DIFF_AREA_TABLE_ENTRY_UNKNOWN_8 = 0x8 # A regular entry with an unknown flag.
-DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_10 = 0x10 # A regular entry: a used pre-copy.
-DIFF_AREA_TABLE_ENTRY_UNKNOWN_20 = 0x20 # A regular entry with an unknown flag.
-DIFF_AREA_TABLE_ENTRY_UNKNOWN_40 = 0x40 # A regular entry with an unknown flag.
-DIFF_AREA_TABLE_ENTRY_UNKNOWN_80 = 0x80 # A regular entry with an unknown flag.
+DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_1 = 0x1  # This entry is a forwarder: the 'data_block_offset_in_store' field contains the offset to be resolved using the next store (the forward offset). This entry also affects a subsequent (not necessary the next one) regular entry (from the same store, if any) having its original volume offset equal to the forward offset: the original volume offset of such an entry is replaced with the original volume offset of the forwarder entry (this affects only one regular entry).
+DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_2 = 0x2  # This entry is an overlay: this entry has the allocation bitmap set to describe which 512-byte blocks are used in the data block, these 512-byte blocks take precedence over data blocks from entries with this flag unset; this entry should be ignored when a read request is redirected (from another store) to this store.
+DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_4 = 0x4  # This entry should be ignored.
+DIFF_AREA_TABLE_ENTRY_UNKNOWN_8 = 0x8  # A regular entry with an unknown flag.
+DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_10 = 0x10  # A regular entry: a used pre-copy.
+DIFF_AREA_TABLE_ENTRY_UNKNOWN_20 = 0x20  # A regular entry with an unknown flag.
+DIFF_AREA_TABLE_ENTRY_UNKNOWN_40 = 0x40  # A regular entry with an unknown flag.
+DIFF_AREA_TABLE_ENTRY_UNKNOWN_80 = 0x80  # A regular entry with an unknown flag.
 
-ShadowCopyInformation = namedtuple('ShadowCopyInformation', [ 'stack_position', 'timestamp', 'store_guid', 'volume_size' ])
-LocationDescriptionItems = namedtuple('LocationDescriptionItems', [ 'volume_offset', 'store_offset', 'size' ])
-OnDiskTableEntry = namedtuple('OnDiskTableEntry', [ 'original_volume_offset', 'data_block_offset_in_store', 'data_block_volume_offset', 'flags', 'allocation_bitmap' ])
+ShadowCopyInformation = namedtuple('ShadowCopyInformation', ['stack_position', 'timestamp', 'store_guid', 'volume_size'])
+LocationDescriptionItems = namedtuple('LocationDescriptionItems', ['volume_offset', 'store_offset', 'size'])
+OnDiskTableEntry = namedtuple('OnDiskTableEntry', ['original_volume_offset', 'data_block_offset_in_store', 'data_block_volume_offset', 'flags', 'allocation_bitmap'])
+
 
 class ShadowCopyException(Exception):
 	"""This is a top-level exception for this module."""
@@ -63,6 +64,7 @@ class ShadowCopyException(Exception):
 	def __str__(self):
 		return repr(self._value)
 
+
 class InvalidVolume(Exception):
 	"""This is another top-level exception for this module: the volume is invalid (not supported)."""
 
@@ -72,35 +74,42 @@ class InvalidVolume(Exception):
 	def __str__(self):
 		return repr(self._value)
 
+
 class ShadowCopyNotFoundException(ShadowCopyException):
 	"""This exception is raised when a shadow copy is not found."""
 
 	pass
+
 
 class ShadowBlockException(ShadowCopyException):
 	"""This exception is raised when a shadow block is invalid."""
 
 	pass
 
+
 class StartBlockException(ShadowBlockException):
 	"""This exception is raised when a start block is invalid."""
 
 	pass
+
 
 class ShadowCopiesDisabledException(StartBlockException):
 	"""This exception is raised when shadow copies are disabled."""
 
 	pass
 
+
 class ControlBlockException(ShadowBlockException):
 	"""This exception is raised when a control block is invalid."""
 
 	pass
 
+
 class ControlBlockItemException(ControlBlockException):
 	"""This exception is raised when a control block item is invalid."""
 
 	pass
+
 
 class ShadowBlock(object):
 	"""This class is used to work with a shadow block."""
@@ -117,40 +126,41 @@ class ShadowBlock(object):
 	def get_diff_area_guid_raw(self):
 		"""Get and return the diff area GUID (as raw bytes)."""
 
-		return self.shadow_block_data[ : 16]
+		return self.shadow_block_data[:16]
 
 	def get_diff_area_guid(self):
 		""""Get, parse and return the diff area GUID."""
 
-		return uuid.UUID(bytes_le = self.get_diff_area_guid_raw())
+		return uuid.UUID(bytes_le=self.get_diff_area_guid_raw())
 
 	def get_version(self):
 		"""Get and return the version number for this shadow block."""
 
-		return struct.unpack('<L', self.shadow_block_data[16 : 20])[0]
+		return struct.unpack('<L', self.shadow_block_data[16:20])[0]
 
 	def get_type(self):
 		"""Get and return the type of this shadow block."""
 
-		return struct.unpack('<L', self.shadow_block_data[20 : 24])[0]
+		return struct.unpack('<L', self.shadow_block_data[20:24])[0]
 
 	def get_offset_1(self):
 		"""Get and return the first offset stored in this shadow block (its meaning depends on the type)."""
 
-		return struct.unpack('<Q', self.shadow_block_data[24 : 32])[0]
+		return struct.unpack('<Q', self.shadow_block_data[24:32])[0]
 
 	def get_offset_2(self):
 		"""Get and return the second offset stored in this shadow block (its meaning depends on the type)."""
 
-		return struct.unpack('<Q', self.shadow_block_data[32 : 40])[0]
+		return struct.unpack('<Q', self.shadow_block_data[32:40])[0]
 
 	def get_offset_3(self):
 		"""Get and return the third offset stored in this shadow block (its meaning depends on the type)."""
 
-		return struct.unpack('<Q', self.shadow_block_data[40 : 48])[0]
+		return struct.unpack('<Q', self.shadow_block_data[40:48])[0]
 
 	def __str__(self):
 		return 'ShadowBlock'
+
 
 class StartBlock(ShadowBlock):
 	"""This class is used to work with a start block."""
@@ -169,7 +179,7 @@ class StartBlock(ShadowBlock):
 		if not self.is_supported_volume():
 			raise InvalidVolume('No supported file system signature found')
 
-		super(StartBlock, self).__init__(self.volume_start_data[self.start_block_offset : ])
+		super(StartBlock, self).__init__(self.volume_start_data[self.start_block_offset:])
 
 		if self.get_offset_1() != self.start_block_offset:
 			raise StartBlockException('Invalid offset #1: {}'.format(self.get_offset_1()))
@@ -186,7 +196,7 @@ class StartBlock(ShadowBlock):
 	def get_first_control_block_offset(self):
 		"""Get and return the offset of the first control block (in bytes; it can be zero, if no control block is present)."""
 
-		offset = struct.unpack('<Q', self.volume_start_data[7728 : 7736])[0]
+		offset = struct.unpack('<Q', self.volume_start_data[7728:7736])[0]
 		if offset > 0 and offset % 0x4000 != 0:
 			raise StartBlockException('Invalid diff area offset: {}'.format(offset))
 
@@ -195,27 +205,27 @@ class StartBlock(ShadowBlock):
 	def get_max_diff_area_size(self):
 		"""Get and return the maximum diff area size (in bytes)."""
 
-		return struct.unpack('<Q', self.volume_start_data[7736 : 7744])[0]
+		return struct.unpack('<Q', self.volume_start_data[7736:7744])[0]
 
 	def get_volume_guid_raw(self):
 		"""Get and return the volume GUID (as raw bytes)."""
 
-		return self.volume_start_data[7744 : 7760]
+		return self.volume_start_data[7744:7760]
 
 	def get_volume_guid(self):
 		"""Get, parse and return the volume GUID."""
 
-		return uuid.UUID(bytes_le = self.get_volume_guid_raw())
+		return uuid.UUID(bytes_le=self.get_volume_guid_raw())
 
 	def get_storage_guid_raw(self):
 		"""Get and return the storage GUID (as raw bytes)."""
 
-		return self.volume_start_data[7760 : 7776]
+		return self.volume_start_data[7760:7776]
 
 	def get_storage_guid(self):
 		"""Get, parse and return the storage GUID."""
 
-		return uuid.UUID(bytes_le = self.get_storage_guid_raw())
+		return uuid.UUID(bytes_le=self.get_storage_guid_raw())
 
 	def is_storage_local(self):
 		"""Check if the storage area is on the same volume."""
@@ -225,36 +235,37 @@ class StartBlock(ShadowBlock):
 	def get_application_flags(self):
 		"""Get and return application flags (as an integer)."""
 
-		return struct.unpack('<Q', self.volume_start_data[7776 : 7784])[0]
+		return struct.unpack('<Q', self.volume_start_data[7776:7784])[0]
 
 	def get_free_space_precopy_percentage(self):
 		"""Get and return the percentage for free space precopy."""
 
-		return struct.unpack('<Q', self.volume_start_data[7784 : 7792])[0]
+		return struct.unpack('<Q', self.volume_start_data[7784:7792])[0]
 
 	def get_hot_blocks_precopy_percentage(self):
 		"""Get and return the percentage for hot blocks precopy."""
 
-		return struct.unpack('<Q', self.volume_start_data[7792 : 7800])[0]
+		return struct.unpack('<Q', self.volume_start_data[7792:7800])[0]
 
 	def get_hot_blocks_days(self):
 		"""Get and return the hot blocks days."""
 
-		return struct.unpack('<L', self.volume_start_data[7800 : 7804])[0]
+		return struct.unpack('<L', self.volume_start_data[7800:7804])[0]
 
 	def get_protection_flags(self):
 		"""Get and return protection flags (as an integer)."""
 
-		return struct.unpack('<L', self.volume_start_data[7804 : 7808])[0]
+		return struct.unpack('<L', self.volume_start_data[7804:7808])[0]
 
 	def is_supported_volume(self):
 		"""Check if the volume contains a supported file system signature (NTFS, ReFS)."""
 
-		signature = self.volume_start_data[3 : 7]
-		return signature in [ b'NTFS', b'ReFS' ] # This is a relaxed check.
+		signature = self.volume_start_data[3:7]
+		return signature in [b'NTFS', b'ReFS']  # This is a relaxed check.
 
 	def __str__(self):
 		return 'StartBlock'
+
 
 class ControlBlock(ShadowBlock):
 	"""This class is used to work with a control block."""
@@ -292,19 +303,19 @@ class ControlBlock(ShadowBlock):
 
 		offset = 0x80
 		while offset < 0x4000:
-			item_type_raw = self.shadow_block_data[offset : offset + 4]
+			item_type_raw = self.shadow_block_data[offset:offset + 4]
 			if len(item_type_raw) != 4:
 				break
 
 			item_type = struct.unpack('<L', item_type_raw)[0]
-			if item_type == 0: # No more entries.
+			if item_type == 0:  # No more entries.
 				break
 
 			if item_type not in CONTROL_BLOCK_ITEM_TYPES_SUPPORTED:
 				raise ControlBlockException('Invalid item type: {}'.format(item_type))
 
 			if item_type != CONTROL_BLOCK_ITEM_TYPE_UNKNOWN_NAME_1:
-				item_raw = self.shadow_block_data[offset : offset + 0x80]
+				item_raw = self.shadow_block_data[offset:offset + 0x80]
 				if len(item_raw) != 0x80:
 					raise ControlBlockException('Truncated control block item')
 
@@ -317,6 +328,7 @@ class ControlBlock(ShadowBlock):
 
 	def __str__(self):
 		return 'ControlBlock'
+
 
 class ControlBlockItem2(object):
 	"""This class is used to work with a control block item (type 2)."""
@@ -339,49 +351,50 @@ class ControlBlockItem2(object):
 	def get_item_type(self):
 		"""Get and return the item type."""
 
-		return struct.unpack('<L', self.item_raw[0 : 4])[0]
+		return struct.unpack('<L', self.item_raw[0:4])[0]
 
 	def get_snapshot_priority(self):
 		"""Get and return the snapshot priority."""
 
-		return struct.unpack('B', self.item_raw[4 : 5])[0]
+		return struct.unpack('B', self.item_raw[4:5])[0]
 
 	def get_volume_size(self):
 		"""Get and return the volume size (in bytes)."""
 
-		return struct.unpack('<Q', self.item_raw[8 : 16])[0]
+		return struct.unpack('<Q', self.item_raw[8:16])[0]
 
 	def get_store_guid_raw(self):
 		"""Get and return the store GUID (as raw bytes)."""
 
-		return self.item_raw[16 : 32]
+		return self.item_raw[16:32]
 
 	def get_store_guid(self):
 		"""Get and return the store GUID."""
 
-		return uuid.UUID(bytes_le = self.get_store_guid_raw())
+		return uuid.UUID(bytes_le=self.get_store_guid_raw())
 
 	def get_flags(self):
 		"""Get and return store flags (as an integer)."""
 
-		return struct.unpack('<Q', self.item_raw[40 : 48])[0]
+		return struct.unpack('<Q', self.item_raw[40:48])[0]
 
 	def get_timestamp(self):
 		"""Get and return the commit timestamp."""
 
-		timestamp = struct.unpack('<Q', self.item_raw[48 : 56])[0]
+		timestamp = struct.unpack('<Q', self.item_raw[48:56])[0]
 		return DecodeFiletime(timestamp)
 
 	def get_stack_position(self):
 		"""Get and return the stack position of this store."""
 
-		return struct.unpack('<Q', self.item_raw[32 : 40])[0]
+		return struct.unpack('<Q', self.item_raw[32:40])[0]
 
 	def get_unknown_56(self):
-		return struct.unpack('<H', self.item_raw[56 : 58])[0] # ???
+		return struct.unpack('<H', self.item_raw[56:58])[0]  # ???
 
 	def __str__(self):
 		return 'ControlBlockItem2, store GUID: {}, volume size: {}'.format(self.get_store_guid(), self.get_volume_size())
+
 
 class ControlBlockItem3(object):
 	"""This class is used to work with a control block item (type 3)."""
@@ -401,58 +414,59 @@ class ControlBlockItem3(object):
 	def get_item_type(self):
 		"""Get and return the item type."""
 
-		return struct.unpack('<L', self.item_raw[0 : 4])[0]
+		return struct.unpack('<L', self.item_raw[0:4])[0]
 
 	def get_diff_area_block_offset(self):
 		"""Get and return the diff area block offset (in bytes)."""
 
-		return struct.unpack('<Q', self.item_raw[8 : 16])[0]
+		return struct.unpack('<Q', self.item_raw[8:16])[0]
 
 	def get_store_guid_raw(self):
 		"""Get and return the store GUID (as raw bytes)."""
 
-		return self.item_raw[16 : 32]
+		return self.item_raw[16:32]
 
 	def get_store_guid(self):
 		"""Get and return the store GUID."""
 
-		return uuid.UUID(bytes_le = self.get_store_guid_raw())
+		return uuid.UUID(bytes_le=self.get_store_guid_raw())
 
 	def get_application_information_block_offset(self):
 		"""Get and return the application information block offset (in bytes)."""
 
-		return struct.unpack('<Q', self.item_raw[32 : 40])[0]
+		return struct.unpack('<Q', self.item_raw[32:40])[0]
 
 	def get_location_description_block_offset(self):
 		"""Get and return the location description block offset (in bytes)."""
 
-		return struct.unpack('<Q', self.item_raw[40 : 48])[0]
+		return struct.unpack('<Q', self.item_raw[40:48])[0]
 
 	def get_bitmap_offset(self):
 		"""Get and return the bitmap offset (in bytes)."""
 
-		return struct.unpack('<Q', self.item_raw[48 : 56])[0]
+		return struct.unpack('<Q', self.item_raw[48:56])[0]
 
 	def get_file_reference(self):
 		"""Get and return the file reference (of the diff area allocation file)."""
 
-		return struct.unpack('<Q', self.item_raw[56 : 64])[0]
+		return struct.unpack('<Q', self.item_raw[56:64])[0]
 
 	def get_allocation_size(self):
 		"""Get and return the allocation size (in bytes) of the diff area."""
 
-		return struct.unpack('<Q', self.item_raw[64 : 72])[0]
+		return struct.unpack('<Q', self.item_raw[64:72])[0]
 
 	def get_previous_bitmap_offset(self):
 		"""Get and return the the previous bitmap offset (in bytes)."""
 
-		return struct.unpack('<Q', self.item_raw[72 : 80])[0]
+		return struct.unpack('<Q', self.item_raw[72:80])[0]
 
 	def get_unknown_80(self):
-		return struct.unpack('<L', self.item_raw[80 : 84])[0] # ???
+		return struct.unpack('<L', self.item_raw[80:84])[0]  # ???
 
 	def __str__(self):
 		return 'ControlBlockItem3, store GUID: {}'.format(self.get_store_guid())
+
 
 class ApplicationInformation(ShadowBlock):
 	"""This class is used to work with an application information block."""
@@ -473,7 +487,7 @@ class ApplicationInformation(ShadowBlock):
 	def get_application_information(self):
 		"""Get and return application information (as raw bytes)."""
 
-		return self.shadow_block_data[0x80 : ]
+		return self.shadow_block_data[0x80:]
 
 	def get_volume_offset(self):
 		"""Get and return the volume offset (in bytes) of this block."""
@@ -482,6 +496,7 @@ class ApplicationInformation(ShadowBlock):
 
 	def __str__(self):
 		return 'ApplicationInformation'
+
 
 class Bitmap(ShadowBlock):
 	"""This class is used to work with a bitmap block."""
@@ -502,7 +517,7 @@ class Bitmap(ShadowBlock):
 	def get_bitmap(self):
 		"""Get and return a bitmap chunk (as raw bytes)."""
 
-		return self.shadow_block_data[0x80 : ]
+		return self.shadow_block_data[0x80:]
 
 	def get_volume_offset(self):
 		"""Get and return the volume offset (in bytes) of this block."""
@@ -516,6 +531,7 @@ class Bitmap(ShadowBlock):
 
 	def __str__(self):
 		return 'Bitmap'
+
 
 class DiffAreaTable(ShadowBlock):
 	"""This class is used to work with a diff area table block."""
@@ -540,7 +556,7 @@ class DiffAreaTable(ShadowBlock):
 
 		curr_offset = 0x80
 		while curr_offset + 32 <= len(self.shadow_block_data):
-			buf = self.shadow_block_data[curr_offset : curr_offset + 32]
+			buf = self.shadow_block_data[curr_offset:curr_offset + 32]
 			original_volume_offset, data_block_offset_in_store, data_block_volume_offset, flags, allocation_bitmap = struct.unpack('<QQQLL', buf)
 
 			if original_volume_offset % 0x4000 != 0 or data_block_volume_offset % 0x4000 != 0 or flags & 0xFFFFFF00 != 0:
@@ -572,6 +588,7 @@ class DiffAreaTable(ShadowBlock):
 	def __str__(self):
 		return 'DiffAreaTable'
 
+
 class LocationDescription(ShadowBlock):
 	"""This class is used to work with a location description block."""
 
@@ -595,7 +612,7 @@ class LocationDescription(ShadowBlock):
 
 		curr_offset = 0x80
 		while curr_offset + 24 <= len(self.shadow_block_data):
-			buf = self.shadow_block_data[curr_offset : curr_offset + 24]
+			buf = self.shadow_block_data[curr_offset:curr_offset + 24]
 			volume_offset, store_offset, size = struct.unpack('<QQQ', buf)
 			if volume_offset == 0:
 				break
@@ -621,6 +638,7 @@ class LocationDescription(ShadowBlock):
 
 	def __str__(self):
 		return 'LocationDescription'
+
 
 class ShadowParser(object):
 	"""This class is used to work with shadow copies stored on a volume. This class is used to provide a file-like object for a selected virtual volume."""
@@ -676,7 +694,7 @@ class ShadowParser(object):
 	current_offset = None
 	"""A current offset in an image file."""
 
-	def __init__(self, volume_object, volume_offset = 0, volume_size = None):
+	def __init__(self, volume_object, volume_offset=0, volume_size=None):
 		"""Create a ShadowParser object from a file object for a volume.
 		The 'volume_offset' argument can be used to specify the volume offset (in bytes).
 		The 'volume_size' argument can used used to specify the volume size (in bytes).
@@ -693,7 +711,7 @@ class ShadowParser(object):
 
 		try:
 			self.start_block = StartBlock(start_block_buf)
-		except ShadowCopyException: # Raise this as another exception.
+		except ShadowCopyException:  # Raise this as another exception.
 			raise ShadowCopiesDisabledException('Shadow copies are disabled on this volume')
 
 		if not self.start_block.is_storage_local():
@@ -806,11 +824,11 @@ class ShadowParser(object):
 		bitmap_chunks = []
 
 		volume_size = self.current_cbi2.get_volume_size()
-		if volume_size % 0x4000 != 0: # Keep this value aligned.
+		if volume_size % 0x4000 != 0:  # Keep this value aligned.
 			volume_size = volume_size + 0x4000 - volume_size % 0x4000
 
 		bits_count = volume_size // 0x4000
-		if bits_count % 8 != 0: # Keep this value aligned.
+		if bits_count % 8 != 0:  # Keep this value aligned.
 			bits_count = bits_count + 8 - bits_count % 8
 
 		bytes_count = bits_count // 8
@@ -829,7 +847,7 @@ class ShadowParser(object):
 
 			curr_offset = bitmap_block.get_next_volume_offset()
 
-		return b''.join(bitmap_chunks)[ : bytes_count]
+		return b''.join(bitmap_chunks)[:bytes_count]
 
 	def read_previous_bitmap(self):
 		"""Read and return the previous bitmap (as raw bytes)."""
@@ -837,11 +855,11 @@ class ShadowParser(object):
 		bitmap_chunks = []
 
 		volume_size = self.current_cbi2.get_volume_size()
-		if volume_size % 0x4000 != 0: # Keep this value aligned.
+		if volume_size % 0x4000 != 0:  # Keep this value aligned.
 			volume_size = volume_size + 0x4000 - volume_size % 0x4000
 
 		bits_count = volume_size // 0x4000
-		if bits_count % 8 != 0: # Keep this value aligned.
+		if bits_count % 8 != 0:  # Keep this value aligned.
 			bits_count = bits_count + 8 - bits_count % 8
 
 		bytes_count = bits_count // 8
@@ -860,7 +878,7 @@ class ShadowParser(object):
 
 			curr_offset = bitmap_block.get_next_volume_offset()
 
-		return b''.join(bitmap_chunks)[ : bytes_count]
+		return b''.join(bitmap_chunks)[:bytes_count]
 
 	def read_location_description_items(self):
 		"""Read, parse and return the location description items (as a list of LocationDescriptionItems objects)."""
@@ -917,7 +935,7 @@ class ShadowParser(object):
 
 			curr_items = diff_area_block_buf.get_diff_area()
 			for curr_item in curr_items:
-				if curr_item.original_volume_offset in forward_context.keys() and curr_item.flags & DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_2 == 0: # Replace the original volume offset.
+				if curr_item.original_volume_offset in forward_context.keys() and curr_item.flags & DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_2 == 0:  # Replace the original volume offset.
 					new_volume_offset = forward_context[curr_item.original_volume_offset]
 					old_volume_offset = curr_item.original_volume_offset
 
@@ -925,9 +943,9 @@ class ShadowParser(object):
 					del forward_context[old_volume_offset]
 
 				if curr_item.flags & DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_1 > 0:
-					if curr_item.original_volume_offset != curr_item.data_block_offset_in_store: # Expand the forward context.
+					if curr_item.original_volume_offset != curr_item.data_block_offset_in_store:  # Expand the forward context.
 						forward_context[curr_item.data_block_offset_in_store] = curr_item.original_volume_offset
-					else: # Delete the regular entry.
+					else:  # Delete the regular entry.
 						for item_to_delete in items[:]:
 							if item_to_delete.flags & (DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_1 | DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_2) != 0:
 								continue
@@ -939,11 +957,11 @@ class ShadowParser(object):
 
 			curr_offset = diff_area_block_buf.get_next_volume_offset()
 
-		items.sort(key = lambda x: x.original_volume_offset) # This sorting operation must be stable.
+		items.sort(key=lambda x: x.original_volume_offset)  # This sorting operation must be stable.
 
 		return items
 
-	def check_bitmap(self, offset, check_previous_bitmap = True):
+	def check_bitmap(self, offset, check_previous_bitmap=True):
 		"""Check if a given offset is set in the bitmap (in the current one and in the previous one, if requested), return True if it is."""
 
 		bit_pos = offset // 0x4000
@@ -968,7 +986,7 @@ class ShadowParser(object):
 		else:
 			return False
 
-	def translate_exact_offset(self, offset, ignore_overlay_entries = False, do_forward_lookup = False):
+	def translate_exact_offset(self, offset, ignore_overlay_entries=False, do_forward_lookup=False):
 		"""Translate a given aligned volume offset of a data block to a list of offsets describing the same data block in a shadow copy, this list is then returned.
 		The list is empty if a given volume offset is not found. Each offset in the list points to a 512-byte block. The offset can be None for a 512-byte block filled with null bytes.
 		If the 'ignore_overlay_entries' argument is True, ignore data from overlays (used internally when switching to the next store from the current one).
@@ -977,14 +995,14 @@ class ShadowParser(object):
 
 		def lookup_in_next_store(offset, do_forward_lookup):
 			if self.current_next_parser is None:
-				if not self.check_bitmap(offset): # Return the original offsets of data blocks.
+				if not self.check_bitmap(offset):  # Return the original offsets of data blocks.
 					offsets = []
 
 					for i in range(0, 32):
 						offsets.append(offset + i * 512)
-				elif self.return_null_blocks and not do_forward_lookup: # Return the dummy offsets.
-					offsets = [ None ] * 32
-				else: # Return the original offsets of data blocks.
+				elif self.return_null_blocks and not do_forward_lookup:  # Return the dummy offsets.
+					offsets = [None] * 32
+				else:  # Return the original offsets of data blocks.
 					offsets = []
 
 					for i in range(0, 32):
@@ -997,7 +1015,7 @@ class ShadowParser(object):
 		def can_switch_to_next_store(offset):
 			next_parser = self.current_next_parser
 			if next_parser is None:
-				return 2 # Switch to the original volume (there is no next store).
+				return 2  # Switch to the original volume (there is no next store).
 
 			while next_parser is not None:
 				if offset in next_parser.current_diff_area_index.keys():
@@ -1013,13 +1031,13 @@ class ShadowParser(object):
 							break
 
 						if table_entry.flags & DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_2 == 0:
-							return 1 # Switch to the next store.
+							return 1  # Switch to the next store.
 
 						pos += 1
 
 				next_parser = next_parser.current_next_parser
 
-			return 0 # No switch to the next store.
+			return 0  # No switch to the next store.
 
 		if offset % 0x4000 != 0:
 			raise ValueError('Invalid offset: {}'.format(offset))
@@ -1043,7 +1061,7 @@ class ShadowParser(object):
 		switch_mode = can_switch_to_next_store(offset)
 		bitmap_check_result = self.check_bitmap(offset)
 
-		if offset in self.current_diff_area_index.keys(): # The offset was found.
+		if offset in self.current_diff_area_index.keys():  # The offset was found.
 			pos = self.current_diff_area_index[offset]
 
 			cumulative_allocation_bitmap = 0
@@ -1061,66 +1079,64 @@ class ShadowParser(object):
 
 				new_offset = table_entry.data_block_volume_offset
 
-				if table_entry.flags & DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_1 > 0: # Save the forward offset (if valid), it is used later (a forwarder entry).
+				if table_entry.flags & DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_1 > 0:  # Save the forward offset (if valid), it is used later (a forwarder entry).
 					if table_entry.original_volume_offset != table_entry.data_block_offset_in_store:
 						forwarder_entry_found = True
 						forward_offset = table_entry.data_block_offset_in_store
 						continue
 
-				if table_entry.flags & DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_2 > 0: # The data block is used partially (an overlay entry).
+				if table_entry.flags & DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_2 > 0:  # The data block is used partially (an overlay entry).
 					overlay_entry_found = True
 
 					if not ignore_overlay_entries:
-						if len(new_offsets) == 0: # Fill the list with offsets.
-							if switch_mode == 1: # Use offsets from the next store.
+						if len(new_offsets) == 0:  # Fill the list with offsets.
+							if switch_mode == 1:  # Use offsets from the next store.
 								new_offsets = lookup_in_next_store(offset, False)
-							elif not bitmap_check_result: # Use the original offsets.
+							elif not bitmap_check_result:  # Use the original offsets.
 								for i in range(0, 32):
 									new_offsets.append(offset + i * 512)
 							else:
-								if self.return_null_blocks: # Use the dummy offsets.
-									new_offsets = [ None ] * 32
-								else: # Use the original offsets.
+								if self.return_null_blocks:  # Use the dummy offsets.
+									new_offsets = [None] * 32
+								else:  # Use the original offsets.
 									for i in range(0, 32):
 										new_offsets.append(offset + i * 512)
 
-						cumulative_allocation_bitmap |= table_entry.allocation_bitmap # Extend the cumulative allocation bitmap.
+						cumulative_allocation_bitmap |= table_entry.allocation_bitmap  # Extend the cumulative allocation bitmap.
 
 						for i in range(0, 32):
-							if (table_entry.allocation_bitmap >> i) & 1 > 0: # Overwrite an existing (used) 512-byte block.
+							if (table_entry.allocation_bitmap >> i) & 1 > 0:  # Overwrite an existing (used) 512-byte block.
 								new_offsets[i] = new_offset + i * 512
 
 					continue
 
-				if table_entry.flags & DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_2 == 0: # The entire data block is used (a regular entry).
+				if table_entry.flags & DIFF_AREA_TABLE_ENTRY_UNKNOWN_NAME_2 == 0:  # The entire data block is used (a regular entry).
 					regular_entry_found = True
 
-					if len(new_offsets) == 0: # Use the entire block.
+					if len(new_offsets) == 0:  # Use the entire block.
 						for i in range(0, 32):
 							new_offsets.append(new_offset + i * 512)
-					else: # Account for previously seen partially used data blocks (overlays).
+					else:  # Account for previously seen partially used data blocks (overlays).
 						for i in range(0, 32):
-							if (cumulative_allocation_bitmap >> i) & 1 == 0: # Overwrite an unused block.
+							if (cumulative_allocation_bitmap >> i) & 1 == 0:  # Overwrite an unused block.
 								new_offsets[i] = new_offset + i * 512
 
 		if forwarder_entry_found and not regular_entry_found:
-			if overlay_entry_found and not ignore_overlay_entries: # Offsets from the forward lookup should be used partially.
+			if overlay_entry_found and not ignore_overlay_entries:  # Offsets from the forward lookup should be used partially.
 				forward_offsets = lookup_in_next_store(forward_offset, True)
 				for i in range(0, 32):
-					if (cumulative_allocation_bitmap >> i) & 1 == 0: # Overwrite a block marked as unused.
+					if (cumulative_allocation_bitmap >> i) & 1 == 0:  # Overwrite a block marked as unused.
 						new_offsets[i] = forward_offsets[i]
-			else: # Offsets from the forward lookup should be used entirely.
+			else:  # Offsets from the forward lookup should be used entirely.
 				return lookup_in_next_store(forward_offset, True)
 
-		if (not regular_entry_found) and (not do_forward_lookup) and offset in self.current_possible_null_targets and \
-		 switch_mode == 0 and self.return_null_blocks: # This is a null target of a forwarder block.
-			return [ None ] * 32
+		if (not regular_entry_found) and (not do_forward_lookup) and offset in self.current_possible_null_targets and switch_mode == 0 and self.return_null_blocks:  # This is a null target of a forwarder block.
+			return [None] * 32
 
-		if (not forwarder_entry_found) and (not regular_entry_found) and (not overlay_entry_found) and \
-		 bitmap_check_result and switch_mode == 0 and self.return_null_blocks: # This is an unused block.
-			return [ None ] * 32
+		if (not forwarder_entry_found) and (not regular_entry_found) and (not overlay_entry_found) and bitmap_check_result and switch_mode == 0 and self.return_null_blocks:  # This is an unused block.
+			return [None] * 32
 
-		if len(new_offsets) == 0: # Switch to the next store (or to the original volume).
+		if len(new_offsets) == 0:  # Switch to the next store (or to the original volume).
 			return lookup_in_next_store(offset, False)
 
 		return new_offsets
@@ -1134,21 +1150,21 @@ class ShadowParser(object):
 
 		data = b''
 		for new_offset in new_offsets:
-			if new_offset is None: # An empty block.
+			if new_offset is None:  # An empty block.
 				data += b'\x00' * 512
 
-			else: # A block with data.
+			else:  # A block with data.
 				self.volume_object.seek(self.volume_offset + new_offset)
 				new_data = self.volume_object.read(512)
 
 				data += new_data
 
-				if len(new_data) != 512: # Truncated data.
+				if len(new_data) != 512:  # Truncated data.
 					break
 
 		return data
 
-	def seek(self, offset, whence = 0):
+	def seek(self, offset, whence=0):
 		"""The seek() method for a virtual volume."""
 
 		if not self.shadow_selected:
@@ -1170,7 +1186,7 @@ class ShadowParser(object):
 			raise ValueError('Invalid whence')
 
 		if self.current_offset < 0:
-			self.current_offset = old_offset # Restore the old offset.
+			self.current_offset = old_offset  # Restore the old offset.
 			raise ValueError('Negative seek value')
 
 		return self.current_offset
@@ -1183,7 +1199,7 @@ class ShadowParser(object):
 
 		return self.current_offset
 
-	def read(self, size = None):
+	def read(self, size=None):
 		"""The read() method for a virtual volume."""
 
 		if not self.shadow_selected:
@@ -1196,13 +1212,13 @@ class ShadowParser(object):
 		if size is None or size < 0:
 			size = volume_size - self.current_offset
 
-		if size <= 0 or self.current_offset >= volume_size: # Nothing to read.
+		if size <= 0 or self.current_offset >= volume_size:  # Nothing to read.
 			return b''
 
 		block_offset = self.current_offset // 0x4000 * 0x4000
 		offset_in_block = self.current_offset % 0x4000
 
-		data = self.read_at_exact_offset(block_offset)[offset_in_block : offset_in_block + size]
+		data = self.read_at_exact_offset(block_offset)[offset_in_block:offset_in_block + size]
 		self.current_offset += len(data)
 
 		bytes_left = size - len(data)
@@ -1213,7 +1229,7 @@ class ShadowParser(object):
 			block_offset = self.current_offset // 0x4000 * 0x4000
 			offset_in_block = self.current_offset % 0x4000
 
-			new_data = self.read_at_exact_offset(block_offset)[offset_in_block : offset_in_block + bytes_left]
+			new_data = self.read_at_exact_offset(block_offset)[offset_in_block:offset_in_block + bytes_left]
 			self.current_offset += len(new_data)
 
 			data += new_data

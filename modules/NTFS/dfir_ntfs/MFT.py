@@ -216,8 +216,8 @@ class FileRecordSegment(object):
 
     def parse_and_validate_multi_sector_header(self, validate_update_sequence_array_offset_and_size=True):
         """Parse and validate a multisector header, return the (usa_offset, usa_size) tuple, which describes an update sequence array (USA).
-		If a multisector header is invalid, an exception (FileRecordSegmentException) is raised.
-		"""
+        If a multisector header is invalid, an exception (FileRecordSegmentException) is raised.
+        """
 
         signature, usa_offset, usa_size = struct.unpack('<4sHH', self.frs_data[: 8])
         if signature not in MULTI_SECTOR_HEADER_SIGNATURES_SUPPORTED:
@@ -627,8 +627,8 @@ class SlackSpace(object):
 
     def carve(self):
         """This method yields possible attributes (as objects from the Attributes module) extracted from this slack space.
-		Only the $FILE_NAME attributes are supported.
-		"""
+        Only the $FILE_NAME attributes are supported.
+        """
 
         def validate_timestamp(timestamp):
             return self.timestamp_not_before <= timestamp <= self.timestamp_not_after
@@ -713,8 +713,8 @@ class FileRecord(object):
 
     def attributes(self, merge_attributes=False):
         """This method yields each attribute (AttributeRecordResident or AttributeRecordNonresident) of this file record.
-		If the 'merge_attributes' argument is True, split nonresident attributes are merged into a single AttributeRecordNonresident object.
-		"""
+        If the 'merge_attributes' argument is True, split nonresident attributes are merged into a single AttributeRecordNonresident object.
+        """
 
         if not merge_attributes:
             for attr in self.base_frs.attributes():
@@ -768,10 +768,10 @@ class FileRecord(object):
 
     def get_data_runs(self, data_attribute_name=None, use_index_allocation=False):
         """Get and return data runs for a given nonresident $DATA attribute (when set to None or when an empty string is given, use an unnamed $DATA attribute).
-		Data runs are a list of (offset in clusters, size in clusters) tuples. The offset item is set to None for sparse ranges.
-		If there is no nonresident $DATA attribute with a given name, None is returned.
-		If the 'use_index_allocation' argument is True, find data runs for a given $INDEX_ALLOCATION attribute instead.
-		"""
+        Data runs are a list of (offset in clusters, size in clusters) tuples. The offset item is set to None for sparse ranges.
+        If there is no nonresident $DATA attribute with a given name, None is returned.
+        If the 'use_index_allocation' argument is True, find data runs for a given $INDEX_ALLOCATION attribute instead.
+        """
 
         if data_attribute_name == '':
             data_attribute_name = None
@@ -969,9 +969,9 @@ class MasterFileTableParser(object):
     def get_file_record_by_number(self, base_file_record_segment_number, expected_sequence_number=None,
                                   allow_child_file_record_segment_number=True):
         """Get and return a file record (FileRecord) by its base file record segment (FRS) number.
-		If a child file record segment (FRS) number is given (instead of a base one) and the 'allow_child_file_record_segment_number' argument is True,
-		then a base file record segment (FRS) will be located (in the cache) and used instead.
-		"""
+        If a child file record segment (FRS) number is given (instead of a base one) and the 'allow_child_file_record_segment_number' argument is True,
+        then a base file record segment (FRS) will be located (in the cache) and used instead.
+        """
 
         base_file_record_segment_offset = base_file_record_segment_number * self.file_record_segment_size
         if base_file_record_segment_offset > self.file_size:
@@ -1030,8 +1030,7 @@ class MasterFileTableParser(object):
 
                 for parent_reference in self.child_cache.keys():
                     if child_file_record_segment_number in self.child_cache[parent_reference]:
-                        base_file_record_segment_number, base_expected_sequence_number = DecodeFileRecordSegmentReference(
-                            parent_reference)
+                        base_file_record_segment_number, base_expected_sequence_number = DecodeFileRecordSegmentReference(parent_reference)
 
                         return self.get_file_record_by_number(base_file_record_segment_number,
                                                               base_expected_sequence_number, False)
@@ -1041,9 +1040,9 @@ class MasterFileTableParser(object):
 
     def get_file_record_by_path(self, path, case_sensitive=False):
         """Get and return a file record (FileRecord) by its file system path (or None, if not found).
-		A file system path must begin with the path separator ("/"), it must not contain reserved names ("." and ".."), it must not contain empty names (like here: "/dir//file").
-		Only allocated files and directories are supported.
-		"""
+        A file system path must begin with the path separator ("/"), it must not contain reserved names ("." and ".."), it must not contain empty names (like here: "/dir//file").
+        Only allocated files and directories are supported.
+        """
 
         def compare_name_against_file_record(name, file_record, case_sensitive):
             for attr in file_record.attributes():
@@ -1136,9 +1135,9 @@ class MasterFileTableParser(object):
 
     def build_full_paths(self, file_record, include_attributes=False):
         """Build and return a list of full paths (as strings) for a given file record (FileRecord).
-		If the 'include_attributes' argument is True, a list of (full path, $ FILE_NAME attribute value) tuples is returned.
-		Note: the root directory is returned as is ("/.").
-		"""
+        If the 'include_attributes' argument is True, a list of (full path, $ FILE_NAME attribute value) tuples is returned.
+        Note: the root directory is returned as is ("/.").
+        """
 
         def get_preferred_file_name(file_record):
             file_names = []
@@ -1367,7 +1366,7 @@ class FragmentedFile(object):
 
     def __init__(self, volume_object, volume_offset, cluster_size, data_runs, file_size):
         """Create a FragmentedFile object from a file object for a volume (related metadata should be given too).
-		The volume offset, the cluster size, the file size are in bytes."""
+        The volume offset, the cluster size, the file size are in bytes."""
 
         self.volume_object = volume_object
         self.volume_offset = volume_offset
@@ -1714,8 +1713,8 @@ class MetadataCarver(object):
 
                         # Build a named tuple and return it.
                         yield FCBTimestamps(possible_file_reference=possible_file_reference, mtime=mtime, atime=atime,
-                                            ctime=ctime, etime=etime, atime_real=atime_real, positions=(
-                                file_pos + fcb_pos, relative_pos_duplicated_information, relative_pos_atime_real))
+                                            ctime=ctime, etime=etime, atime_real=atime_real, positions=
+                                            (file_pos + fcb_pos, relative_pos_duplicated_information, relative_pos_atime_real))
 
                         fcb_pos += relative_pos_atime_real + 8  # Skip the current file control block and go ahead.
                         continue
