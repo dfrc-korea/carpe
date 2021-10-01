@@ -772,7 +772,7 @@ class StorageMediaTool(tools.CLITool):
             else:
                 par_id = 'p1' + str(uuid.uuid4()).replace('-', '')
             par_name = str(disk['vol_name'])
-            par_type = str(disk['type_indicator'])
+            par_type = str(disk['type_indicator']).replace('TSK_PARTITION', 'PARTITION')
             sector_size = str(disk['bytes_per_sector'])
             par_size = str(disk['length'])
             start_sector = str(disk['start_sector'])
