@@ -4,6 +4,7 @@ import pyesedb
 
 from . import logger
 
+
 class ESEDBParser(object):
     """ESE database Parser Interface."""
 
@@ -62,8 +63,7 @@ class ESEDBParser(object):
         """
         esedb_parser_name = esedb_parser_class.NAME.lower()
         if esedb_parser_name in cls._esedb_parser_classes:
-          raise KeyError('ESE database parser class already set for name: {0:s}.'.format(
-              esedb_parser_class.NAME))
+            raise KeyError('ESE database parser class already set for name: {0:s}.'.format(esedb_parser_class.NAME))
 
         cls._esedb_parser_classes[esedb_parser_name] = esedb_parser_class
 
@@ -121,7 +121,7 @@ class ESEDBParser(object):
         if record.is_long_value(value_entry):
             try:
                 long_value = record.get_value_data_as_long_value(value_entry)
-            except:
+            except Exception:
                 return record.get_value_data(value_entry)
 
         if record.is_multi_value(value_entry):

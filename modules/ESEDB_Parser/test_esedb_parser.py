@@ -7,10 +7,12 @@ from . import logger
 from . import esedb_parser
 from . import esedb_errors as errors
 
+
 def PrintUsage():
     pass
 
-#TODO: Argument Parser
+# TODO: Argument Parser
+
 
 if __name__ == '__main__':
     filepath = './samples/WebCacheV01.dat'

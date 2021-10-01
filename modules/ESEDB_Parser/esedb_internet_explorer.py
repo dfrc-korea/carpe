@@ -3,6 +3,7 @@
 from . import esedb_parser
 from . import logger
 
+
 class ESEDBInternetExplorerParser(esedb_parser.ESEDBParser):
     """ESD database - Internet Explorer Parser."""
 
