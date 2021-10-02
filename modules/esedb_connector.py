@@ -195,7 +195,7 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
                 for parser in esedb_parsers.values():
 
-                    if not parser.required_tables.issubset(table_names):
+                    if not parser.required_table.issubset(table_names):
                         continue
 
                     try:
@@ -203,7 +203,7 @@ class ESEDatabaseConnector(interface.ModuleConnector):
 
                         info = tuple([par_id, configuration.case_id, configuration.evidence_id])
                         # Internet Explorer
-                        if 'Containers' in parser.required_tables:
+                        if 'Containers' in parser.required_table:
                             # Internet Explorer History
                             if len(parser.GetHistoryRecords) > 0:
                                 history_schema = ['par_id', 'case_id', 'evd_id'] + list(parser.GetHistorySchema) \

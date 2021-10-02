@@ -8,7 +8,7 @@ from . import esedb_parser
 from . import esedb_errors as errors
 
 
-def PrintUsage():
+def printusage():
     pass
 
 # TODO: Argument Parser
@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
         for parser in esedb_parsers.values():
 
-            if not parser.required_tables.issubset(table_names):
+            if not parser.required_table.issubset(table_names):
                 continue
 
             try:
