@@ -77,7 +77,7 @@ class MappingPairsException(AttributeException):
     pass
 
 
-def DecodeFileRecordSegmentReference(ReferenceNumber):
+def decode_file_record_segment_reference(ReferenceNumber):
     """Decode a file record segment reference, return the (file_record_segment_number, sequence_number) tuple."""
 
     file_record_segment_number = ReferenceNumber & 0xFFFFFFFFFFFF
@@ -86,13 +86,13 @@ def DecodeFileRecordSegmentReference(ReferenceNumber):
     return (file_record_segment_number, sequence_number)
 
 
-def EncodeFileRecordSegmentReference(FileRecordSegmentNumber, SequenceNumber):
+def encode_file_record_segment_reference(FileRecordSegmentNumber, SequenceNumber):
     """Encode a file record segment reference and return it."""
 
     return (SequenceNumber << 48) | FileRecordSegmentNumber
 
 
-def ResolveAttributeType(TypeCode):
+def resolve_attribute_type(TypeCode):
     """Convert a type code of an attribute to a string."""
 
     if TypeCode in Attributes.AttributeTypes.keys():
@@ -107,7 +107,7 @@ def UnpackAttributeRecordPartialHeader(Buffer):
     return struct.unpack('<LLBBHHH', Buffer)
 
 
-def UnpackAttributeRecordRemainingHeaderResident(Buffer):
+def unpack_attribute_record_remaining_header_resident(Buffer):
     """Unpack the remaining 8 bytes of the attribute record header, return a tuple: (value_length, value_offset, resident_flags, reserved).
     Note: this is for resident attributes only.
     """
@@ -115,7 +115,7 @@ def UnpackAttributeRecordRemainingHeaderResident(Buffer):
     return struct.unpack('<LHBB', Buffer)
 
 
-def DecodeMappingPairs(MappingPairs):
+def decode_mapping_pairs(MappingPairs):
     """Decode mapping pairs, return a list of (offset, length) tuples.
     In these tuples, both items refer to clusters. Sparse ranges have the offset item set to None.
     """
@@ -452,7 +452,7 @@ class FileRecordSegment(object):
                 if len(attribute_record_remaining_header) != 8:
                     raise AttributeException('Unexpected end of the file record segment')
 
-                value_length, value_offset, resident_flags, reserved = UnpackAttributeRecordRemainingHeaderResident(
+                value_length, value_offset, resident_flags, reserved = unpack_attribute_record_remaining_header_resident(
                     attribute_record_remaining_header)
                 if value_offset < 8 or value_offset % 8 != 0:
                     raise AttributeException(
@@ -514,7 +514,7 @@ class AttributeRecordResident(object):
     def type_str(self):
         """Resolve a type code to a string and return it."""
 
-        return ResolveAttributeType(self.type_code)
+        return resolve_attribute_type(self.type_code)
 
     def value_decoded(self):
         """Return a decoded value (as an object from the Attributes module)."""
@@ -569,12 +569,12 @@ class AttributeRecordNonresident(object):
 
         if not is_merged_attribute_record:  # Decode data runs if this attribute record is not merged.
             self.mapping_pairs = mapping_pairs
-            self.data_runs = DecodeMappingPairs(self.mapping_pairs)
+            self.data_runs = decode_mapping_pairs(self.mapping_pairs)
 
     def type_str(self):
         """Resolve a type code to a string and return it."""
 
-        return ResolveAttributeType(self.type_code)
+        return resolve_attribute_type(self.type_code)
 
     def value_decoded(self, volume_object, volume_offset, cluster_size):
         """Return a decoded value (as an object from the Attributes module). A file object for a volume, a cluster size (in bytes), and a volume offset (in bytes) should be given."""
@@ -757,9 +757,9 @@ class FileRecord(object):
                     yield attr_base
                 else:
                     merged_highest_vcn = attr_extensions[-1].highest_vcn
-                    merged_data_runs = DecodeMappingPairs(attr_base.mapping_pairs)
+                    merged_data_runs = decode_mapping_pairs(attr_base.mapping_pairs)
                     for attr_extension in attr_extensions:
-                        merged_data_runs.extend(DecodeMappingPairs(attr_extension.mapping_pairs))
+                        merged_data_runs.extend(decode_mapping_pairs(attr_extension.mapping_pairs))
 
                     attr_merged = AttributeRecordNonresident(base_attr_type_code, base_attr_name, None, 0,
                                                              merged_highest_vcn, base_attr_file_size, True)
@@ -807,7 +807,7 @@ class FileRecord(object):
                 raise MappingPairsException(
                     'Unexpected lowest VCN, recorded: {}, calculated: {}'.format(attr.lowest_vcn, vcn_to_be_touched))
 
-            for curr_offset, curr_length in DecodeMappingPairs(attr.mapping_pairs):
+            for curr_offset, curr_length in decode_mapping_pairs(attr.mapping_pairs):
                 vcn_to_be_touched += curr_length
                 data_runs.append((curr_offset, curr_length))
 
@@ -998,7 +998,7 @@ class MasterFileTableParser(object):
                     'A sequence number is not equal to an expected sequence number: {} != {}'.format(sequence_number,
                                                                                                      expected_sequence_number))
 
-            reference = EncodeFileRecordSegmentReference(mft_number, sequence_number)
+            reference = encode_file_record_segment_reference(mft_number, sequence_number)
             if reference in self.child_cache.keys():
                 child_frs_list = []
                 for child_frs_number in self.child_cache[reference]:
@@ -1030,7 +1030,7 @@ class MasterFileTableParser(object):
 
                 for parent_reference in self.child_cache.keys():
                     if child_file_record_segment_number in self.child_cache[parent_reference]:
-                        base_file_record_segment_number, base_expected_sequence_number = DecodeFileRecordSegmentReference(parent_reference)
+                        base_file_record_segment_number, base_expected_sequence_number = decode_file_record_segment_reference(parent_reference)
 
                         return self.get_file_record_by_number(base_file_record_segment_number,
                                                               base_expected_sequence_number, False)
@@ -1107,7 +1107,7 @@ class MasterFileTableParser(object):
         for parent_directory, candidate_file_record in candidate_parent_directories:
             i = 0
             while True:
-                parent_directory_number, parent_directory_expected_sequence_number = DecodeFileRecordSegmentReference(
+                parent_directory_number, parent_directory_expected_sequence_number = decode_file_record_segment_reference(
                     parent_directory)
                 if parent_directory_number == FILE_NUMBER_ROOT:  # We are done.
                     if i == len(path_components):
@@ -1186,7 +1186,7 @@ class MasterFileTableParser(object):
         for attr_value_to_return in attr_file_names:
             path_components = [attr_value_to_return.get_file_name()]
             parent_reference = attr_value_to_return.get_parent_directory()
-            parent_segment_number, parent_sequence_number = DecodeFileRecordSegmentReference(parent_reference)
+            parent_segment_number, parent_sequence_number = decode_file_record_segment_reference(parent_reference)
 
             if parent_segment_number == FILE_NUMBER_ROOT:
                 path_components.append('')  # Add a root directory.
@@ -1216,7 +1216,7 @@ class MasterFileTableParser(object):
                     current_file_record = parent_file_record
                     while True:
                         file_name, parent_reference = get_preferred_file_name(current_file_record)
-                        parent_segment_number, parent_sequence_number = DecodeFileRecordSegmentReference(
+                        parent_segment_number, parent_sequence_number = decode_file_record_segment_reference(
                             parent_reference)
 
                         path_components.append(file_name)
@@ -1327,7 +1327,7 @@ class MasterFileTableParser(object):
                 # When a file record segment is allocated, the existing sequence number is used, if it is not equal to zero (if it is, then the sequence number is set to one).
                 # Some sources state something different from that.
 
-                reference = EncodeFileRecordSegmentReference(mft_number, sequence_number)
+                reference = encode_file_record_segment_reference(mft_number, sequence_number)
                 if reference in self.child_cache.keys():
                     child_frs_list = []
                     for child_frs_number in self.child_cache[reference]:
@@ -1545,14 +1545,14 @@ class FileSystemParser(FragmentedFile):
             if len(attr_list_entries) == 0:
                 raise MasterFileTableException('Invalid attribute list for the $MFT file (no $DATA attributes listed)')
 
-            if DecodeFileRecordSegmentReference(attr_list_entries[0].segment_reference)[0] != 0:
+            if decode_file_record_segment_reference(attr_list_entries[0].segment_reference)[0] != 0:
                 raise MasterFileTableException(
                     'Invalid attribute list for the $MFT file (the first $DATA attribute is invalid)')
 
             child_frs_list = []
             for attr_list_entry in attr_list_entries[
                                    1:]:  # Skip the first $DATA attribute (which is the first file record segment in the $MFT file).
-                curr_segment_number, curr_sequence_number = DecodeFileRecordSegmentReference(
+                curr_segment_number, curr_sequence_number = decode_file_record_segment_reference(
                     attr_list_entry.segment_reference)
 
                 curr_mft = MasterFileTableParser(self, False)
@@ -1671,10 +1671,10 @@ class MetadataCarver(object):
                         ctime, mtime, etime, atime = duplicated_information_timestamps
 
                         # Decode four timestamps found.
-                        ctime = Attributes.DecodeFiletime(ctime)
-                        mtime = Attributes.DecodeFiletime(mtime)
-                        etime = Attributes.DecodeFiletime(etime)
-                        atime = Attributes.DecodeFiletime(atime)
+                        ctime = Attributes.decode_filetime(ctime)
+                        mtime = Attributes.decode_filetime(mtime)
+                        etime = Attributes.decode_filetime(etime)
+                        atime = Attributes.decode_filetime(atime)
 
                         # Now, let's find the "real" (in-memory) last access timestamp.
 
@@ -1690,7 +1690,7 @@ class MetadataCarver(object):
                                 if atime_real >= self.filetime_min and atime_real <= self.filetime_max:
                                     found_atime_real = True
                                     relative_pos_atime_real = pos
-                                    atime_real = Attributes.DecodeFiletime(atime_real)  # Decode the timestamp.
+                                    atime_real = Attributes.decode_filetime(atime_real)  # Decode the timestamp.
                                     break
 
                                 pos += 2
@@ -1703,7 +1703,7 @@ class MetadataCarver(object):
                                 if atime_real >= self.filetime_min and atime_real <= self.filetime_max:
                                     found_atime_real = True
                                     relative_pos_atime_real = self.guessed_pos_atime_real
-                                    atime_real = Attributes.DecodeFiletime(atime_real)  # Decode the timestamp.
+                                    atime_real = Attributes.decode_filetime(atime_real)  # Decode the timestamp.
 
                     if found_duplicated_information and found_atime_real:
                         # Now, extact a possible file record segment reference.

@@ -7,7 +7,7 @@ import struct
 import uuid
 import datetime
 from collections import namedtuple
-from .Attributes import DecodeFiletime
+from .Attributes import decode_filetime
 
 VSP_DIFF_AREA_FILE_GUID = b'\x6B\x87\x08\x38\x76\xC1\x48\x4E\xB7\xAE\x04\x04\x6E\x6C\xC7\x52'  # As raw bytes.
 
@@ -382,7 +382,7 @@ class ControlBlockItem2(object):
 		"""Get and return the commit timestamp."""
 
 		timestamp = struct.unpack('<Q', self.item_raw[48:56])[0]
-		return DecodeFiletime(timestamp)
+		return decode_filetime(timestamp)
 
 	def get_stack_position(self):
 		"""Get and return the stack position of this store."""

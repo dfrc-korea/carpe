@@ -93,7 +93,7 @@ def mft_parse(info, mft_file, file_record, file_paths, time_zone):
     else:
         fr_directory = 'N'
 
-    fr_number = str(MFT.EncodeFileRecordSegmentReference(file_record.get_master_file_table_number(), file_record.get_sequence_number()))
+    fr_number = str(MFT.encode_file_record_segment_reference(file_record.get_master_file_table_number(), file_record.get_sequence_number()))
 
     if len(file_paths) > 0:
         for file_path, attr_file_name in file_paths:
@@ -161,7 +161,7 @@ def mft_parse(info, mft_file, file_record, file_paths, time_zone):
     for slack in file_record.slack():
         for attr_file_name in slack.carve():
             parent_directory_reference = attr_file_name.get_parent_directory()
-            parent_fr_number, parent_fr_sequence = MFT.DecodeFileRecordSegmentReference(
+            parent_fr_number, parent_fr_sequence = MFT.decode_file_record_segment_reference(
                 parent_directory_reference)
 
             try:

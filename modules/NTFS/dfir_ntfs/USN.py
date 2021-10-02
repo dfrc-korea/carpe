@@ -4,7 +4,7 @@
 # This module implements an interface to work with the update sequence number change journal.
 
 import struct
-from .Attributes import DecodeFiletime
+from .Attributes import decode_filetime
 
 # Codes for reasons:
 USN_REASON_BASIC_INFO_CHANGE = 0x00008000
@@ -71,7 +71,7 @@ SourceList = {
 }
 
 
-def ResolveReasonCodes(ReasonCodes):
+def resolve_reason_codes(ReasonCodes):
 	"""Resolve reason codes to a string."""
 
 	flags_left = ReasonCodes
@@ -88,7 +88,7 @@ def ResolveReasonCodes(ReasonCodes):
 	return ' | '.join(str_list)
 
 
-def ResolveSourceCodes(SourceCodes):
+def resolve_source_codes(SourceCodes):
 	"""Convert source codes to a string."""
 
 	flags_left = SourceCodes
@@ -105,7 +105,7 @@ def ResolveSourceCodes(SourceCodes):
 	return ' | '.join(str_list)
 
 
-def GetUsnRecord(update_sequence_number_record_buf):
+def get_usn_record(update_sequence_number_record_buf):
 	"""This function returns an update sequence number (USN) change journal record object (USN_RECORD_V2_OR_V3 or USN_RECORD_V4) for a given buffer."""
 
 	if len(update_sequence_number_record_buf) < 8:
@@ -211,7 +211,7 @@ class USN_RECORD_V2_OR_V3(object):
 		"""Get, decode and return the timestamp for this record."""
 
 		timestamp = struct.unpack('<Q', self.record_raw[32 + self.offset_increment:40 + self.offset_increment])[0]
-		return DecodeFiletime(timestamp)
+		return decode_filetime(timestamp)
 
 	def get_reason(self):
 		"""Get and return the reason code (as an integer)."""
@@ -410,7 +410,7 @@ class ChangeJournalParser(object):
 			buf = self.file_object.read(chunk_size)
 
 			try:
-				usn = GetUsnRecord(buf)
+				usn = get_usn_record(buf)
 			except (ValueError, NotImplementedError):
 				# An invalid (or missing) USN record.
 				pos += 8

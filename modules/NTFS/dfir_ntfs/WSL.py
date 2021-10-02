@@ -7,7 +7,7 @@ import struct
 import datetime
 
 
-def DecodeUnixtime(TimestampSeconds, TimestampNanoseconds):
+def decode_unixtime(TimestampSeconds, TimestampNanoseconds):
 	"""Decode the Unixtime timestamp and return the datetime object."""
 
 	return datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=TimestampSeconds) + datetime.timedelta(microseconds=TimestampNanoseconds / 1000)
@@ -116,7 +116,7 @@ class LXATTRB(object):
 		ns_a = struct.unpack('<L', self.value[20:24])[0]
 		s_a = struct.unpack('<Q', self.value[32:40])[0]
 
-		return DecodeUnixtime(s_a, ns_a)
+		return decode_unixtime(s_a, ns_a)
 
 	def get_mtime(self):
 		"""Get, decode and return the M (modified) timestamp."""
@@ -124,7 +124,7 @@ class LXATTRB(object):
 		ns_m = struct.unpack('<L', self.value[24:28])[0]
 		s_m = struct.unpack('<Q', self.value[40:48])[0]
 
-		return DecodeUnixtime(s_m, ns_m)
+		return decode_unixtime(s_m, ns_m)
 
 	def get_chtime(self):
 		"""Get, decode and return the CH (inode changed) timestamp."""
@@ -132,7 +132,7 @@ class LXATTRB(object):
 		ns_ch = struct.unpack('<L', self.value[28:32])[0]
 		s_ch = struct.unpack('<Q', self.value[48:56])[0]
 
-		return DecodeUnixtime(s_ch, ns_ch)
+		return decode_unixtime(s_ch, ns_ch)
 
 	def print_information(self):
 		"""Print all information in a human-readable form."""

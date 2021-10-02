@@ -121,7 +121,7 @@ MULTI_SECTOR_HEADER_SIGNATURE_INDEX = b'INDX'
 UPDATE_SEQUENCE_STRIDE_INDEX = 512
 
 
-def ResolveFileAttributes(FileAttributes):
+def resolve_file_attributes(FileAttributes):
 	"""Convert file attributes to a string. Only known file attributes are converted."""
 
 	str_list = []
@@ -132,7 +132,7 @@ def ResolveFileAttributes(FileAttributes):
 	return ' | '.join(str_list)
 
 
-def DecodeFiletime(Timestamp, DoNotRaise=True):
+def decode_filetime(Timestamp, DoNotRaise=True):
 	"""Decode the FILETIME timestamp and return the datetime object."""
 
 	try:
@@ -144,7 +144,7 @@ def DecodeFiletime(Timestamp, DoNotRaise=True):
 		return
 
 
-def DecodeGUIDTime(Timestamp, DoNotRaise=True):
+def decode_guid_time(Timestamp, DoNotRaise=True):
 	"""Decode the GUID timestamp and return the datetime object."""
 
 	try:
@@ -156,7 +156,7 @@ def DecodeGUIDTime(Timestamp, DoNotRaise=True):
 		return
 
 
-def VerifyAndUnprotectIndexSectors(Buffer):
+def verify_and_unprotect_index_sectors(Buffer):
 	"""Apply an update sequence array (USA) to multiple sectors (as a bytearray object), verify and return the resulting buffer. Only an index buffer can be used as input data.
 	If something is wrong with input data, return None.
 	"""
@@ -231,25 +231,25 @@ class StandardInformation(GenericAttribute):
 		"""Get, decode and return the C (file created) timestamp."""
 
 		timestamp_int = struct.unpack('<Q', self.value[0:8])[0]
-		return DecodeFiletime(timestamp_int)
+		return decode_filetime(timestamp_int)
 
 	def get_mtime(self):
 		"""Get, decode and return the M (file modified) timestamp."""
 
 		timestamp_int = struct.unpack('<Q', self.value[8:16])[0]
-		return DecodeFiletime(timestamp_int)
+		return decode_filetime(timestamp_int)
 
 	def get_etime(self):
 		"""Get, decode and return the E ($MFT entry modified) timestamp."""
 
 		timestamp_int = struct.unpack('<Q', self.value[16:24])[0]
-		return DecodeFiletime(timestamp_int)
+		return decode_filetime(timestamp_int)
 
 	def get_atime(self):
 		"""Get, decode and return the A (file last accessed) timestamp."""
 
 		timestamp_int = struct.unpack('<Q', self.value[24:32])[0]
-		return DecodeFiletime(timestamp_int)
+		return decode_filetime(timestamp_int)
 
 	def get_file_attributes(self):
 		"""Get and return the file attributes (as an integer)."""
@@ -343,28 +343,28 @@ class StandardInformationPartial(object):
 
 		if self.offset == 0 and len(self.value) >= 8:
 			timestamp_int = struct.unpack('<Q', self.value[0:8])[0]
-			return DecodeFiletime(timestamp_int)
+			return decode_filetime(timestamp_int)
 
 	def get_mtime(self):
 		"""Get, decode and return the M (file modified) timestamp."""
 
 		if self.offset <= 8 and len(self.value) >= 16:
 			timestamp_int = struct.unpack('<Q', self.value[8:16])[0]
-			return DecodeFiletime(timestamp_int)
+			return decode_filetime(timestamp_int)
 
 	def get_etime(self):
 		"""Get, decode and return the E ($MFT entry modified) timestamp."""
 
 		if self.offset <= 16 and len(self.value) >= 24:
 			timestamp_int = struct.unpack('<Q', self.value[16:24])[0]
-			return DecodeFiletime(timestamp_int)
+			return decode_filetime(timestamp_int)
 
 	def get_atime(self):
 		"""Get, decode and return the A (file last accessed) timestamp."""
 
 		if self.offset <= 24 and len(self.value) >= 32:
 			timestamp_int = struct.unpack('<Q', self.value[24:32])[0]
-			return DecodeFiletime(timestamp_int)
+			return decode_filetime(timestamp_int)
 
 
 class DuplicatedInformation(object):
@@ -377,25 +377,25 @@ class DuplicatedInformation(object):
 		"""Get, decode and return the C (file created) timestamp."""
 
 		timestamp_int = struct.unpack('<Q', self.value_di[0:8])[0]
-		return DecodeFiletime(timestamp_int)
+		return decode_filetime(timestamp_int)
 
 	def get_mtime(self):
 		"""Get, decode and return the M (file modified) timestamp."""
 
 		timestamp_int = struct.unpack('<Q', self.value_di[8:16])[0]
-		return DecodeFiletime(timestamp_int)
+		return decode_filetime(timestamp_int)
 
 	def get_etime(self):
 		"""Get, decode and return the E ($MFT entry modified) timestamp."""
 
 		timestamp_int = struct.unpack('<Q', self.value_di[16:24])[0]
-		return DecodeFiletime(timestamp_int)
+		return decode_filetime(timestamp_int)
 
 	def get_atime(self):
 		"""Get, decode and return the A (file last accessed) timestamp."""
 
 		timestamp_int = struct.unpack('<Q', self.value_di[24:32])[0]
-		return DecodeFiletime(timestamp_int)
+		return decode_filetime(timestamp_int)
 
 	def get_allocated_length(self):
 		"""Get and return the allocated length for this file."""
@@ -488,7 +488,7 @@ class ObjectID(GenericAttribute):
 
 		guid = self.get_object_id()
 		if guid is not None and guid.version == 1:
-			return DecodeGUIDTime(guid.time)
+			return decode_guid_time(guid.time)
 
 	def get_extra_data(self):
 		"""Get and return extra data (as raw bytes)."""
@@ -865,11 +865,12 @@ class IndexAllocation(GenericAttributeNonresident):
 			if usa_size - 1 >= 2:
 				index_buffer_size = (usa_size - 1) * UPDATE_SEQUENCE_STRIDE_INDEX
 
-				if index_buffer_size > 0 and index_buffer_size % 512 == 0 and index_buffer_size <= 240640:  # (512-40-2)*512=240640.
+				if index_buffer_size > 0 and index_buffer_size % 512 == 0 and index_buffer_size <= 240640:
+					# (512-40-2)*512=240640.
 					self.fragmented_file.seek(0)
 					index_buf = bytearray(self.fragmented_file.read(index_buffer_size))
 
-					if len(index_buf) != index_buffer_size or VerifyAndUnprotectIndexSectors(index_buf) is None:
+					if len(index_buf) != index_buffer_size or verify_and_unprotect_index_sectors(index_buf) is None:
 						# Something is wrong with the first index buffer.
 						self.index_buffer_size = None
 					else:
@@ -887,7 +888,7 @@ class IndexAllocation(GenericAttributeNonresident):
 				if len(index_buf_raw) != self.index_buffer_size:
 					break
 
-				index_buf = VerifyAndUnprotectIndexSectors(index_buf_raw)
+				index_buf = verify_and_unprotect_index_sectors(index_buf_raw)
 				if index_buf is not None:
 					yield IndexBuffer(index_buf)
 
