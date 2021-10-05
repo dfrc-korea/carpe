@@ -139,19 +139,107 @@ class JumpListConnector(interface.ModuleConnector):
             if not results:
                 os.remove(output_path + os.sep + file_name)
                 continue
+            
+            # sychoo
+            link_header = {
+                'sid': 'sId',
+                'entry_id': 'entryId',
+                'parent_id': 'parentId',
+                'header_size': 'headerSize',
+                'link_clsid': 'linkCLSID',
+                'link_flags': 'linkFlags',
+                'target_attributes': 'targetAttributes',
+                'target_creation_time': 'targetCreationTime',
+                'target_access_time': 'targetAccessTime',
+                'target_write_time': 'targetWriteTime',
+                'target_file_size': 'targetFileSize',
+                'icon_index': 'iconIndex',
+                'volume_name': 'volumeName',
+                'volume_type': 'volumeType',
+                'drive_serial_number': 'driveSerialNumber',
+                'base_path': 'basePath',
+                'arguments': 'argument',
+                'machine_id': 'machineId',
+                'mac_address': 'macAddress',
+                'etc': list()
+                }
 
             for idx, result in enumerate(results['LnkData']):
                 if idx == 0:
                     continue
-                insert_jumplist_custom_file.append([par_id, configuration.case_id, configuration.evidence_id,
-                                                    file_name, result[0], result[1], result[2], result[3], result[4]])
+                
+                # sychoo
+                link_header['sid'] = result[0]
+                link_header['entry_id'] = result[1]
+                link_header['parent_id'] = result[2]
+
+                if result[3] == "헤더 크기":
+                    link_header['header_size'] = result[4]
+                elif result[3] == "CLSID":
+                    link_header['link_clsid'] = result[4]
+                elif result[3] == "Link Flags":
+                    link_header['link_flags'] = result[4]
+                elif result[3] == "대상 파일 속성":
+                    link_header['target_attributes'] = result[4]
+                elif result[3] == "대상 파일 생성일":
+                    link_header['target_creation_time'] = result[4]
+                elif result[3] == "대상 파일 사용일":
+                    link_header['target_access_time'] = result[4]
+                elif result[3] == "대상 파일 수정일":
+                    link_header['target_write_time'] = result[4]
+                elif result[3] == "대상 파일 크기":
+                    link_header['target_file_size'] = result[4]
+                elif result[3] == "아이콘 인덱스":
+                    link_header['icon_index'] = result[4]
+                elif result[3] == "볼륨 이름":
+                    link_header['volume_name'] = result[4]
+                elif result[3] == "볼륨 종류":
+                    link_header['volume_type'] = result[4]
+                elif result[3] == "Drive Serial Number":
+                    link_header['drive_serial_number'] = result[4]
+                elif result[3] == "Base Path":
+                    link_header['base_path'] = result[4]
+                elif result[3] == "Arguments":
+                    link_header['arguments'] = result[4]
+                elif result[3] == "Machine Id":
+                    link_header['machine_id'] = result[4]
+                elif result[3] == "Mac Address":
+                    link_etc = ",".join(link_header['etc'])
+                    insert_jumplist_custom_file.append([par_id,
+                                                        configuration.case_id,
+                                                        configuration.evidence_id,
+                                                        file_name,
+                                                        link_header['sid'],
+                                                        link_header['entry_id'],
+                                                        link_header['parent_id'],
+                                                        link_header['header_size'],
+                                                        link_header['link_clsid'],
+                                                        link_header['link_flags'],
+                                                        link_header['target_attributes'],
+                                                        link_header['target_creation_time'],
+                                                        link_header['target_access_time'],
+                                                        link_header['target_write_time'],
+                                                        link_header['target_file_size'],
+                                                        link_header['icon_index'],
+                                                        link_header['volume_name'],
+                                                        link_header['volume_type'],
+                                                        link_header['drive_serial_number'],
+                                                        link_header['base_path'],
+                                                        link_header['arguments'],
+                                                        link_header['machine_id'],
+                                                        link_header['mac_address'],
+                                                        link_etc
+                                                        ])
+                else:
+                    etc_result = {result[3]: result[4]}
+                    link_header['etc'].append(str(etc_result))
 
             os.remove(output_path + os.sep + file_name)
 
         query = "Insert into lv1_os_win_jumplist_automatics values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_jumplist_automatic_file)
 
-        query = "Insert into lv1_os_win_jumplist_custom values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+        query = "Insert into lv1_os_win_jumplist_custom values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
         configuration.cursor.bulk_execute(query, insert_jumplist_custom_file)
 
 
