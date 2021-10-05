@@ -8,6 +8,8 @@ from modules.windows_jumplist.lib.yjDateTime import *
 from modules.windows_jumplist.LNKFileParser import TLNKFileParser
 from modules.windows_jumplist.lib import olefile     # https://pypi.org/project/olefile/
 from modules.windows_jumplist.lib.yjSQLite3 import TSQLite3
+from modules.windows_jumplist.lib.syFolderId import get_folder_name
+
 
 def exit(exit_code, msg = None):
   if debug_mode: exit_code = 0
