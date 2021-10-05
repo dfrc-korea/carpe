@@ -175,6 +175,9 @@ class TJumpListParser:
                         if not entry: break
                         try:
                             fileName = data.read(entry.length_of_unicode * 2).decode('utf-16')
+                            # sychoo
+                            if "knownfolder" in fileName:
+                              fileName = get_folder_name(fileName)
                             filePath = ExtractFilePath(fileName) if fileName.find('://') == -1 else fileName
                             computerName = entry.NetBIOSName.decode('utf-8')
                             destList.append([sid, filetime_to_datetime(entry.last_recorded_aceess_time, 0),
