@@ -10,14 +10,44 @@ Table:
       - sid
       - entry_id
       - parent_idx
-      - item
-      - item_info
+      - header_size
+      - link_clsid
+      - link_flags
+      - target_attributes
+      - target_creation_time
+      - target_access_time
+      - target_write_time
+      - target_file_size
+      - icon_index
+      - volume_name
+      - volume_type
+      - drive_serial_number
+      - base_path
+      - arguments
+      - machine_id
+      - mac_address
+      - etc
 
 
     Types:
       - [VARCHAR(100), NOT NULL]
       - [VARCHAR(100), NOT NULL]
       - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
       - [TEXT]
       - [TEXT]
       - [TEXT]

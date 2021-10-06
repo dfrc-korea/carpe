@@ -2,4 +2,4 @@
 # (c) Maxim Suhanov
 
 __version__ = '1.0.3'
-__all__ = [ 'MFT', 'Attributes', 'WSL', 'USN', 'LogFile', 'BootSector', 'ShadowCopy', 'PartitionTable' ]
+__all__ = ['MFT', 'Attributes', 'WSL', 'USN', 'LogFile', 'BootSector', 'ShadowCopy', 'PartitionTable']

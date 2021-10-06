@@ -1297,7 +1297,7 @@ class LogFileParser(object):
             i += 1
 
         fast_pages.sort(key=lambda
-            x: x.get_last_lsn())  # Sort the fast pages according to the log sequence numbers they have (fast pages with more recent log data should be written at the end).
+                        x: x.get_last_lsn())  # Sort the fast pages according to the log sequence numbers they have (fast pages with more recent log data should be written at the end).
 
         for fast_page in fast_pages:
             file_offset = fast_page.get_file_offset_2x()

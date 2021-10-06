@@ -3,6 +3,6 @@ def format_timestamp(timestamp, time_zone):
         return ''
     try:
         return timestamp.astimezone(time_zone).isoformat()
-    except:
+    except Exception:
         # TODO: 1970.01.02 timezone error 수정
         return ''

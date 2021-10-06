@@ -4,8 +4,8 @@ from modules.NTFS.dfir_ntfs import USN, MFT
 
 def usnjrnl_parse(mft_file, usn_record, path_dict, time_zone):
     r_usn = usn_record.get_usn()
-    r_source = USN.ResolveSourceCodes(usn_record.get_source_info())
-    r_reason = USN.ResolveReasonCodes(usn_record.get_reason())
+    r_source = USN.resolve_source_codes(usn_record.get_source_info())
+    r_reason = USN.resolve_reason_codes(usn_record.get_reason())
     fr_reference_number = usn_record.get_file_reference_number()
     parent_fr_reference_number = usn_record.get_parent_file_reference_number()
 
@@ -16,7 +16,7 @@ def usnjrnl_parse(mft_file, usn_record, path_dict, time_zone):
         r_timestamp = ''
         fr_file_name = ''
 
-    fr_number, fr_sequence = MFT.DecodeFileRecordSegmentReference(fr_reference_number)
+    fr_number, fr_sequence = MFT.decode_file_record_segment_reference(fr_reference_number)
 
     try:
         file_record = mft_file.get_file_record_by_number(fr_number, fr_sequence)

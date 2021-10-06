@@ -60,7 +60,7 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
 
             log_record_items.append(target_attribute_name)
 
-            fr_number, fr_sequence = MFT.DecodeFileRecordSegmentReference(target_reference)
+            fr_number, fr_sequence = MFT.decode_file_record_segment_reference(target_reference)
 
             try:
                 file_record = mft_file.get_file_record_by_number(fr_number, fr_sequence)
@@ -129,7 +129,7 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
                             'a_time': util.format_timestamp(frs_attr_val.get_atime(), time_zone),
                             'c_time': util.format_timestamp(frs_attr_val.get_ctime(), time_zone),
                             'e_time': util.format_timestamp(frs_attr_val.get_etime(), time_zone),
-                            'file_attributes': Attributes.ResolveFileAttributes(
+                            'file_attributes': Attributes.resolve_file_attributes(
                                 frs_attr_val.get_file_attributes())
                         }
                         attr_items['std_info'] = std_info
@@ -147,7 +147,7 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
                         parent_reference = frs_attr_val.get_parent_directory()
                         file_name['parent_reference'] = parent_reference
 
-                        fr_number, fr_sequence = MFT.DecodeFileRecordSegmentReference(parent_reference)
+                        fr_number, fr_sequence = MFT.decode_file_record_segment_reference(parent_reference)
 
                         try:
                             file_record = mft_file.get_file_record_by_number(fr_number, fr_sequence)
@@ -195,7 +195,7 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
             type_code, record_length, form_code, name_length, name_offset, flags, instance = \
                 MFT.UnpackAttributeRecordPartialHeader(attr_buf[0: 16])
             value_length, value_offset, resident_flags, reserved = \
-                MFT.UnpackAttributeRecordRemainingHeaderResident(attr_buf[16: 24])
+                MFT.unpack_attribute_record_remaining_header_resident(attr_buf[16: 24])
 
             if value_offset > 0 and value_offset % 8 == 0 and value_length > 0:
                 attr_value_buf = attr_buf[value_offset: value_offset + value_length]
@@ -208,7 +208,7 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
                             'a_time': util.format_timestamp(attr_si.get_atime(), time_zone),
                             'c_time': util.format_timestamp(attr_si.get_ctime(), time_zone),
                             'e_time': util.format_timestamp(attr_si.get_etime(), time_zone),
-                            'file_attributes': Attributes.ResolveFileAttributes(
+                            'file_attributes': Attributes.resolve_file_attributes(
                                 attr_si.get_file_attributes())
                         }
                         attr_items['std_info'] = std_info
@@ -228,7 +228,7 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
                         parent_reference = attr_fn.get_parent_directory()
                         file_name['parent_reference'] = parent_reference
 
-                        fr_number, fr_sequence = MFT.DecodeFileRecordSegmentReference(parent_reference)
+                        fr_number, fr_sequence = MFT.decode_file_record_segment_reference(parent_reference)
 
                         try:
                             file_record = mft_file.get_file_record_by_number(fr_number, fr_sequence)
@@ -284,7 +284,7 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
             parent_reference = attr_fn.get_parent_directory()
             file_name['parent_reference'] = parent_reference
 
-            fr_number, fr_sequence = MFT.DecodeFileRecordSegmentReference(parent_reference)
+            fr_number, fr_sequence = MFT.decode_file_record_segment_reference(parent_reference)
 
             try:
                 file_record = mft_file.get_file_record_by_number(fr_number, fr_sequence)
@@ -354,7 +354,7 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
         for usn_data in [usn_data_1, usn_data_2]:
             if usn_data is not None:
                 try:
-                    usn_record = USN.GetUsnRecord(usn_data)
+                    usn_record = USN.get_usn_record(usn_data)
                 except (NotImplementedError, ValueError):
                     pass
                 else:
@@ -364,8 +364,8 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
                         usn['version'] = 'version 2 or 3'
 
                     usn['usn'] = usn_record.get_usn()
-                    usn['source_info'] = USN.ResolveSourceCodes(usn_record.get_source_info())
-                    usn['reason'] = USN.ResolveReasonCodes(usn_record.get_reason())
+                    usn['source_info'] = USN.resolve_source_codes(usn_record.get_source_info())
+                    usn['reason'] = USN.resolve_reason_codes(usn_record.get_reason())
                     usn['file_ref_num'] = usn_record.get_file_reference_number()
                     usn['parent_file_reference_number'] = usn_record.get_parent_file_reference_number()
 
