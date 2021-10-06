@@ -33,21 +33,33 @@ class LINKConnector(interface.ModuleConnector):
             return False
 
         # extension -> sig_type 변경해야 함
+        # query = f"SELECT name, parent_path, extension, mtime, atime, ctime, mtime_nano, atime_nano, ctime_nano, inode " \
+        #         f"FROM file_info WHERE par_id like '{par_id}' and " \
+        #         f"extension like 'lnk' and ("
+
         query = f"SELECT name, parent_path, extension, mtime, atime, ctime, mtime_nano, atime_nano, ctime_nano, inode " \
                 f"FROM file_info WHERE par_id like '{par_id}' and " \
-                f"extension like 'lnk' and ("
+                f"extension like 'lnk';"
+ 
 
         # This is not OS partition
         if len(knowledge_base._user_accounts.values()) == 0:
             # print("There are no lnk files")
             return False
 
-        for user_accounts in knowledge_base._user_accounts.values():
-            for hostname in user_accounts.values():
-                if hostname.identifier.find('S-1-5-21') == -1:
-                    continue
-                query += f"parent_path like '%{hostname.username}%' or "
-        query = query[:-4] + ");"
+        # for user_accounts in knowledge_base._user_accounts.values():
+        #     for hostname in user_accounts.values():
+        #         if hostname.identifier.find('S-1-5-21') == -1:
+        #             continue
+        #         query += f"parent_path like '%{hostname.username}%' or "
+        # query = query[:-4] + ");"
+        
+        # for user_accounts in knowledge_base._user_accounts.values():
+        #     for hostname in user_accounts.values():
+        #         if hostname.identifier.find('S-1-5-21') == -1:
+        #             continue
+        #         query += f"parent_path like '%{hostname.parent_path}%');"
+
 
         lnk_files = configuration.cursor.execute_query_mul(query)
         if lnk_files == -1:
@@ -61,6 +73,8 @@ class LINKConnector(interface.ModuleConnector):
         insert_link_file = []
 
         tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
+
+
         for link_file in lnk_files:
             file_name = link_file[0]
             source = '/' + '/'.join(link_file[1].split(path_separator)[1:]) + '/' + file_name

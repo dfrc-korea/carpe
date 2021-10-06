@@ -4,6 +4,7 @@ import pyesedb
 
 from . import logger
 
+
 class ESEDBParser(object):
     """ESE database Parser Interface."""
 
@@ -44,7 +45,7 @@ class ESEDBParser(object):
         self._tables.update(self.OPTIONAL_TABLES)
 
     @property
-    def required_tables(self):
+    def required_table(self):
         """set[str]: required table names."""
         return frozenset(self.REQUIRED_TABLES.keys())
 
@@ -62,8 +63,7 @@ class ESEDBParser(object):
         """
         esedb_parser_name = esedb_parser_class.NAME.lower()
         if esedb_parser_name in cls._esedb_parser_classes:
-          raise KeyError('ESE database parser class already set for name: {0:s}.'.format(
-              esedb_parser_class.NAME))
+            raise KeyError('ESE database parser class already set for name: {0:s}.'.format(esedb_parser_class.NAME))
 
         cls._esedb_parser_classes[esedb_parser_name] = esedb_parser_class
 
@@ -87,7 +87,7 @@ class ESEDBParser(object):
         return esedb_parser_objects
 
     @classmethod
-    def GetTableNames(self, database):
+    def GetTableNames(cls, database):
         """Retrieves the table names in a database.
 
         Args:
@@ -121,7 +121,7 @@ class ESEDBParser(object):
         if record.is_long_value(value_entry):
             try:
                 long_value = record.get_value_data_as_long_value(value_entry)
-            except:
+            except Exception:
                 return record.get_value_data(value_entry)
 
         if record.is_multi_value(value_entry):
@@ -135,14 +135,16 @@ class ESEDBParser(object):
             # TODO: implement
             raise ValueError('Boolean value support not implemented yet.')
 
+        if column_type in self.INTEGER_COLUMN_TYPES and long_value:
+            raise ValueError('Long integer value not supported.')
+
         if column_type in self.INTEGER_COLUMN_TYPES:
-            if long_value:
-                raise ValueError('Long integer value not supported.')
             return record.get_value_data_as_integer(value_entry)
 
+        if column_type in self.FLOATING_POINT_COLUMN_TYPES and long_value:
+            raise ValueError('Long floating point value not supported.')
+
         if column_type in self.FLOATING_POINT_COLUMN_TYPES:
-            if long_value:
-                raise ValueError('Long floating point value not supported.')
             return record.get_value_data_as_floating_point(value_entry)
 
         if column_type in self.STRING_COLUMN_TYPES:

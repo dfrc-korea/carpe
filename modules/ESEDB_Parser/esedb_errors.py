@@ -5,5 +5,6 @@
 class Error(Exception):
     """Base error class."""
 
+
 class UnableToParseFile(Error):
     """Raised when a parser is not designed to parse a file."""
