@@ -32,6 +32,37 @@ class OS_Information:
     backup_flag = ''
     source_location = []
 
+def decode_key(rpk):
+    rpk_offset = 52
+
+    is_win8 = (rpk[66]/6) and 1
+    rpk[66] = (rpk[66] & 0xf7) | ((is_win8 & 2) * 4)
+    i = 24
+    sz_possible_chars = "BCDFGHJKMPQRTVWXY2346789"
+    sz_product_key = ""
+    while i >= 0:
+        dw_accumulator = 0
+        j = 14
+        while j >= 0:
+            dw_accumulator = dw_accumulator * 256
+            d = rpk[j+rpk_offset]
+            dw_accumulator = d + dw_accumulator
+            rpk[j+rpk_offset] = int(dw_accumulator / 24)
+            dw_accumulator = dw_accumulator % 24
+            j = j - 1
+        i = i - 1
+        sz_product_key = sz_possible_chars[dw_accumulator] + sz_product_key
+        last = dw_accumulator
+
+    keypart1 = sz_product_key[1:1 + last]
+    insert = 'N'
+    sz_product_key = sz_product_key[1:].replace(keypart1, keypart1 + insert, 1)
+    if last == 0:
+        sz_product_key = insert + sz_product_key
+    sz_product_key = '{0}-{1}-{2}-{3}-{4}'.format(sz_product_key[1:6], sz_product_key[6:11], sz_product_key[11:16],
+                                                sz_product_key[16:21], sz_product_key[21:26])
+
+    return sz_product_key
 
 def OSINFO(reg_software, reg_system):
     os_list = []
@@ -59,30 +90,11 @@ def OSINFO(reg_software, reg_system):
             for os_value in os_key.values():
                 if os_value.name() == 'ProductName':
                     os_list[os_count].operating_system = os_value.data().replace('\x00', '')
-                    if os_value.data()[:-1] == 'Windows 10 Pro':
-                        os_list[os_count].product_key = 'W269N-WFGWX-YVC9B-4J6C9-T83GX'
-                    elif os_value.data()[:-1] == 'Windows 10 Pro N':
-                        os_list[os_count].product_key = 'MH37W-N47XK-V7XM9-C7227-GCQG9'
-                    elif os_value.data()[:-1] == 'Windows 10 Pro for Workstations':
-                        os_list[os_count].product_key = 'NRG8B-VKK3Q-CXVCJ-9G2XF-6Q84J'
-                    elif os_value.data()[:-1] == 'Windows 10 Pro for Workstations N':
-                        os_list[os_count].product_key = '9FNHH-K3HBT-3W4TD-6383H-6XYWF'
-                    elif os_value.data()[:-1] == 'Windows 10 Pro Education':
-                        os_list[os_count].product_key = '6TP4R-GNPTD-KYYHQ-7B7DP-J447Y'
-                    elif os_value.data()[:-1] == 'Windows 10 Pro Education N':
-                        os_list[os_count].product_key = 'YVWGF-BXNMC-HTQYQ-CPQ99-66QFC'
-                    elif os_value.data()[:-1] == 'Windows 10 Education':
-                        os_list[os_count].product_key = 'NW6C2-QMPVW-D7KKK-3GKT6-VCFB2'
-                    elif os_value.data()[:-1] == 'Windows 10 Education KN':
-                        os_list[os_count].product_key = '2WH4N-8QGBV-H22JP-CT43Q-MDWWJ'
-                    elif os_value.data()[:-1] == 'Windows 10 Enterprise':
-                        os_list[os_count].product_key = 'NPPR9-FWDCX-D2C8J-H872K-2YT43'
-                    elif os_value.data()[:-1] == 'Windows 10 Enterprise KN':
-                        os_list[os_count].product_key = 'DPH2V-TTNVB-4X9Q3-TJR4H-KHJW4'
-                    elif os_value.data()[:-1] == 'Windows 10 Enterprise G':
-                        os_list[os_count].product_key = 'YYVX9-NTFWV-6MDM3-9PT4T-4M68B'
-                    elif os_value.data()[:-1] == 'Windows 10 Enterprise G N':
-                        os_list[os_count].product_key = '44RPN-FTY23-9VTTB-MP9BX-T84FV'
+                elif os_value.name()  == 'DigitalProductId':
+                    value = []
+                    for data in os_value.data():
+                        value.append(data)
+                    os_list[os_count].product_key = decode_key(value)
                 elif os_value.name() == 'ReleaseId':
                     os_list[os_count].release_id = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'CSDVersion':
