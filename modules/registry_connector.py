@@ -874,11 +874,8 @@ class RegistryConnector(interface.ModuleConnector):
                     date_lst_connected_final = "".join(map(str, date_lst_connected_list))
 
 
-
-
                     # date_lst_connected_time = date_lst_connected_final.replace(' ', 'T') + 'Z' , configuration.apply_time_zone(date_lst_connected_final, knowledge_base.time_zone)
                     date_lst_connected_time = configuration.apply_time_zone(date_lst_connected_final, knowledge_base.time_zone)
-
 
 
                     insert_data.append(
