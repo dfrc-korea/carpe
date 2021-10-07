@@ -672,7 +672,7 @@ class RegistryConnector(interface.ModuleConnector):
             if reg_software != '' and reg_system != '':
                 print(f'[{self.print_now_time()}] [MODULE] Registry - USB Device')
                 insert_data = []
-                for usb in ud.USBDEVICES(reg_software, reg_system, setupapi_data):
+                for usb in ud.usb_devices(reg_software, reg_system, setupapi_data):
                     last_connected_time = configuration.apply_time_zone(str(usb.last_connected_time),
                                                                         knowledge_base.time_zone)
                     first_connected_time = configuration.apply_time_zone(str(usb.first_connected_time),
@@ -692,7 +692,7 @@ class RegistryConnector(interface.ModuleConnector):
                         tuple([par_id, configuration.case_id, configuration.evidence_id, str(usb.device_class_id),
                                str(usb.serial_number), str(usb.type), last_connected_time,
                                str(usb.device_description), str(usb.friendly_name),
-                               str(usb.manufacturer), str(usb.last_assigned_drive_letter), str(usb.volume_GUID),
+                               str(usb.manufacturer), str(usb.last_assigned_drive_letter), str(usb.volume_guid),
                                str(usb.volume_serial_number_decimal), str(usb.volume_serial_number_hex),
                                str(usb.associated_user_accounts), first_connected_time,
                                first_connected_since_reboot_time, driver_install_time,
