@@ -138,7 +138,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         # Allow only standalone mode
         argument_parser.add_argument(
-            '--sqlite', '--standalone', action='store_true', dest='standalone_check', default=False, help=(
+            '--sqlite', '--standalone', action='store_true', dest='standalone_check', default=True, help=(
                 'Define process mode to be processed.'
             )
         )
