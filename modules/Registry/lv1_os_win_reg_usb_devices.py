@@ -2,7 +2,7 @@ import datetime
 from modules import logger
 
 
-class Device_information:
+class DeviceInformation:
     par_id = ''
     case_id = ''
     evd_id = ''
@@ -14,7 +14,7 @@ class Device_information:
     friendly_name = ''
     manufacturer = ''
     last_assigned_drive_letter = ''
-    volume_GUID = ''
+    volume_guid = ''
     volume_serial_number_decimal = ''
     volume_serial_number_hex = ''
     associated_user_accounts = ''
@@ -28,7 +28,7 @@ class Device_information:
     source_location = []
 
 
-def USBDEVICES(reg_software, reg_system, text_data):
+def usb_devices(reg_software, reg_system, text_data):
     device_list = []
     device_key_list1 = []
     device_key_list2 = []
@@ -44,7 +44,7 @@ def USBDEVICES(reg_software, reg_system, text_data):
                 continue
             for device_class_id in device_key.subkeys():
                 for serial_number in device_class_id.subkeys():
-                    device_information = Device_information()
+                    device_information = DeviceInformation()
                     device_list.append(device_information)
                     if device_key == device_key_list1[0]:
                         device_list[device_count].source_location = []
@@ -150,17 +150,15 @@ def USBDEVICES(reg_software, reg_system, text_data):
         # last_assigned_drive_letter
         reg_key = reg_system.find_key(r"MountedDevices")
         for reg_value in reg_key.values():
-            if 'Volume' in reg_value.name():
-                if reg_value.data()[2] == 63:
-                    for device in device_list:
-                        if device.serial_number == reg_value.data().decode('utf-16').split('#')[2]:
-                            device.volume_GUID = reg_value.name().split('Volume')[1][1:-1]
-                            for reg_value_drive_letter in reg_key.values():
-                                if 'DosDevices' in reg_value_drive_letter.name():
-                                    if reg_value.data() == reg_value_drive_letter.data():
-                                        device.last_assigned_drive_letter = reg_value_drive_letter.name().split('\\')[
-                                            2].replace('\x00', '')
-                                        device.source_location.append('SYSTEM-MountedDevices')
+            if 'Volume' in reg_value.name() and reg_value.data()[2] == 63:
+                for device in device_list:
+                    if device.serial_number == reg_value.data().decode('utf-16').split('#')[2]:
+                        device.volume_GUID = reg_value.name().split('Volume')[1][1:-1]
+                        for reg_value_drive_letter in reg_key.values():
+                            if 'DosDevices' in reg_value_drive_letter.name() and reg_value.data() == reg_value_drive_letter.data():
+                                device.last_assigned_drive_letter = reg_value_drive_letter.name().split('\\')[
+                                    2].replace('\x00', '')
+                                device.source_location.append('SYSTEM-MountedDevices')
 
         # VSN (volume Serial Number) - emdMgmt
         reg_key = reg_software.find_key(r"Microsoft\Windows NT\CurrentVersion\EMDMgmt")
