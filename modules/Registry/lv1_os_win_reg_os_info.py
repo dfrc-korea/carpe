@@ -107,8 +107,6 @@ def OSINFO(reg_software, reg_system):
                     os_list[os_count].operating_system_version = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'RegisteredOrganization':
                     os_list[os_count].organization = os_value.data().replace('\x00', '')
-                elif os_value.name() == 'ReleaseId':
-                    os_list[os_count].release_id = os_value.data()
                 elif os_value.name() == 'CurrentVersion':
                     os_list[os_count].version_number = os_value.data().replace('\x00', '')
                 elif os_value.name() == 'CurrentBuildNumber':
