@@ -58,7 +58,8 @@ def getIfileInfo(fileName):
     dump = TDataAccess()
     try:
         dump.loadFile(fileName)
-    except:
+    except Exception as e:
+        print(e.message, e.args)
         return
 
     r = typeCast(dump.read(sizeof(TIFileStruct)), TIFileStruct)
