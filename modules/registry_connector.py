@@ -241,7 +241,7 @@ class RegistryConnector(interface.ModuleConnector):
                 registry_files = registry_files5
                 backup_flag = 'Backup-Windows.old, Backup-RegBack'
             output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
-                                  configuration.evidence_id + os.sep + par_id + os.sep + 'registry' + os.sep + backup_flag
+                          configuration.evidence_id + os.sep + par_id + os.sep + 'registry' + os.sep + backup_flag
             if not os.path.exists(output_path):
                 os.makedirs(output_path, exist_ok=True)
             for registry in registry_files:
@@ -253,7 +253,7 @@ class RegistryConnector(interface.ModuleConnector):
                 #     configuration=configuration,
                 #     file_path=registry_path
                 # )
-                
+
                 # if file_object is None:
                 #     return
                 self.ExtractTargetFileToPath(
@@ -261,7 +261,7 @@ class RegistryConnector(interface.ModuleConnector):
                     configuration=configuration,
                     file_path=registry_path,
                     output_path=output_path)
-                file_object = open(output_path+os.sep+file_name, 'rb')
+                file_object = open(output_path + os.sep + file_name, 'rb')
                 if file_object is None:
                     return
                 if file_name == 'Amcache.hve':
@@ -279,7 +279,7 @@ class RegistryConnector(interface.ModuleConnector):
                                 configuration=configuration,
                                 file_path=registry_path,
                                 output_path=output_path)
-                            reg_am_log1 = open(output_path+os.sep+registry[0], 'rb')
+                            reg_am_log1 = open(output_path + os.sep + registry[0], 'rb')
                         elif registry[0] == 'Amcache.hve.LOG2':
                             registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                             # reg_am_log2 = self.LoadTargetFileToMemory(
@@ -292,7 +292,7 @@ class RegistryConnector(interface.ModuleConnector):
                                 configuration=configuration,
                                 file_path=registry_path,
                                 output_path=output_path)
-                            reg_am_log2 = open(output_path+os.sep+registry[0], 'rb')
+                            reg_am_log2 = open(output_path + os.sep + registry[0], 'rb')
                     try:
                         reg_am.recover_auto(None, reg_am_log1, reg_am_log2)
                     except Exception as exception:
@@ -318,7 +318,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_system_log1 = open(output_path+os.sep+registry[0], 'rb')
+                                reg_system_log1 = open(output_path + os.sep + registry[0], 'rb')
                             elif registry[0] == 'SYSTEM.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                 # reg_system_log2 = self.LoadTargetFileToMemory(
@@ -331,7 +331,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_system_log2 = open(output_path+os.sep+registry[0], 'rb')
+                                reg_system_log2 = open(output_path + os.sep + registry[0], 'rb')
                         try:
                             reg_system.recover_auto(None, reg_system_log1, reg_system_log2)
                         except Exception as exception:
@@ -356,7 +356,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_software_log1 = open(output_path+os.sep+registry[0], 'rb')
+                                reg_software_log1 = open(output_path + os.sep + registry[0], 'rb')
                             elif registry[0] == 'SOFTWARE.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
                                                 registry[0]
@@ -369,8 +369,8 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_software_log2 = open(output_path+os.sep+registry[0], 'rb')
-                        
+                                reg_software_log2 = open(output_path + os.sep + registry[0], 'rb')
+
                         try:
                             reg_software.recover_auto(None, reg_software_log1, reg_software_log2)
                         except Exception as exception:
@@ -396,7 +396,7 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_sam_log1 = open(output_path+os.sep+registry[0], 'rb')
+                                reg_sam_log1 = open(output_path + os.sep + registry[0], 'rb')
                             elif registry[0] == 'SAM.LOG2':
                                 registry_path = registry[1][registry[1].find(path_sep):] + path_sep + \
                                                 registry[0]
@@ -409,8 +409,8 @@ class RegistryConnector(interface.ModuleConnector):
                                     configuration=configuration,
                                     file_path=registry_path,
                                     output_path=output_path)
-                                reg_sam_log2 = open(output_path+os.sep+registry[0], 'rb')
-                        
+                                reg_sam_log2 = open(output_path + os.sep + registry[0], 'rb')
+
                         try:
                             reg_sam.recover_auto(None, reg_sam_log1, reg_sam_log2)
                         except Exception as exception:
@@ -429,17 +429,16 @@ class RegistryConnector(interface.ModuleConnector):
                         #     source_path_spec=source_path_spec,
                         #     configuration=configuration,
                         #     file_path=registry_path)
-                        
 
                         # if file_object is None:
                         #     return
-                        
+
                         self.ExtractTargetFileToPath(
                             source_path_spec=source_path_spec,
                             configuration=configuration,
                             file_path=registry_path,
                             output_path=output_path)
-                        file_object = open(output_path+os.sep+file_name, 'rb')
+                        file_object = open(output_path + os.sep + file_name, 'rb')
                         if file_object is None:
                             return
                         if file_name == 'UsrClass.dat':
@@ -457,7 +456,7 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_usr_log1 = open(output_path+os.sep+registry[0], 'rb')
+                                    reg_usr_log1 = open(output_path + os.sep + registry[0], 'rb')
                                 elif registry[0] == 'UsrClass.dat.LOG2':
                                     registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                     # reg_usr_log2 = self.LoadTargetFileToMemory(
@@ -469,12 +468,11 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_usr_log2 = open(output_path+os.sep+registry[0], 'rb')
+                                    reg_usr_log2 = open(output_path + os.sep + registry[0], 'rb')
                             try:
                                 reg_usr.recover_auto(None, reg_usr_log1, reg_usr_log2)
                             except Exception as exception:
                                 logger.error('Registry Amcache: {0!s}'.format(exception))
-                            
 
                             wow.append(reg_usr)
                             wow.append(registry[1].split(path_sep)[2])
@@ -495,7 +493,7 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_nt_log1 = open(output_path+os.sep+registry[0], 'rb')
+                                    reg_nt_log1 = open(output_path + os.sep + registry[0], 'rb')
                                 elif registry[0] == 'ntuser.dat.LOG2':
                                     registry_path = registry[1][registry[1].find(path_sep):] + path_sep + registry[0]
                                     # reg_nt_log2 = self.LoadTargetFileToMemory(
@@ -507,8 +505,8 @@ class RegistryConnector(interface.ModuleConnector):
                                         configuration=configuration,
                                         file_path=registry_path,
                                         output_path=output_path)
-                                    reg_nt_log2 = open(output_path+os.sep+registry[0], 'rb')
-                            
+                                    reg_nt_log2 = open(output_path + os.sep + registry[0], 'rb')
+
                             try:
                                 reg_nt.recover_auto(None, reg_nt_log1, reg_nt_log2)
                             except Exception as exception:
@@ -670,10 +668,9 @@ class RegistryConnector(interface.ModuleConnector):
 
             # USB Device
             if reg_software != '' and reg_system != '':
-
                 print(f'[{self.print_now_time()}] [MODULE] Registry - USB Device')
                 insert_data = []
-                for usb in ud.usb_devices(reg_software, reg_system, setupapi_data):
+                for usb in ud.USBDEVICES(reg_software, reg_system, setupapi_data):
                     last_connected_time = configuration.apply_time_zone(str(usb.last_connected_time),
                                                                         knowledge_base.time_zone)
                     first_connected_time = configuration.apply_time_zone(str(usb.first_connected_time),
@@ -693,7 +690,7 @@ class RegistryConnector(interface.ModuleConnector):
                         tuple([par_id, configuration.case_id, configuration.evidence_id, str(usb.device_class_id),
                                str(usb.serial_number), str(usb.type), last_connected_time,
                                str(usb.device_description), str(usb.friendly_name),
-                               str(usb.manufacturer), str(usb.last_assigned_drive_letter), str(usb.volume_guid),
+                               str(usb.manufacturer), str(usb.last_assigned_drive_letter), str(usb.volume_GUID),
                                str(usb.volume_serial_number_decimal), str(usb.volume_serial_number_hex),
                                str(usb.associated_user_accounts), first_connected_time,
                                first_connected_since_reboot_time, driver_install_time,
