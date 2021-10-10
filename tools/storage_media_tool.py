@@ -261,8 +261,10 @@ class StorageMediaTool(tools.CLITool):
 
     def ScanSource(self, source_path):
 
+        # In Saas Carpe, Source is lnk
         if os.path.islink(source_path):
-            source_path = os.path.realpath(source_path)
+            source_path = os.readlink(source_path)
+            # source_path = os.path.realpath(source_path)
 
         if (not source_path.startswith('\\\\.\\') and
                 not os.path.exists(source_path)):
