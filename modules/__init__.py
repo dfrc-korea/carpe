@@ -40,7 +40,7 @@ from modules import macos_connector
 from modules import android_email_connector
 
 # from modules import fica
-# from modules import extract
+from modules import extract
 
 # Register plugins.
 from modules import DEFA

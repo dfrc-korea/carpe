@@ -25,6 +25,8 @@ def do_work(connection, channel, delivery_tag, body):
     req_type = request['req_type']
     case_id = request['case_id']
     evd_id = request['evd_id']
+    par_id = request['par_id']
+    extract_path = request['extract_path']
     options = request['options']
 
     print('[' + datetime.today().strftime("%Y-%m-%d %H:%M:%S") + '] New Request !')
@@ -45,6 +47,26 @@ def do_work(connection, channel, delivery_tag, body):
         tool.ExtractDataFromSources(mode='Analyze')
 
         print('[' + datetime.today().strftime("%Y-%m-%d %H:%M:%S") + '] Complete Evidence File Analysis !')
+
+    elif req_type == 'Extract':
+        tool = carpe_tool.CarpeTool()
+        args = []
+        args.append("--cid")
+        args.append(case_id)
+        args.append("--eid")
+        args.append(evd_id)
+        args.append("--par_num")
+        args.append(par_id)
+        args.append("--extract")
+        args.append(extract_path)
+
+        if not tool.ParseArguments(args):
+            return False
+
+        tool.ExtractDataFromSources(mode='Extract')
+
+        print('[' + datetime.today().strftime("%Y-%m-%d %H:%M:%S") + '] Complete File(Directory) Export !')
+
 
     cb = functools.partial(ack_message, channel, delivery_tag)
     connection.add_callback_threadsafe(cb)
