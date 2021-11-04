@@ -112,7 +112,7 @@ class EventlogConnector(interface.ModuleConnector):
             # else:
             query = f"SELECT name, parent_path, extension FROM file_info WHERE (par_id='{par_id}') " \
                     f"and extension = 'evtx' " \
-                    f"and parent_path like 'root{query_separator}Windows{query_separator}" \
+                    f"and parent_path like '%Windows{query_separator}" \
                     f"System32{query_separator}winevt{query_separator}Logs'"
 
             eventlog_files = configuration.cursor.execute_query_mul(query)
@@ -137,7 +137,10 @@ class EventlogConnector(interface.ModuleConnector):
             insert_data = []
             for eventlog in eventlog_files:
                 if eventlog[0] in eventlog_file_list:
-                    eventlog_path = eventlog[1][eventlog[1].find(path_separator):] + path_separator + eventlog[0]  # document full path
+                    if configuration.source_type == 'directory' or configuration.source_type == 'file':
+                        eventlog_path = eventlog[1][eventlog[1].find(source_path_spec.location) + len(source_path_spec.location):] + path_separator + eventlog[0]
+                    else:
+                        eventlog_path = eventlog[1][eventlog[1].find(path_separator):] + path_separator + eventlog[0]  # document full path
                     fileName = eventlog[0]
 
                     # if configuration.source_type == 'directory' or 'file':

@@ -6,6 +6,8 @@ import argparse
 import textwrap
 import platform
 import pytz
+import zipfile
+import shutil
 
 
 from tools.helpers import manager as helpers_manager
@@ -268,6 +270,17 @@ class CarpeTool(extraction_tool.ExtractionTool,
         except errors.BadConfigOption as exception:
             self._output_writer.Write('{0!s}\n'.format(exception))
             return False
+
+        path,ext = os.path.splitext(self._source_path)
+        if ext == '.zip':
+            print("Input argument is zip file")
+            zip_file = zipfile.ZipFile(self._source_path)
+            if os.path.exists(self._root_tmp_path + '\\tmp'):
+                shutil.rmtree(self._root_tmp_path + '\\tmp')
+            #압축 해제
+            zip_file.extractall(self._root_tmp_path + '\\tmp')
+            #input을 압축해제한 경로로 변경
+            self._source_path = self._root_tmp_path + '\\tmp'
 
         # scan source
         scan_context = self.ScanSource(self._source_path)

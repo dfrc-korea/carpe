@@ -37,7 +37,7 @@ class PREFETCHConnector(interface.ModuleConnector):
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         # extension -> sig_type 변경해야 함
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano, inode FROM file_info " \
-                f"WHERE par_id='{par_id}' and parent_path like 'root{query_separator}Windows{query_separator}Prefetch' " \
+                f"WHERE par_id='{par_id}' and parent_path like '%Windows{query_separator}Prefetch' " \
                 f"and extension = 'pf';"
 
         prefetch_files = configuration.cursor.execute_query_mul(query)
@@ -50,9 +50,15 @@ class PREFETCHConnector(interface.ModuleConnector):
         insert_prefetch_run_info = []
         insert_prefetch_volume_info = []
 
-        tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
+        if configuration.source_type == 'storage media device' or configuration == 'storage media image':
+            tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
+
+        # tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
         for prefetch in prefetch_files:
-            # prefetch_path = prefetch[1][prefetch[1].find(query_separator):] + query_separator + prefetch[0]
+            if configuration.source_type == 'directory' or configuration.source_type == 'file':
+                prefetch_path = prefetch[1][prefetch[1].find(source_path_spec.location) + len(source_path_spec.location):] + query_separator + prefetch[0]
+            else:
+                prefetch_path = prefetch[1][prefetch[1].find(query_separator):] + query_separator + prefetch[0]
             # file_name = "SVCHOST.EXE-36E2D733.pf"
             file_name = prefetch[0]
             file_path = prefetch[1]
@@ -67,16 +73,17 @@ class PREFETCHConnector(interface.ModuleConnector):
             if not os.path.exists(output_path):
                 os.mkdir(output_path)
 
-            self.extract_file_to_path(tsk_file_system=tsk_file_system,
-                                      inode=int(prefetch[5]),
-                                      file_name=file_name,
-                                      output_path=output_path)
-
-            # self.ExtractTargetFileToPath(
-            #     source_path_spec=source_path_spec,
-            #     configuration=configuration,
-            #     file_path=prefetch_path,
-            #     output_path=output_path)
+            if configuration.source_type == 'storage media device' or configuration == 'storage media image':
+                self.extract_file_to_path(tsk_file_system=tsk_file_system,
+                                          inode=int(prefetch[5]),
+                                          file_name=file_name,
+                                          output_path=output_path)
+            elif configuration.source_type == 'directory' or configuration.source_type == 'file':
+                self.ExtractTargetFileToPath(
+                    source_path_spec=source_path_spec,
+                    configuration=configuration,
+                    file_path=prefetch_path,
+                    output_path=output_path)
 
             fn = output_path + os.path.sep + file_name
             app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_prefetch"

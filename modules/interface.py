@@ -309,8 +309,15 @@ class ModuleConnector(BaseConnector):
 
         try:
             if not file_spec:
-                find_spec = file_system_searcher.FindSpec(
-                    case_sensitive=False, location=file_path, location_separator=source_path_spec.location)
+                for path_spec in configuration.source_path_specs:
+                    # Zip 파일 임시 처리, 스마트폰 이미지 / 리눅스 이미지 테스트 요망
+                    if path_spec.type_indicator == 'OS' and len(path_spec.location) > 2:
+                        find_spec = file_system_searcher.FindSpec(
+                            case_sensitive=False, location=file_path, location_separator='\\')
+                    else:
+                        find_spec = file_system_searcher.FindSpec(
+                            case_sensitive=False, location=file_path, location_separator=source_path_spec.location)
+
             else:
                 find_spec = file_spec
         except ValueError as exception:
