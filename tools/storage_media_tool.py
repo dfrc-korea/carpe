@@ -8,6 +8,7 @@ import codecs
 import configparser
 from pyarrow import csv
 import pathlib
+import platform
 
 from dfvfs.lib import definitions as dfvfs_definitions
 from dfvfs.lib import errors as dfvfs_errors
@@ -285,6 +286,7 @@ class StorageMediaTool(tools.CLITool):
                 scan_context.SOURCE_TYPE_STORAGE_MEDIA_DEVICE,
                 scan_context.SOURCE_TYPE_STORAGE_MEDIA_IMAGE):
             scan_node = scan_context.GetRootScanNode()
+
             self._source_path_specs.append(scan_node.path_spec)
             return scan_context
 
@@ -1427,23 +1429,40 @@ class StorageMediaTool(tools.CLITool):
         file._ads = len(file_entry.data_streams)
         # TODO: temporarily set to ino > {0:d}-{1:d}-{2:d}
         file._inode = stat.ino
-
-        file._ctime = [lambda: 0, lambda: file_entry.creation_time.timestamp // 10000000] \
-            [file_entry.creation_time.timestamp is not None]()
-        file._ctime_nano = [lambda: 0, lambda: file_entry.creation_time.timestamp % 10000000] \
-            [file_entry.creation_time.timestamp is not None]()
-        file._mtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
-            [file_entry.modification_time.timestamp is not None]()
-        file._mtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
-            [file_entry.modification_time.timestamp is not None]()
-        file._atime = [lambda: 0, lambda: file_entry.access_time.timestamp // 10000000] \
-            [file_entry.access_time.timestamp is not None]()
-        file._atime_nano = [lambda: 0, lambda: file_entry.access_time.timestamp % 10000000] \
-            [file_entry.access_time.timestamp is not None]()
-        # file._crtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
-        #     [file_entry.modification_time.timestamp is not None]()
-        # file._crtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
-        #     [file_entry.modification_time.timestamp is not None]()
+        if platform.platform()[0:7] == 'Windows':
+            file._ctime = [lambda: 0, lambda: file_entry.creation_time.timestamp // 10000000] \
+                [file_entry.creation_time.timestamp is not None]()
+            file._ctime_nano = [lambda: 0, lambda: file_entry.creation_time.timestamp % 10000000] \
+                [file_entry.creation_time.timestamp is not None]()
+            file._mtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
+                [file_entry.modification_time.timestamp is not None]()
+            file._mtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
+                [file_entry.modification_time.timestamp is not None]()
+            file._atime = [lambda: 0, lambda: file_entry.access_time.timestamp // 10000000] \
+                [file_entry.access_time.timestamp is not None]()
+            file._atime_nano = [lambda: 0, lambda: file_entry.access_time.timestamp % 10000000] \
+                [file_entry.access_time.timestamp is not None]()
+            # file._crtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
+            #     [file_entry.modification_time.timestamp is not None]()
+            # file._crtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
+            #     [file_entry.modification_time.timestamp is not None]()
+        else:
+            file._ctime = [lambda: 0, lambda: file_entry.creation_time.timestamp // 10000000] \
+                [file_entry.creation_time is not None]()
+            file._ctime_nano = [lambda: 0, lambda: file_entry.creation_time.timestamp % 10000000] \
+                [file_entry.creation_time is not None]()
+            file._mtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
+                [file_entry.modification_time is not None]()
+            file._mtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
+                [file_entry.modification_time is not None]()
+            file._atime = [lambda: 0, lambda: file_entry.access_time.timestamp // 10000000] \
+                [file_entry.access_time is not None]()
+            file._atime_nano = [lambda: 0, lambda: file_entry.access_time.timestamp % 10000000] \
+                [file_entry.access_time is not None]()
+            # file._crtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
+            #     [file_entry.modification_time.timestamp is not None]()
+            # file._crtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
+            #     [file_entry.modification_time.timestamp is not None]()
 
         if file_entry.IsFile():
             for data_stream in file_entry.data_streams:

@@ -275,12 +275,17 @@ class CarpeTool(extraction_tool.ExtractionTool,
         if ext == '.zip':
             print("Input argument is zip file")
             zip_file = zipfile.ZipFile(self._source_path)
-            if os.path.exists(self._root_tmp_path + '\\tmp'):
-                shutil.rmtree(self._root_tmp_path + '\\tmp')
+            sep = None
+            if platform.platform()[0:7] == 'Windows':
+                sep = '\\'
+            else:
+                sep = '/'
+            if os.path.exists(self._root_tmp_path + sep + 'tmp'):
+                shutil.rmtree(self._root_tmp_path + sep + 'tmp')
             #압축 해제
-            zip_file.extractall(self._root_tmp_path + '\\tmp')
+            zip_file.extractall(self._root_tmp_path + sep + 'tmp')
             #input을 압축해제한 경로로 변경
-            self._source_path = self._root_tmp_path + '\\tmp'
+            self._source_path = self._root_tmp_path + sep + 'tmp'
 
         # scan source
         scan_context = self.ScanSource(self._source_path)

@@ -50,7 +50,7 @@ class PREFETCHConnector(interface.ModuleConnector):
         insert_prefetch_run_info = []
         insert_prefetch_volume_info = []
 
-        if configuration.source_type == 'storage media device' or configuration == 'storage media image':
+        if configuration.source_type == 'storage media device' or configuration.source_type == 'storage media image':
             tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
 
         # tsk_file_system = self.get_tsk_file_system(source_path_spec, configuration)
@@ -73,7 +73,7 @@ class PREFETCHConnector(interface.ModuleConnector):
             if not os.path.exists(output_path):
                 os.mkdir(output_path)
 
-            if configuration.source_type == 'storage media device' or configuration == 'storage media image':
+            if configuration.source_type == 'storage media device' or configuration.source_type == 'storage media image':
                 self.extract_file_to_path(tsk_file_system=tsk_file_system,
                                           inode=int(prefetch[5]),
                                           file_name=file_name,
