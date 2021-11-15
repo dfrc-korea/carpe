@@ -313,13 +313,8 @@ class ModuleConnector(BaseConnector):
                 for path_spec in configuration.source_path_specs:
                     # Zip 파일 임시 처리, 스마트폰 이미지 / 리눅스 이미지 테스트 요망
                     if path_spec.type_indicator == 'OS' and len(path_spec.location) > 2:
-                        sep = None
-                        if platform.platform()[0:7] == 'Windows':
-                            sep = '\\'
-                        else:
-                            sep = '/'
                         find_spec = file_system_searcher.FindSpec(
-                            case_sensitive=False, location=file_path, location_separator=sep)
+                            case_sensitive=False, location=file_path, location_separator=os.sep)
                     else:
                         find_spec = file_system_searcher.FindSpec(
                             case_sensitive=False, location=file_path, location_separator=source_path_spec.location)
@@ -617,6 +612,6 @@ class ModuleConnector(BaseConnector):
         return "\\\\\\\\"  # 서버는 query separator 사용할 때 = 대신 like로 사용할 것.
 
     def GetPathSeparator(self, source_path_spec):
-        if source_path_spec.location == "/":
+        if source_path_spec.location[0] == "/":
             return "/"
         return "\\"

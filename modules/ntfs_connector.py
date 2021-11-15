@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """module for DFIR_NTFS_caller."""
 
-import os
+import os, platform
 
 from modules import manager
 from modules import interface
@@ -41,41 +41,58 @@ class NTFSConnector(interface.ModuleConnector):
         if not self.check_table_from_yaml(configuration, yaml_list, table_list):
             return False
 
+        query_separator = self.GetQuerySeparator(source_path_spec, configuration)
+        # extension -> sig_type 변경해야 함
+        query = f"SELECT name, parent_path, extension, ctime, ctime_nano, inode FROM file_info " \
+                f"WHERE par_id='{par_id}' and (name like '$MFT' or name like '$MFTMirr' or name like '$UsnJrnl' or name like '$LogFile');" \
+
+        ntfs_files = configuration.cursor.execute_query_mul(query)
+
+        if len(ntfs_files) == 0:
+            return False
+
         # path, name, ads_name
         file_list = [['\\', '$MFT', None], ['\\', '$MFTMirr', None], ['\\$Extend\\', '$UsnJrnl', '$J'],
                      ['\\', '$LogFile', None]]
 
         output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                       configuration.evidence_id + os.sep + par_id
-
         for file in file_list:
+            file_path = file[0] + file[1]
+            if platform.platform()[0:7] != 'Windows':
+                file_path = file_path.replace('\\', '/')[1:]
+
             self.ExtractTargetFileToPath(source_path_spec=source_path_spec,
                                          configuration=configuration,
-                                         file_path=file[0] + file[1],
+                                         file_path=file_path,
                                          output_path=output_path,
                                          data_stream_name=file[2])
-
-        # query = f"SELECT name, parent_path FROM file_info " \
-        #         f"WHERE par_id='{par_id}' " \
-        #         f"and sig_type = 'MFT';"
-        # MFT_path = configuration.cursor.execute_query_mul(query)
-
-        # if file input type is directory or file,
-        # if configuration.source_type == 'directory' or 'file':
-        #     for mft_list in MFT_path:
-        #         self._mft_path = mft_list[1] + os.sep + mft_list[0]
-        #         self._mftmirr_path = None
-        #         self._logfile_path = None
-        #         self._usnjrnl_path = None
-        #         mft_file = None
-        #         if os.path.exists(self._mft_path):
-        #             self.print_run_info('Parse $MFT', start=True)
-        #             mft_file = self.process_mft(par_id, configuration, table_list, knowledge_base)
-        #             self.print_run_info('Parse $MFT', start=False)
-        #         else:
-        #             print('', end='')
-        #             # print("There is no $MFT")
+        #
+        # if configuration.source_type == 'storage media device' or configuration.source_type == 'storage media image' or platform.platform()[0:7] == 'Windows':
+        #     for file in file_list:
+        #         file_path = file[0] + file[1]
+        #         if platform.platform()[0:7] != 'Windows':
+        #             file_path = file_path.replace('\\', '/')
+        #
+        #         self.ExtractTargetFileToPath(source_path_spec=source_path_spec,
+        #                                      configuration=configuration,
+        #                                      file_path=file[0] + file[1],
+        #                                      output_path=output_path,
+        #                                      data_stream_name=file[2])
         # else:
+        #     for file in ntfs_files:
+        #         data_stream = None
+        #         if file[0] == '$UsnJrnl':
+        #             data_stream = '$J'
+        #
+        #         file_path = file[1] + os.sep + file[0]
+        #
+        #         self.ExtractTargetFileToPath(source_path_spec=source_path_spec,
+        #                                      configuration=configuration,
+        #                                      file_path=file_path,
+        #                                      output_path=output_path,
+        #                                      data_stream_name=data_stream)
+
         self._mft_path = output_path + os.sep + '$MFT'
         self._mftmirr_path = output_path + os.sep + '$MFTMirr'
         self._logfile_path = output_path + os.sep + '$LogFile'

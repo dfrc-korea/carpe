@@ -275,17 +275,12 @@ class CarpeTool(extraction_tool.ExtractionTool,
         if ext == '.zip':
             print("Input argument is zip file")
             zip_file = zipfile.ZipFile(self._source_path)
-            sep = None
-            if platform.platform()[0:7] == 'Windows':
-                sep = '\\'
-            else:
-                sep = '/'
-            if os.path.exists(self._root_tmp_path + sep + 'tmp'):
-                shutil.rmtree(self._root_tmp_path + sep + 'tmp')
+            if os.path.exists(self._root_tmp_path + os.sep + 'tmp'):
+                shutil.rmtree(self._root_tmp_path + os.sep + 'tmp')
             #압축 해제
-            zip_file.extractall(self._root_tmp_path + sep + 'tmp')
+            zip_file.extractall(self._root_tmp_path + os.sep + 'tmp')
             #input을 압축해제한 경로로 변경
-            self._source_path = self._root_tmp_path + sep + 'tmp'
+            self._source_path = self._root_tmp_path + os.sep + 'tmp'
 
         # scan source
         scan_context = self.ScanSource(self._source_path)
@@ -361,13 +356,17 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
             # set advanced modules
             # parse advanced modules
-            if configuration.source_type == 'directory' or configuration.source_type == 'file':
-                pass
 
-            else:
-                engine.SetProcessAdvancedModules(
-                    advanced_module_filter_expression=configuration.advanced_module_filter_expression)
-                engine.ProcessAdvancedModules(configuration)
+            engine.SetProcessAdvancedModules(advanced_module_filter_expression=configuration.advanced_module_filter_expression)
+            engine.ProcessAdvancedModules(configuration)
+
+            # if configuration.source_type == 'directory' or configuration.source_type == 'file':
+            #     pass
+            #
+            # else:
+            #     engine.SetProcessAdvancedModules(
+            #         advanced_module_filter_expression=configuration.advanced_module_filter_expression)
+            #     engine.ProcessAdvancedModules(configuration)
                 
             if configuration.source_path_specs[0].type_indicator == 'APFS':
                 pass
