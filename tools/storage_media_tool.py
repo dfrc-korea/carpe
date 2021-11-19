@@ -1429,52 +1429,40 @@ class StorageMediaTool(tools.CLITool):
         file._ads = len(file_entry.data_streams)
         # TODO: temporarily set to ino > {0:d}-{1:d}-{2:d}
         file._inode = stat.ino
-
-        time_divide = 0
-        try:
-            if len(str(file_entry.creation_time.timestamp)) > 17:
-                time_divide = 1000000000
-        except:
-            time_divide = 10000000
-
-        # when Windows image input
         if platform.platform()[0:7] == 'Windows':
-            file._ctime = [lambda: 0, lambda: file_entry.creation_time.timestamp // time_divide] \
+            file._ctime = [lambda: 0, lambda: file_entry.creation_time.timestamp // 10000000] \
                 [file_entry.creation_time.timestamp is not None]()
-            file._ctime_nano = [lambda: 0, lambda: file_entry.creation_time.timestamp % time_divide] \
+            file._ctime_nano = [lambda: 0, lambda: file_entry.creation_time.timestamp % 10000000] \
                 [file_entry.creation_time.timestamp is not None]()
-            file._mtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // time_divide] \
+            file._mtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
                 [file_entry.modification_time.timestamp is not None]()
-            file._mtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % time_divide] \
+            file._mtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
                 [file_entry.modification_time.timestamp is not None]()
-            file._atime = [lambda: 0, lambda: file_entry.access_time.timestamp // time_divide] \
+            file._atime = [lambda: 0, lambda: file_entry.access_time.timestamp // 10000000] \
                 [file_entry.access_time.timestamp is not None]()
-            file._atime_nano = [lambda: 0, lambda: file_entry.access_time.timestamp % time_divide] \
+            file._atime_nano = [lambda: 0, lambda: file_entry.access_time.timestamp % 10000000] \
                 [file_entry.access_time.timestamp is not None]()
             # file._crtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
             #     [file_entry.modification_time.timestamp is not None]()
             # file._crtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
             #     [file_entry.modification_time.timestamp is not None]()
-
-        # when Linux Server
-        else :
-            file._ctime = [lambda: 0, lambda: file_entry.creation_time.timestamp // time_divide] \
+        else:
+            file._ctime = [lambda: 0, lambda: file_entry.creation_time.timestamp // 10000000] \
                 [file_entry.creation_time is not None]()
-            file._ctime_nano = [lambda: 0, lambda: file_entry.creation_time.timestamp % time_divide] \
+            file._ctime_nano = [lambda: 0, lambda: file_entry.creation_time.timestamp % 10000000] \
                 [file_entry.creation_time is not None]()
-            file._mtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // time_divide] \
+            file._mtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
                 [file_entry.modification_time is not None]()
-            file._mtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % time_divide] \
+            file._mtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
                 [file_entry.modification_time is not None]()
-            file._atime = [lambda: 0, lambda: file_entry.access_time.timestamp // time_divide] \
+            file._atime = [lambda: 0, lambda: file_entry.access_time.timestamp // 10000000] \
                 [file_entry.access_time is not None]()
-            file._atime_nano = [lambda: 0, lambda: file_entry.access_time.timestamp % time_divide] \
+            file._atime_nano = [lambda: 0, lambda: file_entry.access_time.timestamp % 10000000] \
                 [file_entry.access_time is not None]()
             # file._crtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // 10000000] \
             #     [file_entry.modification_time.timestamp is not None]()
             # file._crtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % 10000000] \
             #     [file_entry.modification_time.timestamp is not None]()
-
 
         if file_entry.IsFile():
             for data_stream in file_entry.data_streams:

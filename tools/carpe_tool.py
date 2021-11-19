@@ -9,6 +9,7 @@ import pytz
 import zipfile
 import shutil
 
+
 from tools.helpers import manager as helpers_manager
 from tools import extraction_tool, case_manager
 from engine import process_engine
@@ -123,11 +124,11 @@ class CarpeTool(extraction_tool.ExtractionTool,
         date = datetime.now().strftime('%Y-%m-%d')
 
         argument_parser.add_argument(
-            '--cid', '--case_id', action='store', dest='case_id', type=str, default='case-' + date,
+            '--cid', '--case_id', action='store', dest='case_id', type=str, default='case-'+date,
             help='Enter your case id')
 
         argument_parser.add_argument(
-            '--eid', '--evdnc_id', '--evidence_id', action='store', dest='evidence_id', type=str, default='evd-' + date,
+            '--eid', '--evdnc_id', '--evidence_id', action='store', dest='evidence_id', type=str, default='evd-'+date,
             help='Enter your evidence id')
 
         # Export CSV at Standalone
@@ -270,29 +271,16 @@ class CarpeTool(extraction_tool.ExtractionTool,
             self._output_writer.Write('{0!s}\n'.format(exception))
             return False
 
-        path, ext = os.path.splitext(self._source_path)
+        path,ext = os.path.splitext(self._source_path)
         if ext == '.zip':
             print("Input argument is zip file")
-
             zip_file = zipfile.ZipFile(self._source_path)
-            # if os.path.exists(self._root_tmp_path + os.sep + 'tmp'):
-            #     shutil.rmtree(self._root_tmp_path + os.sep + 'tmp')0
-            # # 압축해제
-            # zip_file.extractall(self._root_tmp_path + os.sep + 'tmp')
-            # self._source_path = self._root_tmp_path + os.sep + 'tmp'
-            extract_path = None
-            if os.sep == '\\':
-                extract_path = self._root_tmp_path + os.sep + 'tmp'
-            else:
-                cid = self._source_path.split('/')[4]
-                eid = self._source_path.split('/')[5]
-                extract_path = self._root_tmp_path + os.sep + cid + os.sep + eid + os.sep + 'tmp'
-            if os.path.exists(extract_path):
-                shutil.rmtree(extract_path)
-            # 압축 해제
-            zip_file.extractall(extract_path)
-            # input을 압축해제한 경로로 변경
-            self._source_path = extract_path
+            if os.path.exists(self._root_tmp_path + os.sep + 'tmp'):
+                shutil.rmtree(self._root_tmp_path + os.sep + 'tmp')
+            #압축 해제
+            zip_file.extractall(self._root_tmp_path + os.sep + 'tmp')
+            #input을 압축해제한 경로로 변경
+            self._source_path = self._root_tmp_path + os.sep + 'tmp'
 
         # scan source
         scan_context = self.ScanSource(self._source_path)
@@ -336,11 +324,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
         print(f"The number of partition : {len(self._partition_list)}", file=sys.stdout)
         sys.stdout.flush()
         for key, value in self._partition_list.items():
-            print(
-                f" - Partition ({configuration.source_path_specs[int(key[1:]) - 1].type_indicator}) \'{key}\' : \'{value}\'",
-                file=sys.stdout)
+            print(f" - Partition ({configuration.source_path_specs[int(key[1:]) - 1].type_indicator}) \'{key}\' : \'{value}\'", file=sys.stdout)
             sys.stdout.flush()
-        # print()  # for line feed
+        #print()  # for line feed
 
         if mode == 'Analyze' and not self.ignore:
             self.print_now_time(f'Insert File Information')
@@ -371,8 +357,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
             # set advanced modules
             # parse advanced modules
 
-            engine.SetProcessAdvancedModules(
-                advanced_module_filter_expression=configuration.advanced_module_filter_expression)
+            engine.SetProcessAdvancedModules(advanced_module_filter_expression=configuration.advanced_module_filter_expression)
             engine.ProcessAdvancedModules(configuration)
 
             # if configuration.source_type == 'directory' or configuration.source_type == 'file':
@@ -382,12 +367,12 @@ class CarpeTool(extraction_tool.ExtractionTool,
             #     engine.SetProcessAdvancedModules(
             #         advanced_module_filter_expression=configuration.advanced_module_filter_expression)
             #     engine.ProcessAdvancedModules(configuration)
-
+                
             if configuration.source_path_specs[0].type_indicator == 'APFS':
                 pass
             else:
                 # carve
-                # print("Carving Start")
+                #print("Carving Start")
                 if not self._partition_list:
                     # print("No partition")
                     engine.process_carve(configuration, is_partition=False)
@@ -460,7 +445,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         if platform.system() == 'Windows':
             if self._output_file_path is None:
                 raise errors.BadConfigOption('Missing output file path.')
-            print('Output Path: ' + self._output_file_path)
+            print('Output Path: '+ self._output_file_path)
             self._root_tmp_path = self._output_file_path + os.sep + 'tmp'
             if not os.path.exists(self._root_tmp_path):
                 os.mkdir(self._root_tmp_path)
@@ -541,5 +526,4 @@ class CarpeTool(extraction_tool.ExtractionTool,
         sys.stdout.flush()
 
     def update_process_state(self, state):
-        self._cursor.execute_query(
-            f"UPDATE evidence_info SET process_state={state} WHERE case_id like \'{self.case_id}\' and evd_id like \'{self.evidence_id}\';")
+        self._cursor.execute_query(f"UPDATE evidence_info SET process_state={state} WHERE case_id like \'{self.case_id}\' and evd_id like \'{self.evidence_id}\';")
