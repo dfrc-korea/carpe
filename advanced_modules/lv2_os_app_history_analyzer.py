@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """module for LV2."""
-import os, sys
+import os, sys, dateutil
 from datetime import datetime
 
 from advanced_modules import manager
@@ -49,9 +49,10 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         else:
             insert_data = []
             for result in results:
-                insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, result[0][result[0].rfind('/') + 1:],
-                     result[1], result[0], '', 'UserAssist']))
+                if dateutil.parser.parse(str(result[1])) > dateutil.parser.parse('1970-01-01T00:00:00+00:00'):
+                    insert_data.append(tuple(
+                        [par_id, configuration.case_id, configuration.evidence_id, result[0][result[0].rfind('/') + 1:],
+                         result[1], result[0], '', 'UserAssist']))
 
             query = "Insert into lv2_os_app_history values (%s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_data)
@@ -65,9 +66,10 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         else:
             insert_data = []
             for result in results:
-                insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, result[0], result[1], result[2], '',
-                     'Amcache-file_entries']))
+                if dateutil.parser.parse(str(result[1])) > dateutil.parser.parse('1970-01-01T00:00:00+00:00'):
+                    insert_data.append(tuple(
+                        [par_id, configuration.case_id, configuration.evidence_id, result[0], result[1], result[2], '',
+                         'Amcache-file_entries']))
 
             query = "Insert into lv2_os_app_history values (%s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_data)
@@ -84,41 +86,50 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         else:
             insert_data = []
             for result in results:
-                insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, result[0], result[3], result[1], '',
-                     'Prefetch']))
+                if dateutil.parser.parse(result[3]) > dateutil.parser.parse('1970-01-01T00:00:00+00:00') :
+                    insert_data.append(tuple(
+                        [par_id, configuration.case_id, configuration.evidence_id, result[0], result[3], result[1], '',
+                         'Prefetch']))
                 if result[4] != ' ':
-                    insert_data.append(tuple(
-                        [par_id, configuration.case_id, configuration.evidence_id, result[0], result[4], result[1], '',
-                         'Prefetch']))
+                    if dateutil.parser.parse(result[4]) > dateutil.parser.parse('1970-01-01T00:00:00+00:00'):
+                        insert_data.append(tuple(
+                            [par_id, configuration.case_id, configuration.evidence_id, result[0], result[4], result[1], '',
+                             'Prefetch']))
                 if result[5] != ' ':
-                    insert_data.append(tuple(
-                        [par_id, configuration.case_id, configuration.evidence_id, result[0], result[5], result[1], '',
-                         'Prefetch']))
+                    if dateutil.parser.parse(result[5]) > dateutil.parser.parse('1970-01-01T00:00:00+00:00'):
+                        insert_data.append(tuple(
+                            [par_id, configuration.case_id, configuration.evidence_id, result[0], result[5], result[1], '',
+                             'Prefetch']))
                 if result[6] != ' ':
-                    insert_data.append(tuple(
-                        [par_id, configuration.case_id, configuration.evidence_id, result[0], result[6], result[1], '',
-                         'Prefetch']))
+                    if dateutil.parser.parse(result[6]) > dateutil.parser.parse('1970-01-01T00:00:00+00:00'):
+                        insert_data.append(tuple(
+                            [par_id, configuration.case_id, configuration.evidence_id, result[0], result[6], result[1], '',
+                             'Prefetch']))
                 if result[7] != ' ':
-                    insert_data.append(tuple(
-                        [par_id, configuration.case_id, configuration.evidence_id, result[0], result[7], result[1], '',
-                         'Prefetch']))
+                    if dateutil.parser.parse(result[7]) > dateutil.parser.parse('1970-01-01T00:00:00+00:00'):
+                        insert_data.append(tuple(
+                            [par_id, configuration.case_id, configuration.evidence_id, result[0], result[7], result[1], '',
+                             'Prefetch']))
                 if result[8] != ' ':
-                    insert_data.append(tuple(
-                        [par_id, configuration.case_id, configuration.evidence_id, result[0], result[8], result[1], '',
-                         'Prefetch']))
+                    if dateutil.parser.parse(result[8]) > dateutil.parser.parse('1970-01-01T00:00:00+00:00'):
+                        insert_data.append(tuple(
+                            [par_id, configuration.case_id, configuration.evidence_id, result[0], result[8], result[1], '',
+                             'Prefetch']))
                 if result[9] != ' ':
-                    insert_data.append(tuple(
-                        [par_id, configuration.case_id, configuration.evidence_id, result[0], result[9], result[1], '',
-                         'Prefetch']))
+                    if dateutil.parser.parse(result[9]) > dateutil.parser.parse('1970-01-01T00:00:00+00:00'):
+                        insert_data.append(tuple(
+                            [par_id, configuration.case_id, configuration.evidence_id, result[0], result[9], result[1], '',
+                             'Prefetch']))
                 if result[10] != ' ':
-                    insert_data.append(tuple(
-                        [par_id, configuration.case_id, configuration.evidence_id, result[0], result[10], result[1], '',
-                         'Prefetch']))
+                    if dateutil.parser.parse(result[10]) > dateutil.parser.parse('1970-01-01T00:00:00+00:00'):
+                        insert_data.append(tuple(
+                            [par_id, configuration.case_id, configuration.evidence_id, result[0], result[10], result[1], '',
+                             'Prefetch']))
                 if result[11] != ' ':
-                    insert_data.append(tuple(
-                        [par_id, configuration.case_id, configuration.evidence_id, result[0], result[11], result[1], '',
-                         'Prefetch']))
+                    if dateutil.parser.parse(result[11]) > dateutil.parser.parse('1970-01-01T00:00:00+00:00'):
+                        insert_data.append(tuple(
+                            [par_id, configuration.case_id, configuration.evidence_id, result[0], result[11], result[1], '',
+                             'Prefetch']))
 
             query = "Insert into lv2_os_app_history values (%s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_data)
@@ -132,10 +143,11 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         else:
             insert_data = []
             for result in results:
-                insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, result[0][result[0].rfind('/') + 1:],
-                     result[1], result[0], result[2],
-                     'Windows Timeline']))
+                if dateutil.parser.parse(result[1]) > dateutil.parser.parse('1970-01-01T00:00:00+00:00') :
+                    insert_data.append(tuple(
+                        [par_id, configuration.case_id, configuration.evidence_id, result[0][result[0].rfind('/') + 1:],
+                         result[1], result[0], result[2],
+                         'Windows Timeline']))
 
             query = "Insert into lv2_os_app_history values (%s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_data)
@@ -149,10 +161,11 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         else:
             insert_data = []
             for result in results:
-                insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, result[0],
-                     str(result[1]), result[2], '',
-                     'Eventlogs-Application']))
+                if dateutil.parser.parse(str(result[1])) > dateutil.parser.parse('1970-01-01T00:00:00+00:00') :
+                    insert_data.append(tuple(
+                        [par_id, configuration.case_id, configuration.evidence_id, result[0],
+                         str(result[1]), result[2], '',
+                         'Eventlogs-Application']))
 
             query = "Insert into lv2_os_app_history values (%s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_data)
@@ -167,10 +180,11 @@ class LV2OSAPPHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         else:
             insert_data = []
             for result in results:
-                insert_data.append(tuple(
-                    [par_id, configuration.case_id, configuration.evidence_id, result[3],
-                     result[2], '', result[1],
-                     'Jumplist-automatics']))
+                if dateutil.parser.parse(str(result[2])) > dateutil.parser.parse('1970-01-01T00:00:00+00:00'):
+                    insert_data.append(tuple(
+                        [par_id, configuration.case_id, configuration.evidence_id, result[3],
+                         result[2], '', result[1],
+                         'Jumplist-automatics']))
 
             query = "Insert into lv2_os_app_history values (%s, %s, %s, %s, %s, %s, %s, %s);"
             configuration.cursor.bulk_execute(query, insert_data)
