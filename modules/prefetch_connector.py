@@ -37,7 +37,7 @@ class PREFETCHConnector(interface.ModuleConnector):
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         # extension -> sig_type 변경해야 함
         query = f"SELECT name, parent_path, extension, ctime, ctime_nano, inode FROM file_info " \
-                f"WHERE par_id='{par_id}' and parent_path like '%Windows{query_separator}Prefetch' " \
+                f"WHERE par_id='{par_id}' and parent_path like '%Windows{query_separator}Prefetch'  " \
                 f"and extension = 'pf';"
 
         prefetch_files = configuration.cursor.execute_query_mul(query)
@@ -115,9 +115,14 @@ class PREFETCHConnector(interface.ModuleConnector):
             else:
                 tmp.append(result[6])  # program_path
             tmp.append(str(result[7]))  # program_run_count
-            created_time = str(
-                datetime(1601, 1, 1) + timedelta(seconds=float(str(prefetch[3]) + '.' + str(prefetch[4])))).replace(
-                ' ', 'T') + 'Z'
+
+            if configuration.source_type == 'storage media device' or configuration.source_type == 'storage media image':
+                created_time = str(datetime(1601, 1, 1) + timedelta(seconds=float(str(prefetch[3]) + '.' + str(prefetch[4])))).replace(
+                    ' ', 'T') + 'Z'
+
+            elif configuration.source_type == 'directory' or configuration.source_type == 'file':
+                created_time = datetime.utcfromtimestamp(prefetch[3]).strftime('%Y-%m-%d %H:%M:%S')
+
             created_time = configuration.apply_time_zone(created_time, knowledge_base.time_zone)
             tmp.append(created_time)  # 생성시간
             tmp.append(' ')  # file_hash
@@ -164,7 +169,7 @@ class PREFETCHConnector(interface.ModuleConnector):
             except IndexError:
                 tmp.append(' ')
             try:
-                eightth_last_run_time = last_run_times[5].replace(' ', 'T') + 'Z'
+                eightth_last_run_time = last_run_times[7].replace(' ', 'T') + 'Z'
                 eightth_last_run_time = configuration.apply_time_zone(eightth_last_run_time, knowledge_base.time_zone)
                 tmp.append(eightth_last_run_time)  # 8th_last_run_time
             except IndexError:
