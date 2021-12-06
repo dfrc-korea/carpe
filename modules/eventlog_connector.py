@@ -26,6 +26,7 @@ from modules.Eventlog import lv1_os_win_event_logs_sleeponoff as sle
 from modules.Eventlog import lv1_os_win_event_logs_task_scheduler as ts
 from modules.Eventlog import lv1_os_win_event_logs_telemetry as tele
 from modules.Eventlog import lv1_os_win_event_logs_time_changed as tc
+from modules.Eventlog import lv1_os_win_event_logs_account_changed as ac
 
 
 class EventlogConnector(interface.ModuleConnector):
@@ -33,6 +34,8 @@ class EventlogConnector(interface.ModuleConnector):
     DESCRIPTION = 'Module for Eventlog'
 
     _plugin_classes = {}
+
+
 
     def __init__(self):
         super(EventlogConnector, self).__init__()
@@ -49,6 +52,7 @@ class EventlogConnector(interface.ModuleConnector):
 
             if not self.check_table_from_yaml(configuration, total_yaml_list, total_table_list):
                 return False
+
 
             # 모든 yaml 파일 리스트
             yaml_list = [this_file_path + 'lv1_os_win_event_logs_antiforensics.yaml',
@@ -71,7 +75,8 @@ class EventlogConnector(interface.ModuleConnector):
                          this_file_path + 'lv1_os_win_event_logs_telemetry.yaml',
                          this_file_path + 'lv1_os_win_event_logs_time_changed.yaml',
                          this_file_path + 'lv1_os_win_event_logs_usb_devices.yaml',
-                         this_file_path + 'lv1_os_win_event_logs_sleeponoff.yaml'
+                         this_file_path + 'lv1_os_win_event_logs_sleeponoff.yaml',
+                         this_file_path + 'lv1_os_win_event_logs_account_changed.yaml'
                          ]
 
             # 모든 테이블 리스트
@@ -95,7 +100,8 @@ class EventlogConnector(interface.ModuleConnector):
                           'lv1_os_win_event_logs_telemetry',
                           'lv1_os_win_event_logs_time_changed',
                           'lv1_os_win_event_logs_usb_devices',
-                          'lv1_os_win_event_logs_sleeponoff'
+                          'lv1_os_win_event_logs_sleeponoff',
+                          'lv1_os_win_event_logs_account_changed'
                           ]
 
             if not self.check_table_from_yaml(configuration, yaml_list, table_list):
@@ -447,6 +453,18 @@ class EventlogConnector(interface.ModuleConnector):
                      str(time.user_sid), str(time.event_id), str(time.source),
                      str(time.event_id_description)]))
             query = "Insert into lv1_os_win_event_logs_time_changed values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+            if len(insert_data) > 0:
+                configuration.cursor.bulk_execute(query, insert_data)
+
+            # EVENTLOGACCOUNTCHANGED
+            print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGACCOUNTCHANGED')
+            insert_data = []
+            for account in ac.EVENTLOGACCOUNTCHANGED(configuration):
+                insert_data.append(tuple(
+                    [par_id, configuration.case_id, configuration.evidence_id,
+                     str(account.time), str(account.event_log_file), str(account.target_name), str(account.subject_name),
+                     str(account.user_sid), str(account.event_id), str(account.source), str(account.event_id_description)]))
+            query = "Insert into lv1_os_win_event_logs_account_changed values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             if len(insert_data) > 0:
                 configuration.cursor.bulk_execute(query, insert_data)
 
