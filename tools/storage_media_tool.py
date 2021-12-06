@@ -954,18 +954,18 @@ class StorageMediaTool(tools.CLITool):
                         tsk_file.info.meta.mtime is not None]()
                     file._atime = [lambda: 0, lambda: tsk_file.info.meta.atime][
                         tsk_file.info.meta.atime is not None]()
-                    file._ctime = [lambda: 0, lambda: tsk_file.info.meta.ctime][
+                    file._etime = [lambda: 0, lambda: tsk_file.info.meta.ctime][
                         tsk_file.info.meta.ctime is not None]()
-                    file._etime = [lambda: 0, lambda: tsk_file.info.meta.crtime][
+                    file._ctime = [lambda: 0, lambda: tsk_file.info.meta.crtime][
                         tsk_file.info.meta.crtime is not None]()
 
                     file._mtime_nano = [lambda: 0, lambda: tsk_file.info.meta.mtime_nano][
                         tsk_file.info.meta.mtime_nano is not None]()
                     file._atime_nano = [lambda: 0, lambda: tsk_file.info.meta.atime_nano][
                         tsk_file.info.meta.atime_nano is not None]()
-                    file._ctime_nano = [lambda: 0, lambda: tsk_file.info.meta.ctime_nano][
+                    file._etime_nano = [lambda: 0, lambda: tsk_file.info.meta.ctime_nano][
                         tsk_file.info.meta.ctime_nano is not None]()
-                    file._etime_nano = [lambda: 0, lambda: tsk_file.info.meta.crtime_nano][
+                    file._ctime_nano = [lambda: 0, lambda: tsk_file.info.meta.crtime_nano][
                         tsk_file.info.meta.crtime_nano is not None]()
 
                 # $FileName
@@ -974,18 +974,18 @@ class StorageMediaTool(tools.CLITool):
                         tsk_file.info.meta.mtime is not None]()
                     file._additional_atime = [lambda: 0, lambda: tsk_file.info.meta.atime][
                         tsk_file.info.meta.atime is not None]()
-                    file._additional_ctime = [lambda: 0, lambda: tsk_file.info.meta.ctime][
+                    file._additional_etime = [lambda: 0, lambda: tsk_file.info.meta.ctime][
                         tsk_file.info.meta.ctime is not None]()
-                    file._additional_etime = [lambda: 0, lambda: tsk_file.info.meta.crtime][
+                    file._additional_ctime = [lambda: 0, lambda: tsk_file.info.meta.crtime][
                         tsk_file.info.meta.crtime is not None]()
 
                     file._additional_mtime_nano = [lambda: 0, lambda: tsk_file.info.meta.mtime_nano][
                         tsk_file.info.meta.mtime_nano is not None]()
                     file._additional_atime_nano = [lambda: 0, lambda: tsk_file.info.meta.atime_nano][
                         tsk_file.info.meta.atime_nano is not None]()
-                    file._additional_ctime_nano = [lambda: 0, lambda: tsk_file.info.meta.ctime_nano][
+                    file._additional_etime_nano = [lambda: 0, lambda: tsk_file.info.meta.ctime_nano][
                         tsk_file.info.meta.ctime_nano is not None]()
-                    file._additional_etime_nano = [lambda: 0, lambda: tsk_file.info.meta.crtime_nano][
+                    file._additional_ctime_nano = [lambda: 0, lambda: tsk_file.info.meta.crtime_nano][
                         tsk_file.info.meta.crtime_nano is not None]()
             else:
                 logger.info('[{0!s}]Deal with other attribute types'.format(file_entry.name))
