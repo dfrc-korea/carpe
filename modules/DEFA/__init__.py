@@ -8,3 +8,6 @@ from modules.DEFA import plugin_pptx
 from modules.DEFA import plugin_xls
 from modules.DEFA import plugin_xlsx
 from modules.DEFA import plugin_pdf
+# geunyeong start
+from modules.DEFA import plugin_text
+# geunyeong end

@@ -289,6 +289,8 @@ class ChromiumConnector(interface.ModuleConnector):
                             chrome_zoom_level.append(chrome.chrome_zoom_level(tmp_file_path))
                     except decoder.JSONDecodeError:
                         pass
+                    except UnicodeDecodeError:
+                        pass
 
                     if 'History' in files:
                         tmp_file_path = chrome_output_path + file_check[0] + os.sep + file_check[1] + os.sep + 'History'

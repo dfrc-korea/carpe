@@ -50,6 +50,7 @@ class DEFAConnector(interface.ModuleConnector):
         xls_plugin = None
         xlsx_plugin = None
         pdf_plugin = None
+        text_plugin = None
 
         query_separator = self.GetQuerySeparator(source_path_spec, configuration)
         path_separator = self.GetPathSeparator(source_path_spec)
@@ -86,6 +87,11 @@ class DEFAConnector(interface.ModuleConnector):
             elif self._plugins[i].plugin_name == 'PDF':
                 query += " LOWER(extension) = 'pdf' "
                 pdf_plugin = self._plugins[i]
+            # geunyeong start
+            elif self._plugins[i].plugin_name == 'TEXT':
+                query += " LOWER(extension) = 'txt' or LOWER(extension) = 'log' "
+                text_plugin = self._plugins[i]
+            # geunyeong end
 
             if i == len(self._plugins) - 1:
                 query += ");"
@@ -164,8 +170,18 @@ class DEFAConnector(interface.ModuleConnector):
 
             file_path = output_path + os.sep + document[0]
             extension = document[3].lower()
+            sigFile = document[2].lower()
+            ext_sig_map = {'hwp': 'olecf', 'doc': 'olecf', 'pdf': 'pdf', 'xls': 'olecf', 'ppt': 'olecf',
+                           'docx': 'ooxml', 'xlsx': 'ooxml', 'pptx': 'ooxml', 'log': 'text', 'txt': 'text'}
 
             try:
+                #if ext_sig_map[extension] != sigFile:
+                if ext_sig_map.get(extension, None) != sigFile:
+                    if sigFile != '' and sigFile != extension:
+                        self._UpdateFileInfoRecords(configuration, document)
+                        logger.error(document[0] + ' unmatched signature and extension')
+                        raise Exception()
+
                 if extension == 'hwp':
                     self.print_run_info(f"Parse HWP File : \"{document[0]}\"", start=True)
                     result = hwp_plugin.Process(fp=file_path, ole_path=ole_path)
@@ -198,6 +214,10 @@ class DEFAConnector(interface.ModuleConnector):
                     self.print_run_info(f"Parse PDF File : \"{document[0]}\"", start=True)
                     result = pdf_plugin.Process(fp=file_path, ole_path=ole_path)
                     self.print_run_info(f"Parse PDF File : \"{document[0]}\"", start=False)
+                elif extension == 'txt' or extension == 'log':
+                    self.print_run_info(f"Parse Text File : \"{document[0]}\"", start=True)
+                    result = text_plugin.Process(fp=file_path, meta=document)
+                    self.print_run_info(f"Parse Text File : \"{document[0]}\"", start=False)
             except Exception as e:
                 # print("Error : " + str(e))
                 error_count += 1
@@ -408,5 +428,8 @@ class DEFAConnector(interface.ModuleConnector):
             configuration.cursor.bulk_execute(query, insert_document)
             # print(f"Total Count : {total_count}, Error Count : {error_count}")
 
+    def _UpdateFileInfoRecords(self, configuration, document):
+        query = f'UPDATE file_info SET sig_type = "unmatched to extension" WHERE inode = "{document[20]}" and name ="{document[0]}"'
+        configuration.cursor.execute_query(query)
 
 manager.ModulesManager.RegisterModule(DEFAConnector)
