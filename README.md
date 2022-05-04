@@ -9,7 +9,7 @@ Recently, the processing technology for large-capacity data is developed for eac
 ## OVERVIEW
 
 #### CARPE Forensics Architecture
-![Structure](carpe-forensics.png)
+![Structure](./docs/img/carpe-forensics.png)
 
 ##### Analyze Digital Forensic Image & Extract Artifacts
 In this course, we analyze the image data using plaso and RDS (Reference Data Sets) and perform the process of extracting the desired artifacts by the user. The extracted artifacts are then used as input values of the big data processing.
