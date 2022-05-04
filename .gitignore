@@ -130,6 +130,3 @@ dmypy.json
 
 # OSX Cache
 .DS_Store
-
-# Python Virtual Environment
-.venv
