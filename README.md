@@ -18,7 +18,7 @@ In this course, we analyze the image data using plaso and RDS (Reference Data Se
 In this course, correlation analysis and string indexing are performed based on the result data of image analysis and artifact extraction. The results analyzed in the whole process are stored in a database. The types of databases include a graph database, a time series database, and a relational database. The database data is finally visualized and displayed to the user.
 
 
-##### Ohter information
+##### Other information
 * Contact information: http://carpeforensics.org
 * How to build: https://github.com/dfrc-korea/carpe/wiki/Building
 * Documentation: https://github.com/dfrc-korea/carpe/wiki/Usage
