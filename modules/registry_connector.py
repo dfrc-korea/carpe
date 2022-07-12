@@ -4,7 +4,7 @@ import os
 from modules import manager
 from modules import interface
 from modules import logger
-from yarp import Registry
+from yarp import Registry # pip install https://github.com/msuhanov/yarp/archive/1.0.33.tar.gz
 from modules.Registry import lv1_os_win_reg_os_info as oi
 from modules.Registry import lv1_os_win_reg_installed_programs as ip
 from modules.Registry import lv1_os_win_reg_user_accounts as ua
