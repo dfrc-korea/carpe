@@ -40,7 +40,7 @@ pdfminer.six==20200726
 pika==1.1.0
 pluggy==0.13.1
 protobuf==3.13.0
-py==1.9.0
+py==1.10.0
 pyarrow==1.0.1
 pycparser==2.20
 pycryptodome==3.9.8
