@@ -32,7 +32,7 @@ libvshadow-python==20210425
 lxml==4.6.2
 moduleInterface==2.0.13
 more-itertools==8.5.0
-numpy==1.19.1
+numpy==1.22.0
 olefile==0.46
 packaging==20.4
 pandas==1.1.1
