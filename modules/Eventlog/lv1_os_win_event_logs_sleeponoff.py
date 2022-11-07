@@ -18,7 +18,7 @@ class Sleep_Information:
     source = ''
     event_id_description = ''
 
-def EVENTLOGSLEEPONOFF(configuration):
+def EVENTLOGSLEEPONOFF(configuration, knowledge_base):
 
     #db = database.Database()
     #db.open()
@@ -61,11 +61,15 @@ def EVENTLOGSLEEPONOFF(configuration):
                     if 'SleepTime' in result_data[0]:
                         dataInside = r"SleepTime\">(.*)<"
                         m = re.search(dataInside, result_data[0])
-                        sleep_list[sleep_count].time_sleep = m.group(1)
+                        # evt_total에는 Timezone 처리해주는데 여기선 못해줘서 추가.
+                        sleep_list[sleep_count].time_sleep = m.group(1).replace(' ', 'T') + 'Z'
+                        sleep_list[sleep_count].time_sleep = configuration.apply_time_zone(str(sleep_list[sleep_count].time_sleep), knowledge_base.time_zone)
                     if 'WakeTime' in result_data[0]:
                         dataInside = r"WakeTime\">(.*)<"
                         m = re.search(dataInside, result_data[0])
-                        sleep_list[sleep_count].time_wake = m.group(1)
+                        # evt_total에는 Timezone 처리해주는데 여기선 못해줘서 추가.
+                        sleep_list[sleep_count].time_wake = m.group(1).replace(' ', 'T') + 'Z'
+                        sleep_list[sleep_count].time_wake = configuration.apply_time_zone(str(sleep_list[sleep_count].time_wake), knowledge_base.time_zone)
                     sleep_count = sleep_count + 1
 
         except:

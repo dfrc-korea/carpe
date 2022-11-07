@@ -404,7 +404,7 @@ class EventlogConnector(interface.ModuleConnector):
             # EVENTLOGSLEEPONOFF
             print(f'[{self.print_now_time()}] [MODULE] Eventlog - EVENTLOGSLEEPONOFF')
             insert_data = []
-            for sleep in sle.EVENTLOGSLEEPONOFF(configuration):
+            for sleep in sle.EVENTLOGSLEEPONOFF(configuration, knowledge_base):
                 insert_data.append(tuple(
                     [par_id, configuration.case_id, configuration.evidence_id, str(sleep.task),
                      str(sleep.time_sleep),
