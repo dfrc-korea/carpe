@@ -21,12 +21,11 @@ tag = lambda v: ns + v if ns else v
 def EventlogTotal(real_file_path, filename):
     result = []
     eventlog_count = 0
+
     with evtx.Evtx(filename) as log:
         for i, rec in enumerate(log.records()):
-            try:
-                xml_str = rec.xml()
-            except:
-                continue
+
+            xml_str = rec.xml().replace('\x00', '')
 
             if xml_str != '':
                 root = XML.fromstring(xml_str)  # Event Tag

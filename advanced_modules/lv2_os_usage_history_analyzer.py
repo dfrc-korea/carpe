@@ -32,8 +32,8 @@ class LV2OSUSAGEHISTORYAnalyzer(interface.AdvancedModuleAnalyzer):
         #
         # if len(eventlog_files) == 0:
         #     return False
-        if source_path_spec.TYPE_INDICATOR != 'NTFS':
-            return False
+        # if source_path_spec.TYPE_INDICATOR != 'NTFS':
+        #     return False
 
         this_file_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'schema' + os.sep + 'visualization' + os.sep
 

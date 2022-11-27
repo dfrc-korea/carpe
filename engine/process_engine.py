@@ -157,12 +157,13 @@ class ProcessEngine(object):
                             if advanced_module_name == 'lv2_os_usage_history_analyzer':  # usage_history는 한 번만
                                 if not os_usage_history_flag:
                                     advanced_module.print_run_info(advanced_module.DESCRIPTION, start=True)
-                                    advanced_module.Analyze(par_id=par_id,
-                                                    configuration=configuration,
-                                                    source_path_spec=source_path_spec,
-                                                    knowledge_base=self.knowledge_base)
+                                    if source_path_spec.TYPE_INDICATOR == 'NTFS':
+                                        advanced_module.Analyze(par_id=par_id,
+                                                                configuration=configuration,
+                                                                source_path_spec=source_path_spec,
+                                                                knowledge_base=self.knowledge_base)
+                                        os_usage_history_flag = True
                                     advanced_module.print_run_info(advanced_module.DESCRIPTION, start=False)
-                                    os_usage_history_flag = True
                                     continue
                                 else:  # for GUI
                                     advanced_module.print_run_info(advanced_module.DESCRIPTION, start=True)
