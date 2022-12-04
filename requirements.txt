@@ -29,7 +29,7 @@ libsigscan-python==20210419
 libsmdev-python==20210418
 libsmraw-python==20210418
 libvshadow-python==20210425
-lxml==4.6.2
+lxml==4.9.1
 moduleInterface==2.0.13
 more-itertools==8.5.0
 numpy==1.19.1
