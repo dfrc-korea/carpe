@@ -14,6 +14,7 @@ def mft_parse(info, mft_file, file_record, file_paths, time_zone):
     wsl_mtime = ''
     wsl_atime = ''
     wsl_chtime = ''
+    file_type = ''
 
     for attribute in file_record.attributes():
         if type(attribute) is MFT.AttributeRecordResident:
@@ -22,6 +23,8 @@ def mft_parse(info, mft_file, file_record, file_paths, time_zone):
             if type(attribute_value) is Attributes.StandardInformation:
                 if attr_standard_information is None:
                     attr_standard_information = attribute_value
+
+                file_type = Attributes.ResolveFileAttributes(attribute_value.get_file_attributes())
 
             if type(attribute_value) is Attributes.ObjectID:
                 if objid_time is None:
@@ -104,11 +107,11 @@ def mft_parse(info, mft_file, file_record, file_paths, time_zone):
 
             mft_list.append(info + ['File record', fr_number, fr_in_use, fr_directory, fr_lsn, file_path,
                             si_mtime, si_atime, si_ctime, si_etime, si_usn, fn_mtime, fn_atime, fn_ctime, fn_etime,
-                            objid_time, file_size, ads_list, wsl_mtime, wsl_atime, wsl_chtime])
+                            objid_time, file_size, ads_list, wsl_mtime, wsl_atime, wsl_chtime, file_type])
     else:
         mft_list.append(info + ['File record', fr_number, fr_in_use, fr_directory, fr_lsn, '',
                         si_mtime, si_atime, si_ctime, si_etime, si_usn, '', '', '', '', objid_time, file_size, ads_list,
-                        wsl_mtime, wsl_atime, wsl_chtime])
+                        wsl_mtime, wsl_atime, wsl_chtime, file_type])
 
     # Parse a file name index in this file record (if present).
     attr_index_root = None
@@ -155,7 +158,7 @@ def mft_parse(info, mft_file, file_record, file_paths, time_zone):
                 file_size = attr_file_name.get_file_size()
 
                 mft_list.append(info + ['Index record', fr_number, '?', fr_directory, '', file_path, '', '', '', '',
-                                        '', fn_mtime, fn_atime, fn_ctime, fn_etime, '', file_size, '', '', '', ''])
+                                        '', fn_mtime, fn_atime, fn_ctime, fn_etime, '', file_size, '', '', '', '', file_type])
 
     # Parse slack space in this file record (if present).
     for slack in file_record.slack():
@@ -196,6 +199,7 @@ def mft_parse(info, mft_file, file_record, file_paths, time_zone):
             file_size = attr_file_name.get_file_size()
 
             mft_list.append(info + ['Slack', '?', '?', fr_directory, '', file_path, '', '', '', '', '',
-                                    fn_mtime, fn_atime, fn_ctime, fn_etime, '', file_size, '', '', '', ''])
+                                    fn_mtime, fn_atime, fn_ctime, fn_etime, '', file_size, '', '', '', '', file_type])
 
     return mft_list
+

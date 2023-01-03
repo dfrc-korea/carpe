@@ -1,3 +1,4 @@
+
 Name: MFT
 Desc: MFT record
 Table:
@@ -27,11 +28,13 @@ Table:
       - wsl_mtime
       - wsl_atime
       - wsl_chtime
+      - type_info
 
     Types:
       - [VARCHAR(255), NOT NULL]
       - [VARCHAR(255), NOT NULL]
       - [VARCHAR(255), NOT NULL]
+      - [TEXT]
       - [TEXT]
       - [TEXT]
       - [TEXT]
