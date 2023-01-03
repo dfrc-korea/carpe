@@ -3,18 +3,294 @@ import json
 from modules.NTFS import util
 from modules.NTFS.dfir_ntfs import USN, LogFile, Attributes, MFT
 
-
 def restart_area_parse(restart_area):
     restart_area_version = f"{restart_area.get_major_version()}.{restart_area.get_minor_version()}"
 
-    # lsn, version, checkpoint, attribute_table, attribute_name, dirty_page_table, transaction_table
-    restart_area_items = [restart_area.lsn, restart_area_version, restart_area.get_start_of_checkpoint_lsn(),
-                          restart_area.get_open_attribute_table_lsn(), restart_area.get_open_attribute_table_length(),
-                          restart_area.get_attribute_names_lsn(), restart_area.get_attribute_names_length(),
-                          restart_area.get_dirty_page_table_lsn(), restart_area.get_dirty_page_table_length(),
-                          restart_area.get_transaction_table_lsn(), restart_area.get_transaction_table_length()]
+    # lsn, version, checkrestart_area.lsn, restart_area_version, restart_area.get_start_of_checkpoint_lsn(),
+    #                           restart_area.get_open_attribute_table_lsn(), restart_area.get_open_attribute_table_length(),
+    #                           restart_area.get_attribute_names_lsn(), restart_area.get_attribute_names_length(),
+    #                           restart_area.get_dirty_page_table_lsn(), restart_area.get_dirty_page_table_length(),
+    #                           restart_area.get_transaction_table_lsn(), restart_area.get_transaction_table_length()point, attribute_table, attribute_name, dirty_page_table, transaction_table
+    restart_area_items = []
 
     return restart_area_items
+
+
+
+def detail_parse(log_record_list):
+    for index in range(0, len(log_record_list)):
+        if index == 0:
+            if log_record_list[index][6] == "UpdateResidentValue" and log_record_list[index][7] == "UpdateResidentValue":  # Resident 작성 이벤트
+                log_record_list[index][17] = "File Writed (Resident) - " + " Writing Size :" + str(
+                    len(log_record_list[index][14]))
+            else:
+                log_record_list[index][17] = ""
+
+        else:
+            if log_record_list[index][4] == log_record_list[index - 1][3]:
+
+                if (log_record_list[index][6] == "InitializeFileRecordSegment" and log_record_list[index][7] == "Noop" and
+                    log_record_list[index - 1][6] == "AddIndexEntryAllocation") or \
+                        (log_record_list[index][6] == "InitializeFileRecordSegment" and log_record_list[index][
+                            7] == "Noop" and log_record_list[index - 1][6] == "AddIndexEntryRoot"):
+                    if "ARCHIVE" in json.loads(log_record_list[index][16])["std_info"]["file_attributes"]:
+                        if json.loads(log_record_list[index][16]).get("second_file_name") is not None:
+                            if json.loads(log_record_list[index][16])["second_file_name"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "File Created - " + "Filename: " + str(
+                                    json.loads(log_record_list[index][16])["second_file_name"][
+                                        "parent_file_path"]) + "/" + str(
+                                    json.loads(log_record_list[index][16])["second_file_name"]["file_name"])
+                            else:
+                                log_record_list[index][17] = "File Created - " + "Filename: " + str(
+                                    json.loads(log_record_list[index][16])["second_file_name"]["file_name"])
+
+
+                        else:
+                            if json.loads(log_record_list[index][16])["file_name"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "File Created - " + "Filename: " + str(
+                                    json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(
+                                    json.loads(log_record_list[index][16])["file_name"]["file_name"])
+                            else:
+                                log_record_list[index][17] = "File Created - " + "Filename: " + str(
+                                    json.loads(log_record_list[index][16])["file_name"]["file_name"])
+
+                    elif json.loads(log_record_list[index][16])["std_info"]["file_attributes"] == "" or \
+                            json.loads(log_record_list[index][16])["std_info"]["file_attributes"] == "NOT_CONTENT_INDEXED":
+                        if json.loads(log_record_list[index][16]).get("second_file_name") is not None:
+                            log_record_list[index][17] = "Directory Created - " + "Filename: " + str(
+                                json.loads(log_record_list[index][16])["second_file_name"]["parent_file_path"]) + "/" + str(
+                                json.loads(log_record_list[index][16])["second_file_name"]["file_name"])
+
+                        else:
+                            log_record_list[index][17] = "Directory Created - " + "Filename: " + str(
+                                json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(
+                                json.loads(log_record_list[index][16])["file_name"]["file_name"])
+
+
+                elif (log_record_list[index][6] == "DeallocateFileRecordSegment" and log_record_list[index][
+                    7] == "InitializeFileRecordSegment" and log_record_list[index - 1][
+                          6] == "DeleteIndexEntryAllocation") or \
+                        (log_record_list[index][6] == "DeallocateFileRecordSegment" and log_record_list[index][
+                            7] == "InitializeFileRecordSegment" and log_record_list[index - 1][
+                             6] == "DeleteIndexEntryRoot"):
+                    if "ARCHIVE" in json.loads(log_record_list[index - 1][16])["file_name_index"]["file_attributes"]:
+                        if json.loads(log_record_list[index - 1][16])["file_name_index"]["parent_file_path"] is not None:
+                            log_record_list[index][17] = "File Deleted - " + "Filename: " + str(
+                                json.loads(log_record_list[index - 1][16])["file_name_index"][
+                                    "parent_file_path"]) + "/" + str(
+                                json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
+
+                        else:
+                            log_record_list[index][17] = "File Deleted - " + "Filename: " + str(
+                                json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
+
+
+                    elif json.loads(log_record_list[index - 1][16])["file_name_index"]["file_attributes"] == "":
+                        if json.loads(log_record_list[index - 1][16])["file_name_index"]["parent_file_path"] is not None:
+                            log_record_list[index][17] = "Directory Deleted - " + "Filename: " + str(
+                                json.loads(log_record_list[index - 1][16])["file_name_index"][
+                                    "parent_file_path"]) + "/" + str(
+                                json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
+
+                        else:
+                            log_record_list[index][17] = "Directory Deleted - " + "Filename: " + str(
+                                json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
+
+                elif log_record_list[index][6] == "UpdateResidentValue" and log_record_list[index][7] == "UpdateResidentValue":  # Resident 작성 이벤트
+                    cl = []
+                    for k in range(25):
+                        if index - k - 1 >= 0:
+                            if (log_record_list[index][13] == log_record_list[index - k - 1][13]) and log_record_list[index - k - 1][6] == "InitializeFileRecordSegment":
+                                cl.append(log_record_list[index - k - 1])
+
+                        else:
+                            pass
+
+                    try:
+                        if json.loads(cl[0][16]).get("second_file_name") is not None:
+
+                            if json.loads(cl[0][16])["second_file_name"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "File Writed (Resident) - " + " Writing Size: " + str(len(log_record_list[index][14])) +  "  Filename: " + str(json.loads(cl[0][16])["second_file_name"]["parent_file_path"]) + "/" + str(json.loads(cl[0][16])["second_file_name"]["file_name"])
+
+
+                            else:
+                                log_record_list[index][17] = "File Writed (Resident) - " + " Writing Size: " + str(len(log_record_list[index][14])) + "  Filename: " + str(json.loads(cl[0][16])["second_file_name"]["file_name"])
+
+
+                        else:
+                            if json.loads(cl[0][16])["file_name"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "File Writed (Resident) - " + " Writing Size: " + str(len(log_record_list[index][14])) + "  Filename: " + str(json.loads(cl[0][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(cl[0][16])["file_name"]["file_name"])
+                            else:
+                                log_record_list[index][17] = "File Writed (Resident) - " + " Writing Size: " + str(len(log_record_list[index][14])) + "  Filename: " + str(json.loads(cl[0][16])["file_name"]["file_name"])
+
+
+                    except:
+                        log_record_list[index][17] = "File Writed (Resident) - " + " Writing Size: " + str(len(log_record_list[index][14]))
+
+                elif log_record_list[index][6] == "UpdateMappingPairs" and log_record_list[index][7] == "UpdateMappingPairs":  # NonResident 작성 이벤트
+
+                    try:
+                        str1 = str(log_record_list[index][14].hex())
+                        cluster_offset = str1[0]
+                        cluster_count = str1[1]
+
+                        c_index = int(str1.index(str1[1]))
+                        cluster_count_offset = int(cluster_count) * 2
+
+                        cluster_count = str1[c_index + 1: c_index + cluster_count_offset + 1]
+                        cluster_count_ = ''.join([cluster_count[i - 2:i] for i in range(len(cluster_count), 0, -2)])
+                        #cluster_count_ = int(cluster_count, 16)
+
+                        cluster = str1[c_index + int(cluster_count_offset) + 1: c_index + int(cluster_count_offset) + (int(cluster_offset) * 2) + 1]
+                        hex_str_lsb = ''.join([cluster[i - 2:i] for i in range(len(cluster), 0, -2)])
+                        cluster_info = f"{int(hex_str_lsb, 16)}({int(cluster_count_, 16)})"
+
+
+                    except:
+                        cluster_info = "Unknown"
+
+
+                    cl = []
+                    for k in range(25):
+                        if index - k - 1 >= 0:
+                            if (log_record_list[index][13] == log_record_list[index - k - 1][13]) and \
+                                    log_record_list[index - k - 1][6] == "InitializeFileRecordSegment":
+                                cl.append(log_record_list[index - k - 1])
+
+                        else:
+                            pass
+
+                    try:
+                        if json.loads(cl[0][16]).get("second_file_name") is not None:
+
+                            if json.loads(cl[0][16])["second_file_name"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "File Writed (Non-Resident) - Data Runs(in Volume): " + cluster_info + "  Filename: " + str(
+                                    json.loads(cl[0][16])["second_file_name"]["parent_file_path"]) + "/" + str(
+                                    json.loads(cl[0][16])["second_file_name"]["file_name"])
+
+
+                            else:
+                                log_record_list[index][17] = "File Writed (Non-Resident) - Data Runs(in Volume): " + cluster_info + "  Filename: " + str(
+                                    json.loads(cl[0][16])["second_file_name"]["file_name"])
+
+
+                        else:
+                            if json.loads(cl[0][16])["file_name"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "File Writed (Non-Resident) - Data Runs(in Volume): " + cluster_info + "  Filename: " + str(
+                                    json.loads(cl[0][16])["file_name"]["parent_file_path"]) + "/" + str(
+                                    json.loads(cl[0][16])["file_name"]["file_name"])
+                            else:
+                                log_record_list[index][17] = "File Writed (Non-Resident) - Data Runs(in Volume): " + cluster_info + "  Filename: " + str(
+                                    json.loads(cl[0][16])["file_name"]["file_name"])
+
+
+                    except:
+                        log_record_list[index][17] = "File Writed (Non-Resident) - Data Runs(in Volume): " + cluster_info
+
+
+
+                elif log_record_list[index][6] == "CreateAttribute" and log_record_list[index][7] == "DeleteAttribute" and log_record_list[index][12] == 152:  # Renaming
+                    ll = []
+
+                    for k in range(20):
+
+                        if index - k - 1 >= 0:
+                            if (log_record_list[index][13] == log_record_list[index - k - 1][13] and log_record_list[index - k - 1][6] == "DeleteAttribute") or (log_record_list[index][13] == log_record_list[index - k - 1][13] and log_record_list[index - k - 1][6] == "CreateAttribute"):
+                                ll.append(log_record_list[index - k - 1])
+
+                        else:
+                            pass
+
+                    if len(ll) > 1 and ll[0][6] != "CreateAttribute":
+                        if len(str(json.loads(ll[0][16])["file_name"]["file_name"])) > len(str(json.loads(ll[1][16])["file_name"]["file_name"])):
+                            if str(json.loads(ll[0][16])["file_name"]["parent_file_path"]) == str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]):
+                                log_record_list[index][17] = "Renaming: " + str(json.loads(ll[0][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
+
+                            else:
+                                if json.loads(ll[0][16])["file_name"]["parent_file_path"] is not None:
+                                    log_record_list[index][17] = "Renaming && Moving: " + str(json.loads(ll[0][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(ll[0][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
+
+                                else:
+                                    log_record_list[index][17] = "Renaming && Moving: " + str(json.loads(ll[0][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
+
+                        else:
+                            if str(json.loads(ll[1][16])["file_name"]["parent_file_path"]) == str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]):
+                                log_record_list[index][17] = "Renaming: " + str(json.loads(ll[1][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["file_name"]) + " File_path: " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"])
+
+                            else:
+                                if json.loads(ll[1][16])["file_name"]["parent_file_path"] is not None:
+                                    log_record_list[index][17] = "Renaming && Moving: " + str(json.loads(ll[1][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(ll[1][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
+
+                                else:
+                                    log_record_list[index][17] = "Renaming && Moving: " + str(json.loads(ll[1][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
+
+                    elif len(ll) == 1:
+
+                        try:
+                            if str(json.loads(ll[0][16])["file_name"]["parent_file_path"]) == str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]):
+                                log_record_list[index][17] = "Renaming: " + str(json.loads(ll[0][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["file_name"]) + " File_path: " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"])
+
+
+                            else:
+                                if json.loads(ll[0][16])["file_name"]["parent_file_path"] is not None:
+                                    log_record_list[index][17] = "Renaming && Moving: " + str(json.loads(ll[0][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(ll[0][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
+
+
+                                else:
+                                    log_record_list[index][17] = "Renaming && Moving: " + str(json.loads(ll[0][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
+                        except:
+                            log_record_list[index][17] = "Renaming: Unknown"
+
+                else:
+                    log_record_list[index][17] = " "
+
+            else:  # 이전 LSN 없을때
+
+                if log_record_list[index][6] == "UpdateResidentValue" and log_record_list[index][7] == "UpdateResidentValue":  # Resident 작성 이벤트
+                    cl = []
+                    for k in range(25):
+                        if index - k - 1 >= 0:
+                            if (log_record_list[index][13] == log_record_list[index - k - 1][13]) and \
+                                    log_record_list[index - k - 1][6] == "InitializeFileRecordSegment":
+                                cl.append(log_record_list[index - k - 1])
+
+                        else:
+                            pass
+
+                    try:
+                        if json.loads(cl[0][16]).get("second_file_name") is not None:
+
+                            if json.loads(cl[0][16])["second_file_name"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "File Writed (Resident) - " + " Writing Size: " + str(len(log_record_list[index][14])) + "  Filename: " + str(json.loads(cl[0][16])["second_file_name"]["parent_file_path"]) + "/" + str(json.loads(cl[0][16])["second_file_name"]["file_name"])
+
+
+                            else:
+                                log_record_list[index][17] = "File Writed (Resident) - " + " Writing Size: " + str(
+                                    len(log_record_list[index][14])) + "  Filename: " + str(
+                                    json.loads(cl[0][16])["second_file_name"]["file_name"])
+
+
+                        else:
+                            if json.loads(cl[0][16])["file_name"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "File Writed (Resident) - " + " Writing Size: " + str(
+                                    len(log_record_list[index][14])) + "  Filename: " + str(
+                                    json.loads(cl[0][16])["file_name"]["parent_file_path"]) + "/" + str(
+                                    json.loads(cl[0][16])["file_name"]["file_name"])
+                            else:
+                                log_record_list[index][17] = "File Writed (Resident) - " + " Writing Size: " + str(
+                                    len(log_record_list[index][14])) + "  Filename: " + str(
+                                    json.loads(cl[0][16])["file_name"]["file_name"])
+
+
+                    except:
+                        log_record_list[index][17] = "File Writed (Resident) - " + " Writing Size: " + str(
+                            len(log_record_list[index][14]))
+
+
+
+    return log_record_list
+
+
 
 
 def log_record_parse(log_record, mft_file, path_dict, time_zone):
@@ -24,8 +300,12 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
     redo_data = log_record.get_redo_data()
     undo_data = log_record.get_undo_data()
 
-    log_record_items = [log_record.lsn, log_record.transaction_id,
+
+
+    log_record_items = [log_record.lsn, log_record.pre_lsn, log_record.transaction_id,
                         LogFile.ResolveNTFSOperation(redo_op), LogFile.ResolveNTFSOperation(undo_op)]
+
+    #print(log_record_items)
 
     target = log_record.calculate_mft_target_number()
     if target is not None:
@@ -47,6 +327,8 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
         log_record_items.append(None)  # target_reference
         log_record_items.append(None)  # target_attribute_name
         log_record_items.append(fr_file_path)
+
+
     else:
         log_record_items.append(None)  # target_file_number
         target = log_record.calculate_mft_target_reference_and_name()
@@ -104,7 +386,8 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
 
     attr_items = {}
 
-    if redo_op == LogFile.InitializeFileRecordSegment:
+
+    if redo_op == LogFile.InitializeFileRecordSegment or redo_op == LogFile.DeleteIndexEntryAllocation or redo_op == LogFile.UpdateResidentValue:     #레지던트파일생성
         frs_size = log_record.get_target_block_size() * 512
         if frs_size == 0:
             frs_size = 1024
@@ -118,10 +401,11 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
         else:
             try:
                 for frs_attr in frs.attributes():
-                    if type(frs_attr) is MFT.AttributeRecordNonresident:
+                    if type(frs_attr) is MFT.AttributeRecordNonresident:   #레지던트 아니면 빠져나옴
                         continue
 
                     frs_attr_val = frs_attr.value_decoded()
+
                     if type(frs_attr_val) is Attributes.StandardInformation:
                         std_info = {
                             'attr_val': '$STANDARD_INFORMATION',
@@ -131,8 +415,10 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
                             'e_time': util.format_timestamp(frs_attr_val.get_etime(), time_zone),
                             'file_attributes': Attributes.ResolveFileAttributes(
                                 frs_attr_val.get_file_attributes())
+
                         }
                         attr_items['std_info'] = std_info
+
 
                     elif type(frs_attr_val) is Attributes.FileName:
                         file_name = {
@@ -162,25 +448,21 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
                                 fr_file_path = file_paths[0]
                             else:
                                 fr_file_path = None
+
                         file_name['parent_file_path'] = fr_file_path
                         if 'file_name' in attr_items:
                             attr_items['second_file_name'] = file_name
+
                         else:
                             attr_items['file_name'] = file_name
-
-                    elif type(frs_attr_val) is Attributes.ObjectID:
-                        object_id = {
-                            'attr_val': '$OBJECT_ID',
-                            'guid': str(frs_attr_val.get_object_id()),
-                            'timestamp': util.format_timestamp(frs_attr_val.get_timestamp(), time_zone)
-                        }
-                        attr_items['object_id'] = object_id
 
             except MFT.MasterFileTableException:
                 pass
 
-    if redo_op == LogFile.CreateAttribute or undo_op == LogFile.CreateAttribute or \
-            redo_op == LogFile.WriteEndOfFileRecordSegment or undo_op == LogFile.WriteEndOfFileRecordSegment:
+
+
+    if redo_op == LogFile.CreateAttribute or undo_op == LogFile.CreateAttribute or redo_op == LogFile.DeleteIndexEntryAllocation or redo_op == LogFile.UpdateResidentValue\
+            or redo_op == LogFile.WriteEndOfFileRecordSegment or undo_op == LogFile.WriteEndOfFileRecordSegment:
         if redo_op == LogFile.CreateAttribute:
             attr_buf = redo_data
         elif undo_op == LogFile.CreateAttribute:
@@ -246,17 +528,8 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
                         file_name['parent_file_path'] = fr_file_path
                         attr_items['file_name'] = file_name
 
-                    elif type_code == Attributes.ATTR_TYPE_OBJECT_ID:
-                        attr_objid = Attributes.ObjectID(attr_value_buf)
 
-                        object_id = {
-                            'attr_val': '$OBJECT_ID',
-                            'guid': str(attr_objid.get_object_id()),
-                            'timestamp': util.format_timestamp(attr_objid.get_timestamp(), time_zone)
-                        }
-                        attr_items['object_id'] = object_id
-
-    if redo_op == LogFile.AddIndexEntryRoot or redo_op == LogFile.AddIndexEntryAllocation or \
+    if redo_op == LogFile.AddIndexEntryRoot or redo_op == LogFile.AddIndexEntryAllocation or\
             redo_op == LogFile.WriteEndOfIndexBuffer or undo_op == LogFile.AddIndexEntryRoot or \
             undo_op == LogFile.AddIndexEntryAllocation or undo_op == LogFile.WriteEndOfIndexBuffer:
         if redo_op == LogFile.AddIndexEntryRoot or redo_op == LogFile.AddIndexEntryAllocation or \
@@ -278,6 +551,8 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
                 file_name['ctime'] = util.format_timestamp(attr_fn.get_ctime(), time_zone)
                 file_name['etime'] = util.format_timestamp(attr_fn.get_etime(), time_zone)
                 file_name['file_name'] = attr_fn.get_file_name()
+                file_name['file_attributes'] = Attributes.ResolveFileAttributes(attr_fn.get_file_attributes())
+
             except (ValueError, OverflowError):
                 pass
 
@@ -303,8 +578,11 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
             file_name['parent_file_path'] = fr_file_path
             attr_items['file_name_index'] = file_name
 
+
+
     if offset_in_target is not None and (redo_op == LogFile.UpdateResidentValue
                                          or undo_op == LogFile.UpdateResidentValue):
+
         frs_size = log_record.get_target_block_size() * 512
         if frs_size == 0:
             frs_size = 1024
@@ -315,7 +593,7 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
                 si_attr_offset = 72 + 24
 
             if si_attr_offset <= offset_in_target <= si_attr_offset + 32:
-                buf = redo_data
+                buf = redo_data   #수정 후 내용
                 if len(buf) >= 8:
                     attr_si = Attributes.StandardInformationPartial(buf, offset_in_target - si_attr_offset)
 
@@ -324,11 +602,11 @@ def log_record_parse(log_record, mft_file, path_dict, time_zone):
                         'mtime': util.format_timestamp(attr_si.get_mtime(), time_zone),
                         'atime': util.format_timestamp(attr_si.get_atime(), time_zone),
                         'ctime': util.format_timestamp(attr_si.get_ctime(), time_zone),
-                        'etime': util.format_timestamp(attr_si.get_etime(), time_zone)
+                        'etime': util.format_timestamp(attr_si.get_etime(), time_zone),
                     }
                     attr_items['possible_std_info_redo'] = possible_std_info_redo
 
-                buf = undo_data
+                buf = undo_data #수정 전 내용
                 if len(buf) >= 8:
                     attr_si = Attributes.StandardInformationPartial(buf, offset_in_target - si_attr_offset)
 
