@@ -7,6 +7,7 @@ Table:
       - case_id
       - evd_id
       - lsn
+      - previous_lsn
       - transaction_id
       - redo_op
       - undo_op
@@ -19,6 +20,7 @@ Table:
       - redo_data
       - undo_data
       - attribute
+      - detail
 
     Types:
       - [VARCHAR(255), NOT NULL]
@@ -34,6 +36,8 @@ Table:
       - [TEXT]
       - [TEXT]
       - [TEXT]
+      - [TEXT]
       - [BLOB]
       - [BLOB]
+      - [TEXT]
       - [TEXT]
