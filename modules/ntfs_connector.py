@@ -7,6 +7,9 @@ from modules import manager
 from modules import interface
 from modules.NTFS import mft_parser, logfile_parser, usnjrnl_parser
 from modules.NTFS.dfir_ntfs import USN, LogFile, MFT
+import json
+
+from modules.NTFS.logfile_parser import detail_parse
 
 
 class NTFSConnector(interface.ModuleConnector):
@@ -57,6 +60,7 @@ class NTFSConnector(interface.ModuleConnector):
 
         output_path = configuration.root_tmp_path + os.sep + configuration.case_id + os.sep + \
                       configuration.evidence_id + os.sep + par_id
+
         for file in file_list:
             file_path = file[0] + file[1]
             if platform.platform()[0:7] != 'Windows':
@@ -99,6 +103,7 @@ class NTFSConnector(interface.ModuleConnector):
         self._usnjrnl_path = output_path + os.sep + '$UsnJrnl_$J'
 
         mft_file = None
+
         if os.path.exists(self._mft_path):
             self.print_run_info('Parse $MFT', start=True)
             mft_file = self.process_mft(par_id, configuration, table_list, knowledge_base)
@@ -167,23 +172,34 @@ class NTFSConnector(interface.ModuleConnector):
                 continue
             elif type(log_item) is LogFile.NTFSRestartArea:
                 output_data = logfile_parser.restart_area_parse(log_item)
+                if not output_data:
+                    continue
+
                 restart_area_list.append(info + output_data)
+
             elif type(log_item) is LogFile.NTFSLogRecord:
                 output_data = logfile_parser.log_record_parse(log_item, mft_file, self.path_dict,
                                                               knowledge_base.time_zone)
                 if not output_data:
                     continue
-                log_record_list.append(info + output_data)
+                log_record_list.append(info + output_data + [" "])
+
+
+        log_record_list = detail_parse(log_record_list)
+
 
         restart_area_query = f"Insert into {table_list[1]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s," \
                              f" %s, %s);"
         log_record_query = f"Insert into {table_list[2]} values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
-                           f"%s, %s, %s);"
+                           f"%s, %s, %s, %s, %s);"
 
         # print(f'restart area num: {len(restart_area_list)}')
         # print(f'log record num: {len(log_record_list)}')
         configuration.cursor.bulk_execute(restart_area_query, restart_area_list)
         configuration.cursor.bulk_execute(log_record_query, log_record_list)
+
+
+
 
     def process_usnjrnl(self, par_id, configuration, table_list, knowledge_base, mft_file):
         usn_object = open(self._usnjrnl_path, 'rb')
