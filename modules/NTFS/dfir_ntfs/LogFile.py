@@ -808,6 +808,72 @@ class LogFileParser(object):
 
         return start_page
 
+    def find_previous_lsn_(self, lsn):
+        """Give a current LSN, find, validate and return the previous LSN for the same client. If there is none or something is invalid, return None."""
+
+        log_page_number, offset_in_page = self.lsn_to_offset(lsn)
+        if log_page_number == 0:
+            return
+
+        log_record_page = self.get_log_record_page_by_number(log_page_number)
+        if log_record_page is None:
+            return
+
+        try:
+            log_record_header = log_record_page.get_log_record_at_offset(offset_in_page, self.record_header_length)
+        except LogFileException:
+            return
+
+        client_previous_lsn = log_record_header.get_client_previous_lsn()
+        candidate_log_page_number, candidate_offset_in_page = self.lsn_to_offset(client_previous_lsn)
+
+        if candidate_log_page_number == 0:
+            return
+
+        candidate_log_record_page = self.get_log_record_page_by_number(candidate_log_page_number)
+        if candidate_log_record_page is not None:
+            try:
+                candidate_log_record_header = candidate_log_record_page.get_log_record_at_offset(
+                    candidate_offset_in_page, self.record_header_length)
+            except LogFileException:
+                pass
+            else:
+                if candidate_log_record_header.get_this_lsn() == client_previous_lsn:
+                    return client_previous_lsn
+
+    def find_previous_lsn(self, current_lsn):
+        """Give a current LSN, find, validate and return the previous LSN for the same client. If there is none or something is invalid, return None."""
+
+        log_page_number, offset_in_page = self.lsn_to_offset(current_lsn)
+        if log_page_number == 0:
+            return
+
+        log_record_page = self.get_log_record_page_by_number(log_page_number)
+        if log_record_page is None:
+            return
+
+        try:
+            log_record_header = log_record_page.get_log_record_at_offset(offset_in_page, self.record_header_length)
+        except LogFileException:
+            return
+
+        client_previous_lsn = log_record_header.get_client_previous_lsn()
+        candidate_log_page_number, candidate_offset_in_page = self.lsn_to_offset(client_previous_lsn)
+
+        if candidate_log_page_number == 0:
+            return
+
+        candidate_log_record_page = self.get_log_record_page_by_number(candidate_log_page_number)
+        if candidate_log_record_page is not None:
+            try:
+                candidate_log_record_header = candidate_log_record_page.get_log_record_at_offset(
+                    candidate_offset_in_page, self.record_header_length)
+            except LogFileException:
+                pass
+            else:
+                if candidate_log_record_header.get_this_lsn() == client_previous_lsn:
+                    return client_previous_lsn
+
     def collect_lsns(self):
         """Collect valid log sequence numbers (LSNs) found in this log file."""
 
@@ -850,6 +916,7 @@ class LogFileParser(object):
 
         # Validate every LSN found, collect new LSNs.
         new_lsns = set()
+
         for lsn in self.lsns.copy():
             log_page_number, offset = self.lsn_to_offset(lsn)
 
@@ -876,6 +943,8 @@ class LogFileParser(object):
 
             new_lsn = log_record_header.get_client_undo_next_lsn()
             new_lsns.add(new_lsn)
+
+
 
         # Validate these new LSNs.
         for lsn in new_lsns.copy():
@@ -1047,6 +1116,8 @@ class LogFileParser(object):
                     if candidate_log_record_header.get_this_lsn() == client_previous_lsn:
                         return client_previous_lsn
 
+
+
         def find_undo_next_lsn(current_lsn):
             """Give a current LSN, find, validate and return the undo next LSN for the same client. If there is none or something is invalid, return None."""
 
@@ -1166,6 +1237,8 @@ class LogFileParser(object):
 
             if lsn == log_record_header.get_this_lsn():
                 self.lsns.add(lsn)
+
+
             else:
                 continue
 
@@ -1335,13 +1408,14 @@ class LogFileParser(object):
 
         log_record_page = self.get_log_record_page_by_number(log_page_number)
         log_record_header = log_record_page.get_log_record_at_offset(offset_in_page, self.record_header_length)
+        pre_lsn = self.find_previous_lsn_(lsn)
 
         client_data_length = log_record_header.get_client_data_length()
 
         if client_data_length <= self.log_page_size - offset_in_page - self.record_header_length:  # Client data is in the current log record page only.
             client_buf = log_record_header.buf[
                          self.record_header_length: self.record_header_length + client_data_length]
-            client_data = ClientData(client_buf, log_record_header.get_record_type(), lsn,
+            client_data = ClientData(client_buf, log_record_header.get_record_type(), pre_lsn, lsn,
                                      log_record_header.get_transaction_id(), self.cluster_size)
 
             return client_data
@@ -1371,7 +1445,7 @@ class LogFileParser(object):
 
                 client_data_length_left -= len(client_buf_more_data)
 
-            client_data = ClientData(client_buf, log_record_header.get_record_type(), lsn,
+            client_data = ClientData(client_buf, log_record_header.get_record_type(), pre_lsn, lsn,
                                      log_record_header.get_transaction_id(), self.cluster_size)
 
             return client_data
@@ -1405,6 +1479,8 @@ class LogFileParser(object):
 
             for lsn in self.lsns_sorted[client_id]:
                 client_data = self.get_client_data(lsn)
+
+
                 try:
                     client_data_decoded = client_data.data_decoded()
                 except NotImplementedError:
@@ -1477,9 +1553,10 @@ class ClientData(object):
     transaction_id = None
     """A transaction ID."""
 
-    def __init__(self, client_data_raw, record_type, log_sequence_number, transaction_id, cluster_size):
+    def __init__(self, client_data_raw, record_type, pre_log_sequence_number, log_sequence_number, transaction_id, cluster_size):
         self.buf = client_data_raw
         self.record_type = record_type
+        self.pre_lsn = pre_log_sequence_number
         self.lsn = log_sequence_number
         self.transaction_id = transaction_id
         self.cluster_size = cluster_size
@@ -1490,12 +1567,12 @@ class ClientData(object):
         if self.record_type == LfsClientRestart:
             return NTFSRestartArea(self.buf, self.lsn)
         elif self.record_type == LfsClientRecord:
-            return NTFSLogRecord(self.buf, self.lsn, self.transaction_id, self.cluster_size)
+            return NTFSLogRecord(self.buf, self.pre_lsn, self.lsn, self.transaction_id, self.cluster_size)
         else:
             raise NotImplementedError('The following record type is not supported: {}'.format(self.record_type))
 
     def __str__(self):
-        return 'ClientData, length: {}, record type: {}, LSN: {}'.format(len(self.buf), self.record_type, self.lsn)
+        return 'ClientData, length: {}, record type: {}, LSN: {}, Pre_LSN: {}'.format(len(self.buf), self.record_type, self.lsn, self.pre_lsn)
 
 
 class NTFSRestartArea(object):
@@ -1518,6 +1595,7 @@ class NTFSRestartArea(object):
         """Get and return the major version of a client."""
 
         return struct.unpack('<L', self.buf[: 4])[0]
+
 
     def get_minor_version(self):
         """Get and return the minor version of a client."""
@@ -1621,6 +1699,8 @@ class NTFSLogRecord(object):
     """Data of this NTFS log record."""
 
     lsn = None
+
+    pre_lsn = None
     """A log sequence number (LSN) of this NTFS log record."""
 
     oat = None
@@ -1635,9 +1715,10 @@ class NTFSLogRecord(object):
     transaction_id = None
     """A transaction ID."""
 
-    def __init__(self, log_record_raw, lsn, transaction_id, cluster_size):
+    def __init__(self, log_record_raw, pre_lsn, lsn, transaction_id, cluster_size):
         self.buf = log_record_raw
         self.lsn = lsn
+        self.pre_lsn = pre_lsn
         self.transaction_id = transaction_id
 
         self.cluster_size = cluster_size
