@@ -152,7 +152,7 @@ class NTFSConnector(interface.ModuleConnector):
             mft_list.extend(mft_item)
 
         query = f"Insert into {table_list[0]} values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
-                f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
 
         configuration.cursor.bulk_execute(query, mft_list)
         # print(f'mft num: {len(mft_list)}')
