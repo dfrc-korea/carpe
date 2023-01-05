@@ -208,7 +208,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         loggers.ConfigureLogging(
             debug_output=self._debug_mode, filename=self._log_file,
             quiet_mode=self._quiet_mode)
-
+        argument_parser.parse_args()
         return True
 
     def ParseOptions(self, options):
