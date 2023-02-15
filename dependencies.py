@@ -173,41 +173,18 @@ def CheckDependencies(verbose_output=True):
   Returns:
     bool: True if the dependencies are available, False otherwise.
   """
-    if verbose_output:
-        print('Checking availability and versions of dependencies.')
-        check_result = True
+    print('Checking availability and versions of dependencies.')
+    check_result = True
 
-        for module_name, version_tuple in sorted(PYTHON_DEPENDENCIES.items()):
-            if not _CheckPythonModule(
-                    module_name, version_tuple[0], version_tuple[1],
-                    is_required=version_tuple[3], maximum_version=version_tuple[2],
-                    verbose_output=verbose_output):
-                check_result = False
+    for module_name, version_tuple in sorted(PYTHON_DEPENDENCIES.items()):
+        if not _CheckPythonModule(
+                module_name, version_tuple[0], version_tuple[1],
+                is_required=version_tuple[3], maximum_version=version_tuple[2],
+                verbose_output=verbose_output):
+            check_result = False
 
-        if check_result and not verbose_output:
-            print('[OK]')
+    if check_result and not verbose_output:
+        print('[OK]')
 
-        print('')
-        return check_result
-    else:
-        check_result = False
-        print('Missing source path.')
-        print('')
-        print('usage: carpe.exe [-h] [--troubles] [-V] [-d] [-q] [--info]')
-        print('                 [--no_dependencies_check]')
-        print('                 [--advanced_modules ADVANCED_MODULE_FILTER_EXPRESSION]')
-        print('                 [--artifact_definitions PATH]')
-        print('                 [--custom_artifact_definitions PATH]')
-        print('                 [--modules MODULE_FILTER_EXPRESSION] [-z TIMEZONE]')
-        print('                 [--partitions PARTITIONS] [--volumes VOLUMES] [--process_vss]')
-        print('                 [--vss_only] [--vss_stores VSS_STORES]')
-        print('                 [--credential TYPE:DATA] [-e EXTRACT_PATH] [-p PAR_NUM]')
-        print('                 [--sector SECTOR_SIZE] [--cluster CLUSTER_SIZE]')
-        print('                 [--cid CASE_ID] [--eid EVIDENCE_ID] [--csv] [--sqlite]')
-        print('                 [--sig-check] [--rds-check] [--ignore]')
-        print('                 [--case-name CASE_NAME] [--investigator INVESTIGATOR]')
-        print('                 [--case_desc CASE_DESCRIPTION]')
-        print('                 [SOURCE] [OUTPUT]')
-        print('')
-
-        return check_result
+    print('')
+    return check_result
