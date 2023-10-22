@@ -176,11 +176,13 @@ class DEFAConnector(interface.ModuleConnector):
 
             try:
                 #if ext_sig_map[extension] != sigFile:
-                if ext_sig_map.get(extension, None) != sigFile:
+                if extension == "log" or extension == "txt":
+                    pass
+                elif ext_sig_map.get(extension, None) != sigFile:
                     if sigFile != '' and sigFile != extension:
                         self._UpdateFileInfoRecords(configuration, document)
                         logger.error(document[0] + ' unmatched signature and extension')
-                        raise Exception()
+                        #raise Exception()
 
                 if extension == 'hwp':
                     self.print_run_info(f"Parse HWP File : \"{document[0]}\"", start=True)
@@ -223,6 +225,7 @@ class DEFAConnector(interface.ModuleConnector):
                 error_count += 1
                 continue
 
+            result.content = result.content.replace('\x00','') # \x00 때문에 text가 아닌 BLOB으로 들어감
             result.case_id = configuration.case_id
             result.evdnc_id = configuration.evidence_id
             result.download_path = file_path
