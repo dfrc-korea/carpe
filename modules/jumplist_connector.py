@@ -90,7 +90,11 @@ class JumpListConnector(interface.ModuleConnector):
 
             fn = output_path + os.path.sep + file_name
             app_path = os.path.abspath(os.path.dirname(__file__)) + os.path.sep + "windows_jumplist"
-            results = JumpListParser.main(fn, app_path)  # filename, app_path
+            try:
+                results = JumpListParser.main(fn, app_path)  # filename, app_path
+            except ValueError as e:
+                print("Error: " + str(e))
+                continue
 
             app_id = file_name[:file_name.rfind('.')]
 

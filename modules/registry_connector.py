@@ -701,10 +701,10 @@ class RegistryConnector(interface.ModuleConnector):
                     configuration.cursor.bulk_execute(query, insert_data)
 
             # User Account
-            if reg_sam != '' and reg_software != '':
+            if reg_sam != '' and reg_software != '' and reg_system != '':
                 print(f'[{self.print_now_time()}] [MODULE] Registry - User Account')
                 insert_data = []
-                for user in ua.USERACCOUNTS(reg_sam, reg_software):
+                for user in ua.USERACCOUNTS(reg_sam, reg_software, reg_system):
                     account_created_time = configuration.apply_time_zone(str(user.account_created_time),
                                                                          knowledge_base.time_zone)
                     last_login_time = configuration.apply_time_zone(str(user.last_login_time), knowledge_base.time_zone)

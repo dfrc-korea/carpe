@@ -17,6 +17,7 @@ def Bluetooth(reg_system):
         bluetooth_key = reg_system.find_key(r"ControlSet001\Services\BTHPORT\Parameters\Devices") ####
     except Exception as exception:
         logger.error(exception)
+        return bluetooth_list
 
     if bluetooth_key == None:
         return bluetooth_list

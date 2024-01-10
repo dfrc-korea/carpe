@@ -24,7 +24,7 @@ def EVENTLOGONOFF(configuration):
 
     event_list = []
     event_count = 0
-    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id like '4624' and source like '%Security%' and data like '%S-1-5-21%') or (event_id like '4634' and source like '%Security%') or (event_id like '4625' and source like '%Security%') or (event_id like '4648' and source like '%Security%') or (event_id like '7002' and source like '%Security%') or (event_id like '1' and source like '%User Profile Service%') or (event_id like '2' and source like '%User Profile Service%') or (event_id like '3' and source like '%User Profile Service%') or (event_id like '4' and source like '%User Profile Service%')"
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and ((event_id like '4624' and source like '%Security%' and data like '%S-1-5-21%') or (event_id like '4634' and source like '%Security%') or (event_id like '4625' and source like '%Security%') or (event_id like '4648' and source like '%Security%') or (event_id like '7002' and source like '%Security%') or (event_id like '1' and source like '%User Profile Service%') or (event_id like '2' and source like '%User Profile Service%') or (event_id like '3' and source like '%User Profile Service%') or (event_id like '4' and source like '%User Profile Service%'))"
     #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:

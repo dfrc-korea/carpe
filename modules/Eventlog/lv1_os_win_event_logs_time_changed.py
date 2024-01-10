@@ -25,7 +25,7 @@ def EVENTLOGTIMECHANGED(configuration):
 
     time_list = []
     time_count = 0
-    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and (event_id like '4616' and source like '%Security%') or (event_id like '1') or (event_id like '20000' and source like '%DateTimeControlPanel%') or (event_id like '20001' and source like '%DateTimeControlPanel%')"
+    query = f"SELECT data, event_id, time_created, source, user_sid FROM lv1_os_win_evt_total WHERE (evd_id='{configuration.evidence_id}') and ((event_id like '4616' and source like '%Security%') or (event_id like '1') or (event_id like '20000' and source like '%DateTimeControlPanel%') or (event_id like '20001' and source like '%DateTimeControlPanel%'))"
     #result_query = db.execute_query_mul(query)
     result_query = configuration.cursor.execute_query_mul(query)
     for result_data in result_query:

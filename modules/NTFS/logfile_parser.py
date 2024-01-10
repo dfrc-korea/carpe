@@ -73,28 +73,31 @@ def detail_parse(log_record_list):
                         (log_record_list[index][6] == "DeallocateFileRecordSegment" and log_record_list[index][
                             7] == "InitializeFileRecordSegment" and log_record_list[index - 1][
                              6] == "DeleteIndexEntryRoot"):
-                    if "ARCHIVE" in json.loads(log_record_list[index - 1][16])["file_name_index"]["file_attributes"]:
-                        if json.loads(log_record_list[index - 1][16])["file_name_index"]["parent_file_path"] is not None:
-                            log_record_list[index][17] = "File Deleted - " + "Filename: " + str(
-                                json.loads(log_record_list[index - 1][16])["file_name_index"][
-                                    "parent_file_path"]) + "/" + str(
-                                json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
+                    try:
+                        if "ARCHIVE" in json.loads(log_record_list[index - 1][16])["file_name_index"]["file_attributes"]:
+                            if json.loads(log_record_list[index - 1][16])["file_name_index"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "File Deleted - " + "Filename: " + str(
+                                    json.loads(log_record_list[index - 1][16])["file_name_index"][
+                                        "parent_file_path"]) + "/" + str(
+                                    json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
 
-                        else:
-                            log_record_list[index][17] = "File Deleted - " + "Filename: " + str(
-                                json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
+                            else:
+                                log_record_list[index][17] = "File Deleted - " + "Filename: " + str(
+                                    json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
 
 
-                    elif json.loads(log_record_list[index - 1][16])["file_name_index"]["file_attributes"] == "":
-                        if json.loads(log_record_list[index - 1][16])["file_name_index"]["parent_file_path"] is not None:
-                            log_record_list[index][17] = "Directory Deleted - " + "Filename: " + str(
-                                json.loads(log_record_list[index - 1][16])["file_name_index"][
-                                    "parent_file_path"]) + "/" + str(
-                                json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
+                        elif json.loads(log_record_list[index - 1][16])["file_name_index"]["file_attributes"] == "":
+                            if json.loads(log_record_list[index - 1][16])["file_name_index"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "Directory Deleted - " + "Filename: " + str(
+                                    json.loads(log_record_list[index - 1][16])["file_name_index"][
+                                        "parent_file_path"]) + "/" + str(
+                                    json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
 
-                        else:
-                            log_record_list[index][17] = "Directory Deleted - " + "Filename: " + str(
-                                json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
+                            else:
+                                log_record_list[index][17] = "Directory Deleted - " + "Filename: " + str(
+                                    json.loads(log_record_list[index - 1][16])["file_name_index"]["file_name"])
+                    except KeyError:
+                        continue
 
                 elif log_record_list[index][6] == "UpdateResidentValue" and log_record_list[index][7] == "UpdateResidentValue":  # Resident 작성 이벤트
                     cl = []
