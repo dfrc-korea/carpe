@@ -229,6 +229,19 @@ class AdvancedModuleAnalyzer(BaseAnalyzer):
         f = tsk_file_system.open_meta(inode)
         return f.read_random(0, f.info.meta.size)
 
+    def extract_file_to_path(self, tsk_file_system, inode, file_name, output_path):
+        file_object = tsk_file_system.open_meta(inode)
+        try:
+            output_file = open(output_path + os.sep + file_name, 'wb')
+            file_size = file_object.info.meta.size
+            if file_size > 0:
+                data = file_object.read_random(0, file_object.info.meta.size)
+                output_file.write(data)
+            output_file.close()
+        except Exception:
+            print('Extract Error')
+            return False
+
     def LoadTargetFileToMemory(self, source_path_spec, configuration,
                                file_path=None, file_spec=None, data_stream_name=None):
         try:

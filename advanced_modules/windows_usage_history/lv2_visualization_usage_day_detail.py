@@ -139,30 +139,30 @@ def USAGEDAYDETAIL(configuration, time_zone):
             except:
                 print('-----System On/Off not found')
 
-        # 이벤트로그 - Sleep Start End (1번으로만 구별)
-        query = f"SELECT task, time_sleep, time_wake, event_id_description FROM lv1_os_win_event_logs_sleeponoff WHERE (evd_id='{configuration.evidence_id}' and event_id = '1') ORDER BY time_sleep ASC"
-        result_query = db.execute_query_mul(query)
-        if result_query != -1 and len(result_query) != 0:
-            for result_data in result_query:
-                try:
-                    usage_day_detail_information = Usage_Day_Detail_Information()
-                    usage_history_list.append(usage_day_detail_information)
-                    usage_history_list[usage_history_count].regdate = result_data[1]
-                    usage_history_list[usage_history_count].evdnc_type = 'Sleep Start'
-                    usage_history_list[usage_history_count].artifact_type = 'EventLog'
-                    usage_history_list[usage_history_count].information = result_data[3]
-                    usage_history_count = usage_history_count + 1
+    # 이벤트로그 - Sleep Start End (1번으로만 구별)
+    query = f"SELECT task, time_sleep, time_wake, event_id_description FROM lv1_os_win_event_logs_sleeponoff WHERE (evd_id='{configuration.evidence_id}' and event_id = '1') ORDER BY time_sleep ASC"
+    result_query = db.execute_query_mul(query)
+    if result_query != -1 and len(result_query) != 0:
+        for result_data in result_query:
+            try:
+                usage_day_detail_information = Usage_Day_Detail_Information()
+                usage_history_list.append(usage_day_detail_information)
+                usage_history_list[usage_history_count].regdate = result_data[1]
+                usage_history_list[usage_history_count].evdnc_type = 'Sleep Start'
+                usage_history_list[usage_history_count].artifact_type = 'EventLog'
+                usage_history_list[usage_history_count].information = result_data[3]
+                usage_history_count = usage_history_count + 1
 
-                    usage_day_detail_information = Usage_Day_Detail_Information()
-                    usage_history_list.append(usage_day_detail_information)
-                    usage_history_list[usage_history_count].regdate = result_data[2]
-                    usage_history_list[usage_history_count].evdnc_type = 'Sleep End'
-                    usage_history_list[usage_history_count].artifact_type = 'EventLog'
-                    usage_history_list[usage_history_count].information = result_data[3]
-                    usage_history_count = usage_history_count + 1
+                usage_day_detail_information = Usage_Day_Detail_Information()
+                usage_history_list.append(usage_day_detail_information)
+                usage_history_list[usage_history_count].regdate = result_data[2]
+                usage_history_list[usage_history_count].evdnc_type = 'Sleep End'
+                usage_history_list[usage_history_count].artifact_type = 'EventLog'
+                usage_history_list[usage_history_count].information = result_data[3]
+                usage_history_count = usage_history_count + 1
 
-                except:
-                    print('-----Sleep Start/End not found')
+            except:
+                print('-----Sleep Start/End not found')
 
     # 이벤트로그 -  외부 저장 장치 연결 / 연결 해제
     query = f"SELECT task, time, device_instance_id, description, manufacturer, model, revision, serial_number, user_sid " \

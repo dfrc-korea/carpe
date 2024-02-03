@@ -53,15 +53,15 @@ def TIMELINEMONTH(configuration):
     existed_list_systemoff = []
 
     try:
-        query = f"SELECT regdate FROM usage_day_detail"
+        query = f"SELECT regdate FROM usage_day_detail WHERE (evd_id='{configuration.evidence_id}')"
         result_query = db.execute_query_mul(query)
 
         # 원장님 요청으로 인해 Log On/Off, Sleep On/Off 추가 - KJH
-        query_systemon = f"SELECT regdate FROM usage_day_detail WHERE evdnc_type = 'System On' or evdnc_type = 'Sleep End' or evdnc_type = 'LogOn - Success'"
+        query_systemon = f"SELECT regdate FROM usage_day_detail WHERE (evd_id='{configuration.evidence_id}') and (evdnc_type = 'System On' or evdnc_type = 'Sleep End' or evdnc_type = 'LogOn - Success')"
         result_query_systemon = db.execute_query_mul(query_systemon)
 
         # 원장님 요청으로 인해 Log On/Off, Sleep On/Off 추가 - KJH
-        query_systemoff = f"SELECT regdate FROM usage_day_detail WHERE evdnc_type = 'System Off' or evdnc_type = 'Sleep Start' or evdnc_type = 'LogOff'"
+        query_systemoff = f"SELECT regdate FROM usage_day_detail WHERE (evd_id='{configuration.evidence_id}') and (evdnc_type = 'System Off' or evdnc_type = 'Sleep Start' or evdnc_type = 'LogOff')"
         result_query_systemoff = db.execute_query_mul(query_systemoff)
 
         for result_data in result_query:

@@ -22,7 +22,7 @@ def USAGEYEAR(configuration):
     existed_year = []
 
     try:
-        query = f"SELECT regdate FROM usage_day_detail"
+        query = f"SELECT regdate FROM usage_day_detail WHERE (evd_id='{configuration.evidence_id}')"
         result_query = db.execute_query_mul(query)
 
         for result_data in result_query:
