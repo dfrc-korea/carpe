@@ -1,2 +1,7 @@
 
 *.pyc
+*.log.gz
+/archives/
+/dfvfs_venv
+/venv/
+/logs/

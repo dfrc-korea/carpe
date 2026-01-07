@@ -30,6 +30,16 @@ from engine import path_extractors
 from engine.preprocessors import signature_tool
 from engine import path_helper
 
+# Ex01 처리를 위한 import
+try:
+    import pyewf
+    import pytsk3
+    EWF_SUPPORT = True
+except ImportError:
+    EWF_SUPPORT = False
+    logger.warning('pyewf or pytsk3 not available. Ex01 support disabled.')
+from engine import path_helper
+
 
 class StorageMediaTool(tools.CLITool):
     _BINARY_DATA_CREDENTIAL_TYPES = ['key_data']
@@ -261,7 +271,6 @@ class StorageMediaTool(tools.CLITool):
             os.mkdir(self._tmp_path)
 
     def ScanSource(self, source_path):
-
         # In Saas Carpe, Source is lnk
         if os.path.islink(source_path):
             source_path = os.readlink(source_path)
@@ -278,40 +287,106 @@ class StorageMediaTool(tools.CLITool):
         try:
             self._source_scanner.Scan(scan_context)
         except (ValueError, dfvfs_errors.BackEndError) as exception:
-            raise errors.SourceScannerError(
-                'Unable to scan source with error: {0!s}.'.format(exception))
+            # VShadow 관련 오류는 무시하고 계속 진행 (Ex01 등에서 발생 가능)
+            error_str = str(exception).lower()
+            if 'vshadow' in error_str or 'volume shadow' in error_str:
+                logger.warning(f'VShadow error ignored: {exception}')
+                # VShadow 오류가 발생해도 스캔은 계속 진행 (scan_context는 이미 생성됨)
+            else:
+                raise errors.SourceScannerError(
+                    'Unable to scan source with error: {0!s}.'.format(exception))
 
         # 경로를 입력받을 때
         if scan_context.source_type not in (
                 scan_context.SOURCE_TYPE_STORAGE_MEDIA_DEVICE,
                 scan_context.SOURCE_TYPE_STORAGE_MEDIA_IMAGE):
             scan_node = scan_context.GetRootScanNode()
+            
+            # Lx01, L01 확장자 파일인지 확인하고 Logical EWF로 처리
+            try:
+                path_spec = scan_node.path_spec
+                location = getattr(path_spec, 'location', None)
+                
+                if location:
+                    location_lower = location.lower()
+                    if location_lower.endswith('.lx01') or location_lower.endswith('.l01'):
+                        # Logical EWF 파일인지 확인
+                        if self._IsLogicalEWFFromPath(location):
+                            # EWF PathSpec 생성 후 Logical EWF로 처리
+                            ewf_path_spec = path_spec_factory.Factory.NewPathSpec(
+                                dfvfs_definitions.TYPE_INDICATOR_EWF,
+                                location=location,
+                                parent=path_spec)
+                            
+                            # Logical EWF FileSystem으로 처리
+                            logical_path_spec = path_spec_factory.Factory.NewPathSpec(
+                                'EWF_LOGICAL', location='/', parent=ewf_path_spec)
+                            self._source_path_specs.append(logical_path_spec)
+                            return scan_context
+            except Exception as e:
+                logger.warning(f'Error checking file path for Logical EWF: {e}')
+                # 오류가 발생하면 기존 OS PathSpec 사용
 
             self._source_path_specs.append(scan_node.path_spec)
             return scan_context
 
         # Get the first node where where we need to decide what to process.
         scan_node = scan_context.GetRootScanNode()
-        while len(scan_node.sub_nodes) == 1:
+        if not scan_node:
+            raise errors.SourceScannerError('No scan node found in source.')
+        
+        # VShadow 노드는 건너뛰기 (Ex01 등에서 발생 가능)
+        while scan_node and len(scan_node.sub_nodes) == 1:
+            if scan_node.type_indicator == dfvfs_definitions.TYPE_INDICATOR_VSHADOW:
+                logger.warning('Skipping VShadow node')
+                break
             scan_node = scan_node.sub_nodes[0]
 
         # if type_indicator가 TSK_PARTITION이 아닌 경우
         base_path_specs = []
-        if scan_node.type_indicator != (
+        if scan_node and scan_node.type_indicator != (
                 dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION):
-            self._ScanVolume(scan_context, scan_node, base_path_specs)
+            try:
+                self._ScanVolume(scan_context, scan_node, base_path_specs)
+            except Exception as e:
+                # VShadow 관련 오류는 무시하고 계속 진행
+                error_str = str(e).lower()
+                if 'vshadow' in error_str or 'volume shadow' in error_str:
+                    logger.warning(f'VShadow error ignored: {e}')
+                else:
+                    logger.warning(f'Error scanning volume: {e}')
 
         # type_indicator가 TSK_PARTITION인 경우
-        else:
+        elif scan_node and scan_node.type_indicator == (
+                dfvfs_definitions.TYPE_INDICATOR_TSK_PARTITION):
             # Determine which partition needs to be processed.
-            partition_identifiers = self._GetTSKPartitionIdentifiers(scan_node)
-            if not partition_identifiers:
-                raise errors.SourceScannerError('No partitions found.')
+            try:
+                partition_identifiers = self._GetTSKPartitionIdentifiers(scan_node)
+                if not partition_identifiers:
+                    raise errors.SourceScannerError('No partitions found.')
 
-            for partition_identifier in partition_identifiers:
-                location = '/{0:s}'.format(partition_identifier)
-                sub_scan_node = scan_node.GetSubNodeByLocation(location)
-                self._ScanVolume(scan_context, sub_scan_node, base_path_specs)
+                for partition_identifier in partition_identifiers:
+                    location = '/{0:s}'.format(partition_identifier)
+                    sub_scan_node = scan_node.GetSubNodeByLocation(location)
+                    if sub_scan_node:
+                        try:
+                            self._ScanVolume(scan_context, sub_scan_node, base_path_specs)
+                        except Exception as e:
+                            # VShadow 관련 오류는 무시
+                            error_str = str(e).lower()
+                            if 'vshadow' in error_str or 'volume shadow' in error_str:
+                                logger.warning(f'VShadow error ignored in partition {partition_identifier}: {e}')
+                                continue
+                            else:
+                                logger.warning(f'Error scanning partition {partition_identifier}: {e}')
+                                continue
+            except Exception as e:
+                # VShadow 관련 오류는 무시
+                error_str = str(e).lower()
+                if 'vshadow' in error_str or 'volume shadow' in error_str:
+                    logger.warning(f'VShadow error ignored: {e}')
+                else:
+                    raise
 
         if not base_path_specs:
             raise errors.SourceScannerError(
@@ -338,6 +413,62 @@ class StorageMediaTool(tools.CLITool):
 
         elif scan_node.IsFileSystem():
             self._ScanFileSystem(scan_node, base_path_specs)
+        
+        elif scan_node.type_indicator == dfvfs_definitions.TYPE_INDICATOR_EWF:
+            # EWF 파일이 Logical인지 확인
+            if self._IsLogicalEWF(scan_node.path_spec):
+                # Logical EWF FileSystem으로 처리
+                path_spec = path_spec_factory.Factory.NewPathSpec(
+                    'EWF_LOGICAL', location='/', parent=scan_node.path_spec)
+                base_path_specs.append(path_spec)
+                return
+            else:
+                # Physical EWF (Ex01 등) - sub_nodes를 재귀적으로 스캔
+                # VShadow 오류를 무시하고 계속 진행
+                for sub_scan_node in scan_node.sub_nodes:
+                    try:
+                        if sub_scan_node.type_indicator == dfvfs_definitions.TYPE_INDICATOR_VSHADOW:
+                            logger.warning('Skipping VShadow node in Physical EWF')
+                            continue
+                        self._ScanVolume(scan_context, sub_scan_node, base_path_specs)
+                    except Exception as e:
+                        # VShadow 관련 오류는 무시
+                        error_str = str(e).lower()
+                        if 'vshadow' in error_str or 'volume shadow' in error_str:
+                            logger.warning(f'VShadow error ignored in Physical EWF: {e}')
+                            continue
+                        else:
+                            logger.warning(f'Error scanning sub-node in Physical EWF: {e}')
+                            continue
+                return
+        
+        elif scan_node.type_indicator == dfvfs_definitions.TYPE_INDICATOR_OS:
+            # OS 타입일 때 Lx01 확장자 파일인지 확인
+            # dfVFS가 Lx01을 OS로 인식할 수 있으므로, 파일 경로를 확인하여 Logical EWF인지 체크
+            try:
+                os_path_spec = scan_node.path_spec
+                location = getattr(os_path_spec, 'location', None)
+                
+                if location:
+                    # Lx01 확장자 확인
+                    location_lower = location.lower()
+                    if location_lower.endswith('.lx01') or location_lower.endswith('.l01'):
+                        # Logical EWF 파일인지 확인 (OS PathSpec의 경우 직접 파일 경로 사용)
+                        if self._IsLogicalEWFFromPath(location):
+                            # EWF PathSpec 생성 후 Logical EWF로 처리
+                            ewf_path_spec = path_spec_factory.Factory.NewPathSpec(
+                                dfvfs_definitions.TYPE_INDICATOR_EWF,
+                                location=location,
+                                parent=os_path_spec)
+                            
+                            # Logical EWF FileSystem으로 처리
+                            path_spec = path_spec_factory.Factory.NewPathSpec(
+                                'EWF_LOGICAL', location='/', parent=ewf_path_spec)
+                            base_path_specs.append(path_spec)
+                            return
+            except Exception as e:
+                logger.warning(f'Error checking OS path for Logical EWF: {e}')
+                # 오류가 발생해도 기존 OS 처리 로직 계속 진행
 
         elif scan_node.type_indicator == dfvfs_definitions.TYPE_INDICATOR_VSHADOW:
             if self._process_vss:
@@ -359,6 +490,68 @@ class StorageMediaTool(tools.CLITool):
         else:
             for sub_scan_node in scan_node.sub_nodes:
                 self._ScanVolume(scan_context, sub_scan_node, base_path_specs)
+    
+    
+    def _IsLogicalEWF(self, path_spec):
+        """EWF 파일이 Logical 타입인지 확인 (L01, Lx01 등)
+        
+        Args:
+            path_spec: EWF PathSpec
+            
+        Returns:
+            bool: True if Logical EWF (media_type == 14), False otherwise
+        """
+        try:
+            import pyewf
+            parent_location = getattr(path_spec.parent, 'location', None)
+            if not parent_location:
+                return False
+
+            # pyewf.glob을 사용하여 세그먼트 파일들을 찾음 (L01, Lx01 등 지원)
+            segment_files = pyewf.glob(parent_location)
+            if not segment_files:
+                segment_files = [parent_location]
+
+            handle = pyewf.handle()
+            handle.open(segment_files)
+
+            # Media type 확인 (14 = Logical)
+            # L01과 Lx01 모두 media_type == 14를 반환함
+            media_type = handle.get_media_type()
+            handle.close()
+            
+            return media_type == 14
+        except:
+            return False
+    
+    def _IsLogicalEWFFromPath(self, file_path):
+        """파일 경로로부터 Logical EWF인지 확인 (L01, Lx01 등)
+        
+        Args:
+            file_path: 파일 경로 (문자열)
+            
+        Returns:
+            bool: True if Logical EWF (media_type == 14), False otherwise
+        """
+        try:
+            import pyewf
+            
+            # pyewf.glob을 사용하여 세그먼트 파일들을 찾음 (L01, Lx01 등 지원)
+            segment_files = pyewf.glob(file_path)
+            if not segment_files:
+                segment_files = [file_path]
+
+            handle = pyewf.handle()
+            handle.open(segment_files)
+
+            # Media type 확인 (14 = Logical)
+            # L01과 Lx01 모두 media_type == 14를 반환함
+            media_type = handle.get_media_type()
+            handle.close()
+            
+            return media_type == 14
+        except:
+            return False
 
     def _ScanEncryptedVolume(self, scan_context, scan_node):
         """Scans an encrypted volume scan node for volume and file systems.
@@ -764,6 +957,20 @@ class StorageMediaTool(tools.CLITool):
                     "identifier": identifier, "par_label": None, "filesystem": None
                 })
 
+            elif path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_EWF_LOGICAL:
+                # L01, Lx01 logical evidence file - treat similar to OS/ZIP
+                # For logical files, we don't have physical size info
+                # Use 0 or calculate from file entries if needed
+                length = 0  # Logical files don't have a physical size
+                volume_name = 'p1'  # Logical file, use 'p1' as default (matches ZIP/OS handling)
+                base_path_spec = path_spec
+                disk_info.append({
+                    "base_path_spec": base_path_spec, "type_indicator": path_spec.type_indicator,
+                    "length": length, "bytes_per_sector": None, "start_sector": None,
+                    "bytes_per_cluster": None, "vol_name": volume_name,
+                    "identifier": None, "par_label": None, "filesystem": 'EWF_LOGICAL'
+                })
+
         self._InsertDiskInfo(disk_info)
         # for V&V test
         return disk_info
@@ -803,7 +1010,6 @@ class StorageMediaTool(tools.CLITool):
                 self._output_writer.Write(exception)
 
     def InsertFileInformation(self):
-
         path_spec_extractor = path_extractors.PathSpecExtractor()
 
         path_spec_generator = path_spec_extractor.ExtractPathSpecs(
@@ -811,7 +1017,6 @@ class StorageMediaTool(tools.CLITool):
             resolver_context=self._resolver_context)
 
         for path_spec in path_spec_generator:
-
             if path_spec.IsFileSystem():
                 self._RecursiveFileSearch(path_spec)
             elif path_spec.type_indicator == 'OS':
@@ -830,6 +1035,9 @@ class StorageMediaTool(tools.CLITool):
             pass
         elif path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_NTFS:
             self._ProcessFileOrDirectoryForNTFS(path_spec)
+        elif path_spec.type_indicator == dfvfs_definitions.TYPE_INDICATOR_EWF_LOGICAL:
+            # L01, Lx01 logical evidence files - custom processing
+            self._ProcessFileOrDirectoryForEWFLogical(path_spec, parent_id='root')
         else:
             logger.warning('{0!s} No filesystem was found.'.format(path_spec.location))
             return
@@ -1377,6 +1585,46 @@ class StorageMediaTool(tools.CLITool):
         self._InsertFileInfoForOS(file_entry, parent_id=parent_id)
         file_entry = None
 
+    def _ProcessFileOrDirectoryForEWFLogical(self, path_spec, parent_id=None):
+        """Processes EWF_LOGICAL file or directory (L01, Lx01 등)."""
+        current_display_name = path_helper.PathHelper.GetDisplayNameForPathSpec(path_spec)
+
+        file_entry = dfvfs_resolver.Resolver.OpenFileEntry(path_spec)
+
+        if file_entry is None:
+            logger.warning('Unable to open file entry with path spec: {0:s}'.format(current_display_name))
+            return
+
+        # Generate unique ID for L01 files (using hash of location)
+        location = getattr(path_spec, 'location', '/')
+        if parent_id == 'root':
+            current_id = 5  # Root directory ID
+        else:
+            # Use hash of location as ID
+            current_id = abs(hash(location)) % (10 ** 10)
+
+        try:
+            if file_entry.IsDirectory():
+                for sub_file_entry in file_entry.sub_file_entries:
+                    try:
+                        if not sub_file_entry.IsAllocated():
+                            continue
+                    except dfvfs_errors.BackEndError as exception:
+                        logger.warning(
+                            'Unable to process file: {0:s} with error: {1!s}'.format(
+                                sub_file_entry.path_spec.comparable.replace('\n', ';'), exception))
+                        continue
+
+                    self._ProcessFileOrDirectoryForEWFLogical(sub_file_entry.path_spec, current_id)
+
+        except dfvfs_errors.AccessError as exception:
+            logger.warning(
+                'Unable to access file: {0:s} with error: {1!s}'.format(
+                    file_entry.path_spec.comparable.replace('\n', ';'), exception))
+
+        self._InsertFileInfoForEWFLogical(file_entry, parent_id=parent_id)
+        file_entry = None
+
     def _InsertFileInfoForOS(self, file_entry, parent_id=0):
         if file_entry.name in ['', '.', '..']:
             return
@@ -1551,6 +1799,99 @@ class StorageMediaTool(tools.CLITool):
         else:
             files.append(file)
 
+        self._InsertFileInfoRecords(files)
+
+    def _InsertFileInfoForEWFLogical(self, file_entry, parent_id=0):
+        """Insert file info for EWF_LOGICAL file entries (without _stat_info dependency)."""
+        if file_entry.name in ['', '.', '..']:
+            return
+
+        files = []
+        file = CarpeFile.CarpeFile()
+        file._name = file_entry.name
+
+        if len(self._partition_list) > 1:
+            parent_location = getattr(file_entry.path_spec.parent, 'location', None)
+            file._p_id = self._partition_list[parent_location[1:]]
+        elif len(self._partition_list) == 1:
+            file._p_id = self._partition_list[list(self._partition_list.keys())[0]]
+        else:
+            # No partition (logical file like L01)
+            file._p_id = 0
+
+        location = getattr(file_entry.path_spec, 'location', None)
+
+        if location is None:
+            return
+        else:
+            file._parent_path = os.path.dirname(location)
+
+        file._parent_id = parent_id
+
+        # entry_type
+        if file_entry.entry_type == 'file':
+            file._dir_type = 5
+            _, file._extension = os.path.splitext(file_entry.name)
+            if file._extension:
+                file._extension = file._extension[1:]
+        elif file_entry.entry_type == 'directory':
+            file._dir_type = 3
+        else:
+            file._dir_type = 0
+
+        # Use hash of location as file_id (since _stat_info.st_ino not available)
+        file._file_id = abs(hash(location)) % (10 ** 10)
+        file._meta_type = 0
+        
+        stat = file_entry._GetStat()
+        file._size = [lambda: 0, lambda: stat.size][stat.size is not None]()
+        file._mode = [lambda: 0, lambda: stat.mode][stat.mode is not None]()
+        file._meta_seq = 0
+        file._gid = [lambda: 0, lambda: stat.gid][stat.gid is not None]()
+        file._uid = [lambda: 0, lambda: stat.uid][stat.uid is not None]()
+        file._ads = len(file_entry.data_streams)
+        # Use file_id as inode
+        file._inode = file._file_id
+
+        time_divide = 0
+        try:
+            if file_entry.creation_time and hasattr(file_entry.creation_time, 'timestamp'):
+                if len(str(file_entry.creation_time.timestamp)) > 17:
+                    time_divide = 1000000000
+                else:
+                    time_divide = 10000000
+            else:
+                time_divide = 10000000
+        except:
+            time_divide = 10000000
+
+        # Timestamps
+        if platform.platform()[0:7] == 'Windows':
+            file._ctime = [lambda: 0, lambda: file_entry.creation_time.timestamp // time_divide] \
+                [file_entry.creation_time is not None and file_entry.creation_time.timestamp is not None]()
+            file._ctime_nano = [lambda: 0, lambda: file_entry.creation_time.timestamp % time_divide] \
+                [file_entry.creation_time is not None and file_entry.creation_time.timestamp is not None]()
+            file._mtime = [lambda: 0, lambda: file_entry.modification_time.timestamp // time_divide] \
+                [file_entry.modification_time is not None and file_entry.modification_time.timestamp is not None]()
+            file._mtime_nano = [lambda: 0, lambda: file_entry.modification_time.timestamp % time_divide] \
+                [file_entry.modification_time is not None and file_entry.modification_time.timestamp is not None]()
+            file._atime = [lambda: 0, lambda: file_entry.access_time.timestamp // time_divide] \
+                [file_entry.access_time is not None and file_entry.access_time.timestamp is not None]()
+            file._atime_nano = [lambda: 0, lambda: file_entry.access_time.timestamp % time_divide] \
+                [file_entry.access_time is not None and file_entry.access_time.timestamp is not None]()
+        else:
+            # Linux
+            file._ctime = [lambda: 0, lambda: file_entry.creation_time.timestamp] \
+                [file_entry.creation_time is not None and file_entry.creation_time.timestamp is not None]()
+            file._ctime_nano = 0
+            file._mtime = [lambda: 0, lambda: file_entry.modification_time.timestamp] \
+                [file_entry.modification_time is not None and file_entry.modification_time.timestamp is not None]()
+            file._mtime_nano = 0
+            file._atime = [lambda: 0, lambda: file_entry.access_time.timestamp] \
+                [file_entry.access_time is not None and file_entry.access_time.timestamp is not None]()
+            file._atime_nano = 0
+
+        files.append(file)
         self._InsertFileInfoRecords(files)
 
     def _InsertFileInfoRecords(self, files):

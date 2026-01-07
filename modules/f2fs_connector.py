@@ -30,7 +30,7 @@ class F2fsConnector(interface.ModuleConnector):
         subprocess.run([this_file_path + 'carpe_tsk.exe',
                         '-F', 'loaddb',
                         '-d', output_path + os.sep + 'f2fs.db',
-                        'E:\\03. image\\IITP\\f2fs-003.img'])
+                        configuration.source_path])
 
         file_info = f2fs_parse.main(par_id, output_path + os.sep + 'f2fs.db')
         print(file_info)
