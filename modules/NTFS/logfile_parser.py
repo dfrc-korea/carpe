@@ -33,43 +33,38 @@ def detail_parse(log_record_list):
                     log_record_list[index - 1][6] == "AddIndexEntryAllocation") or \
                         (log_record_list[index][6] == "InitializeFileRecordSegment" and log_record_list[index][
                             7] == "Noop" and log_record_list[index - 1][6] == "AddIndexEntryRoot"):
-                    try:
-                        index_data = json.loads(log_record_list[index][16])
-                        
-                        if "ARCHIVE" in index_data["std_info"]["file_attributes"]:
-                            if index_data.get("second_file_name") is not None:
-                                if index_data["second_file_name"]["parent_file_path"] is not None:
-                                    log_record_list[index][17] = "File Created - " + "Filename: " + str(
-                                        index_data["second_file_name"]["parent_file_path"]) + "/" + str(
-                                        index_data["second_file_name"]["file_name"])
-                                else:
-                                    log_record_list[index][17] = "File Created - " + "Filename: " + str(
-                                        index_data["second_file_name"]["file_name"])
-
-
+                    if "ARCHIVE" in json.loads(log_record_list[index][16])["std_info"]["file_attributes"]:
+                        if json.loads(log_record_list[index][16]).get("second_file_name") is not None:
+                            if json.loads(log_record_list[index][16])["second_file_name"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "File Created - " + "Filename: " + str(
+                                    json.loads(log_record_list[index][16])["second_file_name"][
+                                        "parent_file_path"]) + "/" + str(
+                                    json.loads(log_record_list[index][16])["second_file_name"]["file_name"])
                             else:
-                                if index_data["file_name"]["parent_file_path"] is not None:
-                                    log_record_list[index][17] = "File Created - " + "Filename: " + str(
-                                        index_data["file_name"]["parent_file_path"]) + "/" + str(
-                                        index_data["file_name"]["file_name"])
-                                else:
-                                    log_record_list[index][17] = "File Created - " + "Filename: " + str(
-                                        index_data["file_name"]["file_name"])
+                                log_record_list[index][17] = "File Created - " + "Filename: " + str(
+                                    json.loads(log_record_list[index][16])["second_file_name"]["file_name"])
 
-                        elif index_data["std_info"]["file_attributes"] == "" or \
-                                index_data["std_info"]["file_attributes"] == "NOT_CONTENT_INDEXED":
-                            if index_data.get("second_file_name") is not None:
-                                log_record_list[index][17] = "Directory Created - " + "Filename: " + str(
-                                    index_data["second_file_name"]["parent_file_path"]) + "/" + str(
-                                    index_data["second_file_name"]["file_name"])
 
+                        else:
+                            if json.loads(log_record_list[index][16])["file_name"]["parent_file_path"] is not None:
+                                log_record_list[index][17] = "File Created - " + "Filename: " + str(
+                                    json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(
+                                    json.loads(log_record_list[index][16])["file_name"]["file_name"])
                             else:
-                                log_record_list[index][17] = "Directory Created - " + "Filename: " + str(
-                                    index_data["file_name"]["parent_file_path"]) + "/" + str(
-                                    index_data["file_name"]["file_name"])
-                    except (KeyError, json.JSONDecodeError):
-                        # JSON 파싱 실패 또는 필수 키가 없는 경우 무시
-                        pass
+                                log_record_list[index][17] = "File Created - " + "Filename: " + str(
+                                    json.loads(log_record_list[index][16])["file_name"]["file_name"])
+
+                    elif json.loads(log_record_list[index][16])["std_info"]["file_attributes"] == "" or \
+                            json.loads(log_record_list[index][16])["std_info"]["file_attributes"] == "NOT_CONTENT_INDEXED":
+                        if json.loads(log_record_list[index][16]).get("second_file_name") is not None:
+                            log_record_list[index][17] = "Directory Created - " + "Filename: " + str(
+                                json.loads(log_record_list[index][16])["second_file_name"]["parent_file_path"]) + "/" + str(
+                                json.loads(log_record_list[index][16])["second_file_name"]["file_name"])
+
+                        else:
+                            log_record_list[index][17] = "Directory Created - " + "Filename: " + str(
+                                json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(
+                                json.loads(log_record_list[index][16])["file_name"]["file_name"])
 
 
                 elif (log_record_list[index][6] == "DeallocateFileRecordSegment" and log_record_list[index][
@@ -210,39 +205,27 @@ def detail_parse(log_record_list):
                             pass
 
                     if len(ll) > 1 and ll[0][6] != "CreateAttribute":
-                        try:
-                            # JSON 데이터 로드 및 file_name 키 존재 여부 확인
-                            ll0_data = json.loads(ll[0][16])
-                            ll1_data = json.loads(ll[1][16])
-                            index_data = json.loads(log_record_list[index][16])
-                            
-                            # file_name 키가 모두 존재하는지 확인
-                            if not all(["file_name" in data for data in [ll0_data, ll1_data, index_data]]):
-                                pass  # file_name 키가 없으면 처리하지 않음
-                            elif len(str(ll0_data["file_name"]["file_name"])) > len(str(ll1_data["file_name"]["file_name"])):
-                                if str(ll0_data["file_name"]["parent_file_path"]) == str(index_data["file_name"]["parent_file_path"]):
-                                    log_record_list[index][17] = "Renaming: " + str(ll0_data["file_name"]["file_name"]) + " -> " + str(index_data["file_name"]["file_name"])
-
-                                else:
-                                    if ll0_data["file_name"]["parent_file_path"] is not None:
-                                        log_record_list[index][17] = "Renaming && Moving: " + str(ll0_data["file_name"]["parent_file_path"]) + "/" + str(ll0_data["file_name"]["file_name"]) + " -> " + str(index_data["file_name"]["parent_file_path"]) + "/" + str(index_data["file_name"]["file_name"])
-
-                                    else:
-                                        log_record_list[index][17] = "Renaming && Moving: " + str(ll0_data["file_name"]["file_name"]) + " -> " + str(index_data["file_name"]["parent_file_path"]) + "/" + str(index_data["file_name"]["file_name"])
+                        if len(str(json.loads(ll[0][16])["file_name"]["file_name"])) > len(str(json.loads(ll[1][16])["file_name"]["file_name"])):
+                            if str(json.loads(ll[0][16])["file_name"]["parent_file_path"]) == str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]):
+                                log_record_list[index][17] = "Renaming: " + str(json.loads(ll[0][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
 
                             else:
-                                if str(ll1_data["file_name"]["parent_file_path"]) == str(index_data["file_name"]["parent_file_path"]):
-                                    log_record_list[index][17] = "Renaming: " + str(ll1_data["file_name"]["file_name"]) + " -> " + str(index_data["file_name"]["file_name"]) + " File_path: " + str(index_data["file_name"]["parent_file_path"])
+                                if json.loads(ll[0][16])["file_name"]["parent_file_path"] is not None:
+                                    log_record_list[index][17] = "Renaming && Moving: " + str(json.loads(ll[0][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(ll[0][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
 
                                 else:
-                                    if ll1_data["file_name"]["parent_file_path"] is not None:
-                                        log_record_list[index][17] = "Renaming && Moving: " + str(ll1_data["file_name"]["parent_file_path"]) + "/" + str(ll1_data["file_name"]["file_name"]) + " -> " + str(index_data["file_name"]["parent_file_path"]) + "/" + str(index_data["file_name"]["file_name"])
+                                    log_record_list[index][17] = "Renaming && Moving: " + str(json.loads(ll[0][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
 
-                                    else:
-                                        log_record_list[index][17] = "Renaming && Moving: " + str(ll1_data["file_name"]["file_name"]) + " -> " + str(index_data["file_name"]["parent_file_path"]) + "/" + str(index_data["file_name"]["file_name"])
-                        except (KeyError, json.JSONDecodeError, IndexError) as e:
-                            # JSON 파싱 실패 또는 키가 없는 경우 무시
-                            pass
+                        else:
+                            if str(json.loads(ll[1][16])["file_name"]["parent_file_path"]) == str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]):
+                                log_record_list[index][17] = "Renaming: " + str(json.loads(ll[1][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["file_name"]) + " File_path: " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"])
+
+                            else:
+                                if json.loads(ll[1][16])["file_name"]["parent_file_path"] is not None:
+                                    log_record_list[index][17] = "Renaming && Moving: " + str(json.loads(ll[1][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(ll[1][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
+
+                                else:
+                                    log_record_list[index][17] = "Renaming && Moving: " + str(json.loads(ll[1][16])["file_name"]["file_name"]) + " -> " + str(json.loads(log_record_list[index][16])["file_name"]["parent_file_path"]) + "/" + str(json.loads(log_record_list[index][16])["file_name"]["file_name"])
 
                     elif len(ll) == 1:
 

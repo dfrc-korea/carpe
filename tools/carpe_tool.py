@@ -8,7 +8,6 @@ import platform
 import pytz
 import zipfile
 import shutil
-import time
 
 from tools.helpers import manager as helpers_manager
 from tools import extraction_tool, case_manager
@@ -23,7 +22,7 @@ from utility import loggers
 from utility import definitions
 from utility import csv_export
 
-# Main Class
+
 class CarpeTool(extraction_tool.ExtractionTool,
                 case_manager.CaseManager):
     """Carpe CLI tool.
@@ -231,6 +230,7 @@ class CarpeTool(extraction_tool.ExtractionTool,
         self.list_advanced_modules = self._advanced_module_filter_expression == 'list'
         self.case_id = getattr(options, 'case_id', None)
         self.evidence_id = getattr(options, 'evidence_id', None)
+
         self.standalone_check = getattr(options, 'standalone_check', False)
         self.csv_check = getattr(options, 'csv_check', False)
         self.signature_check = getattr(options, 'signature_check', False)
@@ -270,62 +270,33 @@ class CarpeTool(extraction_tool.ExtractionTool,
             self._output_writer.Write('{0!s}\n'.format(exception))
             return False
 
-        path, source_extension = os.path.splitext(self._source_path)
-        source_name = os.path.basename(path)
+        path, ext = os.path.splitext(self._source_path)
+        if ext == '.zip':
+            print("Input argument is zip file")
 
-        if source_extension == '.zip':
             zip_file = zipfile.ZipFile(self._source_path)
-            
-            # 압축 해제 경로 설정
+            # if os.path.exists(self._root_tmp_path + os.sep + 'tmp'):
+            #     shutil.rmtree(self._root_tmp_path + os.sep + 'tmp')0
+            # # 압축해제
+            # zip_file.extractall(self._root_tmp_path + os.sep + 'tmp')
+            # self._source_path = self._root_tmp_path + os.sep + 'tmp'
+            extract_path = None
             if os.sep == '\\':
-                extract_path = os.path.join(self._root_tmp_path, self.case_id, self.evidence_id, 'zip')
+                extract_path = self._root_tmp_path + os.sep + 'tmp'
             else:
                 cid = self._source_path.split('/')[4]
                 eid = self._source_path.split('/')[5]
-                extract_path = os.path.join(self._root_tmp_path, cid, eid, 'zip')
-
-            # 기존 폴더가 있다면 삭제 후 새로 생성
+                extract_path = self._root_tmp_path + os.sep + cid + os.sep + eid + os.sep + 'tmp'
             if os.path.exists(extract_path):
                 shutil.rmtree(extract_path)
-            os.makedirs(extract_path, exist_ok=True)
-
-            # 압축 해제 + mtime 복원
-            for zip_info in zip_file.infolist():
-                zip_file.extract(zip_info, extract_path)
-                extracted_path = os.path.join(extract_path, zip_info.filename)
-
-                if not zip_info.is_dir():
-                    mtime = time.mktime(datetime(*zip_info.date_time).timetuple())
-                    os.utime(extracted_path, (mtime, mtime))
-
-            # 디버깅: 압축 해제 후 최상위 폴더 구조 출력
-            entries = os.listdir(extract_path)
-            # print(f"[DEBUG] Extracted top-level entries: {entries}")
-
-            # 최상위 폴더가 하나뿐이고, ZIP 파일명과 동일하다면 평탄화
-            if len(entries) == 1:
-                first_entry = entries[0]
-                first_path = os.path.join(extract_path, first_entry)
-                if os.path.isdir(first_path):
-                    # print(f"[DEBUG] Found single top-level folder: '{first_entry}' (zip name: '{source_name}')")
-                    if first_entry == source_name:
-                        # print(f"[DEBUG] Folder name matches zip file name. flattening structure.")
-                        for item in os.listdir(first_path):
-                            shutil.move(os.path.join(first_path, item), extract_path)
-                        os.rmdir(first_path)
-
-            # input을 압축 해제 경로로 설정
+            # 압축 해제
+            zip_file.extractall(extract_path)
+            # input을 압축해제한 경로로 변경
             self._source_path = extract_path
 
         # scan source
-        # 여기서 self.source_path_specs 리스트를 append
-        # 이 리스트는 곧 partition_info 테이블 생성에 사용됨
-        # self.ScanSource()가 가능한 이유 : CarpeTool이 ExtractionTool을 상속받았고, ExtractionTool은 StorageMediaTool을 상속받음
-        if not self.ignore:
-            scan_context = self.ScanSource(self._source_path)
-            self._source_type = scan_context.source_type
-        else:
-            self._source_type = 'ignore'
+        scan_context = self.ScanSource(self._source_path)
+        self._source_type = scan_context.source_type
 
         # set partition_list
         if self.ignore:
@@ -356,9 +327,8 @@ class CarpeTool(extraction_tool.ExtractionTool,
 
         # check partition_list
         if mode == 'Analyze' and not self._partition_list:
-            if configuration.source_path_specs and len(configuration.source_path_specs) > 0:
-                if configuration.source_path_specs[0].type_indicator == 'APFS':
-                    pass
+            if configuration.source_path_specs[0].type_indicator == 'APFS':
+                pass
             # else:
             #     raise errors.BadConfigObject('partition does not exist.\n')
 
@@ -366,14 +336,9 @@ class CarpeTool(extraction_tool.ExtractionTool,
         print(f"The number of partition : {len(self._partition_list)}", file=sys.stdout)
         sys.stdout.flush()
         for key, value in self._partition_list.items():
-            if configuration.source_path_specs:
-                try:
-                    type_indicator = configuration.source_path_specs[int(key[1:]) - 1].type_indicator
-                    print(f" - Partition ({type_indicator}) \'{key}\' : \'{value}\'", file=sys.stdout)
-                except (IndexError, ValueError):
-                    print(f" - Partition \'{key}\' : \'{value}\'", file=sys.stdout)
-            else:
-                print(f" - Partition \'{key}\' : \'{value}\'", file=sys.stdout)
+            print(
+                f" - Partition ({configuration.source_path_specs[int(key[1:]) - 1].type_indicator}) \'{key}\' : \'{value}\'",
+                file=sys.stdout)
             sys.stdout.flush()
         # print()  # for line feed
 
@@ -418,23 +383,16 @@ class CarpeTool(extraction_tool.ExtractionTool,
             #         advanced_module_filter_expression=configuration.advanced_module_filter_expression)
             #     engine.ProcessAdvancedModules(configuration)
 
-            if configuration.source_path_specs and len(configuration.source_path_specs) > 0:
-                if configuration.source_path_specs[0].type_indicator == 'APFS':
-                    pass
-                else:
-                    # carve
-                    # print("Carving Start")
-                    if not self._partition_list:
-                        # print("No partition")
-                        engine.process_carve(configuration, is_partition=False)
-                    else:
-                        # print(self._partition_list)
-                        engine.process_carve(configuration, is_partition=True)
+            if configuration.source_path_specs[0].type_indicator == 'APFS':
+                pass
             else:
-                # source_path_specs가 없는 경우 (Ex01 등)
+                # carve
+                # print("Carving Start")
                 if not self._partition_list:
+                    # print("No partition")
                     engine.process_carve(configuration, is_partition=False)
                 else:
+                    # print(self._partition_list)
                     engine.process_carve(configuration, is_partition=True)
 
         # carpe_carve.py
