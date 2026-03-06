@@ -45,4 +45,6 @@ from modules import extract
 # Register plugins.
 from modules import DEFA
 
+from modules import pca_connector
+
 

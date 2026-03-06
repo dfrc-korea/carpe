@@ -1,0 +1,30 @@
+Name: WindowsPcaGeneralDb
+Desc: Windows PCA GeneralDb
+Table:
+  - TableName: lv1_os_win_pca_generaldb
+    Columns:
+      - par_id
+      - case_id
+      - evd_id
+      - creation_time
+      - record_type
+      - file_path
+      - product_name
+      - company_name
+      - product_version
+      - program_id
+      - message
+
+
+    Types:
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [VARCHAR(100), NOT NULL]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
+      - [TEXT]
